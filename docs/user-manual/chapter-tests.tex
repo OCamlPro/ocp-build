@@ -1,0 +1,164 @@
+
+\ocpbuild{} can run tests on packages.
+
+\section{Running tests}
+
+Running tests is simple:
+\begin{verbatim}
+ocp-build -tests
+\end{verbatim}
+
+\ocpbuild{} will compile all the tests, and run them. \ocpbuild{} will
+then display how many tests failed and succeeded, which tests failed,
+and timings for benchmarks :
+
+\begin{verbatim}
+Parallel tests ran in 0.00s (max 6 jobs)
+Serial tests ran in 0.08s
+FAILED: 0/7
+SUCCESS: 7/7
+  0.08s	ocp-build.test/tests/cycle
+\end{verbatim}
+
+\ocpbuild{} runs tests in two phases: in the first \emph{parallel}
+phase, it runs as many tests as possible in parallel, depending on the
+``njobs'' option; in the second \emph{sequential} phase, it runs the
+tests in sequential. Tests are moved to the sequential phase when they
+are benchmarks or serialized.
+
+\section{Adding tests to your packages}
+
+\subsection{Creating an independant ``test'' package}
+
+A ``test'' package is a program that is only compiled when 
+\ocpbuild{} is ran with argument \verb+-tests+.
+
+\begin{verbatim}
+begin test "my-lib-test"
+  files = [ "test.ml" ]
+  requires = [ "my-lib" ]
+end
+\end{verbatim}
+
+Within a ``test'' package, it is possible to run several times the
+program with different parameters. For that, a ``tests'' field can
+define a list of test names. If the ``tests'' field of a ``test''
+package is not specified, a test name ``default'' is automatically
+defined.
+
+Every test can define a set of options:
+\begin{description}
+\item[test\_exit]: the correct exit status for the test (0 by default) 
+\item[test\_dir]: the directory in which the test program should be run
+  (default is empty, for the project root)
+\item[test\_args]: a list of arguments for the test program (default is empty)
+\item[test\_benchmark]: true if the time spent running the test should
+  be displayed. Benchmarks are not run in parallel with other tests
+  (default is false).
+\item[test\_stdout]: the name of a file that should be used, when the
+  exit status is correct, to compare with what the test printed on
+  stdout.
+\item[test\_stderr]: the name of a file that should be used, when the
+  exit status is correct, to compare with what the test printed on
+  stderr.
+\item[test\_stdin]: the name of a file that should be passed on
+  the standard input of the test.
+\item[test\_serialized]: true if the test should not be run in
+  parallel with other tests. Useful for tests that are themselves
+  using several cores (default is false).
+\item[test\_variants]: a list of strings on which a test should
+  iterate (default is "").
+\item[test\_asm]: true if the native version of the test should be run
+ (default is true)
+\item[test\_byte]: true if the bytecode version of the test should be run
+  (default is true).
+\item[test\_cmd]: the name of the file that should be run (default is
+\verb-%{binary}%-, see substitions later).
+\end{description}
+
+When defining these options, substitutions are available:
+\begin{description}
+\item[\%\{test\}\%] the name of the current test.
+\item[\%\{binary\}\%] the name of the current executable being run
+\item[\%\{sources\}\%] the current source directory of the test
+\item[\%\{tests\}\%] a sub-directory ``tests'' within the source
+  directory of the test
+\item[\%\{variant\}\%] the current variant, when ``test\_variants''
+  was specified.
+\item[\%\{results\}\%] the directory where test results will be stored
+  (can be used to store other files).
+\end{description}
+
+\subsection{Including tests in a ``program'' package}
+
+It is also possible to define tests directly in a ``program'' package.
+For that, you should need to define the ``tests'' field:
+
+\begin{verbatim}
+begin program "my-program"
+  files = [ "main.ml" ]
+  requires = [ "my-lib" ]
+
+  (* for all the tests, the program should receive the test name 
+     as first argument *)
+  test_args = [ "%{test}%"] 
+
+  (* we want to run 3 tests, with names "1", "2" and "3" *)
+  tests = [ "1" "2" 
+     (* in the test "3", the expected exit status should be 2 *)
+            "3" (test_exit = 2) ]
+end
+\end{verbatim}
+
+\subsection{Adding external tests to a ``program'' package}
+
+It is also possible to define tests for a ``program'' package
+in a separate ``test'' package. For that, the ``test'' package should have
+an empty ``files'' field, and have the ``program'' package in its
+``requires'' field. The previous tests would now be written:
+
+\begin{verbatim}
+begin test "my-program-test"
+  files = [ ]
+  requires = [ "my-program" ]
+
+  (* for all the tests, the program should receive the test name 
+     as first argument *)
+  test_args = [ "%{test}%"] 
+
+  (* we want to run 3 tests, with names "1", "2" and "3" *)
+  tests = [ "1" "2" 
+     (* in the test "3", the expected exit status should be 2 *)
+            "3" (test_exit = 2) ]
+end
+\end{verbatim}
+
+\subsection{Complex examples}
+
+In the following example, we generate tests for the program
+``compile-and-run'': we define 4 tests (the ``tests'' field), and for
+each test, we will run the 4 variants (the ``test\_variants''
+option). In each run, the variant value is passed as the first
+argument, while the second argument is a file within the test
+directory. The program ``compile-and-run'' is only tested in native
+code (we set ``test\_byte'' to false). For each test, we compare the
+output with a file in the test directory with the ``.reference''
+extension (the ``test\_stdout'' option):
+
+\begin{verbatim}
+begin test "basic"
+  files = []
+  requires = [ "compile-and-run" ]
+
+  test_byte = false
+  test_stdout = [ "%{sources}%/%{test}%.reference" ]
+  test_variants = [
+        "-ocamlc" "-ocamlopt"
+        "-ocamlc.opt" "-ocamlopt.opt"
+      ]
+  test_args = [ "%{variant}%" "%{sources}%/%{test}%.ml" ]
+  tests = [
+    "arrays"     "equality"	"maps"       "sets"
+  ]
+end
+\end{verbatim}

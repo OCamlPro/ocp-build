@@ -1,0 +1,98 @@
+
+\ocpbuild{} is part of \typerex{}. The simplest way to install it is
+to use \opam{}\footnote{\url{http://opam.ocamlpro.com}}, the source package
+manager for OCaml. If for some reasons, you are not satisfied by this
+way, you will want to try to install it from its source repository, on
+\github{}.
+
+\section{Installing with \opam{}}
+
+\ocpbuild{} is available in \opam{}. It is a meta-package (an empty
+package) that triggers the installation of \typerex{}, with version
+greater than 1.99. Indeed, \ocpbuild{} is compiled and installed by
+the \typerex{} package. Any previous version of \ocpbuild{}
+(especially version 0.1) should be uninstalled \underline{before}
+installing \typerex{}.
+
+First, let's check if ocp-build is already installed:
+\begin{verbatim}
+ peerocaml:~%  opam info ocp-build
+             package: ocp-build
+   installed-version: ocp-build.0.1 [4.00.1]
+   available-version: 1.99.2-beta
+         description: Project manager for OCaml
+\end{verbatim}
+
+The output of the command shows that \ocpbuild{} is already installed,
+with version 0.1. We should remove it immediatly:
+
+\begin{verbatim}
+ peerocaml:~%  opam remove ocp-build
+The following actions will be performed:
+ - remove ocp-build.0.1
+0 to install | 0 to reinstall | 0 to upgrade | 0 to downgrade | 1 to remove
+\end{verbatim}
+
+Note that some other packages depending on \ocpbuild{} can need to be
+uninstalled too. You can keep a list of these packages, so that you
+can install them again after installing the new version.
+
+If you only ask \opam{} to install \ocpbuild{}, \opam{} might decide
+to re-install \ocpbuild{} 0.1 because it has a shorter chain of
+dependencies than \ocpbuild{} 1.99. To force it to install the new
+version, we can ask for both \ocpbuild{} and \typerex{}:
+\begin{verbatim}
+ peerocaml:~%  opam install ocp-build typerex
+The following actions will be performed:
+ - install ocp-build.1.99.2-beta
+ - install typerex.1.99.2-beta
+2 to install | 0 to reinstall | 0 to upgrade | 0 to downgrade | 0 to remove
+Do you want to continue ? [Y/n]
+\end{verbatim}
+
+\section{Installing from \github{}}
+
+\ocpbuild{} sources can be retrieved from \github{}. The latest
+version is developed in the {\tt typerex2} branch of the {\tt OCamlPro/typerex}
+repository:
+
+\begin{verbatim}
+ peerocaml:~%  git clone git@github.com:OCamlPro/typerex.git
+ peerocaml:~%  git checkout typerex2
+\end{verbatim}
+
+In the source directory ({\tt typerex}), We can now configure, compile
+and install:
+\begin{verbatim}
+ peerocaml:~%  ./configure --prefix /usr/local/
+ peerocaml:~%  make
+ peerocaml:~%  make install
+\end{verbatim}
+
+The last command will install all \typerex{} commands and
+libraries. If you just want to install \ocpbuild{}, you can use:
+
+\begin{verbatim}
+ peerocaml:~%  sudo ./_obuild/ocp-build/ocp-build.asm -install ocp-build \
+    -install-bin /usr/local/bin -install-lib /usr/local/lib/ocaml
+\end{verbatim}
+
+Note that we used {\tt sudo} since the install paths we specified
+require administrator priviledges.
+
+It is also possible to uninstall files installed by {\tt make install}
+using \ocpbuild{}:
+\begin{verbatim}
+ peerocaml:~%  ocp-build -uninstall typerex
+\end{verbatim}
+
+We can also use \ocpbuild{} to uninstall packages installed by
+\ocpbuild{} (but it would be a bad idea to use that to uninstall
+packages installed by \opam{}):
+\begin{verbatim}
+ peerocaml:~%  sudo ocp-build -uninstall ocp-build
+\end{verbatim}
+
+
+If you want to modify \ocpbuild{}, sources specific to \ocpbuild{} are
+located in the {\tt tools/ocp-build} directory.

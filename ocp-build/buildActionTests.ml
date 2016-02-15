@@ -1,0 +1,87 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                              OCamlPro TypeRex                          *)
+(*                                                                        *)
+(*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
+(*   This file is distributed under the terms of the GPL v3.0             *)
+(*      (GNU Public Licence version 3.0).                                 *)
+(*                                                                        *)
+(*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
+(*                                                                        *)
+(*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       *)
+(*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES       *)
+(*  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND              *)
+(*  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS   *)
+(*  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN    *)
+(*  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN     *)
+(*  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE      *)
+(*  SOFTWARE.                                                             *)
+(**************************************************************************)
+
+
+(* ocp-build install [OPTIONS]
+
+  Set the options of the user preference file.
+
+*)
+
+open BuildOCPTypes
+open BuildArgs
+open BuildOptions
+open BuildGlobals
+open BuildActions
+open BuildTypes
+open BuildOCPTree
+
+let arg_list =
+  BuildOptions.merge
+    [
+      [
+
+      ];
+      BuildActionBuild.arg_list
+    ]
+
+
+
+let do_test b ncores projects =
+  time_step "Executing tests";
+  let stats = BuildOCamlTest.init () in
+  List.iter (fun lib ->
+    match lib.lib_type with
+    | ProgramPackage
+    | TestPackage ->
+      BuildOCamlTest.test_package b stats lib !benchmarks_arg
+    | LibraryPackage
+    | ObjectsPackage
+    | SyntaxPackage
+    | RulesPackage
+      -> ()
+  ) projects;
+  BuildOCamlTest.finish stats ncores;
+  time_step "   Done executing tests"
+
+
+let action () =
+
+  BuildActionBuild.(
+  (* Nothing specified, make build targets: *)
+                                            if not !make_doc_targets && not !make_test_targets then make_build_targets := true;
+  (* Test targets require build targets ? *)
+    if !make_test_targets then make_build_targets := true;
+    if !make_doc_targets then make_build_targets := true;
+  );
+
+  let p = BuildActions.load_project () in
+  let (bc, projects) = BuildActionBuild.do_build p in
+  do_test bc.build_context (BuildActionBuild.get_ncores p.cin) projects;
+  ()
+
+let subcommand = {
+  sub_name = "tests";
+  sub_help =  "Run project tests.";
+  sub_arg_list = arg_list;
+  sub_arg_anon = Some arg_anon;
+  sub_arg_usage = [ "Run project tests."; ];
+  sub_action = action;
+}

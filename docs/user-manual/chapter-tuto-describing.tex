@@ -1,0 +1,64 @@
+
+\section{Building a simple program}
+
+To build a program, for example composed of two files {\tt a.ml} and
+{\tt b.ml}, and using libraries {\tt x} and {\tt y} (where {\tt x} and
+{\tt y} are META packages), you just need to create a file {\tt
+  my-program.ocp} in the directory containing the sources, with the
+following content:
+
+\begin{verbatim}
+begin program "my-program"
+  files = [ "a.ml" "b.ml"]
+  requires = [ "x" "y" ]
+end
+\end{verbatim}
+
+If you don't know in which order {\tt a.ml} and {\tt b.ml} should be
+linked, you can ask \ocpbuild{} to sort them for you:
+
+\begin{verbatim}
+begin program "my-program"
+  sort = true
+  files = [ "a.ml" "b.ml"]
+  requires = [ "x" "y" ]
+end
+\end{verbatim}
+
+Finally, you can provide additionnal information, not necessary for
+your program:
+\begin{verbatim}
+version = "1.2.3"
+authors = [ "Jon Doe <jon.doe@does-family.net>" ]
+license = [ "GPLv3" ]
+
+begin program "my-program"
+  files = [ "a.ml" "b.ml"]
+  requires = [ "x" "y" ]
+end
+\end{verbatim}
+
+\ocpbuild{} can still use this information to generate files that will
+be integrated to your program, for example here the module {\tt
+  Version}:
+\begin{verbatim}
+version = "1.2.3"
+authors = [ "Jon Doe <jon.doe@does-family.net>" ]
+license = [ "GPLv3" ]
+
+begin program "my-program"
+  files = [ 
+    "version.ml" (ocp2ml)
+    "a.ml" "b.ml"]
+  requires = [ "x" "y" ]
+end
+\end{verbatim}
+
+Once your program compiled, the content of file {\tt version.ml} can
+be seen in the directory {\tt
+  \_obuild/\_mutable\_tree/SUBDIR/version.ml}, where {\tt SUBDIR} is
+the subdirectory of your sources in the compiled project.
+
+\section{Building libraries}
+
+\section{Customization of per-file options}

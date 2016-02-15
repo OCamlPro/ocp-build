@@ -1,0 +1,53 @@
+
+Even if you are not using \ocpbuild{} to build you own projects, you
+might need some more information to take advantage of \ocpbuild{}
+features when compiling other projects.
+
+\section{Invoking \ocpbuild{}}
+
+If you want to compile a project that uses \ocpbuild{}, you can use
+the following commands:
+
+\begin{description}
+\item[{\tt ocp-build root}:] This command defines the root directory
+  of the project as the current directory. \ocpbuild{} will create a
+  file {\tt ocp-build.root}. When invoked from any sub-directory, it
+  will come back to this directory to compile the full project.
+\item[{\tt ocp-build configure [OPTIONS]}:] This command can be used
+  to modify default options of the project, stored in the {\tt
+    ocp-build.root} file. 
+\item[{\tt ocp-build project [QUERY]}:] This command can be used to
+  read the project, and query some informations. For example, it can
+  be used to ask which packages are going to be built in the current
+  configuraiton.
+\item[{\tt ocp-build build [PACKAGES]}:] This command can be used to
+  compile all the project, or just a list of packages.
+\item[{\tt ocp-build install [PACKAGES]}:] install the specified
+  packages.
+\item[{\tt ocp-build test}:] run the project tests
+\item[{\tt ocp-build clean}:] remove the {\tt \_obuild} directory
+  containing all build artefacts.
+\item[{\tt ocp-build query [QUERY]}:] This command can be used to
+  query some information from the OCaml environment.
+\end{description}
+
+
+\section{The {\tt \_obuild} directory}
+
+\ocpbuild{} creates a directory {\tt \_obuild} at the root of the
+project, to store the files it creates. The content of the {\tt
+  \_obuild} directory is as follows:
+\begin{description}
+\item[{\tt \_obuild/cache.cmd}:] a list of command checksums, to avoid
+  re-executing commands already executed.
+\item[{\tt \_obuild/cache.cmd.log}:] the log of texts used to compute
+  command checksums.
+\item[{\tt \_obuild/\_mutable\_tree/}:] a copy of the project hierarchy
+  of directories, used to store temporary sources and annotations
+  (actually, redirections towards annotation files)
+\item[{\tt \_obuild/}package/:] for each package, a directory
+  containing the object files generated during the compilation.
+\end{description}
+
+
+\section{Setting \ocpbuild{} default parameters}

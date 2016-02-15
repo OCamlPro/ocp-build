@@ -1,0 +1,49 @@
+\documentclass[11pt]{book}
+
+\usepackage{enumerate}
+\usepackage{color}
+%\usepackage{a4wide}
+\usepackage[colorlinks=true,linkcolor=blue] {hyperref}
+\usepackage{url}
+
+\newcommand{\cmd}[1]{$\texttt{#1}$}
+
+\newcommand{\ocpbuild}{\cmd{ocp-build}}
+\newcommand{\typerex}{TypeRex}
+\newcommand{\opam}{\cmd{opam}}
+\newcommand{\github}{GitHub}
+
+\title{\ocpbuild{} User Manual}
+
+\author{OCamlPro \and INRIA}
+\date{Jan 26, 2013}
+\begin{document}
+
+\maketitle
+\thispagestyle{empty}
+\tableofcontents
+
+\chapter{Introduction}
+\input{chapter-intro}
+
+\chapter{Tutorial: Building an \ocpbuild{} project}
+\input{chapter-tuto-using}
+
+\chapter{Tutorial: How to use \ocpbuild{} in your projects}
+\input{chapter-tuto-describing}
+
+\chapter{Building OCaml Projects with {\tt ocp-build}}
+\input{chapter-ocaml}
+
+\chapter{Managing tests with \ocpbuild{}}
+\input{chapter-tests}
+
+\chapter{Managing Syntax Extensions with \ocpbuild{}}
+\input{chapter-prepro}
+
+\chapter{Installation}
+\input{chapter-install}
+
+%\input{specif}
+
+\end{document}

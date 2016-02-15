@@ -1,0 +1,56 @@
+
+\ocpbuild{} is a tool to build whole OCaml projects, composed of
+multiple files in multiple directories. 
+
+\section{Main Features}
+
+The main features of \ocpbuild{} are:
+
+\begin{itemize}
+\item Simple declarative project description
+\item Short syntax for packing modules, 
+  dependencies between libraries.
+\item Simple way to customize options for every module.
+\item Incremental and parallel build system
+\item Support for camlp4, composition of syntax extensions and
+  optimised compilation
+\item Portable, run both on Unices and Windows
+\item Support and generate ocamlfind META files
+\end{itemize}
+
+\section{Comparing \ocpbuild{} to others}
+
+Here is a list of other building tools for OCaml projects and how
+\ocpbuild{} compares to them.
+
+\begin{description}
+\item[ocamlbuild:] ocamlbuild is a generic build manager, where
+  configuration files are written in OCaml. \ocpbuild{} has a less
+  generic scope, but consequently, its configuration files are much
+  simpler, and still very powerful because of its specialization for
+  OCaml projects. Also, \ocpbuild{} works under native Windows.
+\item[make:] make is a well-known generic build manager for
+  Unices. Makefiles for OCaml projects are notoriously complicated to
+  write, and do not support parallelization well.
+\item[omake:] omake is an improved make, written in OCaml, and with
+  native support for OCaml projects. omake works well on big projects
+  and under Windows, but it is not supported anymore, and omake has no
+  support for library dependencies.
+\item[ocamlfind] ocamlfind is not a build manager, but a command-line
+  tool to make the OCaml compilers aware of other OCaml components
+  installed in the system (libraries, syntaxes, etc.), thanks to their
+  META files. \ocpbuild{} supports META files, and, since it reads the
+  environment only once, is much faster than using ocamlfind for every
+  module.
+\item[oasis:] oasis is a simple frontend to describe OCaml projects,
+  inspired from Cabal. Configuration files are simple declarative
+  files, as with \ocpbuild{}, but the build process is done by other
+  tools (ocamlbuild usually). \ocpbuild{} is very similar to using
+  oasis+ocamlfind+ocamlbuild, but supports multi-components projects,
+  and its declarative language is simpler.
+\item[opam:] opam is a source package manager for OCaml. It relies on
+  other build managers to compile packages, and only decides in which
+  order the packages should be compiled and installed to meet
+  dependencies between them. opam uses \ocpbuild{} to build itself.
+\end{description}
+

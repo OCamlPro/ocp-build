@@ -1,0 +1,137 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                              OCamlPro TypeRex                          *)
+(*                                                                        *)
+(*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
+(*   This file is distributed under the terms of the GPL v3.0             *)
+(*      (GNU Public Licence version 3.0).                                 *)
+(*                                                                        *)
+(*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
+(*                                                                        *)
+(*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       *)
+(*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES       *)
+(*  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND              *)
+(*  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS   *)
+(*  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN    *)
+(*  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN     *)
+(*  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE      *)
+(*  SOFTWARE.                                                             *)
+(**************************************************************************)
+
+
+(* Warning: if you modify this file, do not forget to copy it in
+   ocaml/ocpwin/ocp-build/
+*)
+
+begin
+  generated = true
+  version = "[distributed with Ocaml]"
+  dirname = [ "%{OCAMLLIB}%" ]
+
+begin library "threads"
+  dirname = [ "%{OCAMLLIB}%"; "threads" ]
+   link = [ "-thread" ]
+  generated = true
+  requires = [ "unix" ]
+end
+
+  begin library "unix"
+    has_byte = true
+    has_asm = true
+    files = [ "unix.ml" ]
+  end
+
+  begin library "str"
+    requires = [ ]
+    has_byte = true
+    has_asm = true
+    files = [ "str.ml" ]
+  end
+
+  begin library "dynlink"
+    has_byte = true
+    has_asm = true
+    files = [ "dynlink.ml" ]
+  end
+
+  begin library "camlp4fulllib"
+    requires = [ "dynlink" ]
+    has_byte = true
+    has_asm = false
+  end
+
+  begin library "bigarray"
+    has_byte = true
+    has_asm  = true
+    files = [ "bigarray.ml" ]
+  end
+
+  begin library "graphics"
+    has_byte = true
+    has_asm  = true
+    files = [ "graphics.ml" ]
+  end
+
+  begin library "nums"
+    has_byte = true
+    has_asm  = true
+    files = [ "num.ml" ]
+  end
+
+  if ocaml_major_version = "4" then {
+
+    dirname = [ "%{OCAMLLIB}%/compiler-libs" ]
+
+(*
+    begin library "compiler-libs"
+      meta = true
+    end
+*)
+    begin library "ocamlcommon"
+    end
+(*
+    begin library "compiler-libs.common"
+      meta = true
+      requires = [ "ocamlcommon" ]
+    end
+*)
+    begin library "ocamlbytecomp"
+      requires = [ "ocamlcommon" ]
+    end
+    begin library "ocamloptcomp"
+      requires = [ "ocamlcommon" ]
+    end
+
+(* These projects are meta-packages, they don't contain anything, they
+   just add dependencies. They don't have generated=true, otherwise it
+   would mean they are actually installed and not meta. *)
+
+    meta = true
+    begin library "ocaml-bytecomp"
+        requires = [ "ocamlbytecomp" ]
+    end
+
+    begin library "ocaml-typing"
+        requires = [ "ocamlcommon" ]
+    end
+
+    begin library "ocaml-parsing"
+        requires = [ "ocamlcommon" ]
+    end
+
+    begin library "ocaml-utils"
+        requires = [ "ocamlcommon" ]
+    end
+
+    begin library "ocaml-driver"
+        requires = [ "ocamlbytecomp" ]
+    end
+
+    begin library "ocaml-asmcomp-amd64"
+        requires = [ "ocamloptcomp" ]
+    end
+
+  }
+
+
+end

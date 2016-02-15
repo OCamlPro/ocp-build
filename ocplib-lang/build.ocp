@@ -1,0 +1,67 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                              OCamlPro TypeRex                          *)
+(*                                                                        *)
+(*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
+(*   This file is distributed under the terms of the GPL v3.0             *)
+(*      (GNU Public Licence version 3.0).                                 *)
+(*                                                                        *)
+(*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
+(*                                                                        *)
+(*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       *)
+(*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES       *)
+(*  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND              *)
+(*  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS   *)
+(*  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN    *)
+(*  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN     *)
+(*  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE      *)
+(*  SOFTWARE.                                                             *)
+(**************************************************************************)
+
+
+
+begin library "ocplib-lang"
+
+  files = [
+    "ocpPervasives.ml"
+    "ocpList.ml"
+    "ocpString.ml"
+    "ocpStream.ml"
+    "ocpGenlex.ml"
+    "ocpHashtbl.ml"
+    "ocpDigest.ml"
+    "option.ml"
+    "intMap.ml"
+    "intSet.ml"
+    "stringMap.ml"
+    "stringSet.ml"
+    "toposort.ml"
+    "linearToposort.ml"
+    "ocamllexer.mll" (pp = [])
+    "trie.ml"
+    "ocpLang.ml"
+    "stringSubst.ml"
+    "manpage.ml"
+    "stringTemplate.ml"
+  ]
+  requires = [ "ocplib-debug" string_compat ]
+end
+
+install = false
+
+begin library "ocplib-test"
+  files = [ "test.ml" ]
+  requires = [ "ocplib-lang" ]
+end
+
+begin library "ocplib-lang.test"
+  files = [
+
+    "ocpList_test.ml";
+    "ocpString_test.ml";
+  ]
+  requires = [
+    "ocplib-lang";
+    "ocplib-test";
+   ]
+end
