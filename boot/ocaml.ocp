@@ -54,12 +54,6 @@ end
     files = [ "dynlink.ml" ]
   end
 
-  begin library "camlp4fulllib"
-    requires = [ "dynlink" ]
-    has_byte = true
-    has_asm = false
-  end
-
   begin library "bigarray"
     has_byte = true
     has_asm  = true
@@ -82,24 +76,20 @@ end
 
     dirname = [ "%{OCAMLLIB}%/compiler-libs" ]
 
-(*
-    begin library "compiler-libs"
-      meta = true
-    end
-*)
-    begin library "ocamlcommon"
-    end
-(*
     begin library "compiler-libs.common"
-      meta = true
-      requires = [ "ocamlcommon" ]
+          archive = "ocamlcommon"
     end
-*)
-    begin library "ocamlbytecomp"
-      requires = [ "ocamlcommon" ]
+    begin library "compiler-libs.bytecomp"
+      archive = "ocamlbytecomp"
+      requires = [ "compiler-libs.common" ]
     end
-    begin library "ocamloptcomp"
-      requires = [ "ocamlcommon" ]
+    begin library "compiler-libs.optcomp"
+      archive = "ocamloptcomp"
+      requires = [ "compiler-libs.common" ]
+    end
+    begin library "compiler-libs.toplevel"
+      archive = "ocamltoplevel"
+      requires = [ "compiler-libs.bytecomp" ]
     end
 
 (* These projects are meta-packages, they don't contain anything, they
@@ -108,27 +98,23 @@ end
 
     meta = true
     begin library "ocaml-bytecomp"
-        requires = [ "ocamlbytecomp" ]
+        requires = [ "compiler-libs.bytecomp" ]
     end
 
     begin library "ocaml-typing"
-        requires = [ "ocamlcommon" ]
+        requires = [ "compiler-libs.common" ]
     end
 
     begin library "ocaml-parsing"
-        requires = [ "ocamlcommon" ]
+        requires = [ "compiler-libs.common" ]
     end
 
     begin library "ocaml-utils"
-        requires = [ "ocamlcommon" ]
+        requires = [ "compiler-libs.common" ]
     end
 
     begin library "ocaml-driver"
-        requires = [ "ocamlbytecomp" ]
-    end
-
-    begin library "ocaml-asmcomp-amd64"
-        requires = [ "ocamloptcomp" ]
+        requires = [ "compiler-libs.bytecomp" ]
     end
 
   }

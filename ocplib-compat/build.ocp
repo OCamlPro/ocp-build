@@ -19,12 +19,24 @@
 (**************************************************************************)
 
 if ocaml_version = "4.01.0+ocp1" || ocaml_version = "4.02.1+ocp1" then {
-  files = []
-} else {
-  files = [ "stringCompat.ml" ]
-}
 
-begin library "ocplib-compat"
-  pp = ocp_pp
-  requires = []
-end
+  begin library "ocplib-compat";
+    files = [];
+    requires = [];
+  end;;
+
+} else {
+
+  if generated then {
+    begin program "ocp-pp" end
+  }
+
+  begin library "ocplib-compat";
+    files = [ "stringCompat.ml" ];
+    pp = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
+    requires = [ "ocp-pp" ];
+    pp_requires += [ "ocp-pp:byte" ];
+    pp_deps = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
+  end
+
+}

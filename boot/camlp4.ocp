@@ -105,6 +105,12 @@ begin
       requires = [ "camlp4lib" "camlp4-pa-op" "Camlp4Bin" ]
   end
 
+  begin library "camlp4fulllib"
+    requires = [ "dynlink" ]
+    has_byte = true
+    has_asm = false
+  end
+
 end
 
 (*

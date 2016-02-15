@@ -167,6 +167,7 @@ distclean: clean
 	rm -f autoconf/config.status
 	rm -f $(MAKE_CONFIG)
 	rm -rf autoconf/autom4te.cache
+	rm -f $(STRCOMPAT_SRCDIR)/stringCompat.ml
 
 #  "buildVersion.ml" (ocp2ml ; env_strings = [ "datadir" ])
 $(OCP_BUILD_SRCDIR)/buildVersion.ml: Makefile $(MAKE_CONFIG)
