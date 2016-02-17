@@ -892,9 +892,8 @@ and preprocess_directive lexer  directive =
       | _ ->
         if debug_ocpp then
           Printf.eprintf "Tokens: %s\n%!" (string_of_tokens args);
-        raise (Syntaxerr.Error (Syntaxerr.Expecting (
-          Location.curr !current_lexbuf,
-          "After #define, a macro name (capitalized) is")))
+        raise (Syntaxerr.Error (Syntaxerr.Other (
+          Location.curr !current_lexbuf)))
     end else
       preprocess lexer
 
@@ -1181,8 +1180,9 @@ let preprocess lexer lexbuf =
     token
   with
   | Failure s ->
-    raise (Syntaxerr.Error (Syntaxerr.Expecting (
-          Location.curr !current_lexbuf, s)))
+    Printf.eprintf "Error: %s\n" s;
+    raise (Syntaxerr.Error (Syntaxerr.Other (
+          Location.curr !current_lexbuf)))
   | e ->
     last_error := Some (Location.curr !current_lexbuf);
     raise e

@@ -22,6 +22,13 @@ open Ocpp_version
 open Parser
 open Lexing
 
+(* [Misc.cut_at] for OCaml >= 4.01 *)
+let cut_at s c =
+  let pos = String.index s c in
+  String.sub s 0 pos, String.sub s (pos+1) (String.length s - pos - 1)
+
+
+
 let current_version = "1.0"
 
 let () =
@@ -111,14 +118,14 @@ let () =
   let arg_list = Arg.align [
     "-D", Arg.String (fun s ->
       try
-        let (macro_name, macro_value) = Misc.cut_at s '=' in
+        let (macro_name, macro_value) = cut_at s '=' in
         Ocpp.add_macro macro_name [Compat.mk_string macro_value]
       with Not_found ->
         Ocpp.add_macro s []),
     "<macro[=string]> Define a macro";
     "-V", Arg.String (fun s ->
       try
-        let (macro_name, macro_value) = Misc.cut_at s '=' in
+        let (macro_name, macro_value) = cut_at s '=' in
         Ocpp.add_macro macro_name (Ocpp.macro_version macro_value)
       with Not_found ->
         Printf.eprintf "Option %S does not define a version\n%!" s;
