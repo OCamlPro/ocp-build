@@ -22,6 +22,8 @@
 /* The parser definition */
 
 %{
+  open Ocpp_version
+
 open Location
 open Longident
 open Ocpp_types
@@ -148,7 +150,7 @@ let mkinfix arg1 name arg2 =
 %token WHEN
 %token WHILE
 %token WITH
-%token <string * Location.t> COMMENT
+%token <string * Ocpp_version.Location.t> COMMENT
 
 %token EOL
 /*

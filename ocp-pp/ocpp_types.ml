@@ -18,7 +18,7 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
+open Ocpp_version
 open Versioning
 
 type directive =

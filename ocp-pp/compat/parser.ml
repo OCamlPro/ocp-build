@@ -138,8 +138,6 @@ type token =
   | WITH
   | COMMENT of (string * Location.t)
   | EOL
-  | OCPP_STRUCTURE of (Parsetree.structure)
-  | OCPP_SIGNATURE of (Parsetree.signature)
   | OCPP_PP_DIRECTIVE of (string)
   | OCPP_PP_CONTENT of (string)
   | SHARPJS

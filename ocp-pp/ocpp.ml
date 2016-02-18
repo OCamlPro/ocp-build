@@ -67,6 +67,9 @@ type state =
 
 type stack = (state * bool) list
 
+let token_of_token = function
+  | STRING (s,_) -> Ocpp_parser.STRING s
+  | _ -> assert false
 
 let lines_of_file filename =
   let ic = open_in filename in
@@ -483,7 +486,7 @@ let parse_expr tokens lexbuf =
           | PREFIXOP s  -> P.PREFIXOP s
           | BARBAR -> P.BARBAR
           | AMPERAMPER -> P.AMPERAMPER
-          | _ -> Compat.token_of_token token
+          | _ -> token_of_token token
       ) lexbuf
   with _ ->
     Printf.eprintf "Error while parsing directive expression\n%!";

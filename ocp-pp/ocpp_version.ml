@@ -82,8 +82,6 @@ module Compat = struct
     | STRING (s,_) -> Printf.sprintf "%S" s
     | _  -> assert false
 
-  let token_of_token = function
-    | STRING (s,_) -> Ocpp_parser.STRING s
-    | _ -> assert false
-
 end
+
+module Location = Location
