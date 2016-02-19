@@ -96,16 +96,17 @@ let parse arg_list subcommands arg_usage =
       let arg_anon s =
         List.iter (fun (cmd, init, spec, arg_action) ->
           if cmd = s then
-            let help = match spec.subcmd_help with
-              | _ :: _ -> String.concat "\n " spec.subcmd_help
+            begin
+              match spec.subcmd_help with
+              | _ :: _ -> Printf.eprintf "%s%!"
+                (String.concat "\n " spec.subcmd_help)
               |  [] ->
                 match spec.subcmd_usage with
-                    [] ->
-                      Printf.sprintf "No help on subcommand %S\n%!" s
-                  | head :: tail ->
-                    Arg.usage_string spec.subcmd_list (subcmd_usage cmd spec)
-            in
-            Printf.printf "%s\n%!" help;
+                  [] ->
+                      Printf.eprintf "No help on subcommand %S\n%!" s
+                | head :: tail ->
+                    Arg.usage spec.subcmd_list (subcmd_usage cmd spec)
+            end;
             exit 0
         ) subcommands;
         exit 0
