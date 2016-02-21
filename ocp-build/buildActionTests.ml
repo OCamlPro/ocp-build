@@ -60,14 +60,12 @@ let do_test b ncores projects =
   ) projects;
   BuildOCamlTest.finish stats ncores;
   time_step "   Done executing tests"
-
+;;
 
 let action () =
-
   BuildActionBuild.(
-  (* Nothing specified, make build targets: *)
-                                            if not !make_doc_targets && not !make_test_targets then make_build_targets := true;
-  (* Test targets require build targets ? *)
+    if not !make_doc_targets && not !make_test_targets then make_build_targets := true;
+    (* Test targets require build targets ? *)
     if !make_test_targets then make_build_targets := true;
     if !make_doc_targets then make_build_targets := true;
   );
