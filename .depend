@@ -348,6 +348,20 @@ ocp-build/buildConfig.cmo : ocplib-compat/string-compat/stringCompat.cmo \
 ocp-build/buildConfig.cmx : ocplib-compat/string-compat/stringCompat.cmx \
     ocplib-lang/ocpString.cmx ocplib-unix/minUnix.cmx ocplib-system/file.cmx \
     ocplib-debug/debugVerbosity.cmx ocp-build/buildConfig.cmi
+ocp-build/buildUninstall.cmo : ocplib-lang/stringSet.cmi \
+    ocplib-lang/stringMap.cmi ocplib-compat/string-compat/stringCompat.cmo \
+    ocplib-lang/ocpString.cmi ocplib-unix/minUnix.cmi ocplib-system/file.cmi \
+    ocp-build/buildValue.cmi ocp-build/buildTypes.cmi \
+    ocp-build/buildScanner.cmi ocp-build/buildOCPTypes.cmi \
+    ocp-build/buildEngineTypes.cmi ocp-build/buildEngineGlobals.cmi \
+    ocp-build/buildUninstall.cmi
+ocp-build/buildUninstall.cmx : ocplib-lang/stringSet.cmx \
+    ocplib-lang/stringMap.cmx ocplib-compat/string-compat/stringCompat.cmx \
+    ocplib-lang/ocpString.cmx ocplib-unix/minUnix.cmx ocplib-system/file.cmx \
+    ocp-build/buildValue.cmx ocp-build/buildTypes.cmx \
+    ocp-build/buildScanner.cmx ocp-build/buildOCPTypes.cmx \
+    ocp-build/buildEngineTypes.cmx ocp-build/buildEngineGlobals.cmx \
+    ocp-build/buildUninstall.cmi
 ocp-build/buildAutogen.cmo : ocplib-lang/stringMap.cmi \
     ocplib-compat/string-compat/stringCompat.cmo ocplib-system/file.cmi \
     ocp-build/buildOCPTypes.cmi ocp-build/buildOCPTree.cmi \
@@ -492,20 +506,18 @@ ocp-build/buildOCamlRules.cmx : ocplib-lang/stringSubst.cmx \
     ocp-build/buildEngineTypes.cmx ocp-build/buildEngineRules.cmx \
     ocp-build/buildEngineGlobals.cmx ocp-build/buildEngineContext.cmx \
     ocp-build/buildOCamlRules.cmi
-ocp-build/buildOCamlInstall.cmo : ocplib-lang/stringSet.cmi \
-    ocplib-lang/stringMap.cmi ocplib-compat/string-compat/stringCompat.cmo \
-    ocplib-lang/ocpString.cmi ocplib-unix/minUnix.cmi ocp-build/metaTypes.cmi \
-    ocp-build/metaFile.cmi ocplib-system/file.cmi ocp-build/buildValue.cmi \
-    ocp-build/buildTypes.cmi ocp-build/buildScanner.cmi \
+ocp-build/buildOCamlInstall.cmo : \
+    ocplib-compat/string-compat/stringCompat.cmo ocplib-unix/minUnix.cmi \
+    ocp-build/metaTypes.cmi ocp-build/metaFile.cmi ocplib-system/file.cmi \
+    ocp-build/buildValue.cmi ocp-build/buildTypes.cmi \
     ocp-build/buildOCamlTypes.cmi ocp-build/buildOCamlGlobals.cmo \
     ocp-build/buildOCPTypes.cmi ocp-build/buildOCPTree.cmi \
     ocp-build/buildMisc.cmo ocp-build/buildEngineTypes.cmi \
     ocp-build/buildEngineGlobals.cmi ocp-build/buildOCamlInstall.cmi
-ocp-build/buildOCamlInstall.cmx : ocplib-lang/stringSet.cmx \
-    ocplib-lang/stringMap.cmx ocplib-compat/string-compat/stringCompat.cmx \
-    ocplib-lang/ocpString.cmx ocplib-unix/minUnix.cmx ocp-build/metaTypes.cmx \
-    ocp-build/metaFile.cmx ocplib-system/file.cmx ocp-build/buildValue.cmx \
-    ocp-build/buildTypes.cmx ocp-build/buildScanner.cmx \
+ocp-build/buildOCamlInstall.cmx : \
+    ocplib-compat/string-compat/stringCompat.cmx ocplib-unix/minUnix.cmx \
+    ocp-build/metaTypes.cmx ocp-build/metaFile.cmx ocplib-system/file.cmx \
+    ocp-build/buildValue.cmx ocp-build/buildTypes.cmx \
     ocp-build/buildOCamlTypes.cmx ocp-build/buildOCamlGlobals.cmx \
     ocp-build/buildOCPTypes.cmx ocp-build/buildOCPTree.cmx \
     ocp-build/buildMisc.cmx ocp-build/buildEngineTypes.cmx \
@@ -601,7 +613,8 @@ ocp-build/buildActionBuild.cmo : ocplib-lang/stringMap.cmi \
     ocplib-system/simpleConfig.cmi ocplib-unix/minUnix.cmi \
     ocplib-system/file.cmi ocplib-debug/debugVerbosity.cmi \
     ocp-build/buildVersion.cmo ocp-build/buildValue.cmi \
-    ocp-build/buildTypes.cmi ocp-build/buildTerm.cmi ocp-build/buildSubst.cmi \
+    ocp-build/buildUninstall.cmi ocp-build/buildTypes.cmi \
+    ocp-build/buildTerm.cmi ocp-build/buildSubst.cmi \
     ocp-build/buildOptions.cmi ocp-build/buildOasis.cmi \
     ocp-build/buildOCamlVariables.cmo ocp-build/buildOCamlRules.cmi \
     ocp-build/buildOCamlMeta.cmi ocp-build/buildOCamlInstall.cmi \
@@ -619,7 +632,8 @@ ocp-build/buildActionBuild.cmx : ocplib-lang/stringMap.cmx \
     ocplib-system/simpleConfig.cmx ocplib-unix/minUnix.cmx \
     ocplib-system/file.cmx ocplib-debug/debugVerbosity.cmx \
     ocp-build/buildVersion.cmx ocp-build/buildValue.cmx \
-    ocp-build/buildTypes.cmx ocp-build/buildTerm.cmx ocp-build/buildSubst.cmx \
+    ocp-build/buildUninstall.cmx ocp-build/buildTypes.cmx \
+    ocp-build/buildTerm.cmx ocp-build/buildSubst.cmx \
     ocp-build/buildOptions.cmx ocp-build/buildOasis.cmx \
     ocp-build/buildOCamlVariables.cmx ocp-build/buildOCamlRules.cmx \
     ocp-build/buildOCamlMeta.cmx ocp-build/buildOCamlInstall.cmx \
@@ -635,23 +649,23 @@ ocp-build/buildActionBuild.cmx : ocplib-lang/stringMap.cmx \
 ocp-build/buildActionInstall.cmo : ocplib-lang/stringMap.cmi \
     ocplib-compat/string-compat/stringCompat.cmo \
     ocplib-system/simpleConfig.cmi ocp-build/buildValue.cmi \
-    ocp-build/buildTypes.cmi ocp-build/buildTerm.cmi \
-    ocp-build/buildOptions.cmi ocp-build/buildOCamlInstall.cmi \
-    ocp-build/buildOCamlConfig.cmi ocp-build/buildOCPTypes.cmi \
-    ocp-build/buildOCPTree.cmi ocp-build/buildMisc.cmo \
-    ocp-build/buildGlobals.cmo ocp-build/buildEngineTypes.cmi \
-    ocp-build/buildArgs.cmo ocp-build/buildActions.cmi \
-    ocp-build/buildActionBuild.cmo
+    ocp-build/buildUninstall.cmi ocp-build/buildTypes.cmi \
+    ocp-build/buildTerm.cmi ocp-build/buildOptions.cmi \
+    ocp-build/buildOCamlInstall.cmi ocp-build/buildOCamlConfig.cmi \
+    ocp-build/buildOCPTypes.cmi ocp-build/buildOCPTree.cmi \
+    ocp-build/buildMisc.cmo ocp-build/buildGlobals.cmo \
+    ocp-build/buildEngineTypes.cmi ocp-build/buildArgs.cmo \
+    ocp-build/buildActions.cmi ocp-build/buildActionBuild.cmo
 ocp-build/buildActionInstall.cmx : ocplib-lang/stringMap.cmx \
     ocplib-compat/string-compat/stringCompat.cmx \
     ocplib-system/simpleConfig.cmx ocp-build/buildValue.cmx \
-    ocp-build/buildTypes.cmx ocp-build/buildTerm.cmx \
-    ocp-build/buildOptions.cmx ocp-build/buildOCamlInstall.cmx \
-    ocp-build/buildOCamlConfig.cmx ocp-build/buildOCPTypes.cmx \
-    ocp-build/buildOCPTree.cmx ocp-build/buildMisc.cmx \
-    ocp-build/buildGlobals.cmx ocp-build/buildEngineTypes.cmx \
-    ocp-build/buildArgs.cmx ocp-build/buildActions.cmx \
-    ocp-build/buildActionBuild.cmx
+    ocp-build/buildUninstall.cmx ocp-build/buildTypes.cmx \
+    ocp-build/buildTerm.cmx ocp-build/buildOptions.cmx \
+    ocp-build/buildOCamlInstall.cmx ocp-build/buildOCamlConfig.cmx \
+    ocp-build/buildOCPTypes.cmx ocp-build/buildOCPTree.cmx \
+    ocp-build/buildMisc.cmx ocp-build/buildGlobals.cmx \
+    ocp-build/buildEngineTypes.cmx ocp-build/buildArgs.cmx \
+    ocp-build/buildActions.cmx ocp-build/buildActionBuild.cmx
 ocp-build/buildActionClean.cmo : ocplib-system/file.cmi \
     ocp-build/buildOptions.cmi ocp-build/buildArgs.cmo \
     ocp-build/buildActions.cmi
@@ -668,12 +682,12 @@ ocp-build/buildActionTests.cmx : ocp-build/buildTypes.cmx \
     ocp-build/buildOCPTypes.cmx ocp-build/buildOCPTree.cmx \
     ocp-build/buildGlobals.cmx ocp-build/buildArgs.cmx \
     ocp-build/buildActions.cmx ocp-build/buildActionBuild.cmx
-ocp-build/buildActionUninstall.cmo : ocp-build/buildOptions.cmi \
-    ocp-build/buildGlobals.cmo ocp-build/buildArgs.cmo \
-    ocp-build/buildActions.cmi
-ocp-build/buildActionUninstall.cmx : ocp-build/buildOptions.cmx \
-    ocp-build/buildGlobals.cmx ocp-build/buildArgs.cmx \
-    ocp-build/buildActions.cmx
+ocp-build/buildActionUninstall.cmo : ocp-build/buildUninstall.cmi \
+    ocp-build/buildOptions.cmi ocp-build/buildGlobals.cmo \
+    ocp-build/buildArgs.cmo ocp-build/buildActions.cmi
+ocp-build/buildActionUninstall.cmx : ocp-build/buildUninstall.cmx \
+    ocp-build/buildOptions.cmx ocp-build/buildGlobals.cmx \
+    ocp-build/buildArgs.cmx ocp-build/buildActions.cmx
 ocp-build/buildActionQuery.cmo : ocplib-system/simpleConfig.cmi \
     ocp-build/buildTypes.cmi ocp-build/buildTerm.cmi \
     ocp-build/buildOptions.cmi ocp-build/buildOCamlConfig.cmi \
@@ -815,6 +829,7 @@ ocp-build/buildTypes.cmi : ocplib-lang/stringMap.cmi \
 ocp-build/buildOptions.cmi : ocplib-system/simpleConfig.cmi \
     ocplib-system/file.cmi
 ocp-build/buildConfig.cmi : ocp-build/buildValue.cmi
+ocp-build/buildUninstall.cmi : ocp-build/buildTypes.cmi
 ocp-build/buildAutogen.cmi : ocplib-system/file.cmi \
     ocp-build/buildOCPTypes.cmi
 ocp-build/metaTypes.cmi : ocplib-lang/stringMap.cmi \

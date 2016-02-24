@@ -72,6 +72,7 @@ BUILD_LIB= $(OCP_BUILD_SRCDIR)/buildVersion.ml	\
     $(OCP_BUILD_SRCDIR)/buildOptions.ml		\
     $(OCP_BUILD_SRCDIR)/buildGlobals.ml		\
     $(OCP_BUILD_SRCDIR)/buildConfig.ml		\
+    $(OCP_BUILD_SRCDIR)/buildUninstall.ml		\
     $(OCP_BUILD_SRCDIR)/buildAutogen.ml
 
 BUILD_OCAMLFIND= $(OCP_BUILD_SRCDIR)/metaTypes.ml			\
