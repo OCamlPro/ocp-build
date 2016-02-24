@@ -31,38 +31,40 @@ open BuildOptions
 open BuildGlobals
 open BuildActions
 
+let destdir = ref None
+let scandirs = ref []
 let arg_list = [
+  "-destdir", Arg.String (fun s ->
+    destdir := Some s),
+  "DIR Set root of installation dir";
 
+  "-install-lib", Arg.String (fun s ->
+    scandirs := s :: !scandirs),
+  "DIR Scan directory for packages to uninstall";
 ]
 
-let action () = assert false
-(*
+let action () =
+  if !scandirs = [] then begin
+  (* TODO: we should detect which ocaml is in the PATH,
+     and use its OCAMLLIB as a root. However, OPAM installs
+     things one level higher... Bad design. *)
+    Printf.eprintf "Error: you MUST at least use `-install-lib DIR` once.\n%!";
+    exit 2
+  end;
+
   let targets = List.rev !targets_arg in
 
-  let p = BuildActions.load_project () in
-  let (_env_state, b, projects) = BuildActionBuild.do_prepare_build p targets in
-  let install_where = install_where p in
-  let uninstall_state = BuildOCamlInstall.uninstall_init install_where in
+  let state = BuildUninstall.init !destdir !scandirs in
 
-  if targets <> [] then begin
-
-    List.iter (BuildOCamlInstall.uninstall_by_name uninstall_state) targets;
-    BuildOCamlInstall.uninstall_finish uninstall_state;
-
-  end else begin
-    List.iter (fun lib ->
-      BuildOCamlInstall.uninstall uninstall_state lib)
-      projects;
-    BuildOCamlInstall.uninstall_finish uninstall_state;
-  end
-*)
+  List.iter (BuildUninstall.uninstall state) targets;
+  BuildUninstall.finish state;
+  ()
 
 let subcommand = {
   sub_name = "uninstall";
   sub_help =  "Uninstall the project.";
   sub_arg_list = arg_list;
-  sub_arg_anon = None;
+  sub_arg_anon = Some arg_anon;
   sub_arg_usage = [ "Uninstall the project."; ];
   sub_action = action;
 }
-

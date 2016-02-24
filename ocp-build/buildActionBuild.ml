@@ -66,13 +66,13 @@ let make_test_targets = ref false
 let _ = DebugVerbosity.add_submodules "B" [ "BuildMain" ]
 
 let print_installed install_where =
-  let open BuildOCamlInstall in
+  let open BuildUninstall in
   Printf.printf "Installed packages:\n";
   List.iter (fun un ->
     Printf.printf "\t%s . %s (%s)\n%!"
       un.un_name un.un_version un.un_type;
     Printf.printf "\t\tin %s\n%!" un.un_directory;
-  ) (BuildOCamlInstall.list_installed install_where);
+  ) (BuildUninstall.list_installed install_where);
   ()
 
 let move_to_project = ref true
@@ -697,29 +697,42 @@ let do_build p =
 
 
   if !list_installed_arg then begin
-    print_installed (install_where p);
+    let state =
+      let open BuildOCamlInstall in
+      let where = install_where p in
+      BuildUninstall.init where.install_destdir where.install_libdirs
+    in
+    print_installed state;
     BuildMisc.clean_exit 0
   end;
 
 
   if !uninstall_arg && targets <> [] then begin
-    let uninstall_state = BuildOCamlInstall.uninstall_init (install_where p) in
-
-    List.iter (BuildOCamlInstall.uninstall_by_name uninstall_state) targets;
-    BuildOCamlInstall.uninstall_finish uninstall_state;
+    let state =
+      let open BuildOCamlInstall in
+      let where = install_where p in
+      BuildUninstall.init where.install_destdir where.install_libdirs
+    in
+    List.iter (BuildUninstall.uninstall state) targets;
+    BuildUninstall.finish state;
     BuildMisc.clean_exit 0
   end;
 
   begin match !query_install_dir with
       None -> ()
     | Some package ->
-      let open BuildOCamlInstall in
+      let state =
+        let open BuildOCamlInstall in
+        let where = install_where p in
+        BuildUninstall.init where.install_destdir where.install_libdirs
+      in
       List.iter (fun un ->
+        let open BuildUninstall in
         if un.un_name = package then begin
           Printf.printf "%s\n%!" un.un_directory;
           BuildMisc.clean_exit 0
         end
-      ) (BuildOCamlInstall.list_installed (install_where p));
+      ) (BuildUninstall.list_installed state);
       Printf.eprintf "Package %S is not installed\n%!" package;
       BuildMisc.clean_exit 2
   end;

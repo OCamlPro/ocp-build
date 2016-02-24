@@ -18,3 +18,5 @@ OCAMLLEX=ocamllex.opt
 OCAMLYACC=ocamlyacc
 CAMLP4O=camlp4o.opt
 
+PACKAGE=ocp-build
+

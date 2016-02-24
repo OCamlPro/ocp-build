@@ -27,7 +27,8 @@ echo Generated url file:
 cat $OPAMREPO/packages/${PACKAGE}/${PACKAGE}.$VERSION/url
 
 (cd ${OPAMREPO} &&
+        (git branch -D ${PACKAGE}.${VERSION} || true) &&
         git checkout -b ${PACKAGE}.${VERSION} &&
         git add packages/${PACKAGE}/${PACKAGE}.${VERSION} &&
         git commit -m "Add ${PACKAGE}.${VERSION}" packages/${PACKAGE}/${PACKAGE}.${VERSION} &&
-        git push origin ${PACKAGE}.${VERSION})
+        git push -f origin ${PACKAGE}.${VERSION})

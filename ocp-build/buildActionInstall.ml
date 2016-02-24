@@ -43,13 +43,17 @@ open BuildTerm
 open BuildActions
 
 
-let do_install bc install_where install_what projects =
+let do_install bc where install_what projects =
 
   let already_installed =
+    let state =
+      let open BuildOCamlInstall in
+      BuildUninstall.init where.install_destdir where.install_libdirs
+    in
     List.map (fun pj -> pj.lib_name)
       (List.filter
          (fun pj -> pj.lib_install &&
-                    BuildOCamlInstall.is_installed install_where pj.lib_name)
+                    BuildUninstall.is_installed state pj.lib_name)
          projects)
   in
   let bold s =
@@ -59,11 +63,14 @@ let do_install bc install_where install_what projects =
     if !BuildArgs.auto_uninstall then begin
       Printf.printf "Packages %s are already installed, removing first...\n"
         (String.concat ", " (List.map bold already_installed));
-      let uninstall_state = BuildOCamlInstall.uninstall_init install_where in
+      let state =
+        let open BuildOCamlInstall in
+        BuildUninstall.init where.install_destdir where.install_libdirs
+      in
       List.iter
-        (BuildOCamlInstall.uninstall_by_name uninstall_state)
+        (BuildUninstall.uninstall state)
         already_installed;
-      BuildOCamlInstall.uninstall_finish uninstall_state
+      BuildUninstall.finish state
     end else begin
       Printf.eprintf "Error: Packages %s are already installed."
         (String.concat ", " (List.map bold already_installed));
@@ -95,15 +102,16 @@ let do_install bc install_where install_what projects =
   List.iter add_to_install projects;
   let install_errors = ref 0 in
   let install_ok = ref 0 in
+
   StringMap.iter (fun _ pj ->
     if pj.lib_install then
       match       BuildOCamlInstall.find_installdir
-          install_where install_what
+          where install_what
           pj.lib_name with
         None -> incr install_errors
       | Some installdir ->
         BuildOCamlInstall.install
-          install_where install_what
+          where install_what
           pj installdir;
         incr install_ok
   )
