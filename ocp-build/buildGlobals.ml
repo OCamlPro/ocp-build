@@ -164,7 +164,7 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
               dep.dep_project.package_id
               dep.dep_project.package_name
               pk.package_name;
-            clean_exit 2
+            BuildMisc.clean_exit 2
         in
         { dep with dep_project = pd }
       ) pk.pi.package_requires;

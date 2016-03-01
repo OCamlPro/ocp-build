@@ -20,13 +20,13 @@
 
 
 open StringCompat
-open OcpLang
+
 
 let cut_last_extension ~basename =
   try
     let pos = String.rindex basename '.' in
-    String.before basename pos,
-    String.lowercase (String.after basename pos)
+    OcpString.before basename pos,
+    String.lowercase (OcpString.after basename pos)
   with Not_found -> (basename, "")
 
 let string_of_channel =

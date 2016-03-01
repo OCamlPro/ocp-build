@@ -1,10 +1,37 @@
 
+#if OCAML_VERSION < "4.03"
+module String403 = struct
+  include String
+  let lowercase_ascii = lowercase
+  let uppercase_ascii = uppercase
+  let capitalize_ascii = capitalize
+end
+
+module Char = struct
+  include Char
+  let uppercase_ascii = uppercase
+  let lowercase_ascii = lowercase
+end
+#else
+module String403 = struct
+  include String
+  let lowercase = lowercase_ascii
+  let uppercase = uppercase_ascii
+  let capitalize = capitalize_ascii
+end
+module Char = struct
+  include Char
+  let uppercase = uppercase_ascii
+  let lowercase = lowercase_ascii
+end
+#endif
+
 #if OCAML_VERSION < "4.02"
 
 type bytes = string
 
 module Bytes = struct
-  include String
+  include String403
   let to_string t = String.copy t
   let of_string t = String.copy t
   let unsafe_to_string t = t
@@ -24,6 +51,8 @@ module Marshal = struct
   let from_bytes = from_string
 end
 
+module String = String403
+
 let print_bytes = print_string
 let prerr_bytes = prerr_string
 let output_bytes = output_string
@@ -39,7 +68,7 @@ module Bytes = Bytes
 module Buffer = Buffer
 
 module String = struct
-  include String
+  include String403
   let set = Bytes.set
 end
 

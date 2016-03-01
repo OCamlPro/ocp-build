@@ -29,10 +29,6 @@ begin library "ocplib-unix"
     link = [ "-cclib"; "user32.lib"; ]
   } else {
 (* We require "Unix", but do not use it directly !!! *)
-    requires = [ "unix" ] 
+    requires = [ "unix" string_compat ]
 }
-end
-
-begin library "no-unix"
-  files = [ "unix.ml" ]
 end

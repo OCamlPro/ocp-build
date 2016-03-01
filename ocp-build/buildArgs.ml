@@ -36,7 +36,8 @@
   in a particular compilation scheme.
 *)
 
-(* open OcpLang *)
+open StringCompat
+
 open SimpleConfig
 
 open BuildOCamlConfig.TYPES

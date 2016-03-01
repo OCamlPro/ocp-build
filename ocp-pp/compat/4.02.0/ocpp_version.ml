@@ -74,13 +74,28 @@ module Compat = struct
     | LBRACKETPERCENT|LBRACKETPERCENTPERCENT
     | LBRACKETAT|LBRACKETATAT|LBRACKETATATAT|PERCENT|PLUSEQ -> "4.02.1 token"
     | STRING (s,_) -> Printf.sprintf "STRING(%S,_)" s
+    | NATIVEINT(nativeint ) -> Printf.sprintf "NATIVEINT(%nd)" nativeint
+    | INT int -> Printf.sprintf "INT(%d)" int
+    | INT32(int32) -> Printf.sprintf "INT32(%ld)" int32
+    | INT64(int64) -> Printf.sprintf "INT64(%Ld)" int64
+    | FLOAT float -> Printf.sprintf "FLOAT(%s)" float
     | _  -> assert false
 
   let string_of_token = function
     | LBRACKETPERCENT|LBRACKETPERCENTPERCENT
     | LBRACKETAT|LBRACKETATAT|LBRACKETATATAT|PERCENT|PLUSEQ -> "4.02.1 token"
     | STRING (s,_) -> Printf.sprintf "%S" s
+    | NATIVEINT nativeint -> Printf.sprintf "%nd" nativeint
+    | INT int -> Printf.sprintf "%d" int
+    | INT32(int32) -> Printf.sprintf "%ld" int32
+    | INT64(int64) -> Printf.sprintf "%Ld" int64
+    | FLOAT float -> float
     | _  -> assert false
+
+  let int_of_token = function
+    | INT n -> n
+    | _ -> assert false
+  let token_of_int n = INT n
 
 end
 

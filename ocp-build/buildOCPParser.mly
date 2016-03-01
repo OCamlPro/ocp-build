@@ -13,6 +13,8 @@
 
 %{
 
+open StringCompat
+
 open BuildValue.Types
 open BuildOCPTree
 open BuildOCPTypes

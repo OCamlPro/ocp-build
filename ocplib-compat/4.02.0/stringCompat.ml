@@ -5,6 +5,19 @@ module Buffer = Buffer
 module String = struct
   include String
   let set = Bytes.set
+
+  (* added in 4.03 *)
+  let lowercase_ascii = lowercase
+  let uppercase_ascii = uppercase
+  let capitalize_ascii = capitalize
+end
+
+module Char = struct
+  include Char
+
+  (* added in 4.03 *)
+  let uppercase_ascii = uppercase
+  let lowercase_ascii = lowercase
 end
 
 module StringSet = Set.Make(String)

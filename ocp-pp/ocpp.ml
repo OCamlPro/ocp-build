@@ -260,15 +260,11 @@ let name_of_token token =
 *)
 
   | LIDENT string -> Printf.sprintf "LIDENT(%s)" string
-  | NATIVEINT(nativeint ) -> Printf.sprintf "NATIVEINT(%nd)" nativeint
   | OPTLABEL(string) -> Printf.sprintf "OPTLABEL(%s)" string
-  | INT int -> Printf.sprintf "INT(%d)" int
-  | INT32(int32) -> Printf.sprintf "INT32(%ld)" int32
-  | INT64(int64) -> Printf.sprintf "INT64(%Ld)" int64
+
   | LABEL(string) -> Printf.sprintf "LABEL(%s)" string
   | UIDENT string -> Printf.sprintf  "UIDENT(%s)" string
   | CHAR char -> Printf.sprintf "CHAR(%S)" (String.make 1 char)
-  | FLOAT float -> Printf.sprintf "FLOAT(%s)" float
   | PREFIXOP(string) -> Printf.sprintf "PREFIXOP(%s)" string
   | INFIXOP0(op) -> Printf.sprintf "INFIXOP0(%s)" op
   | INFIXOP1(op) -> Printf.sprintf "INFIXOP1(%s)" op
@@ -382,15 +378,10 @@ let string_of_token token =
       | BIGINT s -> Printf.sprintf "%sI" s *)
 
   | LIDENT string -> string
-  | NATIVEINT nativeint -> Printf.sprintf "%nd" nativeint
   | OPTLABEL(string) -> Printf.sprintf "?%s:" string
-  | INT int -> Printf.sprintf "%d" int
-  | INT32(int32) -> Printf.sprintf "%ld" int32
-  | INT64(int64) -> Printf.sprintf "%Ld" int64
   | LABEL(string) -> Printf.sprintf "~%s:" string
   | UIDENT string -> Printf.sprintf  "%s" string
   | CHAR char -> Printf.sprintf "'%s'" (String.escaped (String.make 1 char))
-  | FLOAT float -> float
   | PREFIXOP(string) -> string
   | INFIXOP0(op) -> op
   | INFIXOP1(op) -> op
@@ -467,7 +458,7 @@ let parse_expr tokens lexbuf =
           [] -> P.EOF
         | token :: tail -> tokens := tail;
           match token with
-          | INT n -> P.INT n
+          | INT _ -> P.INT (Compat.int_of_token token)
           | DOT -> P.DOT
           | TRUE -> P.TRUE
           | FALSE -> P.FALSE
@@ -906,7 +897,8 @@ and preprocess_directive lexer  directive =
       match args with
       | [ UIDENT name; STRING _ as token ] ->
         set_option name (Compat.get_STRING token)
-      | [ UIDENT name; INT s ] ->  set_option name (string_of_int s)
+      | [ UIDENT name; (INT _) as int ] ->
+        set_option name (string_of_int (Compat.int_of_token int))
       | [ UIDENT name ] -> set_option name "1"
       | _ -> failwith "Error after #option: should be Option \"value\""
     end;
@@ -1224,7 +1216,7 @@ let _ =
   add_option "Warn" (fun name v -> Warnings.parse_options false v);
   add_option "Warn_error" (fun name v -> Warnings.parse_options true v);
 *)
-  add_macro "Has_ocpp" [ INT 1 ];
+  add_macro "Has_ocpp" [ Compat.token_of_int 1 ];
   register ()
 
 let lexbuf () = !current_lexbuf

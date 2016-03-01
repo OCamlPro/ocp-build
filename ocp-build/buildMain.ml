@@ -134,15 +134,22 @@ let _ =
         None -> arg_anon_none
       | Some f -> f) arg_usage;
     s.sub_action ();
-    finally ()
+    BuildMisc.clean_exit 0
   with
-(*  | PrintShortArgList ->
-    Arg.usage short_arg_list arg_usage; exit 0
-  | PrintLongArgList ->
-    Arg.usage arg_list arg_usage; exit 0 *)
   | BuildMisc.ExitStatus n ->
     finally ();
-    Pervasives.exit n
+    let exit_status =
+      if n = 0 then
+        match !BuildMisc.non_fatal_errors with
+        | [] -> 0
+        | msgs ->
+          Printf.eprintf "Work finished after non-fatal errors:\n%!";
+          List.iter (fun msg ->
+            Printf.eprintf "   %s\n%!" msg) (List.rev msgs);
+          2
+      else n
+    in
+    Pervasives.exit exit_status
   | e ->
     let backtrace = Printexc.get_backtrace () in
     Printf.fprintf stderr "ocp-build: Fatal Exception %s\n%s\n%!"

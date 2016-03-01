@@ -43,7 +43,11 @@ begin program "ocp-pp";
       "compat/compat.ml";
     ] ];
   } else {
-    files = [ "ocpp_version.ml" ];
+    if ocaml_version < "4.03" then {
+      files = [ "compat/4.02.0/ocpp_version.ml" ];
+    } else {
+      files = [ "compat/4.03.0/ocpp_version.ml" ];
+    }
     requires = [  "compiler-libs.common" ];
   };
 

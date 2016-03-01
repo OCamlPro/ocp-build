@@ -18,6 +18,8 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+open StringCompat
+
 (* Initialization *)
 
 external startup: unit -> unit = "minUnix_startup"

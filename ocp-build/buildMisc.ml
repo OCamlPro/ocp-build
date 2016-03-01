@@ -18,17 +18,12 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
-(* open BuildBase *)
-(* open Stdlib2 *)
-(* open OcpLang *)
-(* open OcpSystem *)
-
-(* open SafeCaml *)
 open StringCompat
 
 exception ExitStatus of int
-let clean_exit n = raise (ExitStatus n)
+let non_fatal_errors = ref ([] : string list)
+let clean_exit n =
+  raise (ExitStatus n)
 
 let at_sigint_actions = ref []
 
@@ -291,7 +286,8 @@ let rec wait_command pid =
     in
     iter pid
   with e ->
-    Printf.eprintf "Exception %s in waitpid\n%!" (Printexc.to_string e);
+    Printf.eprintf "Error: exception %s in BuildMisc.wait_command"
+      (Printexc.to_string e);
     clean_exit 2
 
 let rec uninterrupted_wait () =
@@ -402,7 +398,7 @@ let chdir dir =
 let exists_as_directory filename =
   try
     Sys.is_directory filename
-  with _ -> 
+  with _ ->
     (* On MSVC, a file ending with "\\" is not supported *)
     let len = String.length filename in
     if len > 0 && (let c = filename.[len-1] in c = '\\' || c = '/') then

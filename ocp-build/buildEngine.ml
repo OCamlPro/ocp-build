@@ -176,9 +176,9 @@ let rule_need_execution =
                 try
                   Lazy.force f
                 with e ->
-        (* TODO: this should be some error *)
-                  Printf.eprintf "Error: exception %s with DynamicAction %s\n%!"
-                    (Printexc.to_string e) msg ;
+                  (* TODO: this should be some error *)
+                  Printf.eprintf "Error: exception %s with DynamicAction %s"
+                    (Printexc.to_string e) msg;
                   BuildMisc.clean_exit 2
               in
               actions @ commands
@@ -568,7 +568,7 @@ let check_temporary b r file =
 
 let lock_temporary b r file =
   if IntMap.mem file.file_id b.temp_files then begin
-    Printf.eprintf "Error in lock_temporary: file %S is already locked\n%!"
+    Printf.eprintf "Error: lock_temporary: file %S is already locked"
       (File.to_string file.file_file);
     BuildMisc.clean_exit 2
   end;
@@ -1335,7 +1335,7 @@ let parallel_loop b ncores =
   in
   iter ncores
 
-let find_cycle b = 
+let find_cycle b =
   (* 1) find the rule with the minimal number of missing sources *)
   let min = ref None in
   IntMap.iter (fun _ r ->
@@ -1359,13 +1359,13 @@ let find_cycle b =
         IntMap.iter (fun _ f ->
           if not f.file_exists then begin
             List.iter (fun r2 ->
-	      if IntMap.mem r2.rule_id b.queue_waiting then 
+	      if IntMap.mem r2.rule_id b.queue_waiting then
                 if IntMap.mem r2.rule_id map then begin
                    Printf.eprintf "Error: found a cycle in waiting rules:\n";
                    Printf.eprintf "  File %s\n"
                      (file_filename f);
                    List.iter (fun (r,f) ->
-		     Printf.eprintf "     is needed by %s\n" 
+		     Printf.eprintf "     is needed by %s\n"
                        (file_filename f);
                      if r == r2 then raise Exit
                    ) path;
@@ -1379,8 +1379,8 @@ let find_cycle b =
         ) r.rule_sources;
       done;
       false
-    with Exit -> 
-      Printf.eprintf 
+    with Exit ->
+      Printf.eprintf
 "Hint: use attribute 'nodeps' to remove incorrectly inferred dependencies\n%!";
       true
 

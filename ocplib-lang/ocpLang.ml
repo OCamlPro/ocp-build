@@ -52,4 +52,3 @@ module Digest = struct
   include Digest
   include OcpDigest
 end
-

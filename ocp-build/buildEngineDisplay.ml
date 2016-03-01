@@ -50,7 +50,9 @@ let pretty_rule_name rule len =
     try (* rm first directory (_obuild/) *)
       let i = String.index dir Filename.dir_sep.[0] in
       String.sub dir (i+1) (String.length dir - i - 1)
-    with Not_found | Invalid_argument "String.sub" -> dir
+    with
+    | Not_found
+    | Invalid_argument _ -> dir
   in
   let curlen = String.length base + String.length Filename.dir_sep in
   let dir = string_limit (len - curlen) dir in

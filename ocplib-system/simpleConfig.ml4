@@ -336,45 +336,6 @@ let really_load filename sections =
 
 let exit_exn = Exit
 
-
-let unsafe_get = String.unsafe_get
-external is_printable : char -> bool = "caml_is_printable"
-let unsafe_set = Bytes.unsafe_set
-
-let escaped s =
-  let n = ref 0 in
-  for i = 0 to String.length s - 1 do
-    n :=
-      !n +
-        (match unsafe_get s i with
-           '"' | '\\' -> 2
-         | '\n' | '\t' -> 1
-         | c -> if is_printable c then 1 else 4)
-  done;
-  if !n = String.length s then s
-  else
-    let s' = Bytes.create !n in
-    n := 0;
-    for i = 0 to String.length s - 1 do
-      begin match unsafe_get s i with
-        '"' | '\\' as c -> unsafe_set s' !n '\\'; incr n; unsafe_set s' !n c
-      | '\n' | '\t' as c -> unsafe_set s' !n c
-      | c ->
-          if is_printable c then unsafe_set s' !n c
-          else
-            let a = int_of_char c in
-            unsafe_set s' !n '\\';
-            incr n;
-            unsafe_set s' !n (char_of_int (48 + a / 100));
-            incr n;
-            unsafe_set s' !n (char_of_int (48 + a / 10 mod 10));
-            incr n;
-            unsafe_set s' !n (char_of_int (48 + a mod 10))
-      end;
-      incr n
-    done;
-    Bytes.to_string s'
-
 let safe_string s =
   if s = "" then "\"\""
   else
@@ -394,7 +355,7 @@ let safe_string s =
             s
           else raise exit_exn
     with
-      _ -> Printf.sprintf "\"%s\"" (escaped s)
+      _ -> Printf.sprintf "\"%s\"" (String.escaped s)
 
 let with_help = ref false
 

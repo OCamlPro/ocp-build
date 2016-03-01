@@ -131,9 +131,9 @@ let get_tool_require tool_name lib s =
       "asm" -> asm_exe
     | "byte" -> byte_exe
     | "" ->
-      Printf.fprintf stderr "Error: package %s\n%!" lib.lib.lib_name;
-      Printf.fprintf stderr "Error: %s_requires: you must specify either kind 'asm' or 'byte' for package '%s'\n%!" tool_name pk_name;
-      clean_exit 2
+      Printf.eprintf "Error: package %s\n%!" lib.lib.lib_name;
+      Printf.eprintf "Error: %s_requires: you must specify either kind 'asm' or 'byte' for package '%s'\n%!" tool_name pk_name;
+      BuildMisc.clean_exit 2
     | _ ->
       Printf.fprintf stderr "Error: package %s\n%!" lib.lib.lib_name;
       Printf.fprintf stderr "Error: %s_requires option contains unknown kind [%s] for package '%s'\n%!" tool_name kind pk_name;

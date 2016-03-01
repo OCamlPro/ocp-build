@@ -53,3 +53,9 @@ let string_of_token = function
   | LBRACKETAT|LBRACKETATAT|LBRACKETATATAT|PERCENT|PLUSEQ -> "4.02.1 token"
   | STRING (s,_) -> Printf.sprintf "%S" s
   | _  -> assert false
+
+let int_of_token = function
+  | INT n -> n
+  | _ -> assert false
+
+let token_of_int n = INT n

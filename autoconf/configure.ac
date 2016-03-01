@@ -1,4 +1,4 @@
-AC_INIT(ocp-build,1.99.13-beta)
+AC_INIT(ocp-build,1.99.14-beta)
 CONFIGURE_ARGS=$*
 
 AC_COPYRIGHT(Copyright 2015 OcamlPro SAS)
@@ -37,8 +37,9 @@ if test "$VERSION_CHECK" = "yes" ; then
   fi
   AX_COMPARE_VERSION( [$OCAMLVERSION], [lt], [3.12.1],
      AC_MSG_ERROR([Your version of OCaml: $OCAMLVERSION is not supported]))
-  AX_COMPARE_VERSION( [$OCAMLVERSION], [lt], [4.02.0],
-     HAS_BYTES=without-bytes, HAS_BYTES=with-bytes)
+  HAS_BYTES=3.12.1
+  AX_COMPARE_VERSION( [$OCAMLVERSION], [lt], [4.02.0],, HAS_BYTES=4.02.0)
+  AX_COMPARE_VERSION( [$OCAMLVERSION], [lt], [4.03.0],, HAS_BYTES=4.03.0)
 else
   HAS_BYTES=
 fi

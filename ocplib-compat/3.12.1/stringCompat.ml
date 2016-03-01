@@ -1,6 +1,19 @@
 
 type bytes = string
 
+module String = struct
+  include String
+  let lowercase_ascii = lowercase
+  let uppercase_ascii = uppercase
+  let capitalize_ascii = capitalize
+end
+
+module Char = struct
+  include Char
+  let uppercase_ascii = uppercase
+  let lowercase_ascii = lowercase
+end
+
 module Bytes = struct
   include String
   let to_string t = String.copy t
@@ -9,7 +22,7 @@ module Bytes = struct
   let unsafe_of_string t = t
   let sub_string = String.sub
   let blit_string = String.blit
- end
+end
 
 module Buffer = struct
   include Buffer

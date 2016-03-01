@@ -232,6 +232,11 @@ let do_print_project_info pj =
 
   end
 
+(* TODO: we should return two lists:
+  * the list of targets that can be built
+  * the list of targets that cannot be built
+ *)
+
 let do_print_fancy_project_info pj =
   BuildOCP.print_conflicts pj !print_conflicts_arg;
 
@@ -245,85 +250,86 @@ let do_print_fancy_project_info pj =
   (* don't complain if there is no problem with the selected targets *)
   if
     !build_max ||
-    (!targets_arg <> []
-     && List.for_all (fun (name,_) -> not (List.mem name !targets_arg)) missing
-     && List.for_all
-       (fun pk -> not (List.mem pk.package_name !targets_arg))
-       (Array.to_list pj.project_incomplete))
+      (!targets_arg <> []
+       && List.for_all
+         (fun (name,_) -> not (List.mem name !targets_arg)) missing
+       && List.for_all
+         (fun pk -> not (List.mem pk.package_name !targets_arg))
+         (Array.to_list pj.project_incomplete))
   then []
   else
-  let missing_roots =
+    let missing_roots =
     (* remove all missing pkgs that depend on another to get the missing roots *)
-    List.filter
-      (fun (name,pkgs) ->
-        not
-          (List.exists
-             (fun (_,pks) ->
-               List.exists (fun pk -> name = pk.package_name) pks)
-             missing))
-      missing
-  in
-  let cantbuild =
-    if missing = [] then cantbuild
-    else if missing_roots = [] then begin (* no roots ! *)
-      let rec find_cycle acc = function
-        | [] -> None
-        | name :: _ when List.mem name acc -> Some acc
-        | name :: r ->
-          let provides =
-            List.map (fun pk -> pk.package_name)
-              (try List.assoc name missing with Not_found -> [])
-          in
-          match find_cycle (name::acc) provides with
-          | Some _ as r -> r
-          | None -> find_cycle acc r
-      in
-      let cycle = List.map fst missing in
-      let cycle =
-        match find_cycle [] cycle with
-        | Some l -> l
-        | None -> assert false
-      in
-(*TODO: these are only errors if the corresponding packages have
- been specified as targets. *)
-      Printf.eprintf
-        "%sERROR%s: circular dependency between:\n"
-        term.esc_red_text term.esc_end;
-      List.iter
-        (fun (n1,n2) -> Printf.eprintf "  - %s%s%s depends on %s\n"
-            term.esc_bold n1 term.esc_end n2)
-        (List.combine cycle (List.tl cycle @ [List.hd cycle]));
-      cycle @ cantbuild
-    end else begin
-      Printf.eprintf
-        "%sERROR%s: the following packages are %smissing%s:\n"
-        term.esc_red_text term.esc_end  term.esc_bold term.esc_end;
-      List.iter (fun (name,_) ->
-        Printf.eprintf "  - %s%s%s\n" term.esc_bold name term.esc_end
-      ) missing_roots;
-      List.map fst missing_roots @ cantbuild
-    end
-  in
-  let cantbuild =
-    if pj.project_incomplete = [||] then cantbuild
-    else begin
-      let additional =
-        List.filter
-          (fun pk -> pk.package_source_kind <> "meta"
-                     && not (List.mem pk.package_name cantbuild))
-          (Array.to_list pj.project_incomplete)
-      in
-      if additional <> [] then
+      List.filter
+        (fun (name,pkgs) ->
+          not
+            (List.exists
+               (fun (_,pks) ->
+                 List.exists (fun pk -> name = pk.package_name) pks)
+               missing))
+        missing
+    in
+    let cantbuild =
+      if missing = [] then cantbuild
+      else if missing_roots = [] then begin (* no roots ! *)
+        let rec find_cycle acc = function
+          | [] -> None
+          | name :: _ when List.mem name acc -> Some acc
+          | name :: r ->
+            let provides =
+              List.map (fun pk -> pk.package_name)
+                (try List.assoc name missing with Not_found -> [])
+            in
+            match find_cycle (name::acc) provides with
+            | Some _ as r -> r
+            | None -> find_cycle acc r
+        in
+        let cycle = List.map fst missing in
+        let cycle =
+          match find_cycle [] cycle with
+          | Some l -> l
+          | None -> assert false
+        in
+      (*TODO: these are only errors if the corresponding packages have
+        been specified as targets. *)
         Printf.eprintf
-          "Additional packages %s can't be built.\n"
-          (String.concat ", "
-             (List.map (fun pk -> Printf.sprintf "%s%s%s"
-                  term.esc_bold pk.package_name term.esc_end)
-                additional));
-      List.map (fun pk -> pk.package_name) additional @ cantbuild
-    end
-  in
-  cantbuild
+          "%sERROR%s: circular dependency between:\n"
+          term.esc_red_text term.esc_end;
+        List.iter
+          (fun (n1,n2) -> Printf.eprintf "  - %s%s%s depends on %s\n"
+            term.esc_bold n1 term.esc_end n2)
+          (List.combine cycle (List.tl cycle @ [List.hd cycle]));
+        cycle @ cantbuild
+      end else begin
+        Printf.eprintf
+          "%sERROR%s: the following packages are %smissing%s:\n"
+          term.esc_red_text term.esc_end  term.esc_bold term.esc_end;
+        List.iter (fun (name,_) ->
+          Printf.eprintf "  - %s%s%s\n" term.esc_bold name term.esc_end
+        ) missing_roots;
+        List.map fst missing_roots @ cantbuild
+      end
+    in
+    let cantbuild =
+      if pj.project_incomplete = [||] then cantbuild
+      else begin
+        let additional =
+          List.filter
+            (fun pk -> pk.package_source_kind <> "meta"
+              && not (List.mem pk.package_name cantbuild))
+            (Array.to_list pj.project_incomplete)
+        in
+        if additional <> [] then
+          Printf.eprintf
+            "Additional packages %s can't be built.\n"
+            (String.concat ", "
+               (List.map (fun pk -> Printf.sprintf "%s%s%s"
+                 term.esc_bold pk.package_name term.esc_end)
+                  additional));
+        List.map (fun pk -> pk.package_name) additional @ cantbuild
+      end
+    in
+    cantbuild
 
 let print_build_context = ref false
 let do_init_project_building p pj =
@@ -437,9 +443,13 @@ let load_initial_project p state targets =
     BuildMisc.clean_exit 0;
   end;
 
-  if verbose 1 && term.esc_ansi then
+  if verbose 1 && term.esc_ansi then begin
     let cantbuild = do_print_fancy_project_info pj in
-    (if cantbuild <> [] then exit 1)
+    if cantbuild <> [] then begin
+      BuildMisc.non_fatal_errors :=
+        "Some package dependencies are missing" :: !BuildMisc.non_fatal_errors
+    end
+  end
   else
     do_print_project_info pj;
 

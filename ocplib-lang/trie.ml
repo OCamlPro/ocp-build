@@ -217,4 +217,8 @@ module Make (M : Map.S) = struct
     let bindings t =
       Printf.eprintf "TODO\n%!";
       assert false
+
+    let union t1 t2 =
+      Printf.eprintf "TODO\n%!";
+      assert false
 end

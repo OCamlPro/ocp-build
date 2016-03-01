@@ -20,7 +20,6 @@
 
 
 open StringCompat
-open OcpLang
 
 
 (****************************)
@@ -451,8 +450,8 @@ end
 let cut_last_extension basename =
   try
     let pos = String.rindex basename '.' in
-    String.before basename pos,
-    String.lowercase (String.after basename pos)
+    OcpString.before basename pos,
+    String.lowercase (OcpString.after basename pos)
   with Not_found -> (basename, "")
 
 (* We use ReentrantBuffer to allow sharing this buffer with other
