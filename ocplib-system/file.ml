@@ -345,6 +345,7 @@ end = struct
       end
     in
     iter f ic s;
+    close_in ic;
     ReentrantBuffers.free s
 
   let iter_dir f dirname =

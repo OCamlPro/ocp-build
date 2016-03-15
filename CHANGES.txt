@@ -1,0 +1,12 @@
+Change log
+==========
+
+2016-03-15:
+* Switch to version 1.99.14-beta
+* Change Log started (late is better than never !)
+* Improved Compatibility with 4.03
+* Try to build as many project as possible instead of failing as soon as
+   a project is not complete.
+* Fix #8: do not create env variables for every package found.
+* ocplib-system: fix missing close_in in File
+

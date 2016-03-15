@@ -35,4 +35,3 @@ val create_substituter :
   (string * ('a -> string)) list -> 'a StringSubst.M.subst
 val apply_substituter :
   'a StringSubst.M.subst -> string -> 'a -> string
-

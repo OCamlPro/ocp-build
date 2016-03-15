@@ -2706,15 +2706,15 @@ let add_package bc build_tests pk =
       package_dirname src_dir dst_dir mut_dir in
     let lib = BuildOCamlGlobals.create_package lib in
     (* TOOD: we should do that in one pass before *)
-    BuildSubst.putenv
+    BuildSubst.add_to_global_subst
       (Printf.sprintf "%s_SRC_DIR" package_name) src_dir.dir_fullname;
-    BuildSubst.putenv
+    BuildSubst.add_to_global_subst
       (Printf.sprintf "%s_DST_DIR" package_name) dst_dir.dir_fullname;
 
-    BuildSubst.putenv
+    BuildSubst.add_to_global_subst
       (Printf.sprintf "%s_FULL_SRC_DIR" package_name)
       (absolute_filename src_dir.dir_fullname);
-    BuildSubst.putenv
+    BuildSubst.add_to_global_subst
       (Printf.sprintf "%s_FULL_DST_DIR" package_name)
       (absolute_filename dst_dir.dir_fullname);
 
