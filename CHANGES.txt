@@ -9,4 +9,6 @@ Change log
    a project is not complete.
 * Fix #8: do not create env variables for every package found.
 * ocplib-system: fix missing close_in in File
-
+* Reuse names of temp directories created for each rule: should help
+   ocp-watcher clean-up files that have been rebuilt.
+   

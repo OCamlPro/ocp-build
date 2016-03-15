@@ -28,12 +28,14 @@ let verbose =
 
 (* Rule Misc Functions *)
 
-let new_rule b loc main_target commands =
+let new_rule rule_context rule_loc rule_main_target rule_commands =
+  let rule_id = new_rule_id rule_context in
   let r = {
-    rule_id = new_rule_id b;
-    rule_main_target = main_target;
-    rule_commands = commands;
-    rule_loc = (* lib.lib_loc*) loc;
+    rule_id;
+    rule_main_target;
+    rule_temp_dir = None;
+    rule_commands;
+    rule_loc;
     rule_forced = false;
     rule_sources = IntMap.empty;
     rule_time_dependencies = IntMap.empty;
@@ -42,11 +44,11 @@ let new_rule b loc main_target commands =
     rule_missing_sources = 0;
     rule_state = RULE_INACTIVE;
 
-    rule_context = b;
+    rule_context;
   } in
-  Hashtbl.add b.build_rules r.rule_id r;
-  main_target.file_target_of <- r :: main_target.file_target_of;
-  r.rule_targets <- IntMap.add main_target.file_id main_target r.rule_targets;
+  Hashtbl.add rule_context.build_rules r.rule_id r;
+  rule_main_target.file_target_of <- r :: rule_main_target.file_target_of;
+  r.rule_targets <- IntMap.add rule_main_target.file_id rule_main_target r.rule_targets;
   r
 
 let add_rule_source r file =
@@ -111,7 +113,17 @@ let string_of_argument arg =
   | BD d -> d.dir_fullname
 
 let rule_temp_dir r =
-  File.add_basename r.rule_context.build_dir (string_of_int r.rule_id)
+  match r.rule_temp_dir with
+  | Some dir -> dir
+  | None ->
+    let hash = Digest.to_hex
+        (Digest.string
+           (file_filename r.rule_main_target)) in
+    let dir =
+      File.add_basename r.rule_context.build_dir hash in
+    r.rule_temp_dir <- Some dir;
+    dir
+
 
 let file_of_argument r arg =
   match arg with

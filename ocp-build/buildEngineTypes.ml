@@ -59,6 +59,7 @@ type only_if_changed = bool
 type build_rule = {
   rule_id : int;
   rule_main_target : build_file;
+  mutable rule_temp_dir : File.t option;
   mutable rule_forced : bool;
   mutable rule_commands :  build_action list;
   rule_loc : loc; (* project_info *)
