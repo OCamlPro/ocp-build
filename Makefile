@@ -3,12 +3,13 @@ MAKE_CONFIG := autoconf/Makefile.config
 
 include $(MAKE_CONFIG)
 
-STRCOMPAT_SRCDIR=ocplib-compat/string-compat
-DEBUG_SRCDIR=ocplib-debug
-LANG_SRCDIR=ocplib-lang
-UNIX_SRCDIR=ocplib-unix
-SYSTEM_SRCDIR=ocplib-system
-OCP_BUILD_SRCDIR=ocp-build
+COMPAT_SRCDIR=libs/ocplib-compat
+STRCOMPAT_SRCDIR=$(COMPAT_SRCDIR)/string-compat
+DEBUG_SRCDIR=libs/ocplib-debug
+LANG_SRCDIR=libs/ocplib-lang
+UNIX_SRCDIR=libs/ocplib-unix
+SYSTEM_SRCDIR=libs/ocplib-system
+OCP_BUILD_SRCDIR=tools/ocp-build
 OCP_BUILD_DSTDIR=$(OBUILD_DSTDIR)/ocp-build
 
 OCP_BUILD_BOOTER=boot/ocp-build.asm
@@ -95,7 +96,7 @@ BUILD_OCAML= $(OCP_BUILD_SRCDIR)/buildOCamlConfig.ml	\
 
 BUILD_MAIN= $(OCP_BUILD_SRCDIR)/buildArgs.ml	\
     $(OCP_BUILD_SRCDIR)/buildActions.ml		\
-    $(OCP_BUILD_SRCDIR)/buildActionRoot.ml	\
+    $(OCP_BUILD_SRCDIR)/buildActionInit.ml	\
     $(OCP_BUILD_SRCDIR)/buildActionPrefs.ml	\
     $(OCP_BUILD_SRCDIR)/buildActionConfigure.ml	\
     $(OCP_BUILD_SRCDIR)/buildActionBuild.ml	\
@@ -194,7 +195,7 @@ install-ocp-build:
 	echo "generated = true" >> ${LIBDIR}/installed.ocp
 	for lib in debug lang unix system compat subcmd; do \
 		mkdir -p ${LIBDIR}/ocplib-$$lib; \
-		cp -f ocplib-$$lib/build.ocp \
+		cp -f libs/ocplib-$$lib/build.ocp \
 			 ${LIBDIR}/ocplib-$$lib/; \
 		cp -f $(OBUILD_DSTDIR)/ocplib-$$lib/*.cmi \
 		      $(OBUILD_DSTDIR)/ocplib-$$lib/*.cma \
@@ -214,8 +215,8 @@ configure: autoconf/configure.ac autoconf/m4/*.m4
 		autoconf; \
 		./configure $(CONFIGURE_ARGS)
 
-$(STRCOMPAT_SRCDIR)/stringCompat.ml: ocplib-compat/$(HAS_BYTES)/stringCompat.ml
-	cp -f ocplib-compat/$(HAS_BYTES)/stringCompat.ml \
+$(STRCOMPAT_SRCDIR)/stringCompat.ml: $(COMPAT_SRCDIR)/$(HAS_BYTES)/stringCompat.ml
+	cp -f $(COMPAT_SRCDIR)/$(HAS_BYTES)/stringCompat.ml \
 		$(STRCOMPAT_SRCDIR)/stringCompat.ml
 
 ###########################################################################

@@ -1,0 +1,230 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                              OCamlPro TypeRex                          *)
+(*                                                                        *)
+(*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
+(*   This file is distributed under the terms of the GPL v3.0             *)
+(*      (GNU Public Licence version 3.0).                                 *)
+(*                                                                        *)
+(*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
+(*                                                                        *)
+(*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       *)
+(*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES       *)
+(*  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND              *)
+(*  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS   *)
+(*  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN    *)
+(*  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN     *)
+(*  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE      *)
+(*  SOFTWARE.                                                             *)
+(**************************************************************************)
+
+version = "1.99.10"
+copyright = [ "OCamlPro/INRIA 2011-2013" ]
+authors = [ "Fabrice LE FESSANT <fabrice.le_fessant@ocamlpro.com>" ]
+license = [ "GPLv3" ]
+
+(* Only install the ocp-build, so set install=true in it *)
+install = false
+
+begin library "ocp-build-misc"
+  install = true
+  files = [
+    "logger.ml"
+    "buildMisc.ml";
+    "buildMtime.ml";      (* How modification times are computed *)
+
+    "buildScanner.ml"; (* Scan directories looking for files with particular properties *)
+    "buildSubst.ml"
+      "buildFind.ml"
+    "buildTerm.ml"
+    "ocamldot.ml"
+    "buildValue.ml"
+    "versioning.ml"
+  ]
+
+   requires =  [
+    "ocplib-lang"; "ocplib-unix" "ocplib-system" ]
+
+end
+
+(*
+begin library "ocplib-parallel"
+  files = [ "parallelLoop.ml" ]
+  requires = [ "ocp-build-misc" ]
+end
+*)
+
+begin library "ocp-build-project"
+  install = true
+
+  files = [
+
+    "buildOCPTypes.ml";
+
+    "buildOCPTree.ml"
+    "buildOCPParser.mly" (pp = []);
+    "buildOCPParse.ml";
+
+    "buildOCPPrinter.ml"
+    "buildOCPInterp.ml"
+    "buildOCP.ml"
+ ]
+
+  requires = [ "ocplib-unix"; "ocp-build-misc" ]
+end
+
+begin library "ocp-build-engine"
+  files = [
+
+  "buildEngineTypes.ml";      (* All interesting types for the build engine *)
+  "buildEngineGlobals.ml";    (* Global tables and misc functions *)
+  "buildEngineRules.ml"             (* Functions to create compilation rules *)
+  "buildEngineContext.ml";    (* Initialisation of the build Engine *)
+  "buildEngineDisplay.ml";
+  "buildEngine.ml";           (* The generic parallel build engine *)
+  ]
+
+   requires =  [
+     "ocp-build-misc"
+    "ocplib-unix" ]
+
+end
+
+begin library "ocp-build-lib"
+
+  files = [
+    "buildVersion.ml" (ocp2ml ; env_strings = [ "datadir" ])
+    "buildTypes.ml";            (* All interesting types *)
+    "buildOptions.ml"
+    "buildGlobals.ml";          (* All global variables and tables *)
+    "buildConfig.ml";           (* Values stored in the configuration file. *)
+
+    "buildUninstall.ml";
+  ]
+
+  requires = [ "ocplib-unix"; "ocp-build-engine"; "ocp-build-project";
+    "ocp-build-misc" ]
+
+end
+
+
+begin library "ocplib-ocamlfind"
+    files = [ "metaTypes.ml"
+                "metaLexer.mll" (pp =[])
+                "metaFile.ml" "metaParser.ml"
+              "metaConfig.ml"
+          ]
+  requires = [ "ocp-build-misc" ]
+end
+
+    begin program "test-meta"
+        files = [ "metaMain.ml" ]
+requires = [ "ocplib-ocamlfind"]
+end
+
+
+(*
+This plugin defines the rules to build OCaml packages.
+BuildOCamlRules.create is directly called from BuildMain, so it
+is not yet an optional plugin, but it should at some point (TODO).
+*)
+begin library "ocp-build-ocaml-plugin"
+  files = [
+    "buildOCamlConfig.ml";
+    "buildOCamlTypes.ml";
+    "buildOCamlGlobals.ml";
+    "buildOCamlMisc.ml";
+    "buildOCamlVariables.ml";
+    "buildOCamldep.ml";         (* Load dependencies from a file generated
+                                     by ocamldep *)
+    "buildOCamlSyntaxes.ml";    (* For preprocessing of OCaml files *)
+    "buildOCamlRules.ml";       (* Initialisation of the build Engine *)
+    "buildOCamlInstall.ml"
+    "buildOCamlMeta.ml";
+    "buildOCamlTest.ml";
+
+    (*    "buildOCFGen.ml"; *)
+    "buildAutogen.ml";           (* Generate .ocp from directory content *)
+
+  ]
+  requires = [ "ocp-build-lib" "ocplib-ocamlfind" ]
+end
+
+begin library "ocp-build-oasis"
+  files = [
+    "buildOasis.ml"
+  ]
+  requires = [ "ocp-build-project" ]
+end
+
+begin program "ocp-build"
+    (*  asmlink += [ "-cclib" "-v" ] *)
+  lib_files = [
+    "../../boot/ocaml.ocp"
+    "../../boot/camlp4.ocp"
+  ]
+  install = true
+  files = [
+    "buildArgs.ml"
+    "buildActions.ml";          (* Main possible actions *)
+    "buildActionInit.ml"
+    "buildActionPrefs.ml"
+    "buildActionConfigure.ml"
+    "buildActionBuild.ml"
+    "buildActionInstall.ml"
+    "buildActionClean.ml"
+    "buildActionTests.ml"
+    "buildActionUninstall.ml"
+    "buildActionQuery.ml"
+    "buildActionHelp.ml"
+    "buildMain.ml" (* Driver of program *)
+  ]
+  requires = [ "ocp-build-lib"
+                 "ocp-build-ocaml-plugin"
+                 "ocp-build-oasis"
+             ]
+
+end
+
+
+begin program "ocp-project"
+  files = [
+    "projectMain.ml"
+  ]
+  requires = [ "ocp-build-project" ]
+end
+
+begin test "ocp-build.test"
+  files = []
+  requires = [ "ocp-build" ]
+
+  test_dir = [ "%{tests}%/%{test}%" ]
+  test_args = [ "-init" "-scan" ]
+  test_benchmark = true
+  tests = [
+        "cycle"   (test_exit = 2) (* should raise error 2 *)
+      ]
+end
+
+
+
+
+
+
+begin library "ocp-build-ocaml"
+
+  files = [
+    "buildObjectInspector.ml";    (* Functions to explore object files *)
+ ]
+
+  requires = [ "ocp-build-misc" ]
+
+end
+
+begin program "ocp-build-infer-env"
+
+    files = [ (* "buildOCamlEnv.ml" *) ]
+  requires = [ "ocp-build-ocaml" "ocp-build-misc" ]
+
+
+end
