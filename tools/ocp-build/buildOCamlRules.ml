@@ -2647,7 +2647,7 @@ let fix_windows_directory s =
   in
   iter len
 
-let add_package bc build_tests pk =
+let add_package bc pk =
   let b = bc.build_context in
   let package_name = pk.BuildOCPTypes.package_name in
   let package_dirname = pk.BuildOCPTypes.package_dirname in
@@ -2724,13 +2724,19 @@ let add_package bc build_tests pk =
     Printf.eprintf "Error: %s\n%!" s;
     clean_exit 2
 
-let create bc state build_tests =
+let plugin =
+  let module Plugin = struct
+    let name = "OCaml"
+  end in
+  (module Plugin : Plugin)
+
+let create cin bc state =
 
   BuildOCamlGlobals.reset ();
 (*  BuildOCPPrinter.eprint_project "BuildOCamlRules.create" ptmp; *)
   let b = bc.build_context in
   let libs =
-    Array.map (add_package bc build_tests) state.BuildOCPTypes.project_sorted
+    Array.map (add_package bc) state.BuildOCPTypes.project_sorted
   in
   Array.iter (fun lib ->
     try
@@ -2807,7 +2813,66 @@ let create bc state build_tests =
     Printf.eprintf "%!"
   end;
 
-  ()
+  Array.map (fun lib ->
+    let module P = struct
+      let name = lib.lib.lib_name
+      let info = lib.lib
+      let plugin = plugin
+
+      let clean_targets () = assert false
+      let test_targets () =
+        let targets = BuildOCamlGlobals.make_test_targets lib.lib cin in
+        let depends =
+          let depends = ref [] in
+          List.iter (fun dep ->
+            if dep.dep_link || dep.dep_syntax then
+              depends := dep.dep_project :: !depends
+          ) lib.lib.lib_requires;
+          !depends
+        in
+        { targets; depends }
+      let doc_targets () =
+        let targets = BuildOCamlGlobals.make_doc_targets lib.lib cin in
+        let depends =
+          let depends = ref [] in
+          List.iter (fun dep ->
+            if dep.dep_link || dep.dep_syntax then
+              depends := dep.dep_project :: !depends
+          ) lib.lib.lib_requires;
+          !depends
+        in
+        { targets; depends }
+      let build_targets () =
+        let targets = BuildOCamlGlobals.make_build_targets lib.lib cin in
+        let depends =
+          let depends = ref [] in
+          List.iter (fun dep ->
+            if dep.dep_link || dep.dep_syntax then
+              depends := dep.dep_project :: !depends
+          ) lib.lib.lib_requires;
+          !depends
+        in
+        { targets; depends }
+      let conf_targets () =
+        let targets = BuildOCamlGlobals.make_build_targets lib.lib cin in
+        let depends =
+          let depends = ref [] in
+          List.iter (fun dep ->
+            if dep.dep_link || dep.dep_syntax then
+              depends := dep.dep_project :: !depends
+          ) lib.lib.lib_requires;
+          !depends
+        in
+        { targets; depends }
+
+      let install () = assert false
+      let test () = assert false
+
+      (* TODO *)
+      let install_dir () = assert false
+    end in
+    (module P : BuildTypes.Package)
+  ) libs
 
 (*
 buildOCamlRules.ml:395:    List.map (fun to_sort -> to_sort.to_sort_value) (FileSorter.sort list) in

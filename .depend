@@ -683,7 +683,6 @@ tools/ocp-build/buildActionBuild.cmo : libs/ocplib-lang/stringMap.cmi \
     tools/ocp-build/buildOCamlVariables.cmo \
     tools/ocp-build/buildOCamlRules.cmi tools/ocp-build/buildOCamlMeta.cmi \
     tools/ocp-build/buildOCamlInstall.cmi \
-    tools/ocp-build/buildOCamlGlobals.cmo \
     tools/ocp-build/buildOCamlConfig.cmi tools/ocp-build/buildOCPTypes.cmi \
     tools/ocp-build/buildOCPTree.cmi tools/ocp-build/buildOCPPrinter.cmi \
     tools/ocp-build/buildOCPInterp.cmi tools/ocp-build/buildOCP.cmi \
@@ -705,7 +704,6 @@ tools/ocp-build/buildActionBuild.cmx : libs/ocplib-lang/stringMap.cmx \
     tools/ocp-build/buildOCamlVariables.cmx \
     tools/ocp-build/buildOCamlRules.cmx tools/ocp-build/buildOCamlMeta.cmx \
     tools/ocp-build/buildOCamlInstall.cmx \
-    tools/ocp-build/buildOCamlGlobals.cmx \
     tools/ocp-build/buildOCamlConfig.cmx tools/ocp-build/buildOCPTypes.cmx \
     tools/ocp-build/buildOCPTree.cmx tools/ocp-build/buildOCPPrinter.cmx \
     tools/ocp-build/buildOCPInterp.cmx tools/ocp-build/buildOCP.cmx \
@@ -901,7 +899,7 @@ tools/ocp-build/buildOCamldep.cmi : tools/ocp-build/buildValue.cmi \
 tools/ocp-build/buildOCamlSyntaxes.cmi : tools/ocp-build/buildValue.cmi \
     tools/ocp-build/buildOCamlTypes.cmi tools/ocp-build/buildEngineTypes.cmi
 tools/ocp-build/buildOCamlRules.cmi : tools/ocp-build/buildTypes.cmi \
-    tools/ocp-build/buildOCPTypes.cmi
+    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOCPTypes.cmi
 tools/ocp-build/buildOCamlInstall.cmi : tools/ocp-build/buildTypes.cmi
 tools/ocp-build/buildOCamlMeta.cmi : tools/ocp-build/buildOCPInterp.cmi
 tools/ocp-build/buildOCamlTest.cmi : tools/ocp-build/buildTypes.cmi \

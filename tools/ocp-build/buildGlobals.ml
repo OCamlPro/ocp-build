@@ -20,10 +20,12 @@
 
 
 open StringCompat
-
 open BuildTypes
-
 open BuildOCPTypes
+
+open BuildEngineContext
+open BuildEngineRules
+open BuildEngineTypes
 
 
 let verbose = DebugVerbosity.verbose ["B"] "BuildGlobals"
@@ -59,10 +61,6 @@ let new_builder_context b = {
   config_filename_validated_table = Hashtbl.create 113;
   uniq_rules = Hashtbl.create 113;
 }
-
-open BuildEngineContext
-open BuildEngineRules
-open BuildEngineTypes
 
 let config_filename_validated bc lib_loc (filename, digest_o) =
   try

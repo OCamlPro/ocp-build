@@ -95,3 +95,11 @@ debug.ocp
 /check-headers.undo
 headers-??.txt
 /ocp-check-headers-ignore-files
+/.ocpstop
+/archi?.dot
+/archi?.pdf
+/exports-ocp-build-project.txt
+/libs/ocplib-system/simpleConfig.ml
+/libs/ocplib-compat/string-compat/stringCompat.ml
+#*
+/archi?.txt

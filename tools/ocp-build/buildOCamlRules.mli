@@ -19,10 +19,12 @@
 (**************************************************************************)
 
 
+val plugin : (module BuildTypes.Plugin)
 
 (* From the [validated_projects] table, fill the other
    tables *)
 val create :
-  BuildTypes.builder_context -> BuildOCPTypes.project ->
-  bool ->  (* should we build tests *)
-  unit
+  BuildOptions.config_input ->
+  BuildTypes.builder_context ->
+  BuildOCPTypes.project ->
+  (module BuildTypes.Package) array
