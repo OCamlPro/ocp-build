@@ -267,8 +267,8 @@ let rec compare_expression e1 e2 =
      | v -> v)
   | VInt n1, VInt n2 -> compare n1 n2
   | _ ->
-    Printf.eprintf "Error: values cannot be compared\n%!";
-    failwith "BuildOCPInterp.compare_expression"
+    Printf.eprintf "Error: values cannot be compared as versions\n%!";
+    failwith "BuildOCPInterp.compare_versions"
 
 
 let rec translate_toplevel_statements pj config list =

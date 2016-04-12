@@ -363,11 +363,11 @@ let do_init_project_building p pj =
   let bc = new_builder_context b in
   b.stop_on_error_arg <- !stop_on_error_arg;
 
-  BuildOCamlRules.create bc pj !tests_arg;
+  let packages = BuildOCamlRules.create p.cin bc pj in
 
   if !print_build_context then
     BuildEngineDisplay.eprint_context b;
-  bc
+  (bc, packages)
 
 
 
@@ -423,9 +423,9 @@ let load_initial_project p state targets =
 
   time_step "   Done sorting packages";
 
-(*
+  (*
     do_reply_to_queries pj;
-*)
+  *)
 
   if !query_global then begin
     Printf.eprintf "Error: reached query-global end point.\n%!";
@@ -453,27 +453,28 @@ let load_initial_project p state targets =
   else
     do_print_project_info pj;
 
-(*
-    match project_dir with
-      None -> assert false
-    | Some project_dir ->
-    (*        let root_dir = File.dirname root_file in *)
-*)
+  let (bc, packages) = do_init_project_building p pj in
 
-  let bc = do_init_project_building p pj in
-
+  let package_map =
+    let h = ref StringMap.empty in
+    Array.iter (fun p ->
+      let module P = (val p : Package) in
+      h := StringMap.add P.name p !h;
+    ) packages;
+    !h
+  in
   let projects =
     (* build the list of projects considered by the current command *)
     let projects = ref [] in
     match targets with
       [] ->
-      StringMap.iter (fun _ pj ->
-        projects := pj :: !projects) bc.packages_by_name;
-      !projects
+        StringMap.iter (fun _ pj ->
+          projects := pj :: !projects) package_map;
+        !projects
     | list ->
       List.iter (fun name ->
         try
-          let pj = StringMap.find name bc.packages_by_name in
+          let pj = StringMap.find name package_map in
           projects := pj :: !projects
         with Not_found ->
           Printf.eprintf
@@ -482,43 +483,74 @@ let load_initial_project p state targets =
       ) list;
       !projects
   in
-  (bc, projects)
+
+  (*
+  let packages2 =
+    let projects = ref [] in
+    StringMap.iter (fun _ pj ->
+      projects := pj :: !projects) bc.packages_by_name;
+    Array.of_list !projects
+  in
+  begin
+    let packages1 = Array.map (fun p ->
+      let module P = (val p : Package) in
+      P.name) packages in
+    Array.sort compare packages1;
+    Printf.eprintf "packages1: %s\n%!"
+      (String.concat "," (Array.to_list packages1));
+
+    let packages2 = Array.map (fun p -> p.lib_name) packages2 in
+    Array.sort compare packages2;
+    Printf.eprintf "packages2: %s\n%!"
+      (String.concat "," (Array.to_list packages2));
+  end;
+  *)
+  (bc, projects, package_map)
 
 let rec do_compile stage p ncores  env_state arg_targets =
 
-  let (bc, projects) = load_initial_project p
+  let (bc, projects, package_map) = load_initial_project p
       (BuildOCPInterp.copy_state env_state) arg_targets in
   let b = bc.build_context in
-  let cin = p.cin in
 
   (* build the list of targets *)
-  let targets = ref [] in
+  let build_targets = ref [] in
   let map = ref StringMap.empty in
-  let rec add_project_targets lib =
-    if not lib.lib_installed &&
-       (!tests_arg || lib.lib_type <> TestPackage) &&
-       not (StringMap.mem lib.lib_name !map) then begin
+  let rec add_project_targets
+      (make_build_targets, make_doc_targets, make_test_targets)
+      p =
+    let module P = (val p : Package) in
+    let lib = P.info in
+    if not (StringMap.mem lib.lib_name !map) then begin
 
-      if !make_build_targets then begin
-        targets := BuildOCamlGlobals.make_build_targets lib cin @ !targets
-      end;
+        (* prevent second pass *)
+        map := StringMap.add lib.lib_name lib !map;
 
-      if !make_doc_targets then
-        targets := BuildOCamlGlobals.make_doc_targets lib cin @ !targets;
-
-      if !make_test_targets then
-        targets := BuildOCamlGlobals.make_test_targets lib cin @ !targets;
-
-      map := StringMap.add lib.lib_name lib !map;
-      List.iter (fun dep ->
-        if dep.dep_link || dep.dep_syntax then
-          add_project_targets dep.dep_project
-      ) lib.lib_requires
+        let add_project_targets pj =
+          let p = StringMap.find pj.lib_name package_map in
+          add_project_targets (true, false, false) p in
+        if make_build_targets then begin
+          let { targets; depends } = P.build_targets () in
+          build_targets := targets @ !build_targets;
+          List.iter add_project_targets depends
+        end;
+        if make_doc_targets then begin
+          let { targets; depends } = P.doc_targets () in
+          build_targets := targets @ !build_targets;
+          List.iter add_project_targets depends
+        end;
+        if make_test_targets then begin
+          let { targets; depends } = P.test_targets () in
+          build_targets := targets @ !build_targets;
+          List.iter add_project_targets depends
+        end;
     end
   in
-  List.iter add_project_targets projects;
+  List.iter (add_project_targets
+               (!make_build_targets, !make_doc_targets, !make_test_targets)
+  ) projects;
 
-  if !targets = [] && not !tests_arg then begin
+  if !build_targets = [] then begin
     Printf.eprintf "Error: project contains no targets\n%!";
     Printf.eprintf "\tAre your .ocp files empty ?\n%!";
     BuildMisc.clean_exit 2
@@ -532,12 +564,12 @@ let rec do_compile stage p ncores  env_state arg_targets =
 
 
 
-  if !targets <> [] then begin
+  if !build_targets <> [] then begin
     time_step "Initializing build engine...";
     begin
 
       try
-        BuildEngine.init b !targets
+        BuildEngine.init b !build_targets
       with BuildEngine.MissingSourceWithNoBuildingRule (r, filename) ->
         let (rule_filename, rule_loc, rule_name) = r.rule_loc in
         BuildMisc.print_loc rule_filename rule_loc;

@@ -18,35 +18,41 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
-(* ocp-build install [OPTIONS]
-
-  Set the options of the user preference file.
-
-*)
-
 open StringCompat
 
-
-
-
-
-
-
 open BuildTypes
-
-
 open BuildArgs
 open BuildTerm
 open BuildActions
 
+module StringSet = struct
+  include StringSet
 
-let do_install bc where install_what projects =
+  let of_list list =
+    let map = ref empty in
+    List.iter (fun x -> map := add x !map) list;
+    !map
+  let to_list set =
+    let list = ref [] in
+    StringSet.iter (fun e -> list := e :: !list) set;
+    List.rev !list
+end
+
+let do_install bc dest_dir where install_what projects =
+
+  let install_dirs = ref StringSet.empty in
+  let projects = List.map (fun p ->
+    let module P = (val p : Package) in
+    let lib = P.info in
+    install_dirs := StringSet.add (P.install_dir()) !install_dirs;
+    lib
+  ) projects in
 
   let already_installed =
+
     let state =
-      let open BuildOCamlInstall in
-      BuildUninstall.init where.install_destdir where.install_libdirs
+      BuildUninstall.init dest_dir
+        (StringSet.to_list !install_dirs)
     in
     List.map (fun pj -> pj.lib_name)
       (List.filter
@@ -157,8 +163,9 @@ let action () =
   in
 
 
-
-  do_install bc (install_where p) install_what projects;
+  let install_where = BuildActions.install_where p in
+  do_install bc install_where.BuildOCamlInstall.install_destdir
+    install_where install_what projects;
   ()
 
 

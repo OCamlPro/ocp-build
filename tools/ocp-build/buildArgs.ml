@@ -91,7 +91,6 @@ let build_dir_basename_arg = ref "_obuild"
 type arch_arg = ArchNone | Arch of string
 let arch_arg = ref ArchNone
 
-let tests_arg = ref false
 let benchmarks_arg = ref false
 let configure_arg = ref false
 

@@ -41,48 +41,6 @@ type state = {
   mutable un_errors : int;
 }
 
-  (*
-module List = struct
-  include List
-
-  let rec split_after l1 l2 =
-    match l1, l2 with
-      _, [] -> Some l1
-    | [], _ -> None
-    | h1 :: t1, h2 :: t2 ->
-      if h1 = h2 then
-        split_after t1 t2
-      else
-        None
-
-          (*
-  let starts_with l1 l2 =
-    (split_after l1 l2) <> None
-          *)
-end
-  *)
-
-  (*
-let split_dir dir =
-  let rec iter pos pos0 path dir len =
-    if pos = len then begin
-      if pos = pos0 then List.rev path else
-        List.rev (String.sub dir pos0 (pos-pos0) :: path)
-    end else
-      match dir.[pos] with
-        '/' | '\\' ->
-          let path =
-            if pos = pos0 then path
-            else
-              String.sub dir pos0 (pos-pos0) :: path
-          in
-          let pos = pos+1 in
-          iter pos pos path dir len
-      | _ -> iter (pos+1) pos0 path dir len
-  in
-  iter 0 0 [] dir (String.length dir)
-  *)
-
 let in_destdir where file =
   match where.un_destdir with
     None -> file
