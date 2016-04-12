@@ -69,9 +69,10 @@ let doc_option = BuildValue.new_strings_option "doc" ([] : string list)
 let asmcomp_option = BuildValue.new_strings_option "asmcomp" ([] : string list)
 let asmlink_option = BuildValue.new_strings_option "asmlink" ([] : string list)
 let dep_option = BuildValue.new_strings_option "dep" ([] : string list)
-let bytedebug = BuildValue.new_bool_option "bytedebug" false
-let asmdebug = BuildValue.new_bool_option "asmdebug" false
+let bytedebug_option = BuildValue.new_bool_option "bytedebug" false
+let asmdebug_option = BuildValue.new_bool_option "asmdebug" false
 
+let force_link_option = BuildValue.new_bool_option "force_link" false
 
 let rule_sources_option = BuildValue.new_strings_option "rule_sources" []
 let more_deps_option = BuildValue.new_strings_option "more_deps" []

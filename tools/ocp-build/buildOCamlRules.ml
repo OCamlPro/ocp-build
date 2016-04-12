@@ -410,12 +410,12 @@ let add_nopervasives_flag options flags =
   else flags
 
 let add_asmdebug_flag options flags =
-  if asmdebug.get options then
+  if asmdebug_option.get options then
     (S "-g" ) :: flags
   else flags
 
 let add_bytedebug_flag options flags =
-  if asmdebug.get options then
+  if asmdebug_option.get options then
     (S "-g" ) :: flags
   else flags
 
@@ -625,6 +625,8 @@ let add_cmos2cma_rule b lib ptmp cclib cmo_files cma_file =
     add_command_args cmd  [S "-a"; S "-o"; BF cma_file];
     if cclib <> "" then
       add_command_strings cmd [ "-custom" ; "-cclib"; cclib ];
+    if force_link_option.get options then
+      add_command_strings cmd [ "-linkall" ];
 
     let cmd = add_files_to_link_to_command "byte lib" cmd options cmo_files in
     let r = new_rule lib cma_file [cmd] in
@@ -645,13 +647,13 @@ let cross_update r list =
      ) list)
 
 let add_cmxs2cmxa_rule b lib ptmp cclib cmi_files cmx_files cmxo_files stubs_files =
-  let envs = [lib.lib.lib_options] in
+  let options = [lib.lib.lib_options] in
   let src_dir = lib.lib.lib_src_dir in
   let dst_dir = lib.lib.lib_dst_dir in
 
   let basename_cmxa = lib.lib_archive ^ ".cmxa" in
   let basename_cmxs = lib.lib_archive ^ ".cmxs" in
-  let ext_lib = BuildOCamlConfig.ocaml_config_ext_lib.get envs  in
+  let ext_lib = BuildOCamlConfig.ocaml_config_ext_lib.get options  in
   let basename_a = lib.lib_archive ^ ext_lib in
 
   let cmxa_file = add_dst_file b dst_dir basename_cmxa in
@@ -668,37 +670,42 @@ let add_cmxs2cmxa_rule b lib ptmp cclib cmi_files cmx_files cmxo_files stubs_fil
     let temp_a = add_temp_file b src_dir basename_a in
 
     begin
-      let cmd = new_command (ocamlopt_cmd.get envs ) (asmlinkflags lib) in
+      let cmd = new_command (ocamlopt_cmd.get options ) (asmlinkflags lib) in
       add_command_args cmd [S "-a"; S "-o"; BF temp_cmxa ];
       if cclib <> "" then
         add_command_strings cmd ["-cclib"; cclib];
+      if  force_link_option.get options then
+        add_command_strings cmd [ "-linkall" ];
 
-      let cmd = add_files_to_link_to_command "asm lib" cmd envs cmx_files in
+      let cmd = add_files_to_link_to_command "asm lib" cmd options cmx_files in
       add_rule_command r cmd;
       add_rule_target r a_file;
       add_rule_temporaries r [ temp_cmxa; temp_a ];
 
     end;
 
-    add_more_rule_sources lib r [ ocamlopt_deps; asmlink_deps; link_deps ] envs;
+    add_more_rule_sources lib r [ ocamlopt_deps; asmlink_deps; link_deps ] options;
     add_rule_sources r cmx_files;
     add_rule_sources r cmxo_files;
     add_rule_sources r cmi_files;
 
-    if BuildValue.get_bool_with_default envs "cmxs_plugin" true then begin
+    if BuildValue.get_bool_with_default options "cmxs_plugin" true then begin
 
       let temp_cmxs = add_temp_file b src_dir basename_cmxs in
 
-      let cmd = new_command (ocamlopt_cmd.get envs ) (asmlinkflags lib) in
+      let cmd = new_command (ocamlopt_cmd.get options ) (asmlinkflags lib) in
       add_command_args cmd [S "-shared"; S "-I"; S lib.lib.lib_dst_dir.dir_fullname; S "-o"; BF temp_cmxs ];
       if cclib <> "" then add_command_strings cmd ["-cclib"; cclib];
-      let cmd = add_files_to_link_to_command "cmxs lib" cmd envs cmx_files in
+      if force_link_option.get options then
+        add_command_strings cmd [ "-linkall" ];
+
+      let cmd = add_files_to_link_to_command "cmxs lib" cmd options cmx_files in
 (*      add_command_args cmd [BF temp_cmxa]; *)
 
       add_rule_command r cmd;
       add_rule_target r cmxs_file;
       add_rule_temporaries r [ temp_cmxs ];
-      add_more_rule_sources lib r [ ocamlopt_deps; asmlink_deps; link_deps ] envs;
+      add_more_rule_sources lib r [ ocamlopt_deps; asmlink_deps; link_deps ] options;
       add_rule_sources r stubs_files; (* TODO: as we introduce this new dependency, we might want to
        split generation of .cmxa from .cmxs to be able to do them in parallel *)
       cross_move r [
@@ -716,15 +723,15 @@ let add_cmxs2cmxa_rule b lib ptmp cclib cmi_files cmx_files cmxo_files stubs_fil
 
 let add_odocs2html_rule lib odoc_files docdir html_file =
   if not lib.lib.lib_installed then
-    let envs = [lib.lib.lib_options] in
-    let cmd = new_command (ocamldoc_cmd.get envs ) [] in
+    let options = [lib.lib.lib_options] in
+    let cmd = new_command (ocamldoc_cmd.get options ) [] in
     List.iter (fun odoc_file ->
       add_command_args cmd [S "-load"; BF odoc_file]
     ) odoc_files;
     add_command_args cmd [S "-html";S "-d"; BD docdir];
 
     let r = new_rule lib html_file [Execute cmd] in
-    add_more_rule_sources lib r [ ocamldoc_deps ] envs;
+    add_more_rule_sources lib r [ ocamldoc_deps ] options;
     add_rule_sources r odoc_files
 
 let get_link_order lib =
