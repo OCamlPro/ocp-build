@@ -279,16 +279,13 @@ module SimpleOptions : sig
   end
 *)
 
-(*
 type option_info = {
     option_name : string;
     option_shortname : string;
-    option_desc : string;
     option_value : string;
-    option_help : string;
-    option_advanced : bool;
+    option_short_help : string;
+    option_long_help : string list;
     option_default : string;
-    option_type : string;
   }
 val simple_options : string -> config_file -> option_info list
 
@@ -297,5 +294,4 @@ val simple_args : string -> config_file -> (string * Arg.spec * string) list
 val prefixed_args :
   string -> config_file -> (string * Arg.spec * string) list
 
-*)
 end
