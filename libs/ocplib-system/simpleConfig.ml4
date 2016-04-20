@@ -1225,22 +1225,18 @@ module SimpleOptions : sig
   end
 *)
 
-(*
 module M = struct
 
     type option_info = {
         option_name : string;
         option_shortname : string;
-        option_desc : string;
         option_value : string;
-        option_help : string;
-        option_advanced : bool;
+        option_short_help : string;
+        option_long_help : string list;
         option_default : string;
-        option_type : string;
       }
 
   end
-*)
 
 let string_of_option_value o v =
   match o.option_class.string_wrappers with
@@ -1257,7 +1253,7 @@ let value_to_tuple2 f x =
     [v1;v2] -> f (v1, v2)
   | _ -> assert false
 
-(*
+
 let info_of_option prefix o =
   match o.option_name with
     [] | _ :: _ :: _ -> failwith "Complex option"
@@ -1265,12 +1261,11 @@ let info_of_option prefix o =
       {
         M.option_name = Printf.sprintf "%s%s" prefix name;
         M.option_shortname = name;
-        M.option_short_help = o.option_short_help;
+        M.option_short_help =
+          (match o.option_short_help with | None -> "" | Some s -> s);
         M.option_value = string_of_option_value o o.option_value;
         M.option_default = string_of_option_value o o.option_default;
-        M.option_advanced = o.option_advanced;
         M.option_long_help = o.option_long_help;
-        M.option_type = o.option_class.class_name;
       }
 
 let simple_options prefix opfile =
@@ -1292,7 +1287,7 @@ let simple_args prefix opfile =
             Printf.fprintf stderr "Setting option %s\n" oi.M.option_name;
             set_simple_option opfile oi.M.option_shortname s),
        Printf.sprintf "<string> : \t%s (current: %s)"
-         oi.M.option_help oi.M.option_value)
+         oi.M.option_short_help oi.M.option_value)
     (simple_options prefix opfile)
 
 let prefixed_args prefix file =
@@ -1310,19 +1305,18 @@ let strings_of_section_options prefix s =
   s.section_options;
   List.rev !list
 
+
+
 type option_info = M.option_info = {
     option_name : string;
     option_shortname : string;
-    option_desc : string;
     option_value : string;
-    option_help : string;
-    option_advanced : bool;
+    option_short_help : string;
+    option_long_help : string list;
     option_default : string;
-    option_type : string;
   }
 
 let info_of_option o = info_of_option "" o
-*)
 
 let sections file = file.file_sections
 let section_name s = string_of_string_list s.section_name
