@@ -91,7 +91,6 @@ debug.ocp
 /src/ocp-build/buildOCPParser.mli
 /src/ocp-build/buildVersion.ml
 /src/ocp-build/metaLexer.ml
-/src/ocplib/system/simpleConfig.ml
 /check-headers.undo
 headers-??.txt
 /ocp-check-headers-ignore-files

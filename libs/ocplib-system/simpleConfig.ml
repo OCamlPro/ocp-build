@@ -18,6 +18,11 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+(* TODO:
+  * remove all [exit] calls. A library should never exit, but raise a
+     different exception for every possible error.
+ *)
+
 
 open StringCompat
 
@@ -85,6 +90,14 @@ and config_section = {
   section_help : string;
   section_file : config_file;
   mutable section_options : Obj.t config_option list;
+  (* replace by:
+  (
+    int (* option_level *)
+   *  (option_value list -> unit)  (* affect_option o *)
+    * (unit -> option_value)     (* option_to_value o *)
+) list
+*)
+
 }
 
 
@@ -201,6 +214,7 @@ let once_values_rev = Hashtbl.create 13
 
 let lexer = make_lexer ["="; "{"; "}"; "["; "]"; ";"; "("; ")"; ","; "."; "@"]
 
+  (*
 let rec parse_gwmlrc = parser
   | [< id = parse_id; 'Kwd "="; v = parse_option ;
        eof = parse_gwmlrc >] -> (id, v) :: eof
@@ -217,19 +231,6 @@ and parse_option = parser
   | [< 'Kwd "["; v = parse_list [] >] -> List v
   | [< 'Kwd "("; v = parse_list [] >] -> List v
 
-and parse_once_value i = parser
-[< 'Kwd "@" >] ->
-  begin
-    try Hashtbl.find once_values i with Not_found ->
-      Printf.fprintf stderr "Error in saved file: @%d@ not defined\n" i;
-      exit 2
-  end
-  |  [< 'Kwd "="; v = parse_option >] ->
-    begin
-      Hashtbl.add once_values i v;
-      v
-    end
-
 and parse_id = parser
 [< 'Ident s >] -> s
   |   [< 'String s >] -> s
@@ -242,6 +243,82 @@ and parse_list list = parser
   |   [< 'Kwd "]" >] -> List.rev list
   |   [< 'Kwd ")" >] -> List.rev list
 
+    *)
+
+exception SyntaxError
+
+let parse_config_file str =
+
+  let rec parse_top options =
+    match Stream.peek str with
+    | Some (Ident s | String s) ->
+      begin
+        Stream.junk str;
+        match Stream.next str with
+        | Kwd "=" ->
+          let v = parse_option () in
+          parse_top ( (s,v) :: options)
+        | _ -> failwith "Operator '=' expected"
+      end
+    | tok -> List.rev options, tok
+
+  and parse_option () =
+    match Stream.next str with
+    | Ident s | String s -> StringValue s
+    | Int i -> IntValue i
+    | Float f -> FloatValue f
+    | Char c -> StringValue (String.make 1 c)
+    | Kwd "[" -> parse_list "]" []
+    | Kwd "(" -> parse_list ")" []
+    | Kwd "{" ->
+      begin
+      let (options, tok) = parse_top [] in
+      match tok with
+      | Some (Kwd "}") -> Module options
+      | _ -> failwith "Symbol '}' expected"
+      end
+    | Kwd "@" ->
+      begin
+        match Stream.next str with
+        | Int i ->
+          let v = parse_once_value i in
+          OnceValue v
+        | _ -> failwith "expected int"
+      end
+    | _ -> failwith "expected value"
+
+  and parse_once_value i =
+    match Stream.next str with
+    | Kwd "@" ->
+      begin
+        try Hashtbl.find once_values i with Not_found ->
+          Printf.kprintf failwith "once value @%d@ is unknown" i
+      end
+    | Kwd "=" ->
+      let v = parse_option () in
+      Hashtbl.add once_values i v;
+      v
+    | _ -> failwith "operators '=' or '@' expected"
+
+  and parse_list end_kwd values =
+    match Stream.peek str with
+    | None ->
+      Printf.kprintf failwith "reached end of file before %s" end_kwd
+    | Some (Kwd ( ";" | "," | ".") ) ->
+      Stream.junk str;
+      parse_list end_kwd values
+    | Some (Kwd kwd) when kwd = end_kwd ->
+      Stream.junk str;
+      List (List.rev values)
+    | _ ->
+      let v = parse_option () in
+      parse_list end_kwd (v :: values)
+
+  in
+  let (options, tok) = parse_top [] in
+  match tok with
+  | Some _ -> failwith "ident or string expected"
+  | None -> options
 
 let exec_hooks name list o =
   List.iter
@@ -283,8 +360,8 @@ let really_load filename sections =
         let stream = lexer s in
         Hashtbl.clear once_values;
         let list =
-          try parse_gwmlrc stream with
-              e ->
+          try parse_config_file stream with
+          | e ->
                 Printf.eprintf "Syntax error while parsing file %s at pos %d:(%s)\n"
                   (File.to_string filename) (Stream.count s) (Printexc.to_string e);
                 exit 2
@@ -1371,4 +1448,3 @@ let if_different  value name option default fields =
 end
 
 include LowLevel
-
