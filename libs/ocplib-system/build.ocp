@@ -19,12 +19,6 @@
 (**************************************************************************)
 
 
-if os_type = "Win32" then {
-  camlp4o = "%{OCAMLBIN}%/camlp4o.exe"
-} else {
-  camlp4o = "%{OCAMLBIN}%/camlp4o"
-}
-
 begin library "ocplib-system"
 
   files = [
@@ -37,20 +31,9 @@ begin library "ocplib-system"
     "date.ml";
     "ocpUnix.ml";
     "ocpFilename.ml";
-(*    "process.ml"; *)
     "debug.ml";
-(*    "ocpSystem.ml"; *)
-
-    "configParser.ml"
-      "simpleConfig.mli" (
-        pp = [ "camlp4o" ]
-        pp_deps = [ camlp4o ]
-      )
-      "simpleConfig.ml4" (
-        ml=true
-        pp = [ "camlp4o" "-impl" ]
-        pp_deps = [ camlp4o ]
-      )
+    "configParser.ml" (* Python file parser ? *)
+      "simpleConfig.ml"
     "fileTemplate.ml"
    ]
 
@@ -61,17 +44,3 @@ begin library "ocplib-system"
   ]
 
 end
-
-  (*
-install = false
-
-begin library "ocplib-system.test"
-  files = [
-    "file_test.ml";
-  ]
-  requires = [
-    "ocplib-test";
-    "ocplib-system";
-  ]
-end
-  *)

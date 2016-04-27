@@ -48,22 +48,3 @@ begin library "ocplib-lang"
 end
 
 install = false
-
-    (*
-begin library "ocplib-test"
-  files = [ "test.ml" ]
-  requires = [ "ocplib-lang" ]
-end
-
-begin library "ocplib-lang.test"
-  files = [
-
-    "ocpList_test.ml";
-    "ocpString_test.ml";
-  ]
-  requires = [
-    "ocplib-lang";
-    "ocplib-test";
-   ]
-end
-    *)

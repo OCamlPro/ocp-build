@@ -117,7 +117,6 @@ OCP_BUILD_MLLS= \
    $(LANG_SRCDIR)/ocamllexer.mll $(OCP_BUILD_SRCDIR)/metaLexer.mll 
 
 OCP_BUILD_MLYS= $(OCP_BUILD_SRCDIR)/buildOCPParser.mly
-OCP_BUILD_ML4S= $(SYSTEM_SRCDIR)/simpleConfig.ml4
 
 OCP_BUILD_CS= $(UNIX_SRCDIR)/minUnix_c.c			\
  $(UNIX_SRCDIR)/onlyWin32_c.c $(UNIX_SRCDIR)/onlyUnix_c.c
@@ -174,9 +173,6 @@ distclean: clean
 #  "buildVersion.ml" (ocp2ml ; env_strings = [ "datadir" ])
 $(OCP_BUILD_SRCDIR)/buildVersion.ml: Makefile $(MAKE_CONFIG)
 	echo "let version=\"$(VERSION)\"" > $(OCP_BUILD_SRCDIR)/buildVersion.ml
-
-$(SYSTEM_SRCDIR)/simpleConfig.ml: $(SYSTEM_SRCDIR)/simpleConfig.ml4
-	$(CAMLP4O) -impl $< > $*.ml
 
 $(OCP_BUILD_SRCDIR)/buildOCPParser.cmi: $(OCP_BUILD_SRCDIR)/buildOCPParser.mli
 	$(OCAMLC) -c -o $(OCP_BUILD_SRCDIR)/buildOCPParser.cmi $(INCLUDES) $(OCP_BUILD_SRCDIR)/buildOCPParser.mli
