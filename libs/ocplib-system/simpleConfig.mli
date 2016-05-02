@@ -66,6 +66,8 @@ val set_after_load_hook : config_file -> (unit -> unit) -> unit
 
 (* Options *)
 
+type option_kind
+
 (* the type of an option *)
 type 'a config_option
 
@@ -197,7 +199,8 @@ val get_class : 'a config_option -> 'a option_class
 val class_hook : 'a option_class -> ('a config_option -> unit) -> unit
 
 val define_option_class :
-  string -> (option_value -> 'a) -> ('a -> option_value) -> 'a option_class
+  string -> ?option_kind:option_kind ->
+  (option_value -> 'a) -> ('a -> option_value) -> 'a option_class
 
 val to_value : 'a option_class -> 'a -> option_value
 val from_value : 'a option_class -> option_value -> 'a
@@ -286,6 +289,7 @@ type option_info = {
     option_short_help : string;
     option_long_help : string list;
     option_default : string;
+    option_kind : option_kind;
   }
 val simple_options : string -> config_file -> option_info list
 

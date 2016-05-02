@@ -44,8 +44,11 @@ and  option_module = (string * option_value) list
 exception SideEffectOption
 exception OptionNotFound
 
+type option_kind = Flag | With | Enable | Other
+
 type 'a option_class =
   { class_name : string;
+    option_kind : option_kind;
     from_value : option_value -> 'a;
     to_value : 'a -> option_value;
     mutable class_hooks : ('a config_option -> unit) list;
@@ -140,10 +143,12 @@ let set_config_file opfile name = opfile.file_name <- name
 let print_options_not_found = ref false
 
 let define_option_class
-    (class_name : string) (from_value : option_value -> 'a)
+    (class_name : string) ?(option_kind = Other)
+    (from_value : option_value -> 'a)
     (to_value : 'a -> option_value) =
   let c =
-    {class_name = class_name; from_value = from_value; to_value = to_value;
+    {class_name = class_name; option_kind;
+     from_value = from_value; to_value = to_value;
      class_hooks = []; string_wrappers = None;}
   in
   c
@@ -831,6 +836,14 @@ let int64_option = define_option_class "Int64" value_to_int64 int64_to_value
 
 
 let bool_option = define_option_class "Bool" value_to_bool bool_to_value
+
+let flag_option = define_option_class
+    "Flag" ~option_kind:Flag value_to_bool bool_to_value
+let with_option = define_option_class
+    "With" ~option_kind:With value_to_bool bool_to_value
+let enable_option = define_option_class
+    "Enable" ~option_kind:Enable value_to_bool bool_to_value
+
 let float_option = define_option_class "Float" value_to_float float_to_value
 (*let path_option = define_option_class "Path" value_to_path path_to_value *)
 
@@ -1311,6 +1324,7 @@ module M = struct
         option_short_help : string;
         option_long_help : string list;
         option_default : string;
+        option_kind : option_kind;
       }
 
   end
@@ -1343,6 +1357,7 @@ let info_of_option prefix o =
         M.option_value = string_of_option_value o o.option_value;
         M.option_default = string_of_option_value o o.option_default;
         M.option_long_help = o.option_long_help;
+        M.option_kind = o.option_class.option_kind;
       }
 
 let simple_options prefix opfile =
@@ -1355,17 +1370,61 @@ let simple_options prefix opfile =
   opfile.file_sections;
   List.rev !list
 
+let simple_args_oi prefix opfile oi = match oi.M.option_kind with
+  | With ->
+    let with_ =
+      "--with-" ^ oi.M.option_name,
+      Arg.Unit
+        (fun () ->
+           Printf.fprintf stderr "Setting option %s\n" oi.M.option_name;
+           set_simple_option opfile oi.M.option_shortname "true"),
+      Printf.sprintf ": %s" oi.M.option_short_help in
+    let without =
+      "--without-" ^ oi.M.option_name,
+      Arg.Unit
+        (fun () ->
+           Printf.fprintf stderr "Unsetting option %s\n" oi.M.option_name;
+           set_simple_option opfile oi.M.option_shortname "false"),
+      Printf.sprintf ": %s" oi.M.option_short_help in
+    [ with_; without]
+  | Enable ->
+    let enable =
+      "--enable-" ^ oi.M.option_name,
+      Arg.Unit
+        (fun () ->
+           Printf.fprintf stderr "Setting option %s\n" oi.M.option_name;
+           set_simple_option opfile oi.M.option_shortname "true"),
+      Printf.sprintf ": %s" oi.M.option_short_help in
+    let disable =
+      "--disable-" ^ oi.M.option_name,
+      Arg.Unit
+        (fun () ->
+           Printf.fprintf stderr "Unsetting option %s\n" oi.M.option_name;
+           set_simple_option opfile oi.M.option_shortname "false"),
+      Printf.sprintf ": %s" oi.M.option_short_help in
+    [ enable; disable ]
+  | Flag ->
+    ["--" ^ oi.M.option_name,
+     Arg.Unit
+       (fun () ->
+          Printf.fprintf stderr "Setting option %s\n" oi.M.option_name;
+          let new_value = not (bool_of_string oi.M.option_default) in
+          let new_value_str = string_of_bool new_value in
+          set_simple_option opfile oi.M.option_shortname new_value_str),
+     Printf.sprintf ": %s" oi.M.option_short_help]
+  | _ ->
+    ["--" ^ oi.M.option_name,
+     Arg.String
+       (fun s ->
+          Printf.fprintf stderr "Setting option %s\n" oi.M.option_name;
+          set_simple_option opfile oi.M.option_shortname s),
+     Printf.sprintf "<string> : %s (current: %s)"
+       oi.M.option_short_help oi.M.option_value]
+
 let simple_args prefix opfile =
-  OcpList.tail_map
-    (fun oi ->
-       "-" ^ oi.M.option_name,
-       Arg.String
-         (fun s ->
-            Printf.fprintf stderr "Setting option %s\n" oi.M.option_name;
-            set_simple_option opfile oi.M.option_shortname s),
-       Printf.sprintf "<string> : \t%s (current: %s)"
-         oi.M.option_short_help oi.M.option_value)
-    (simple_options prefix opfile)
+  List.fold_left
+    (fun acc oi -> (simple_args_oi prefix opfile oi) @ acc)
+    [] (simple_options prefix opfile)
 
 let prefixed_args prefix file =
   List.map
@@ -1391,6 +1450,7 @@ type option_info = M.option_info = {
     option_short_help : string;
     option_long_help : string list;
     option_default : string;
+    option_kind : option_kind;
   }
 
 let info_of_option o = info_of_option "" o
