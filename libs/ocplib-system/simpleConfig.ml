@@ -1347,7 +1347,7 @@ let value_to_tuple2 f x =
 
 let info_of_option prefix o =
   match o.option_name with
-    [] | _ :: _ :: _ -> failwith "Complex option"
+    [] -> failwith "Complex option"
   | [name] ->
       {
         M.option_name = Printf.sprintf "%s%s" prefix name;
@@ -1359,6 +1359,20 @@ let info_of_option prefix o =
         M.option_long_help = o.option_long_help;
         M.option_kind = o.option_class.option_kind;
       }
+  | _ ->
+    let name =
+      List.fold_left (fun acc name -> Printf.sprintf "%s.%s" acc name)
+        prefix o.option_name in
+    {
+      M.option_name = Printf.sprintf "%s%s" prefix name;
+      M.option_shortname = name;
+      M.option_short_help =
+        (match o.option_short_help with | None -> "" | Some s -> s);
+      M.option_value = string_of_option_value o o.option_value;
+      M.option_default = string_of_option_value o o.option_default;
+      M.option_long_help = o.option_long_help;
+      M.option_kind = o.option_class.option_kind;
+    }
 
 let simple_options prefix opfile =
   let list = ref [] in
