@@ -279,7 +279,9 @@ let parse_config_file str =
       begin
       let (options, tok) = parse_top [] in
       match tok with
-      | Some (Kwd "}") -> Module options
+      | Some (Kwd "}") ->
+        Stream.junk str;
+        Module options
       | _ -> failwith "Symbol '}' expected"
       end
     | Kwd "@" ->
