@@ -1389,39 +1389,30 @@ let simple_args_oi prefix opfile oi = match oi.M.option_kind with
     let with_ =
       "--with-" ^ oi.M.option_name,
       Arg.Unit
-        (fun () ->
-           Printf.fprintf stderr "Setting option %s\n" oi.M.option_name;
-           set_simple_option opfile oi.M.option_shortname "true"),
+        (fun () -> set_simple_option opfile oi.M.option_shortname "true"),
       Printf.sprintf ": %s" oi.M.option_short_help in
     let without =
       "--without-" ^ oi.M.option_name,
       Arg.Unit
-        (fun () ->
-           Printf.fprintf stderr "Unsetting option %s\n" oi.M.option_name;
-           set_simple_option opfile oi.M.option_shortname "false"),
+        (fun () -> set_simple_option opfile oi.M.option_shortname "false"),
       Printf.sprintf ": %s" oi.M.option_short_help in
     [ with_; without]
   | Enable ->
     let enable =
       "--enable-" ^ oi.M.option_name,
       Arg.Unit
-        (fun () ->
-           Printf.fprintf stderr "Setting option %s\n" oi.M.option_name;
-           set_simple_option opfile oi.M.option_shortname "true"),
+        (fun () -> set_simple_option opfile oi.M.option_shortname "true"),
       Printf.sprintf ": %s" oi.M.option_short_help in
     let disable =
       "--disable-" ^ oi.M.option_name,
       Arg.Unit
-        (fun () ->
-           Printf.fprintf stderr "Unsetting option %s\n" oi.M.option_name;
-           set_simple_option opfile oi.M.option_shortname "false"),
+        (fun () -> set_simple_option opfile oi.M.option_shortname "false"),
       Printf.sprintf ": %s" oi.M.option_short_help in
     [ enable; disable ]
   | Flag ->
     ["--" ^ oi.M.option_name,
      Arg.Unit
        (fun () ->
-          Printf.fprintf stderr "Setting option %s\n" oi.M.option_name;
           let new_value = not (bool_of_string oi.M.option_default) in
           let new_value_str = string_of_bool new_value in
           set_simple_option opfile oi.M.option_shortname new_value_str),
@@ -1429,9 +1420,7 @@ let simple_args_oi prefix opfile oi = match oi.M.option_kind with
   | _ ->
     ["--" ^ oi.M.option_name,
      Arg.String
-       (fun s ->
-          Printf.fprintf stderr "Setting option %s\n" oi.M.option_name;
-          set_simple_option opfile oi.M.option_shortname s),
+       (fun s -> set_simple_option opfile oi.M.option_shortname s),
      Printf.sprintf "<string> : %s (current: %s)"
        oi.M.option_short_help oi.M.option_value]
 
