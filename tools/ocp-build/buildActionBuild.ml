@@ -675,7 +675,7 @@ let do_read_env p =
             Printf.eprintf "Scanning installed .ocp files in %S\n%!" dir;
           let dir = File.of_string dir in
           env_ocp_files := ( BuildOCP.scan_root dir) @ !env_ocp_files
-        ) !env_ocp_dirs;
+        ) (!env_ocp_dirs @ cout.cout_meta_dirnames);
         List.iter (fun dir ->
           if verbose 3 then
             Printf.eprintf "Scanning installed .ocp files in %S\n%!" dir;
