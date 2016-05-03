@@ -44,7 +44,7 @@ and  option_module = (string * option_value) list
 exception SideEffectOption
 exception OptionNotFound
 
-type option_kind = Flag | With | Enable | Other
+type option_kind = Flag | With | Enable | Float | Int | Bool | Other
 
 type 'a option_class =
   { class_name : string;
@@ -833,11 +833,14 @@ let string_option =
 let color_option = define_option_class "Color" value_to_string string_to_value
 let font_option = define_option_class "Font" value_to_string string_to_value
 
-let int_option = define_option_class "Int" value_to_int int_to_value
-let int64_option = define_option_class "Int64" value_to_int64 int64_to_value
+let int_option = define_option_class
+    "Int" ~option_kind:Int value_to_int int_to_value
+let int64_option = define_option_class
+    "Int64" ~option_kind:Int value_to_int64 int64_to_value
 
 
-let bool_option = define_option_class "Bool" value_to_bool bool_to_value
+let bool_option = define_option_class
+    "Bool" ~option_kind:Bool value_to_bool bool_to_value
 
 let flag_option = define_option_class
     "Flag" ~option_kind:Flag value_to_bool bool_to_value
@@ -846,7 +849,8 @@ let with_option = define_option_class
 let enable_option = define_option_class
     "Enable" ~option_kind:Enable value_to_bool bool_to_value
 
-let float_option = define_option_class "Float" value_to_float float_to_value
+let float_option = define_option_class
+    "Float" ~option_kind:Float value_to_float float_to_value
 (*let path_option = define_option_class "Path" value_to_path path_to_value *)
 
 let string2_option =
@@ -1165,7 +1169,7 @@ let filename_to_value v = StringValue (File.to_string v)
 let file_option =
   define_option_class "Filename" value_to_filename filename_to_value
 
-let shortname o = String.concat ":" o.option_name
+let shortname o = String.concat "." o.option_name
 let get_class o = o.option_class
 let get_help o =
   let help = o.option_long_help in
@@ -1216,7 +1220,7 @@ let get_option opfile name =
         | s :: tail ->
             iter name s.section_options tail
   in
-  iter [name] [] opfile.file_sections
+  iter name [] opfile.file_sections
 
 
 let set_simple_option opfile name v =
@@ -1320,7 +1324,7 @@ module SimpleOptions : sig
 module M = struct
 
     type option_info = {
-        option_name : string;
+        option_name : string list;
         option_shortname : string;
         option_value : string;
         option_short_help : string;
@@ -1352,8 +1356,8 @@ let info_of_option prefix o =
     [] -> failwith "Complex option"
   | [name] ->
       {
-        M.option_name = Printf.sprintf "%s%s" prefix name;
-        M.option_shortname = name;
+        M.option_name = o.option_name;
+        M.option_shortname = Printf.sprintf "%s%s" prefix name;
         M.option_short_help =
           (match o.option_short_help with | None -> "" | Some s -> s);
         M.option_value = string_of_option_value o o.option_value;
@@ -1362,12 +1366,10 @@ let info_of_option prefix o =
         M.option_kind = o.option_class.option_kind;
       }
   | _ ->
-    let name =
-      List.fold_left (fun acc name -> Printf.sprintf "%s.%s" acc name)
-        prefix o.option_name in
     {
-      M.option_name = Printf.sprintf "%s%s" prefix name;
-      M.option_shortname = name;
+      M.option_name = o.option_name;
+      M.option_shortname = 
+        Printf.sprintf "%s%s" prefix (shortname o);
       M.option_short_help =
         (match o.option_short_help with | None -> "" | Some s -> s);
       M.option_value = string_of_option_value o o.option_value;
@@ -1389,41 +1391,59 @@ let simple_options prefix opfile =
 let simple_args_oi prefix opfile oi = match oi.M.option_kind with
   | With ->
     let with_ =
-      "--with-" ^ oi.M.option_name,
+      "--with-" ^ oi.M.option_shortname,
       Arg.Unit
-        (fun () -> set_simple_option opfile oi.M.option_shortname "true"),
+        (fun () -> set_simple_option opfile oi.M.option_name "true"),
       Printf.sprintf ": %s" oi.M.option_short_help in
     let without =
-      "--without-" ^ oi.M.option_name,
+      "--without-" ^ oi.M.option_shortname,
       Arg.Unit
-        (fun () -> set_simple_option opfile oi.M.option_shortname "false"),
+        (fun () -> set_simple_option opfile oi.M.option_name "false"),
       Printf.sprintf ": %s" oi.M.option_short_help in
     [ with_; without]
   | Enable ->
     let enable =
-      "--enable-" ^ oi.M.option_name,
+      "--enable-" ^ oi.M.option_shortname,
       Arg.Unit
-        (fun () -> set_simple_option opfile oi.M.option_shortname "true"),
+        (fun () -> set_simple_option opfile oi.M.option_name "true"),
       Printf.sprintf ": %s" oi.M.option_short_help in
     let disable =
-      "--disable-" ^ oi.M.option_name,
+      "--disable-" ^ oi.M.option_shortname,
       Arg.Unit
-        (fun () -> set_simple_option opfile oi.M.option_shortname "false"),
+        (fun () -> set_simple_option opfile oi.M.option_name "false"),
       Printf.sprintf ": %s" oi.M.option_short_help in
     [ enable; disable ]
   | Flag ->
-    ["--" ^ oi.M.option_name,
+    ["--" ^ oi.M.option_shortname,
      Arg.Unit
        (fun () ->
           let new_value = not (bool_of_string oi.M.option_default) in
           let new_value_str = string_of_bool new_value in
-          set_simple_option opfile oi.M.option_shortname new_value_str),
+          set_simple_option opfile oi.M.option_name new_value_str),
      Printf.sprintf ": %s" oi.M.option_short_help]
-  | _ ->
-    ["--" ^ oi.M.option_name,
+  | Int ->
+    ["--" ^ oi.M.option_shortname,
+     Arg.Int
+       (fun i -> 
+          set_simple_option opfile oi.M.option_name (string_of_int i)),
+     Printf.sprintf "<int> : %s" oi.M.option_short_help]
+  | Float ->
+    ["--" ^ oi.M.option_shortname,
+     Arg.Float
+       (fun f -> 
+          set_simple_option opfile oi.M.option_name (string_of_float f)),
+     Printf.sprintf "<float> : %s" oi.M.option_short_help]
+  | Bool ->
+    ["--" ^ oi.M.option_shortname,
+     Arg.Bool
+       (fun b -> 
+          set_simple_option opfile oi.M.option_name (string_of_bool b)),
+     Printf.sprintf "<bool> : %s" oi.M.option_short_help]
+  | Other ->
+    ["--" ^ oi.M.option_shortname,
      Arg.String
-       (fun s -> set_simple_option opfile oi.M.option_shortname s),
-     Printf.sprintf "<string> : %s (current: %s)"
+       (fun s -> set_simple_option opfile oi.M.option_name s),
+     Printf.sprintf ": %s (current: %s)"
        oi.M.option_short_help oi.M.option_value]
 
 let simple_args prefix opfile =
@@ -1449,7 +1469,7 @@ let strings_of_section_options prefix s =
 
 
 type option_info = M.option_info = {
-    option_name : string;
+    option_name : string list;
     option_shortname : string;
     option_value : string;
     option_short_help : string;
