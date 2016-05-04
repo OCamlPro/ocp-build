@@ -11,8 +11,8 @@ echo OPAM versions
 opam --version
 opam --git-version
 
+PREFIX=$HOME/.opam/$OCAML_VERSION
 
-
-./configure --prefix $(dirname $(ocamlc -where))
+./configure --prefix $PREFIX
 make
 make install
