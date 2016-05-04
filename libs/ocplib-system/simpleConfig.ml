@@ -1402,13 +1402,14 @@ let simple_args_oi prefix opfile oi = match oi.M.option_kind with
       Printf.sprintf " %s" oi.M.option_short_help in
     [ with_; without]
   | ArgEnable ->
+    let name = String.concat "." (List.rev (List.tl (List.rev oi.M.option_name))) in
     let enable =
-      "--enable-" ^ oi.M.option_shortname,
+      "--enable-" ^ name,
       Arg.Unit
         (fun () -> set_simple_option opfile oi.M.option_name "true"),
       Printf.sprintf " %s" oi.M.option_short_help in
     let disable =
-      "--disable-" ^ oi.M.option_shortname,
+      "--disable-" ^ name,
       Arg.Unit
         (fun () -> set_simple_option opfile oi.M.option_name "false"),
       Printf.sprintf " %s" oi.M.option_short_help in
