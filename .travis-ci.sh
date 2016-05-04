@@ -13,14 +13,6 @@ opam --git-version
 
 
 
-./configure
+./configure --prefix $(dirname $(ocamlc -where))
 make
-
-# Do not try to install in /usr/lib
-if [ "${OCAML_VERSION}" != "system" ] ; then
-
-# The next line will modify the cached .opam directory, but
-# ocp-build is supposed to correctly handle this situation,
-# where a previous version is already installed
-  make install
-fi
+make install
