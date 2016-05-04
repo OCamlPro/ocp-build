@@ -3,44 +3,54 @@ MAKE_CONFIG := autoconf/Makefile.config
 
 include $(MAKE_CONFIG)
 
-COMPAT_SRCDIR=libs/ocplib-compat
-STRCOMPAT_SRCDIR=$(COMPAT_SRCDIR)/string-compat
-DEBUG_SRCDIR=libs/ocplib-debug
-LANG_SRCDIR=libs/ocplib-lang
-UNIX_SRCDIR=libs/ocplib-unix
-SYSTEM_SRCDIR=libs/ocplib-system
+# If you add a library ocplib-xxx:
+# 1/ Update this list with xxx_SRCDIR=
+STRcompat_SRCDIR=libs/ocplib-compat
+compat_SRCDIR=$(STRcompat_SRCDIR)/string-compat
+debug_SRCDIR=libs/ocplib-debug
+lang_SRCDIR=libs/ocplib-lang
+unix_SRCDIR=libs/ocplib-unix
+system_SRCDIR=libs/ocplib-system
+config_SRCDIR=libs/ocplib-config
 OCP_BUILD_SRCDIR=tools/ocp-build
 OCP_BUILD_DSTDIR=$(OBUILD_DSTDIR)/ocp-build
 
+OCPLIB_NAMES=debug lang unix system config compat subcmd
+
+INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
+    $(OCP_BUILD_SRCDIR)
+OCPLIB_LIBS=$(foreach lib, $(OCPLIB_NAMES), ocplib-$(lib))
+
 OCP_BUILD_BOOTER=boot/ocp-build.asm
 
-STRING_COMPAT=$(STRCOMPAT_SRCDIR)/stringCompat.ml
+STRING_COMPAT=$(compat_SRCDIR)/stringCompat.ml
 
-OCPLIB_DEBUG= $(DEBUG_SRCDIR)/debugVerbosity.ml	\
-    $(DEBUG_SRCDIR)/debugTyperex.ml
+OCPLIB_DEBUG= $(debug_SRCDIR)/debugVerbosity.ml	\
+    $(debug_SRCDIR)/debugTyperex.ml
 
-OCPLIB_LANG= $(LANG_SRCDIR)/ocpPervasives.ml				\
-    $(LANG_SRCDIR)/ocpList.ml $(LANG_SRCDIR)/ocpString.ml		\
-    $(LANG_SRCDIR)/ocpStream.ml $(LANG_SRCDIR)/ocpGenlex.ml		\
-    $(LANG_SRCDIR)/ocpHashtbl.ml $(LANG_SRCDIR)/ocpDigest.ml		\
-    $(LANG_SRCDIR)/option.ml $(LANG_SRCDIR)/intMap.ml			\
-    $(LANG_SRCDIR)/intSet.ml $(LANG_SRCDIR)/stringMap.ml		\
-    $(LANG_SRCDIR)/stringSet.ml $(LANG_SRCDIR)/toposort.ml		\
-    $(LANG_SRCDIR)/linearToposort.ml $(LANG_SRCDIR)/ocamllexer.ml	\
-    $(LANG_SRCDIR)/trie.ml $(LANG_SRCDIR)/ocpLang.ml			\
-    $(LANG_SRCDIR)/stringSubst.ml $(LANG_SRCDIR)/manpage.ml		\
-    $(LANG_SRCDIR)/stringTemplate.ml
+OCPLIB_LANG= $(lang_SRCDIR)/ocpPervasives.ml				\
+    $(lang_SRCDIR)/ocpList.ml $(lang_SRCDIR)/ocpString.ml		\
+    $(lang_SRCDIR)/ocpStream.ml $(lang_SRCDIR)/ocpGenlex.ml		\
+    $(lang_SRCDIR)/ocpHashtbl.ml $(lang_SRCDIR)/ocpDigest.ml		\
+    $(lang_SRCDIR)/option.ml $(lang_SRCDIR)/intMap.ml			\
+    $(lang_SRCDIR)/intSet.ml $(lang_SRCDIR)/stringMap.ml		\
+    $(lang_SRCDIR)/stringSet.ml $(lang_SRCDIR)/toposort.ml		\
+    $(lang_SRCDIR)/linearToposort.ml $(lang_SRCDIR)/ocamllexer.ml	\
+    $(lang_SRCDIR)/trie.ml $(lang_SRCDIR)/ocpLang.ml			\
+    $(lang_SRCDIR)/stringSubst.ml $(lang_SRCDIR)/manpage.ml		\
+    $(lang_SRCDIR)/stringTemplate.ml
 
-OCPLIB_UNIX= $(UNIX_SRCDIR)/minUnix.ml $(UNIX_SRCDIR)/onlyUnix.ml	\
-    $(UNIX_SRCDIR)/onlyWin32.ml
+OCPLIB_UNIX= $(unix_SRCDIR)/minUnix.ml $(unix_SRCDIR)/onlyUnix.ml	\
+    $(unix_SRCDIR)/onlyWin32.ml
 
-OCPLIB_SYSTEM= $(SYSTEM_SRCDIR)/reentrantBuffers.ml			\
-    $(SYSTEM_SRCDIR)/file.ml $(SYSTEM_SRCDIR)/fileLines.ml		\
-    $(SYSTEM_SRCDIR)/fileLabels.ml $(SYSTEM_SRCDIR)/date.ml		\
-    $(SYSTEM_SRCDIR)/ocpUnix.ml $(SYSTEM_SRCDIR)/ocpFilename.ml	\
-    $(SYSTEM_SRCDIR)/debug.ml $(SYSTEM_SRCDIR)/configParser.ml	\
-    $(SYSTEM_SRCDIR)/simpleConfig.ml					\
-    $(SYSTEM_SRCDIR)/fileTemplate.ml
+OCPLIB_SYSTEM= $(system_SRCDIR)/reentrantBuffers.ml			\
+    $(system_SRCDIR)/file.ml $(system_SRCDIR)/fileLines.ml		\
+    $(system_SRCDIR)/fileLabels.ml $(system_SRCDIR)/date.ml		\
+    $(system_SRCDIR)/ocpUnix.ml $(system_SRCDIR)/ocpFilename.ml	\
+    $(system_SRCDIR)/debug.ml  $(system_SRCDIR)/fileTemplate.ml
+
+OCPLIB_CONFIG= $(config_SRCDIR)/pythonConfig.ml \
+    $(config_SRCDIR)/simpleConfig.ml
 
 BUILD_MISC= $(OCP_BUILD_SRCDIR)/logger.ml				\
     $(OCP_BUILD_SRCDIR)/buildMisc.ml					\
@@ -109,17 +119,17 @@ BUILD_MAIN= $(OCP_BUILD_SRCDIR)/buildArgs.ml	\
     $(OCP_BUILD_SRCDIR)/buildMain.ml
 
 OCP_BUILD_MLS= $(STRING_COMPAT) $(OCPLIB_DEBUG) $(OCPLIB_LANG)		\
-  $(OCPLIB_UNIX) $(OCPLIB_SYSTEM) $(BUILD_MISC) $(BUILD_PROJECT)	\
-  $(BUILD_ENGINE) $(BUILD_OCAML_OBJS) $(BUILD_LIB) $(BUILD_OCAMLFIND)	\
-  $(BUILD_OCAML) $(BUILD_MAIN)
+  $(OCPLIB_UNIX) $(OCPLIB_SYSTEM) $(OCPLIB_CONFIG) $(BUILD_MISC)	\
+  $(BUILD_PROJECT) $(BUILD_ENGINE) $(BUILD_OCAML_OBJS) $(BUILD_LIB)	\
+  $(BUILD_OCAMLFIND) $(BUILD_OCAML) $(BUILD_MAIN)
 
 OCP_BUILD_MLLS= \
-   $(LANG_SRCDIR)/ocamllexer.mll $(OCP_BUILD_SRCDIR)/metaLexer.mll 
+   $(lang_SRCDIR)/ocamllexer.mll $(OCP_BUILD_SRCDIR)/metaLexer.mll 
 
 OCP_BUILD_MLYS= $(OCP_BUILD_SRCDIR)/buildOCPParser.mly
 
-OCP_BUILD_CS= $(UNIX_SRCDIR)/minUnix_c.c			\
- $(UNIX_SRCDIR)/onlyWin32_c.c $(UNIX_SRCDIR)/onlyUnix_c.c
+OCP_BUILD_CS= $(unix_SRCDIR)/minUnix_c.c			\
+ $(unix_SRCDIR)/onlyWin32_c.c $(unix_SRCDIR)/onlyUnix_c.c
 
 OCP_BUILD_CMXS= $(OCP_BUILD_MLS:.ml=.cmx)
 OCP_BUILD_CMOS= $(OCP_BUILD_MLS:.ml=.cmo)
@@ -129,12 +139,9 @@ OCP_BUILD_STUBS= $(OCP_BUILD_CS:.c=.o)
 OCP_BUILD_TMPS= $(OCP_BUILD_MLYS:.mly=.mli) $(OCP_BUILD_MLYS:.mly=.ml) \
 	$(OCP_BUILD_MLLS:.mll=.ml) $(OCP_BUILD_ML4S:.ml4=.ml) \
 	$(OCP_BUILD_SRCDIR)/buildVersion.ml \
-	$(STRCOMPAT_SRCDIR)/stringCompat.ml
+	$(compat_SRCDIR)/stringCompat.ml
 
 OCP_BUILD_OS= $(OCP_BUILD_STUBS) $(OCP_BUILD_CMXS:.cmx=.o)
-
-INCLUDES= -I $(STRCOMPAT_SRCDIR) -I $(DEBUG_SRCDIR) -I $(LANG_SRCDIR)	\
-   -I $(SYSTEM_SRCDIR) -I $(UNIX_SRCDIR) -I $(OCP_BUILD_SRCDIR)
 
 all: build-ocps
 
@@ -168,7 +175,7 @@ distclean: clean
 	rm -f autoconf/config.status
 	rm -f $(MAKE_CONFIG)
 	rm -rf autoconf/autom4te.cache
-	rm -f $(STRCOMPAT_SRCDIR)/stringCompat.ml
+	rm -f $(compat_SRCDIR)/stringCompat.ml
 
 #  "buildVersion.ml" (ocp2ml ; env_strings = [ "datadir" ])
 $(OCP_BUILD_SRCDIR)/buildVersion.ml: Makefile $(MAKE_CONFIG)
@@ -189,18 +196,7 @@ install-ocp-build:
 	cp -f boot/camlp4.ocp boot/ocaml.ocp ${LIBDIR}/ocp-build
 	cp -f build.ocp ${LIBDIR}/installed.ocp
 	echo "generated = true" >> ${LIBDIR}/installed.ocp
-	for lib in debug lang unix system compat subcmd; do \
-		mkdir -p ${LIBDIR}/ocplib-$$lib; \
-		cp -f libs/ocplib-$$lib/build.ocp \
-			 ${LIBDIR}/ocplib-$$lib/; \
-		cp -f $(OBUILD_DSTDIR)/ocplib-$$lib/*.cmi \
-		      $(OBUILD_DSTDIR)/ocplib-$$lib/*.cma \
-		      $(OBUILD_DSTDIR)/ocplib-$$lib/*.cmx \
-		      $(OBUILD_DSTDIR)/ocplib-$$lib/*.cmxa \
-		      $(OBUILD_DSTDIR)/ocplib-$$lib/*.cmxs \
-		      $(OBUILD_DSTDIR)/ocplib-$$lib/*.a \
-				 ${LIBDIR}/ocplib-$$lib/; \
-	done
+	./_obuild/ocp-build/ocp-build.asm install $(OCPLIB_LIBS)
 
 install-ocp-pp:
 	cp -f $(OBUILD_DSTDIR)/ocp-pp/ocp-pp.asm $(BINDIR)/ocp-pp
@@ -211,9 +207,9 @@ configure: autoconf/configure.ac autoconf/m4/*.m4
 		autoconf; \
 		./configure $(CONFIGURE_ARGS)
 
-$(STRCOMPAT_SRCDIR)/stringCompat.ml: $(COMPAT_SRCDIR)/$(HAS_BYTES)/stringCompat.ml
-	cp -f $(COMPAT_SRCDIR)/$(HAS_BYTES)/stringCompat.ml \
-		$(STRCOMPAT_SRCDIR)/stringCompat.ml
+$(compat_SRCDIR)/stringCompat.ml: $(STRcompat_SRCDIR)/$(HAS_BYTES)/stringCompat.ml
+	cp -f $(STRcompat_SRCDIR)/$(HAS_BYTES)/stringCompat.ml \
+		$(compat_SRCDIR)/stringCompat.ml
 
 ###########################################################################
 #

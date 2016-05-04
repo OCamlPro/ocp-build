@@ -363,7 +363,7 @@ let do_init_project_building p pj =
   let bc = new_builder_context b in
   b.stop_on_error_arg <- !stop_on_error_arg;
 
-  let packages = BuildOCamlRules.create p.cin bc pj in
+  let packages = BuildOCamlRules.create p.cin p.cout bc pj in
 
   if !print_build_context then
     BuildEngineDisplay.eprint_context b;
@@ -645,7 +645,7 @@ let rec do_compile stage p ncores  env_state arg_targets =
       Printf.eprintf "Some configuration files were changed. Restarting build\n%!";
       do_compile (stage+1) p ncores  env_state arg_targets
     end else
-    (bc, projects)
+    (bc, projects, package_map)
 
 let do_read_env p =
 
@@ -741,7 +741,7 @@ let do_build p =
   if !list_installed_arg then begin
     let state =
       let open BuildOCamlInstall in
-      let where = install_where p in
+      let where = install_where p.cin p.cout in
       BuildUninstall.init where.install_destdir where.install_libdirs
     in
     print_installed state;
@@ -752,7 +752,7 @@ let do_build p =
   if !uninstall_arg && targets <> [] then begin
     let state =
       let open BuildOCamlInstall in
-      let where = install_where p in
+      let where = BuildOCamlInstall.install_where p.cin p.cout in
       BuildUninstall.init where.install_destdir where.install_libdirs
     in
     List.iter (BuildUninstall.uninstall state) targets;
@@ -765,7 +765,7 @@ let do_build p =
     | Some package ->
       let state =
         let open BuildOCamlInstall in
-        let where = install_where p in
+        let where = BuildOCamlInstall.install_where p.cin p.cout in
         BuildUninstall.init where.install_destdir where.install_libdirs
       in
       List.iter (fun un ->
@@ -793,7 +793,7 @@ let action () =
   if !make_doc_targets then make_build_targets := true;
 
   let p = BuildActions.load_project () in
-  let (_b, _projects) = do_build p in
+  let (_b, _projects, _package_map) = do_build p in
   ()
 
 let arg_list = [

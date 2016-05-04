@@ -25,6 +25,7 @@ val plugin : (module BuildTypes.Plugin)
    tables *)
 val create :
   BuildOptions.config_input ->
+  BuildOCamlConfig.TYPES.config_output ->
   BuildTypes.builder_context ->
   BuildOCPTypes.project ->
   (module BuildTypes.Package) array

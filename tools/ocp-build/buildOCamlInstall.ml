@@ -427,7 +427,6 @@ let find_installdir where what lib_name =
         BuildMisc.clean_exit 2
   );
 
-
     (* Check whether it is already installed : *)
   let rec iter possible libdirs =
     match libdirs with
@@ -444,6 +443,12 @@ let find_installdir where what lib_name =
     | libdir :: libdirs ->
       let installdir = Filename.concat libdir lib_name in
       let installdir_d = in_destdir where installdir in
+
+      (* TODO: we should just check that we have write permission to that
+         directory *)
+      Some installdir_d
+
+        (*
       if Sys.file_exists installdir_d then (* Found ! *)
         begin
 (*
@@ -482,5 +487,55 @@ let find_installdir where what lib_name =
           | Some _ ->
             iter possible libdirs
         end
+*)
   in
   iter None where.install_libdirs
+
+
+
+open BuildOptions
+open BuildOCamlConfig.TYPES
+
+let install_where cin cout =
+
+  let install_bindir = match cin.cin_install_bin, cout.cout_ocamlbin with
+        None, Some dir ->   dir
+      | Some dir, _ -> dir
+      | None, None ->
+        Printf.eprintf "Error: you must specify the bindir to install/uninstall files\n%!";
+        BuildMisc.clean_exit 2
+  in
+  let install_ocamllib = match cout.cout_ocamllib with
+    None ->
+      Printf.eprintf "Error: you must specify the ocaml libdir to install/uninstall files\n%!";
+      BuildMisc.clean_exit 2
+    | Some dir -> dir
+  in
+  {
+    install_destdir = cin.cin_install_destdir;
+    install_libdirs = (match cin.cin_install_lib with
+        None ->
+        begin match cout.cout_meta_dirnames with
+            [] -> begin
+              match cout.cout_ocamllib with
+                None -> []
+              | Some ocamllib -> [ocamllib]
+            end
+          | _ -> cout.cout_meta_dirnames
+        end
+      | Some dir -> [dir]);
+    install_bindir;
+    install_datadir = cin.cin_install_data;
+
+    install_ocamllib;
+    install_ocamlfind = cout.cout_meta_dirnames;
+  }
+
+let install_what () =
+
+    {
+      install_asm_bin = true;
+      install_byte_bin = true;
+      install_asm_lib = true;
+      install_byte_lib = true;
+    }

@@ -47,3 +47,9 @@ val find_installdir :
   install_where ->
   install_what ->
   string -> string option
+
+
+val install_where :
+           BuildOptions.config_input ->
+           BuildOCamlConfig.TYPES.config_output -> install_where
+val install_what : unit -> install_what

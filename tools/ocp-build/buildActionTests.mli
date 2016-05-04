@@ -18,19 +18,4 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
-(* open BuildBase *)
-
-(* clean all generated object files *)
-val delete_file_or_directory : string -> unit
-val time_step : string -> unit
-val time_steps : (string * float) list ref
-
-type project_info = {
-  project_dir : File.t;
-  cin : BuildOptions.config_input;
-  cout : BuildOCamlConfig.TYPES.config_output;
-}
-
-
-val load_project : unit -> project_info
+val subcommand : BuildArgs.subcommand

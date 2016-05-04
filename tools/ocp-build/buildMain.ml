@@ -52,7 +52,7 @@ let _ = DebugVerbosity.add_submodules "B" [ "BuildMain" ]
 
 
 let finally () =
-  List.iter (fun action -> action ()) !finally_do;
+  List.iter (fun action -> action ()) !BuildActionBuild.finally_do;
   time_step "End of execution";
 
   if !time_arg then begin

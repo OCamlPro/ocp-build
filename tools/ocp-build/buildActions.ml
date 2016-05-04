@@ -142,44 +142,6 @@ type project_info = {
   cout : BuildOCamlConfig.TYPES.config_output;
 }
 
-let install_where i =
-  let cin = i.cin and cout = i.cout in
-  let open BuildOCamlInstall in
-
-
-  let install_bindir = match cin.cin_install_bin, cout.cout_ocamlbin with
-        None, Some dir ->   dir
-      | Some dir, _ -> dir
-      | None, None ->
-        Printf.eprintf "Error: you must specify the bindir to install/uninstall files\n%!";
-        BuildMisc.clean_exit 2
-  in
-  let install_ocamllib = match cout.cout_ocamllib with
-    None ->
-      Printf.eprintf "Error: you must specify the ocaml libdir to install/uninstall files\n%!";
-      BuildMisc.clean_exit 2
-    | Some dir -> dir
-  in
-  {
-    install_destdir = cin.cin_install_destdir;
-    install_libdirs = (match cin.cin_install_lib with
-        None ->
-        begin match cout.cout_meta_dirnames with
-            [] -> begin
-              match cout.cout_ocamllib with
-                None -> []
-              | Some ocamllib -> [ocamllib]
-            end
-          | _ -> cout.cout_meta_dirnames
-        end
-      | Some dir -> [dir]);
-    install_bindir;
-    install_datadir = cin.cin_install_data;
-
-    install_ocamllib;
-    install_ocamlfind = cout.cout_meta_dirnames;
-  }
-
 let load_project () =
   let project_dir = BuildOptions.find_project_root () in
 

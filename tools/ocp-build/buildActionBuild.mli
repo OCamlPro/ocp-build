@@ -18,19 +18,22 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+val arg_list : (string * Arg.spec * string) list
+val subcommand : BuildArgs.subcommand
+val old_subcommand : BuildArgs.subcommand
 
-(* open BuildBase *)
-
-(* clean all generated object files *)
-val delete_file_or_directory : string -> unit
-val time_step : string -> unit
-val time_steps : (string * float) list ref
-
-type project_info = {
-  project_dir : File.t;
-  cin : BuildOptions.config_input;
-  cout : BuildOCamlConfig.TYPES.config_output;
-}
+val make_doc_targets : bool ref
+val make_test_targets : bool ref
+val make_build_targets : bool ref
 
 
-val load_project : unit -> project_info
+val do_build :
+  BuildActions.project_info ->
+  BuildTypes.builder_context * (module BuildTypes.Package) list *
+  (module BuildTypes.Package) StringCompat.StringMap.t
+
+val do_read_env : BuildActions.project_info -> BuildOCPInterp.state
+
+
+val get_ncores : BuildOptions.config_input -> int
+val finally_do : (unit -> unit) list ref

@@ -32,8 +32,6 @@ begin library "ocplib-system"
     "ocpUnix.ml";
     "ocpFilename.ml";
     "debug.ml";
-    "configParser.ml" (* Python file parser ? *)
-      "simpleConfig.ml"
     "fileTemplate.ml"
    ]
 

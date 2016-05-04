@@ -2737,7 +2737,7 @@ let plugin =
   end in
   (module Plugin : Plugin)
 
-let create cin bc state =
+let create cin cout bc state =
 
   BuildOCamlGlobals.reset ();
 (*  BuildOCPPrinter.eprint_project "BuildOCamlRules.create" ptmp; *)
@@ -2820,6 +2820,9 @@ let create cin bc state =
     Printf.eprintf "%!"
   end;
 
+  let install_where = BuildOCamlInstall.install_where cin cout in
+  let install_what = BuildOCamlInstall.install_what () in
+
   Array.map (fun lib ->
     let module P = struct
       let name = lib.lib.lib_name
@@ -2827,6 +2830,17 @@ let create cin bc state =
       let plugin = plugin
 
       let clean_targets () = assert false
+      let build_targets () =
+        let targets = BuildOCamlGlobals.make_build_targets lib.lib cin in
+        let depends =
+          let depends = ref [] in
+          List.iter (fun dep ->
+            if dep.dep_link || dep.dep_syntax then
+              depends := dep.dep_project :: !depends
+          ) lib.lib.lib_requires;
+          !depends
+        in
+        { targets; depends }
       let test_targets () =
         let targets = BuildOCamlGlobals.make_test_targets lib.lib cin in
         let depends =
@@ -2849,17 +2863,6 @@ let create cin bc state =
           !depends
         in
         { targets; depends }
-      let build_targets () =
-        let targets = BuildOCamlGlobals.make_build_targets lib.lib cin in
-        let depends =
-          let depends = ref [] in
-          List.iter (fun dep ->
-            if dep.dep_link || dep.dep_syntax then
-              depends := dep.dep_project :: !depends
-          ) lib.lib.lib_requires;
-          !depends
-        in
-        { targets; depends }
       let conf_targets () =
         let targets = BuildOCamlGlobals.make_build_targets lib.lib cin in
         let depends =
@@ -2872,19 +2875,28 @@ let create cin bc state =
         in
         { targets; depends }
 
-      let install () = assert false
+      (* lazy because shared AND it can creates directories *)
+      let install_dir =
+        lazy (BuildOCamlInstall.find_installdir
+                install_where install_what name)
+
+
       let test () = assert false
 
       (* TODO *)
-      let install_dir () = assert false
+      let install_dir () =
+        match Lazy.force install_dir with
+        | None -> assert false
+        | Some install_dir -> install_dir
+
+
+      let install () =
+        let installdir = install_dir () in
+        BuildOCamlInstall.install
+          install_where install_what
+          lib.lib installdir
+
+
     end in
     (module P : BuildTypes.Package)
   ) libs
-
-(*
-buildOCamlRules.ml:395:    List.map (fun to_sort -> to_sort.to_sort_value) (FileSorter.sort list) in
-buildOCFGen.ml:441:  let files = FileSorter.sort !all_files in
-buildOCP.ml:471:    ptmp.package_requires <- (*PackageLinkSorter.sort sort_sorted *) !list;
-buildOCP.ml:632:  let project_sorted = PackageDepSorter.sort !list in
-buildOCP.ml:668:      pk.package_requires <- PackageLinkSorter.sort pk.package_requires
-*)

@@ -21,6 +21,7 @@
 
 open StringCompat
 
+(*
 module type Package = sig
 
   val name : string
@@ -30,3 +31,4 @@ module type Package = sig
   val test_targets : unit -> BuildEngineTypes.build_file list
   val test : (unit -> unit) option
 end
+*)
