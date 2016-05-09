@@ -83,6 +83,9 @@ val string_option : string option_class
 val int_option : int option_class
 val int64_option : int64 option_class
 val bool_option : bool option_class
+val flag_option : bool option_class
+val with_option : bool option_class
+val enable_option : bool option_class
 val float_option : float option_class
 val string2_option : (string * string) option_class
 val file_option : File.t option_class
@@ -236,9 +239,9 @@ val tuple2_to_value :
 val filename_to_value : File.t -> option_value
 val value_to_filename : option_value -> File.t
 
-val set_simple_option : config_file -> string -> string -> unit
-val get_simple_option : config_file -> string -> string
-val set_option_hook : config_file -> string -> (unit -> unit) -> unit
+val set_simple_option : config_file -> string list -> string -> unit
+val get_simple_option : config_file -> string list -> string
+val set_option_hook : config_file -> string list -> (unit -> unit) -> unit
 
 val set_string_wrappers : 'a option_class ->
   ('a -> string) -> (string -> 'a) -> unit
@@ -283,7 +286,7 @@ module SimpleOptions : sig
 *)
 
 type option_info = {
-    option_name : string;
+    option_name : string list;
     option_shortname : string;
     option_value : string;
     option_short_help : string;
