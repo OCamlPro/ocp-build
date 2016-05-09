@@ -592,6 +592,7 @@ CONFIGURE_ARGS
 OCAML_POINT_VERSION
 OCAML_MINOR_VERSION
 OCAML_MAJOR_VERSION
+metadir
 AWK
 SED
 OCAMLBUILD
@@ -659,6 +660,7 @@ ac_user_opts='
 enable_option_checking
 with_typerex
 enable_version_check
+with_metadir
 '
       ac_precious_vars='build_alias
 host_alias
@@ -1277,12 +1279,13 @@ Optional Features:
   --disable-option-checking  ignore unrecognized --enable/--with options
   --disable-FEATURE       do not include FEATURE (same as --enable-FEATURE=no)
   --enable-FEATURE[=ARG]  include FEATURE [ARG=yes]
-  --disable-version-check            do not check OCaml version
+  --disable-version-check do not check OCaml version
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
   --without-PACKAGE       do not use PACKAGE (same as --with-PACKAGE=no)
 
+  --with-metadir=DIRNAME  store meta files in DIRNAME
 
 Some influential environment variables:
   CC          C compiler command
@@ -1791,6 +1794,15 @@ if test "${enable_version_check+set}" = set; then :
   enableval=$enable_version_check; VERSION_CHECK="$enableval"
 else
   VERSION_CHECK="yes"
+fi
+
+
+
+# Check whether --with-metadir was given.
+if test "${with_metadir+set}" = set; then :
+  withval=$with_metadir; metadir="$enableval"
+else
+  metadir="no"
 fi
 
 
@@ -3837,16 +3849,21 @@ fi
 if test "x$prefix" = "xNONE"; then
 #  prefix=$ac_default_prefix
   prefix="`eval dirname $OCAMLLIB`"
-  libdir=$OCAMLLIB
+  libdir=${OCAMLLIB}
   base="`eval basename $prefix`"
   echo base=$base
   if test "x$base" = "xlib"; then
     prefix="`eval dirname $prefix`"
   fi
 else
+  metadir=${libdir}
   libdir=${libdir}/ocaml
 fi
 test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
+
+if test "x$metadir" = "xno"; then
+  metadir=${libdir}
+fi
 
 libdir=${libdir}/typerex
 
@@ -3856,9 +3873,13 @@ mandir="`eval echo ${mandir}`"
 mandir="`eval echo ${mandir}`"
 libdir="`eval echo ${libdir}`"
 libdir="`eval echo ${libdir}`"
+metadir="`eval echo ${metadir}`"
+metadir="`eval echo ${metadir}`"
 datarootdir="`eval echo ${datarootdir}`"
 datarootdir="`eval echo ${datarootdir}`"
 datadir=${datarootdir}/typerex
+
+
 
 
 
@@ -5028,5 +5049,6 @@ fi
 echo
 echo Executables will be installed in ${bindir}
 echo Libraries will be installed in ${libdir}
+echo META files will be installed in ${metadir}
 echo Data files will be installed in ${datadir}
 echo Manual pages will be installed in ${mandir}

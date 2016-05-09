@@ -73,6 +73,7 @@ type config_input = {
   mutable cin_install_destdir : string option;
   mutable cin_install_bin : string option;
   mutable cin_install_lib : string option;
+  mutable cin_install_meta : string option;
   mutable cin_install_doc : string option;
   mutable cin_install_data : string option;
 }
@@ -473,6 +474,11 @@ module ProjectOptions = struct
       [ "install_libdir" ]  ["where libraries should be installed"]
       (option_option string_option) None
 
+  let install_metadir_option =
+    SimpleConfig.create_option project_config
+      [ "install_metadir" ]  ["where META files should be installed"]
+      (option_option string_option) None
+
   let install_datadir_option =
     SimpleConfig.create_option project_config
       [ "install_datadir" ]  ["where multi-arch data should be installed"]
@@ -547,6 +553,7 @@ let meta_dirnames_arg = ref []
 let install_destdir_arg = ref None
 let install_bin_arg = ref None
 let install_lib_arg = ref None
+let install_meta_arg = ref None
 let install_doc_arg = ref None
 let install_data_arg = ref None
 let color_arg = ref None
@@ -604,19 +611,22 @@ let arg_list1 =
     " DIR Add directory to search for META descriptions";
     "-install-destdir", Arg.String (fun s ->
       install_destdir_arg := Some s),
-    "FILENAME Directory root where installation should be done";
+    "DIRNAME Directory root where installation should be done";
     "-install-bin", Arg.String (fun s ->
       install_bin_arg := Some s),
-    "FILENAME Directory where binaries should be installed";
+    "DIRNAME Directory where binaries should be installed";
     "-install-lib", Arg.String (fun s ->
       install_lib_arg := Some s),
-    "FILENAME Directory where libraries should be installed";
+    "DIRNAME Directory where libraries should be installed";
+    "-install-meta", Arg.String (fun s ->
+      install_meta_arg := Some s),
+    "DIRNAME Directory where META files should be installed";
     "-install-doc", Arg.String (fun s ->
       install_doc_arg := Some s),
-    "FILENAME Directory where documentation should be installed";
+    "DIRNAME Directory where documentation should be installed";
     "-install-data", Arg.String (fun s ->
       install_data_arg := Some s),
-    "FILENAME Directory where data files should be installed";
+    "DIRNAME Directory where data files should be installed";
 
   ]
 
@@ -874,6 +884,11 @@ let load project_dir =
     | arg -> arg
   in
 
+  let cin_install_meta = match !install_meta_arg with
+      None -> !!ProjectOptions.install_metadir_option
+    | arg -> arg
+  in
+
   let cin_install_doc = match !install_doc_arg with
       None -> !!ProjectOptions.install_docdir_option
     | arg -> arg
@@ -919,6 +934,7 @@ let load project_dir =
     cin_install_destdir;
     cin_install_bin;
     cin_install_lib;
+    cin_install_meta;
     cin_install_doc;
     cin_install_data;
   }

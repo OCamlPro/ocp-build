@@ -15,9 +15,15 @@ AC_SUBST(OBUILD_ROOTDIR)
 AC_SUBST(OBUILD_DSTDIR)
   
 AC_ARG_ENABLE(version-check,
- [  --disable-version-check            do not check OCaml version],
+ [AS_HELP_STRING([--disable-version-check],[do not check OCaml version])],
  [VERSION_CHECK="$enableval"],
  [VERSION_CHECK="yes"])
+
+AC_ARG_WITH(metadir,
+ [AS_HELP_STRING([--with-metadir=DIRNAME],
+               [store meta files in DIRNAME])],
+ [metadir="$enableval"],
+ [metadir="no"])
 
 AC_PROG_CC
 
@@ -46,16 +52,21 @@ fi
 if test "x$prefix" = "xNONE"; then
 #  prefix=$ac_default_prefix
   prefix="`eval dirname $OCAMLLIB`"
-  libdir=$OCAMLLIB
+  libdir=${OCAMLLIB}
   base="`eval basename $prefix`"
   echo base=$base
   if test "x$base" = "xlib"; then
     prefix="`eval dirname $prefix`"
   fi
 else
+  metadir=${libdir}
   libdir=${libdir}/ocaml
 fi
 test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
+
+if test "x$metadir" = "xno"; then
+  metadir=${libdir}
+fi
 
 libdir=${libdir}/typerex
 
@@ -65,9 +76,13 @@ mandir="`eval echo ${mandir}`"
 mandir="`eval echo ${mandir}`"
 libdir="`eval echo ${libdir}`"
 libdir="`eval echo ${libdir}`"
+metadir="`eval echo ${metadir}`"
+metadir="`eval echo ${metadir}`"
 datarootdir="`eval echo ${datarootdir}`"
 datarootdir="`eval echo ${datarootdir}`"
 datadir=${datarootdir}/typerex
+
+AC_SUBST(metadir)
 
 AC_SUBST(OCAML_MAJOR_VERSION)
 AC_SUBST(OCAML_MINOR_VERSION)
@@ -83,5 +98,6 @@ AC_OUTPUT
 echo
 echo Executables will be installed in ${bindir}
 echo Libraries will be installed in ${libdir}
+echo META files will be installed in ${metadir}
 echo Data files will be installed in ${datadir}
 echo Manual pages will be installed in ${mandir}

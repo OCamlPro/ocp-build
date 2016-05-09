@@ -196,7 +196,7 @@ install-ocp-build:
 	cp -f boot/camlp4.ocp boot/ocaml.ocp ${LIBDIR}/ocp-build
 	cp -f build.ocp ${LIBDIR}/installed.ocp
 	echo "generated = true" >> ${LIBDIR}/installed.ocp
-	./_obuild/ocp-build/ocp-build.asm install $(OCPLIB_LIBS)
+	./_obuild/ocp-build/ocp-build.asm install -install-lib $(LIBDIR) -install-meta $(METADIR) $(OCPLIB_LIBS)
 
 install-ocp-pp:
 	cp -f $(OBUILD_DSTDIR)/ocp-pp/ocp-pp.asm $(BINDIR)/ocp-pp
