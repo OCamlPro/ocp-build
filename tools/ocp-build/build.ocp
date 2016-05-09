@@ -103,7 +103,7 @@ begin library "ocp-build-lib"
   ]
 
   requires = [ "ocplib-unix"; "ocp-build-engine"; "ocp-build-project";
-    "ocp-build-misc" ]
+    "ocp-build-misc" "ocplib-config" ]
 
 end
 
@@ -138,8 +138,8 @@ begin library "ocp-build-ocaml-plugin"
     "buildOCamldep.ml";         (* Load dependencies from a file generated
                                      by ocamldep *)
     "buildOCamlSyntaxes.ml";    (* For preprocessing of OCaml files *)
-    "buildOCamlRules.ml";       (* Initialisation of the build Engine *)
     "buildOCamlInstall.ml"
+    "buildOCamlRules.ml";       (* Initialisation of the build Engine *)
     "buildOCamlMeta.ml";
     "buildOCamlTest.ml";
 

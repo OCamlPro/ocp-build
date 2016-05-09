@@ -38,98 +38,107 @@ module StringSet = struct
     List.rev !list
 end
 
-let do_install bc dest_dir where install_what projects =
+let do_install bc dest_dir where install_what
+    projects
+    package_map
+  =
 
   let install_dirs = ref StringSet.empty in
-  let projects = List.map (fun p ->
-    let module P = (val p : Package) in
-    let lib = P.info in
-    install_dirs := StringSet.add (P.install_dir()) !install_dirs;
-    lib
-  ) projects in
+  List.iter (fun p ->
+      let module P = (val p : Package) in
+      install_dirs := StringSet.add (P.install_dir()) !install_dirs;
+    ) projects;
+
+  let install_dirs = StringSet.to_list !install_dirs in
 
   let already_installed =
 
-    let state =
-      BuildUninstall.init dest_dir
-        (StringSet.to_list !install_dirs)
+    let state = BuildUninstall.init dest_dir install_dirs
     in
-    List.map (fun pj -> pj.lib_name)
-      (List.filter
-         (fun pj -> pj.lib_install &&
-                    BuildUninstall.is_installed state pj.lib_name)
-         projects)
+    List.filter
+      (fun p ->
+         let module P = (val p : Package) in
+         let lib = P.info in
+         lib.lib_install &&
+         BuildUninstall.is_installed state P.name)
+      projects
   in
   let bold s =
     if term.esc_ansi then Printf.sprintf "\027[1m%s\027[m" s else s
   in
-  if already_installed <> [] then
+  if already_installed <> [] then begin
+    let names =  String.concat ", " (List.map (fun p ->
+        let module P = (val p : Package) in
+        bold P.name) already_installed) in
     if !BuildArgs.auto_uninstall then begin
       Printf.printf "Packages %s are already installed, removing first...\n"
-        (String.concat ", " (List.map bold already_installed));
+        names;
       let state =
         let open BuildOCamlInstall in
-        BuildUninstall.init where.install_destdir where.install_libdirs
+        BuildUninstall.init dest_dir install_dirs
       in
       List.iter
-        (BuildUninstall.uninstall state)
+        (fun p ->
+           let module P = (val p : Package) in
+           BuildUninstall.uninstall state P.name
+        )
         already_installed;
       BuildUninstall.finish state
     end else begin
-      Printf.eprintf "Error: Packages %s are already installed."
-        (String.concat ", " (List.map bold already_installed));
+      Printf.eprintf "Error: Packages %s are already installed.\n%!" names;
       BuildMisc.clean_exit 2
     end;
+  end;
 
   let projects_to_install = ref StringMap.empty in
-  let rec add_to_install pj =
-    if pj.lib_install &&
-       not (StringMap.mem pj.lib_name !projects_to_install) then begin
-      projects_to_install :=
-        StringMap.add pj.lib_name pj !projects_to_install;
-      let bundle =
-        BuildValue.get_strings_with_default [pj.lib_options]
-          "bundle" [] in
-      List.iter (fun name ->
-        try
-          let pj2 = StringMap.find name bc.packages_by_name in
-          pj2.lib_bundles <- pj :: pj2.lib_bundles
-        with Not_found ->
-          Printf.eprintf
-            "Error: package %S bundled in package %S, not found\n%!"
-            pj.lib_name name;
-          BuildMisc.clean_exit 2
-      ) bundle
+  let rec add_to_install p =
+    let module P = (val p : Package) in
+    let lib = P.info in
+      if lib.lib_install &&
+         not (StringMap.mem lib.lib_name !projects_to_install) then begin
+        projects_to_install :=
+          StringMap.add lib.lib_name p !projects_to_install;
+
+        (* So, the semantics here is that packages are bundled together
+           only if they are installed at the same time. *)
+        let bundle =
+          BuildValue.get_strings_with_default [lib.lib_options]
+            "bundle" [] in
+        List.iter (fun name ->
+            try
+              let pj2 = StringMap.find name bc.packages_by_name in
+              pj2.lib_bundles <- lib :: pj2.lib_bundles
+            with Not_found ->
+              Printf.eprintf
+                "Error: package %S bundled in package %S, not found\n%!"
+                lib.lib_name name;
+              BuildMisc.clean_exit 2
+          ) bundle
+      end
+    in
+
+    List.iter add_to_install projects;
+    let install_errors = ref 0 in
+    let install_ok = ref 0 in
+
+    StringMap.iter (fun _ p ->
+        let module P = (val p : Package) in
+        let lib = P.info in
+        if lib.lib_install then begin
+          P.install ();
+          incr install_ok
+        end
+      )
+      !projects_to_install;
+    if !install_errors > 0 then begin
+      if !install_ok = 0 then
+        Printf.eprintf "Install completely failed\n%!"
+      else
+        Printf.eprintf
+          "Install partially failed: %d/%d packages not installed"
+          !install_errors (!install_errors + !install_ok);
+      BuildMisc.clean_exit 2
     end
-  in
-
-  List.iter add_to_install projects;
-  let install_errors = ref 0 in
-  let install_ok = ref 0 in
-
-  StringMap.iter (fun _ pj ->
-    if pj.lib_install then
-      match       BuildOCamlInstall.find_installdir
-          where install_what
-          pj.lib_name with
-        None -> incr install_errors
-      | Some installdir ->
-        BuildOCamlInstall.install
-          where install_what
-          pj installdir;
-        incr install_ok
-  )
-    !projects_to_install;
-  if !install_errors > 0 then begin
-    if !install_ok = 0 then
-      Printf.eprintf "Install completely failed\n%!"
-    else
-      Printf.eprintf
-        "Install partially failed: %d/%d packages not installed"
-        !install_errors (!install_errors + !install_ok);
-    BuildMisc.clean_exit 2
-  end
-
 
 let arg_list =
   BuildOptions.merge
@@ -149,23 +158,12 @@ let arg_list =
 let action () =
   BuildActionBuild.make_build_targets := true;
   let p = BuildActions.load_project () in
-  let (bc, projects) = BuildActionBuild.do_build p in
+  let (bc, projects,package_map) = BuildActionBuild.do_build p in
 
-  let install_what =
-
-    let open BuildOCamlInstall in
-    {
-      install_asm_bin = true;
-      install_byte_bin = true;
-      install_asm_lib = true;
-      install_byte_lib = true;
-    }
-  in
-
-
-  let install_where = BuildActions.install_where p in
+  let install_where = BuildOCamlInstall.install_where p.cin p.cout in
+  let install_what = BuildOCamlInstall.install_what () in
   do_install bc install_where.BuildOCamlInstall.install_destdir
-    install_where install_what projects;
+    install_where install_what projects package_map;
   ()
 
 

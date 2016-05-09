@@ -49,6 +49,7 @@ type config_input = {
   mutable cin_install_destdir : string option;
   mutable cin_install_bin : string option;
   mutable cin_install_lib : string option;
+  mutable cin_install_meta : string option;
   mutable cin_install_doc : string option;
   mutable cin_install_data : string option;
 }
