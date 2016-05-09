@@ -1,14 +1,20 @@
 CONFIGURE_ARGS=@CONFIGURE_ARGS@
 
-OBUILD_DSTDIR=@OBUILD_DSTDIR@
-OBUILD_ROOTDIR=@OBUILD_ROOTDIR@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+bindir=@bindir@
+libdir=@libdir@
+datarootdir=@datarootdir@
+mandir=@mandir@
+rootdir=@rootdir@
+datadir=@datadir@
+ocamldir=@ocamldir@
+ocplibdir=@ocplibdir@
+metadir=@metadir@
 
-DATADIR=@datarootdir@
-BINDIR=@bindir@
-LIBDIR=@libdir@
-MANDIR=@mandir@
-METADIR=@metadir@
-TYPEREXDIR=@datadir@
+destdir=@destdir@
+
+OCAML_VERSION=@OCAMLVERSION@
 VERSION=@PACKAGE_VERSION@
 HAS_BYTES=@HAS_BYTES@
 

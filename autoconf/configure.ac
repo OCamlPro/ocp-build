@@ -1,103 +1,124 @@
-AC_INIT(ocp-build,1.99.14-beta)
+AC_INIT(ocp-build,1.99.15-beta)
 CONFIGURE_ARGS=$*
+
+# As stated in the GNU manuals, variables are not expansed when
+# substituted. The reason is that they are supposed to be still
+# available for the user to override them when calling "make".
 
 AC_COPYRIGHT(Copyright 2015 OcamlPro SAS)
 AC_CONFIG_MACRO_DIR([m4])
 
-
-AC_ARG_WITH([typerex],[], [  
-  OBUILD_ROOTDIR=$withval
- ], [
-  OBUILD_ROOTDIR=.
-  ])
-OBUILD_DSTDIR=$OBUILD_ROOTDIR/_obuild
-AC_SUBST(OBUILD_ROOTDIR)
-AC_SUBST(OBUILD_DSTDIR)
-  
 AC_ARG_ENABLE(version-check,
  [AS_HELP_STRING([--disable-version-check],[do not check OCaml version])],
- [VERSION_CHECK="$enableval"],
+ [VERSION_CHECK="${enableval}"],
  [VERSION_CHECK="yes"])
+
+AC_ARG_WITH(ocamldir,
+ [AS_HELP_STRING([--with-ocamldir=DIRNAME],
+               [root storage of the OCaml distribution])],
+ [ocamldir="${withval}"],
+ [ocamldir='${libdir}/ocaml'])
+
+AC_ARG_WITH(ocplibdir,
+ [AS_HELP_STRING([--with-ocplibdir=DIRNAME],
+               [store Typerex files in DIRNAME])],
+ [ocplibdir="${withval}"],
+ [ocplibdir='${ocamldir}/typerex'])
+
+AC_PROG_CC
+AC_PROG_OCAML
+
+if test "${OCAMLC}" = "no"; then
+   AC_MSG_ERROR([You must install the OCaml compiler])
+fi
+
+if test "${OCAMLVERSION}" = ""; then
+   AC_MSG_ERROR([No OCaml version. ocamlc -version is not parsable.])
+fi
+
+AX_SPLIT_VERSION(OCAMLVERSION)
+OCAML_MAJOR_VERSION=${AX_MAJOR_VERSION}
+OCAML_MINOR_VERSION=${AX_MINOR_VERSION}
+OCAML_POINT_VERSION=${AX_POINT_VERSION}
+
+# Check that OCaml version is greater or equal to 4.00.0
+if test "${VERSION_CHECK}" = "yes" ; then
+
+  AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [3.12.1],
+     AC_MSG_ERROR([Your version of OCaml: ${OCAMLVERSION} is not supported]))
+fi
+
+HAS_BYTES=3.12.1
+AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [4.02.0],, HAS_BYTES=4.02.0)
+AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [4.03.0],, HAS_BYTES=4.03.0)
+
+if test "x${prefix}" = "xNONE"; then
+  prefix="$(dirname ${OCAMLLIB})"
+  base="$(basename ${prefix})"
+  if test "x${base}" = "xlib"; then
+    prefix="$(dirname ${prefix})"
+  fi
+fi
+
+metadir='${ocamldir}'
+AC_PROG_FINDLIB
+if test "$OCAMLFIND" != "no"; then
+  metadir="$(${OCAMLFIND} -printconf destdir)"
+  echo "initializing metadir from ocamlfind config"
+fi
 
 AC_ARG_WITH(metadir,
  [AS_HELP_STRING([--with-metadir=DIRNAME],
                [store meta files in DIRNAME])],
- [metadir="$enableval"],
- [metadir="no"])
+ [metadir="${withval}"],
+ [])
 
-AC_PROG_CC
-
-# Check that OCaml version is greater or equal to 4.00.0
-if test "$VERSION_CHECK" = "yes" ; then
-
-  AC_PROG_OCAML
-
-  AX_SPLIT_VERSION(OCAMLVERSION)
-  OCAML_MAJOR_VERSION=$AX_MAJOR_VERSION
-  OCAML_MINOR_VERSION=$AX_MINOR_VERSION
-  OCAML_POINT_VERSION=$AX_POINT_VERSION
-
-  if test "$OCAMLC" = "no"; then
-     AC_MSG_ERROR([You must install the OCaml compiler])
-  fi
-  AX_COMPARE_VERSION( [$OCAMLVERSION], [lt], [3.12.1],
-     AC_MSG_ERROR([Your version of OCaml: $OCAMLVERSION is not supported]))
-  HAS_BYTES=3.12.1
-  AX_COMPARE_VERSION( [$OCAMLVERSION], [lt], [4.02.0],, HAS_BYTES=4.02.0)
-  AX_COMPARE_VERSION( [$OCAMLVERSION], [lt], [4.03.0],, HAS_BYTES=4.03.0)
-else
-  HAS_BYTES=
-fi
-
-if test "x$prefix" = "xNONE"; then
-#  prefix=$ac_default_prefix
-  prefix="`eval dirname $OCAMLLIB`"
-  libdir=${OCAMLLIB}
-  base="`eval basename $prefix`"
-  echo base=$base
-  if test "x$base" = "xlib"; then
-    prefix="`eval dirname $prefix`"
-  fi
-else
-  metadir=${libdir}
-  libdir=${libdir}/ocaml
-fi
-test "x$exec_prefix" = xNONE && exec_prefix='${prefix}'
-
-if test "x$metadir" = "xno"; then
-  metadir=${libdir}
-fi
-
-libdir=${libdir}/typerex
-
-bindir="`eval echo ${bindir}`"
-bindir="`eval echo ${bindir}`"
-mandir="`eval echo ${mandir}`"
-mandir="`eval echo ${mandir}`"
-libdir="`eval echo ${libdir}`"
-libdir="`eval echo ${libdir}`"
-metadir="`eval echo ${metadir}`"
-metadir="`eval echo ${metadir}`"
-datarootdir="`eval echo ${datarootdir}`"
-datarootdir="`eval echo ${datarootdir}`"
-datadir=${datarootdir}/typerex
-
+AC_SUBST(ocamldir)
+AC_SUBST(ocplibdir)
 AC_SUBST(metadir)
 
 AC_SUBST(OCAML_MAJOR_VERSION)
 AC_SUBST(OCAML_MINOR_VERSION)
 AC_SUBST(OCAML_POINT_VERSION)
 AC_SUBST(CONFIGURE_ARGS)
-AC_SUBST(VERSION)
+#AC_SUBST(VERSION)
+AC_SUBST(OCAMLVERSION)
 AC_SUBST(HAS_BYTES)
-AC_CONFIG_FILES(
-  Makefile.config \
-)
+AC_CONFIG_FILES(Makefile.config config.ocpgen)
 AC_OUTPUT
 
 echo
-echo Executables will be installed in ${bindir}
-echo Libraries will be installed in ${libdir}
-echo META files will be installed in ${metadir}
-echo Data files will be installed in ${datadir}
-echo Manual pages will be installed in ${mandir}
+echo "Summary:"
+echo "prefix=${prefix}"
+echo "exec_prefix=${exec_prefix}"
+echo "bindir=${bindir}"
+echo "   (Executables will be installed there)"
+echo "ocamldir=${ocamldir}"
+echo "   (OCaml files were found there)"
+echo "ocplibdir=${ocplibdir}"
+echo "   (Typerex libraries will be installed there)"
+echo "metadir=${metadir}"
+echo "   (META files will be installed there)"
+echo "datarootdir=${datarootdir}"
+echo "mandir=${mandir}"
+echo "   (Manual pages will be installed there)"
+
+
+#### autoconf defaults:
+# prefix=NONE
+# exec_prefix=NONE
+# bindir=${exec_prefix}/bin
+# libdir=${exec_prefix}/lib
+# mandir=${datarootdir}/man
+# datarootdir=${prefix}/share
+# datadir=${datarootdir}
+
+#### Corresponding substitutions (note that prefix is set)
+# prefix=/usr/local
+# exec_prefix=${prefix}
+# bindir=${exec_prefix}/bin
+# libdir=${exec_prefix}/lib
+# mandir=${datarootdir}/man
+# datarootdir=${prefix}/share
+# datadir=${datarootdir}
+

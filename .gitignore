@@ -102,3 +102,4 @@ headers-??.txt
 /libs/ocplib-compat/string-compat/stringCompat.ml
 #*
 /archi?.txt
+/autoconf/config.ocpgen

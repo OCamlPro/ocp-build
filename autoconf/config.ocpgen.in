@@ -1,0 +1,2 @@
+package_version= "@PACKAGE_VERSION@"
+ocaml_version="@OCAMLVERSION@"
