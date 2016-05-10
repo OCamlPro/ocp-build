@@ -13,10 +13,6 @@ opam --git-version
 
 PREFIX=$HOME/.opam/$OCAML_VERSION
 
-if ${OCAML_VERSION} == "system"; then
-    ./configure --prefix ${PREFIX} --with-metadir=${PREFIX}/lib
-else 
-    ./configure --prefix ${PREFIX}
-fi
+./configure --prefix ${PREFIX} --with-metadir=${PREFIX}/lib
 make
 make install

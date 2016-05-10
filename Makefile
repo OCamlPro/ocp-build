@@ -3,6 +3,8 @@ MAKE_CONFIG := autoconf/Makefile.config
 
 include $(MAKE_CONFIG)
 
+OBUILD_DSTDIR=_obuild
+
 # If you add a library ocplib-xxx:
 # 1/ Update this list with xxx_SRCDIR=
 STRcompat_SRCDIR=libs/ocplib-compat
@@ -144,6 +146,8 @@ OCP_BUILD_TMPS= $(OCP_BUILD_MLYS:.mly=.mli) $(OCP_BUILD_MLYS:.mly=.ml) \
 OCP_BUILD_OS= $(OCP_BUILD_STUBS) $(OCP_BUILD_CMXS:.cmx=.o)
 
 all: build-ocps
+	@echo Libraries will be installed in ${ocplibdir}
+	@echo META files will be installed in ${metadir}
 
 build-ocps: $(OCP_BUILD_BOOTER)
 	$(OCP_BUILD_BOOTER) init
@@ -179,7 +183,7 @@ distclean: clean
 
 #  "buildVersion.ml" (ocp2ml ; env_strings = [ "datadir" ])
 $(OCP_BUILD_SRCDIR)/buildVersion.ml: Makefile $(MAKE_CONFIG)
-	echo "let version=\"$(VERSION)\"" > $(OCP_BUILD_SRCDIR)/buildVersion.ml
+	echo "let version=\"$(PACKAGE_VERSION)\"" > $(OCP_BUILD_SRCDIR)/buildVersion.ml
 
 $(OCP_BUILD_SRCDIR)/buildOCPParser.cmi: $(OCP_BUILD_SRCDIR)/buildOCPParser.mli
 	$(OCAMLC) -c -o $(OCP_BUILD_SRCDIR)/buildOCPParser.cmi $(INCLUDES) $(OCP_BUILD_SRCDIR)/buildOCPParser.mli
@@ -191,15 +195,15 @@ install: install-ocp-build
 	if test -f $(OBUILD_DSTDIR)/ocp-pp/ocp-pp.asm; then $(MAKE) install-ocp-pp; else :; fi
 
 install-ocp-build:
-	cp $(OCP_BUILD_DSTDIR)/ocp-build.asm ${BINDIR}/ocp-build
-	mkdir -p ${LIBDIR}/ocp-build
-	cp -f boot/camlp4.ocp boot/ocaml.ocp ${LIBDIR}/ocp-build
-	cp -f build.ocp ${LIBDIR}/installed.ocp
-	echo "generated = true" >> ${LIBDIR}/installed.ocp
-	./_obuild/ocp-build/ocp-build.asm install -install-lib $(LIBDIR) -install-meta $(METADIR) $(OCPLIB_LIBS)
+	cp $(OCP_BUILD_DSTDIR)/ocp-build.asm ${bindir}/ocp-build
+	mkdir -p ${ocplibdir}/ocp-build
+	cp -f boot/camlp4.ocp boot/ocaml.ocp ${ocplibdir}/ocp-build
+	cp -f build.ocp ${ocplibdir}/installed.ocp
+	echo "generated = true" >> ${ocplibdir}/installed.ocp
+	./_obuild/ocp-build/ocp-build.asm install -install-lib $(ocplibdir) -install-meta $(metadir) $(OCPLIB_LIBS)
 
 install-ocp-pp:
-	cp -f $(OBUILD_DSTDIR)/ocp-pp/ocp-pp.asm $(BINDIR)/ocp-pp
+	cp -f $(OBUILD_DSTDIR)/ocp-pp/ocp-pp.asm $(bindir)/ocp-pp
 
 configure: autoconf/configure.ac autoconf/m4/*.m4
 	cd autoconf/; \
@@ -224,14 +228,14 @@ $(compat_SRCDIR)/stringCompat.ml: $(STRcompat_SRCDIR)/$(HAS_BYTES)/stringCompat.
 OCP_OPAMER=ocp-opamer
 
 push-tag:
-	git push -f origin ocp-build.$(VERSION)
+	git push -f origin ocp-build.$(PACKAGE_VERSION)
 
 tag:
-	git tag ocp-build.$(VERSION)
+	git tag ocp-build.$(PACKAGE_VERSION)
 	$(MAKE) push-tag
 
 force_tag:
-	git tag -f ocp-build.$(VERSION)
+	git tag -f ocp-build.$(PACKAGE_VERSION)
 	$(MAKE) push-tag
 
 opamize:
@@ -240,24 +244,24 @@ opamize-ocp-build:
 	$(OCP_OPAMER) \
 	 	-descr opam/ocp-build.descr \
 		-opam opam/ocp-build.opam  \
-		ocp-build $(VERSION) \
-		https://github.com/OCamlPro/ocp-build/tarball/ocp-build.$(VERSION)
+		ocp-build $(PACKAGE_VERSION) \
+		https://github.com/OCamlPro/ocp-build/tarball/ocp-build.$(PACKAGE_VERSION)
 
 release:
-	rm -rf /tmp/ocp-build.$(VERSION)
-	mkdir -p /tmp/ocp-build.$(VERSION)
-	cp -r . /tmp/ocp-build.$(VERSION)
-	(cd /tmp/ocp-build.$(VERSION); make distclean)
-	(cd /tmp; tar zcf /tmp/ocp-build.$(VERSION).tar.gz ocp-build.$(VERSION))
-	scp /tmp/ocp-build.$(VERSION).tar.gz webmaster@kimsufi2011:/home/www.typerex.com/www/pub/ocp-build/
-	echo archive: \"http://www.typerex.org/pub/ocp-build/ocp-build.$(VERSION).tar.gz\" > $(HOME)/BUILD/opam-cache-repo/packages/ocp-build/ocp-build.$(VERSION)/url
-	echo checksum: \"`md5sum /tmp/ocp-build.$(VERSION).tar.gz | awk '{print $$1}'`\" >> $(HOME)/BUILD/opam-cache-repo/packages/ocp-build/ocp-build.$(VERSION)/url
+	rm -rf /tmp/ocp-build.$(PACKAGE_VERSION)
+	mkdir -p /tmp/ocp-build.$(PACKAGE_VERSION)
+	cp -r . /tmp/ocp-build.$(PACKAGE_VERSION)
+	(cd /tmp/ocp-build.$(PACKAGE_VERSION); make distclean)
+	(cd /tmp; tar zcf /tmp/ocp-build.$(PACKAGE_VERSION).tar.gz ocp-build.$(PACKAGE_VERSION))
+	scp /tmp/ocp-build.$(PACKAGE_VERSION).tar.gz webmaster@kimsufi2011:/home/www.typerex.com/www/pub/ocp-build/
+	echo archive: \"http://www.typerex.org/pub/ocp-build/ocp-build.$(PACKAGE_VERSION).tar.gz\" > $(HOME)/BUILD/opam-cache-repo/packages/ocp-build/ocp-build.$(PACKAGE_VERSION)/url
+	echo checksum: \"`md5sum /tmp/ocp-build.$(PACKAGE_VERSION).tar.gz | awk '{print $$1}'`\" >> $(HOME)/BUILD/opam-cache-repo/packages/ocp-build/ocp-build.$(PACKAGE_VERSION)/url
 
 publish-opam:
-	cd $(HOME)/.opam/opamer/opam-repository; git checkout master && git pull ocaml master && git checkout -b ocp-build.$(VERSION)
-	rm -rf $(HOME)/.opam/opamer/opam-repository/packages/ocp-build/ocp-build.$(VERSION)
-	cp -r $(HOME)/BUILD/opam-cache-repo/packages/ocp-build/ocp-build.$(VERSION) $(HOME)/.opam/opamer/opam-repository/packages/ocp-build/ocp-build.$(VERSION)
-	cd $(HOME)/.opam/opamer/opam-repository; git add packages/ocp-build/ocp-build.$(VERSION)
+	cd $(HOME)/.opam/opamer/opam-repository; git checkout master && git pull ocaml master && git checkout -b ocp-build.$(PACKAGE_VERSION)
+	rm -rf $(HOME)/.opam/opamer/opam-repository/packages/ocp-build/ocp-build.$(PACKAGE_VERSION)
+	cp -r $(HOME)/BUILD/opam-cache-repo/packages/ocp-build/ocp-build.$(PACKAGE_VERSION) $(HOME)/.opam/opamer/opam-repository/packages/ocp-build/ocp-build.$(PACKAGE_VERSION)
+	cd $(HOME)/.opam/opamer/opam-repository; git add packages/ocp-build/ocp-build.$(PACKAGE_VERSION)
 
 
 
