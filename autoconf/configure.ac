@@ -61,10 +61,15 @@ if test "x${prefix}" = "xNONE"; then
 fi
 
 metadir='${ocamldir}'
+
 AC_PROG_FINDLIB
-if test "$OCAMLFIND" != "no"; then
+if test "${OCAMLFIND}" != "no"; then
   metadir="$(${OCAMLFIND} -printconf destdir)"
   echo "initializing metadir from ocamlfind config"
+fi
+
+if test "x${OCPBUILD_METADIR}" != "x"; then
+  metadir="${OCPBUILD_METADIR}"
 fi
 
 AC_ARG_WITH(metadir,
@@ -93,6 +98,7 @@ echo "prefix=${prefix}"
 echo "exec_prefix=${exec_prefix}"
 echo "bindir=${bindir}"
 echo "   (Executables will be installed there)"
+echo "libdir=${libdir}"
 echo "ocamldir=${ocamldir}"
 echo "   (OCaml files were found there)"
 echo "ocplibdir=${ocplibdir}"

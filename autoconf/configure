@@ -3858,6 +3858,7 @@ fi
 
 metadir='${ocamldir}'
 
+
   # checking for ocamlfind
   if test -n "$ac_tool_prefix"; then
   # Extract the first word of "${ac_tool_prefix}ocamlfind", so it can be a program name with args.
@@ -3953,9 +3954,13 @@ fi
 
 
 
-if test "$OCAMLFIND" != "no"; then
+if test "${OCAMLFIND}" != "no"; then
   metadir="$(${OCAMLFIND} -printconf destdir)"
   echo "initializing metadir from ocamlfind config"
+fi
+
+if test "x${OCPBUILD_METADIR}" != "x"; then
+  metadir="${OCPBUILD_METADIR}"
 fi
 
 
@@ -5142,6 +5147,7 @@ echo "prefix=${prefix}"
 echo "exec_prefix=${exec_prefix}"
 echo "bindir=${bindir}"
 echo "   (Executables will be installed there)"
+echo "libdir=${libdir}"
 echo "ocamldir=${ocamldir}"
 echo "   (OCaml files were found there)"
 echo "ocplibdir=${ocplibdir}"

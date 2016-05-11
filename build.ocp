@@ -18,6 +18,12 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+if include "autoconf/config.ocpgen" then {
+   version = package_version
+} else {
+   version = "0-undetermined"
+}
+
 comp += [ "-g" ]
 
 if ocaml_version >= "4.00" then {
