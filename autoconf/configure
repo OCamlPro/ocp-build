@@ -1787,24 +1787,6 @@ else
 fi
 
 
-
-# Check whether --with-ocamldir was given.
-if test "${with_ocamldir+set}" = set; then :
-  withval=$with_ocamldir; ocamldir="${withval}"
-else
-  ocamldir='${libdir}/ocaml'
-fi
-
-
-
-# Check whether --with-ocplibdir was given.
-if test "${with_ocplibdir+set}" = set; then :
-  withval=$with_ocplibdir; ocplibdir="${withval}"
-else
-  ocplibdir='${ocamldir}/typerex'
-fi
-
-
 ac_ext=c
 ac_cpp='$CPP $CPPFLAGS'
 ac_compile='$CC -c $CFLAGS $CPPFLAGS conftest.$ac_ext >&5'
@@ -3848,14 +3830,9 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
   fi
 
 
-if test "x${prefix}" = "xNONE"; then
-  prefix="$(dirname ${OCAMLLIB})"
-  base="$(basename ${prefix})"
-  if test "x${base}" = "xlib"; then
-    prefix="$(dirname ${prefix})"
-  fi
-fi
 
+ocamldir='${libdir}/ocaml'
+ocplibdir='${ocamldir}/typerex'
 metadir='${ocamldir}'
 
 
@@ -3959,9 +3936,34 @@ if test "${OCAMLFIND}" != "no"; then
   echo "initializing metadir from ocamlfind config"
 fi
 
-if test "x${OCPBUILD_METADIR}" != "x"; then
-  metadir="${OCPBUILD_METADIR}"
+if test "x${prefix}" = "xNONE"; then
+  if test "x${OPAM_PREFIX}" != "x"; then
+    echo inheriting OPAM settings from OPAM_PREFIX
+    prefix="${OPAM_PREFIX}"
+    ocamldir='${libdir}'
+    metadir="${OPAM_PREFIX}/lib"
+  else
+    prefix="$(dirname ${OCAMLLIB})"
+    base="$(basename ${prefix})"
+    if test "x${base}" = "xlib"; then
+      prefix="$(dirname ${prefix})"
+    fi
+  fi
 fi
+
+
+# Check whether --with-ocamldir was given.
+if test "${with_ocamldir+set}" = set; then :
+  withval=$with_ocamldir; ocamldir="${withval}"
+fi
+
+
+
+# Check whether --with-ocplibdir was given.
+if test "${with_ocplibdir+set}" = set; then :
+  withval=$with_ocplibdir; ocplibdir="${withval}"
+fi
+
 
 
 # Check whether --with-metadir was given.

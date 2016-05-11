@@ -9,7 +9,6 @@ mandir=@mandir@
 rootdir=@rootdir@
 datadir=@datadir@
 ocamldir=@ocamldir@
-ocplibdir=@ocplibdir@
 metadir=@metadir@
 
 destdir=@destdir@
