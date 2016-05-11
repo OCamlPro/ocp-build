@@ -146,7 +146,7 @@ OCP_BUILD_TMPS= $(OCP_BUILD_MLYS:.mly=.mli) $(OCP_BUILD_MLYS:.mly=.ml) \
 OCP_BUILD_OS= $(OCP_BUILD_STUBS) $(OCP_BUILD_CMXS:.cmx=.o)
 
 all: build-ocps
-	@echo Libraries will be installed in ${ocplibdir}
+	@echo Libraries will be installed in ${ocamldir}
 	@echo META files will be installed in ${metadir}
 
 build-ocps: $(OCP_BUILD_BOOTER)
@@ -194,16 +194,19 @@ doc:
 install: install-ocp-build
 	if test -f $(OBUILD_DSTDIR)/ocp-pp/ocp-pp.asm; then $(MAKE) install-ocp-pp; else :; fi
 
+OCPBUILD_INSTALL=./_obuild/ocp-build/ocp-build.asm install		\
+  -install-lib $(ocamldir) -install-meta $(metadir)                    \
+  -install-bin $(bindir)
+
 install-ocp-build:
-	cp $(OCP_BUILD_DSTDIR)/ocp-build.asm ${bindir}/ocp-build
-	mkdir -p ${ocplibdir}/ocp-build
-	cp -f boot/camlp4.ocp boot/ocaml.ocp ${ocplibdir}/ocp-build
-	cp -f build.ocp ${ocplibdir}/installed.ocp
-	echo "generated = true" >> ${ocplibdir}/installed.ocp
-	./_obuild/ocp-build/ocp-build.asm install -install-lib $(ocplibdir) -install-meta $(metadir) $(OCPLIB_LIBS)
+	mkdir -p ${ocamldir}/ocp-build
+	cp -f boot/camlp4.ocp boot/ocaml.ocp ${ocamldir}/ocp-build
+	echo "generated = true" > ${ocamldir}/installed.ocp
+	$(OCPBUILD_INSTALL) ocp-build
+	$(OCPBUILD_INSTALL) $(OCPLIB_LIBS)
 
 install-ocp-pp:
-	cp -f $(OBUILD_DSTDIR)/ocp-pp/ocp-pp.asm $(bindir)/ocp-pp
+	$(OCPBUILD_INSTALL) ocp-pp
 
 configure: autoconf/configure.ac autoconf/m4/*.m4
 	cd autoconf/; \

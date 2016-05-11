@@ -869,36 +869,58 @@ let load project_dir =
     | Some arg -> arg
   in
 
+  let opam_prefix = try
+      Some (Sys.getenv "OPAM_PREFIX")
+    with Not_found -> None in
+
   let cin_install_destdir = match !install_destdir_arg with
       None -> !!ProjectOptions.install_destdir_option
     | arg -> arg
   in
 
   let cin_install_bin = match !install_bin_arg with
-      None -> !!ProjectOptions.install_bindir_option
+    | None ->
+      begin match opam_prefix with
+        | None -> !!ProjectOptions.install_bindir_option
+        | Some prefix -> Some (Filename.concat prefix "bin")
+      end
     | arg -> arg
   in
 
   let cin_install_lib = match !install_lib_arg with
-      None -> !!ProjectOptions.install_libdir_option
+      None ->
+      begin match opam_prefix with
+        | None -> !!ProjectOptions.install_libdir_option
+        | Some prefix -> Some (Filename.concat prefix "lib")
+      end
     | arg -> arg
   in
 
   let cin_install_meta = match !install_meta_arg with
       None ->
-      (try Some (Sys.getenv "OCPBUILD_METADIR")
-       with Not_found ->
-                  !!ProjectOptions.install_metadir_option)
+      begin match opam_prefix with
+        | None -> !!ProjectOptions.install_metadir_option
+        | Some prefix -> Some (Filename.concat prefix "lib")
+      end
     | arg -> arg
   in
 
   let cin_install_doc = match !install_doc_arg with
-      None -> !!ProjectOptions.install_docdir_option
+      None ->
+      begin match opam_prefix with
+        | None -> !!ProjectOptions.install_docdir_option
+        | Some prefix -> Some (Filename.concat prefix "doc")
+      end
     | arg -> arg
   in
 
   let cin_install_data = match !install_data_arg with
-      None -> !!ProjectOptions.install_datadir_option
+      None ->
+      begin match opam_prefix with
+        | None -> !!ProjectOptions.install_datadir_option
+        | Some prefix -> Some (Filename.concat prefix "share")
+      end
+
     | arg -> arg
   in
   let cin_color = match !color_arg with
