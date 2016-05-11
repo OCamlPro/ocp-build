@@ -18,7 +18,6 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-version = "1.99.15"
 copyright = [ "OCamlPro/INRIA 2011-2013" ]
 authors = [ "Fabrice LE FESSANT <fabrice.le_fessant@ocamlpro.com>" ]
 license = [ "GPLv3" ]

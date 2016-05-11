@@ -27,6 +27,7 @@ val init :
 
 val uninstall : state ->  string -> unit
 
+(* cleanup directories after removing files in them *)
 val finish : state -> unit
 
 type package_uninstaller = {

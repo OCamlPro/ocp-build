@@ -7,6 +7,10 @@ Change log
      ${ocamldir} without the typerex/ prefix.
   * Use ${OPAM_PREFIX} instead of ${OCPBUILD_METADIR} to modify both
      ./configure and ocp-build install rules for OPAM.
+* [ocp-build uninstall]:
+  * Use OPAM_PREFIX or OCAMLLIB when no -install-lib is specified
+  * Accept -query, -query-version, -query-dir requests
+  * Accept -list to list packages that could be uninstalled
 
 2016-05-11: Version 1.99.15-beta
 * Better ./configure following GNU conventions
