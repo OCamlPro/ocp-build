@@ -16,3 +16,4 @@ PREFIX=$HOME/.opam/$OCAML_VERSION
 ./configure --prefix ${PREFIX} --with-metadir=${PREFIX}/lib
 make
 make install
+
