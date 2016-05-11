@@ -1,8 +1,18 @@
 Change log
 ==========
 
-2016-03-15:
-* Switch to version 1.99.14-beta
+2016-05-11: Version 1.99.15-beta
+* Better ./configure following GNU conventions
+  * New configure options:
+    --with-ocamldir=DIRNAME root storage of the OCaml distribution
+    --with-ocplibdir=DIRNAME store Typerex files in DIRNAME
+    --with-metadir=DIRNAME  store meta files in DIRNAME
+  * Detect ${OCPBUILD_METADIR} to set metadir, or
+  * Detect ocamlfind configuration to set metadir
+* New install option '-install-meta DIRNAME'
+* Follow environement variable ${OCPBUILD_METADIR}
+
+2016-03-15: Version 1.99.14-beta
 * Change Log started (late is better than never !)
 * Improved Compatibility with 4.03
 * Try to build as many project as possible instead of failing as soon as

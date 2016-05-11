@@ -885,7 +885,10 @@ let load project_dir =
   in
 
   let cin_install_meta = match !install_meta_arg with
-      None -> !!ProjectOptions.install_metadir_option
+      None ->
+      (try Some (Sys.getenv "OCPBUILD_METADIR")
+       with Not_found ->
+                  !!ProjectOptions.install_metadir_option)
     | arg -> arg
   in
 
