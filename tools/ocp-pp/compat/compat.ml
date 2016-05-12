@@ -59,3 +59,8 @@ let int_of_token = function
   | _ -> assert false
 
 let token_of_int n = INT n
+
+let loc_of_token lexbuf token =
+  match token with
+  | COMMENT (_, loc) -> loc
+  | _ -> Location.curr lexbuf
