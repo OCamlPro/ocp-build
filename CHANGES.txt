@@ -1,6 +1,9 @@
 Change log
 ==========
 
+2016-05-12:
+* Fix ocp-pp issue with ocamldoc comments in 4.03
+
 2016-05-11:
 * ./configure:
   * Remove variable 'ocplibdir'. Typerex libraries will be installed in

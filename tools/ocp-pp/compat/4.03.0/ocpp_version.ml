@@ -88,12 +88,21 @@ module Compat = struct
       (match s with None -> "" | Some c -> Printf.sprintf "%c" c)
     | FLOAT (float, s) -> Printf.sprintf "%s%s" float
       (match s with None -> "" | Some c -> Printf.sprintf "%c" c)
+    | NONREC -> "nonrec"
+    | SHARPOP op -> Printf.sprintf "sharpop(%S)" op
+    | DOCSTRING docstring -> "docstring _"
     | _  -> assert false
 
   let int_of_token = function
     | INT (n, None) -> int_of_string n
     | _ -> assert false
   let token_of_int n = INT (string_of_int n, None)
+
+  let loc_of_token lexbuf token =
+    match token with
+    | COMMENT (_, loc) -> loc
+    | DOCSTRING doc -> Docstrings.docstring_loc doc
+    | _ -> Location.curr lexbuf
 
 end
 

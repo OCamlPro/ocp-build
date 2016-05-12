@@ -297,7 +297,7 @@ let string_of_token token =
   | COLONEQUAL -> ":="
   | COLONGREATER -> ":>"
   | COMMA -> ","
-  | COMMENT (comment, pos) -> Printf.sprintf "(* %s *)" (String.escaped comment)
+  | COMMENT (comment, pos) -> Printf.sprintf "COMMENT %s" (String.escaped comment)
   | CONSTRAINT -> "constraint"
   | DO -> "do"
   | DONE -> "done"
@@ -393,7 +393,6 @@ let string_of_token token =
   | EOF -> "\n"
 
   | _ -> Compat.string_of_token token
-
 
 let string_of_directive = function
   | OCPP_INCLUDE -> "OCPP_INCLUDE"

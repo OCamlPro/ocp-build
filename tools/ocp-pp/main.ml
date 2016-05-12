@@ -22,6 +22,8 @@ open Ocpp_version
 open Parser
 open Lexing
 
+let debug = ref false
+
 (* [Misc.cut_at] for OCaml >= 4.01 *)
 let cut_at s c =
   let pos = String.index s c in
@@ -55,14 +57,10 @@ let () =
           (* We should error out immediatly if
              (1) a comment is starting on this line and not finishing
              (2) a comment is ending on this line
-
           *)
 
           let { Location.loc_start; loc_end } =
-            match token with
-            | COMMENT (_, loc) -> loc
-            | _ ->
-              Location.curr lexbuf
+            Compat.loc_of_token lexbuf token
           in
           let start_lnum = loc_start.pos_lnum in
           let start_fname = loc_start.pos_fname in
@@ -71,7 +69,10 @@ let () =
           let curr_fname = loc_end.pos_fname in
 
           assert (start_fname = curr_fname);
-
+          if !debug then begin
+            Printf.eprintf "TOKEN = %S\n%!" (Ocpp.string_of_token token);
+            Printf.eprintf "  lines: %d-%d\n%!" start_lnum curr_lnum;
+          end;
           let (lines, prev_lnum) =
             try
               match !prev_line with
@@ -141,7 +142,9 @@ let () =
       Printf.printf "ocp-pp %s for OCaml %s\n%!"
         current_version Sys.ocaml_version;
       exit 0
-    ), " Display general information";
+      ), " Display general information";
+    "--debug", Arg.Set debug,
+    " Print tokens and corresponding lines";
     "-I", Arg.String (fun s -> Config.load_path := [s] @ !Config.load_path),
     "<dir> Add directory to path searched for include files";
   ] in
