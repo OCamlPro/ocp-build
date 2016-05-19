@@ -1,0 +1,5 @@
+begin library "ocplib-hashtbl"
+
+  files = [ "fastHashtbl.ml" ]
+
+end

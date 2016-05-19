@@ -1,0 +1,59 @@
+\documentclass{article}
+
+\begin{document}
+
+32 bit version is limited to 2,000,000 floats items or 4,000,000
+non-float items (neither key nor value), unless you use the longvals
+patch.  64 bit version is unlimited.
+
+In the table X/Y, means key of type X and value of type Y.
+
+\subsection*{64 bits, 10,000,000 puts and gets}
+
+\begin{tabular}{|r|r|r|r|r|r|} \hline
+Kind & Initial & Float/Float & Float/Non-Float & Non-Float/Float & Non-Float/Non-Float \\ \hline
+Std puts  & 100 & 15.463 & 12.101 & 3.674 & 3.109 \\ \hline
+Fast puts & 100 & 3.936 & 4.065 & 2.306 & 2.290 \\ \hline
+Speedup & 100 &\bf 3.92 &\bf 2.97 &\bf 1.59 &\bf 1.35 \\ \hline
+Std gets & 100 & 16.198 & 15.377 & 0.548 & 0.439 \\ \hline
+Fast gets & 100 & 8.776 & 7.917 & 0.552 & 0.438 \\ \hline
+Speedup & 100 &\bf 1.84 &\bf 1.94 &\bf 0.99 &\bf 1.00  \\ \hline
+\end{tabular}
+
+\subsection*{32 bits, 2,000,000 puts and gets}
+
+\begin{tabular}{|r|r|r|r|r|r|} \hline
+Kind & Initial & Float/Float & Float/Non-Float & Non-Float/Float & Non-Float/Non-Float \\ \hline
+Std puts  & 100 & 2.733 & 2.403 & 1.113 & 0.848 \\ \hline
+Fast puts & 100 & 0.717 & 0.834 & 0.807 & 0.782 \\ \hline
+Speedup   & 100 &\bf 3.81 &\bf 2.88 &\bf 1.37 &\bf 1.08 \\ \hline
+Std gets  & 100 & 1.450 & 1.156 & 0.128 & 0.101 \\ \hline
+Fast gets & 100 & 0.488 & 0.322 & 0.148 & 0.115 \\ \hline
+Speedup   & 100 &\bf 2.97 &\bf 3.59 &\bf 0.86 &\bf 0.87  \\ \hline
+\end{tabular}
+
+\subsection*{64 bits, 10,000,000 puts and gets}
+
+\begin{tabular}{|r|r|r|r|r|r|} \hline
+Kind & Initial & Float/Float & Float/Non-Float & Non-Float/Float & Non-Float/Non-Float \\ \hline
+Std puts  & 10,000,000 & 8.854& 6.928 &1.951 & 1.431 \\ \hline
+Fast puts & 10,000,000 & 2.129 & 1.939 &  1.183 & 1.284 \\ \hline
+Speedup & 10,000,000 &\bf 4.15 &\bf 3.57 &\bf 1.64 &\bf 1.11 \\ \hline
+Std gets & 10,000,000 &  18.544 & 17.429 & 0.501 & 0.390  \\ \hline
+Fast gets & 10,000,000 & 8.443 & 8.110 & 0.543 & 0.435  \\ \hline
+Speedup & 10,000,000 &\bf 2.19 &\bf 2.14 &\bf 0.92  &\bf 0.89  \\ \hline
+\end{tabular}
+
+\subsection*{32 bits, 2,000,000 puts and gets}
+
+\begin{tabular}{|r|r|r|r|r|r|} \hline
+Kind & Initial & Float/Float & Float/Non-Float & Non-Float/Float & Non-Float/Non-Float \\ \hline
+Std puts  & 2,000,000 & 1.395 & 1.100 & 0.524 & 0.334 \\ \hline
+Fast puts & 2,000,000 & 0.477 & 0.503 & 0.350 & 0.381 \\ \hline
+Speedup   & 2,000,000 &\bf 2.92  &\bf 2.18  &\bf 1.49  &\bf 0.87 \\ \hline
+Std gets  & 2,000,000 & 1.154 & 0.861 & 0.126 & 0.097 \\ \hline
+Fast gets & 2,000,000 & 0.366 & 0.315 & 0.147 & 0.116 \\ \hline
+Speedup   & 2,000,000 & \bf 3.15 &\bf 2.73 &\bf 0.85 &\bf 0.83 \\ \hline
+\end{tabular}
+
+\end{document}

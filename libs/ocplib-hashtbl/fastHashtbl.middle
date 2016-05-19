@@ -1,0 +1,10 @@
+
+end
+
+external hash_param : int -> int -> 'a -> int = "caml_hash_univ_param" "noalloc"
+
+let hash x = hash_param 10 100 x
+
+let equal x y =
+  compare x y = 0
+

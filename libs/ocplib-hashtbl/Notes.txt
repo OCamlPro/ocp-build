@@ -1,0 +1,18 @@
+Author: Fabrice Le Fessant
+28 Feb 2011
+
+Another implementation of hash tables
+=====================================
+
+This implementation is based on 4 arrays instead of lists.
+It performs in general:
+- much faster than Hashtbl for puts
+- much faster than Hashtbl for gets with float keys
+- slower but close to Hashtbl for get with non-float keys
+(see hashtbl.pdf)
+
+Space usage is on average the same, although when the Hashtbl is
+empty, the tables are allocated but empty...
+
+
+
