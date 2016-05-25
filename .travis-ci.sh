@@ -27,6 +27,10 @@ make install
 if [ "${OCAML_VERSION}" != "4.02.3" ] ; then
    echo No lint
 else
+
+   curl --user "ocp-lint-bot:${GH_TOKEN}" -X POST --data '{ "body":"Hello from Travis" }' "https://api.github.com/repos/${TRAVIS_REPO_SLUG}/issues/${TRAVIS_PULL_REQUEST}/comments"
+
+    
    git clone https://github.com/OCamlPro/typerex-lint &&
    (cd typerex-lint;
     ./configure &&
