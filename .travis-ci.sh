@@ -17,15 +17,16 @@ PREFIX=$HOME/.opam/$OCAML_VERSION
 make
 make install
 
-if [ "${OCAML_VERSION}" == "4.02.3" ] ; then
-
   echo '${TRAVIS_PULL_REQUEST} = ' ${TRAVIS_PULL_REQUEST}
   echo '${TRAVIS_REPO_SLUG} = ' ${TRAVIS_REPO_SLUG}
   echo '${TRAVIS_TAG} = ' ${TRAVIS_TAG}
   echo '${TRAVIS_BRANCH} = ' ${TRAVIS_BRANCH}
   echo '${TRAVIS_COMMIT} = ' ${TRAVIS_COMMIT}
   echo '${TRAVIS_COMMIT_RANGE} = ' ${TRAVIS_COMMIT_RANGE}
-    
+
+if [ "${OCAML_VERSION}" != "4.02.3" ] ; then
+   echo No lint
+else
    git clone https://github.com/OCamlPro/typerex-lint &&
    (cd typerex-lint;
     ./configure &&
