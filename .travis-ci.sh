@@ -17,7 +17,7 @@ PREFIX=$HOME/.opam/$OCAML_VERSION
 make
 make install
 
-if [ "${OCAML_VERSION}" == "4.02.1" ] ; then
+if [ "${OCAML_VERSION}" == "4.02.3" ] ; then
 
   echo '${TRAVIS_PULL_REQUEST} = ' ${TRAVIS_PULL_REQUEST}
   echo '${TRAVIS_REPO_SLUG} = ' ${TRAVIS_REPO_SLUG}
