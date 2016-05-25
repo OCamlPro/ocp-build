@@ -29,6 +29,8 @@ if [ "${OCAML_VERSION}" != "4.02.3" ] ; then
    echo No lint
 else
 
+    ocaml ./travis2github.ml
+    
    curl --user "ocp-lint-bot:${GITHUB_TOKEN}" -X POST --data '{ "body":"Hello from Travis" }' "https://api.github.com/repos/${TRAVIS_REPO_SLUG}/issues/${TRAVIS_PULL_REQUEST}/comments"
 
    cd ../..
