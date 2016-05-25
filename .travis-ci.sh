@@ -39,7 +39,7 @@ else
    git clone https://github.com/OCamlPro/typerex-lint.git OCamlPro/typerex-lint
    opam pin add -y typerex-lint OCamlPro/typerex-lint
 
-   ocp-lint -path OCamlPro/ocp-build
+   ocp-lint --path OCamlPro/ocp-build
    
 fi
 
