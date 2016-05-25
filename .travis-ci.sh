@@ -17,3 +17,16 @@ PREFIX=$HOME/.opam/$OCAML_VERSION
 make
 make install
 
+if [ "${OCAML_VERSION}" == "4.02.1" ] ; then
+
+   git clone https://github.com/OCamlPro/typerex-lint &&
+   (cd typerex-lint;
+    ./configure &&
+     make &&
+     make install) &&
+   rm -rf typerex-lint
+
+   ocp-lint -path .
+   
+fi
+
