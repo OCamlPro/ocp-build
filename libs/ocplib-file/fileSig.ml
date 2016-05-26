@@ -18,6 +18,8 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+open StringCompat
+
 module type CONTENT_OPERATIONS = sig
 
   type in_file
