@@ -85,7 +85,7 @@ let config_filename_validated bc lib_loc (filename, digest_o) =
     add_rule_command r_checker (BuildEngineTypes.Function (function_name, (fun b -> Buffer.add_string b function_name),
         (function () ->
           let digest2_o = try
-            let content = File.string_of_file filename in
+            let content = FileString.read_file filename in
             Some (Digest.string content)
           with _ -> None
           in

@@ -1014,13 +1014,13 @@ let magic = magic_head ^ magic_kind ^ magic_version
 let magic_len = String.length magic
 
 let save_project_state state filename =
-  let oc = File.X.open_out_bin filename in
+  let oc = File.open_out_bin filename in
   output_string oc magic;
   output_value oc (state : project);
   close_out oc
 
 let load_project_state filename =
-  let ic = File.X.open_in_bin filename in
+  let ic = File.open_in_bin filename in
   let possible_magic =
     let magic = Bytes.create magic_len in
     try
@@ -1074,7 +1074,7 @@ let load_project_state filename =
 let find_package pj file =
   let list = ref [] in
 
-  let st = File.X.stat file in
+  let st = File.stat file in
   (*
     let dir_t = pj.project_dir in
     let _dir = File.to_string dir_t in
@@ -1082,7 +1082,7 @@ let find_package pj file =
   let check_file pk filename =
     let file = File.of_string (Filename.concat pk.package_dirname filename) in
     try
-      let st2 = File.X.stat file in
+      let st2 = File.stat file in
       if
         st.MinUnix.st_ino = st2.MinUnix.st_ino &&
         st.MinUnix.st_dev = st2.MinUnix.st_dev then
@@ -1092,7 +1092,7 @@ let find_package pj file =
   Array.iter (fun pk ->
     List.iter (fun (filename, _) ->
       check_file pk filename;
-      let (kernel, extension) = File.cut_last_extension filename in
+      let (kernel, extension) = FileString.cut_at_last_extension filename in
       match extension with
       | "ml" -> check_file pk (filename ^ ".mli")
       | "mli" -> ()
@@ -1121,13 +1121,13 @@ let rec find_obuild f dir =
 let find_root root_dir basenames =
   let rec find dirname (basenames : string list) =
     let file = File.add_basenames dirname basenames in
-    if File.X.exists file then dirname else
+    if File.exists file then dirname else
       let new_dirname = File.dirname dirname in
       if new_dirname == dirname then raise Not_found;
       find new_dirname basenames
   in
   let root_dir = if File.is_absolute root_dir then root_dir else
-      File.concat (File.X.getcwd ()) root_dir
+      File.concat (File.getcwd ()) root_dir
   in
   find root_dir basenames
 

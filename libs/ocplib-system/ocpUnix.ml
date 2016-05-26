@@ -164,7 +164,7 @@ let string_of_stdout fn =
     flush Pervasives.stdout;
     dup2 saved_stdout stdout;
     close saved_stdout;
-    let s = File.string_of_file tmp in
+    let s = FileString.string_of_file tmp in
     safe_unlink tmp;
     s in
   begin

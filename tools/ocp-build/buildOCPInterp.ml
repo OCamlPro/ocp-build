@@ -209,7 +209,7 @@ let define_package pj name config kind =
 
 let read_config_file (pj:state) filename =
   try
-    let content = File.string_of_file filename in
+    let content = FileString.string_of_file filename in
     let digest = Digest.string content in
     begin
       try

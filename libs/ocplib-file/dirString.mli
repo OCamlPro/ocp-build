@@ -19,21 +19,14 @@
 (**************************************************************************)
 
 
-begin library "ocplib-system"
+open StringCompat
 
-  files = [
-    "date.ml";
-    "ocpUnix.ml";
-    "ocpFilename.ml";
-    "debug.ml";
-    "fileTemplate.ml"
-   ]
-
-
-  requires = [
-    "ocplib-lang";
-    "ocplib-unix";
-    "ocplib-file";
-  ]
-
-end
+val mkdir : string -> int -> unit
+val make : string -> unit
+val make_all : string -> unit
+val list : string -> string list
+val list_files : string -> string list
+val iter : (string -> unit) -> string -> unit
+val iter_files : (string -> unit) -> string -> unit
+val remove : string -> unit
+val remove_all : string -> unit

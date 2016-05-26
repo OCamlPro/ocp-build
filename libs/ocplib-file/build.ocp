@@ -19,21 +19,32 @@
 (**************************************************************************)
 
 
-begin library "ocplib-system"
+begin library "ocplib-file"
 
   files = [
-    "date.ml";
-    "ocpUnix.ml";
-    "ocpFilename.ml";
-    "debug.ml";
-    "fileTemplate.ml"
-   ]
 
+    "fileSig.ml";
+
+    "fileOS.ml";
+    "fileChannel.ml";
+
+    "fileString.ml";
+    (*    "dirString.ml"; *)
+
+    "fileLabels.mli";
+    "fileLabels.ml" (comp += [ "-nolabels" ]);
+
+    "fileLines.ml";
+
+    "file.ml";
+    "dir.ml";
+
+    "dirPath.ml";
+   ]
 
   requires = [
     "ocplib-lang";
     "ocplib-unix";
-    "ocplib-file";
   ]
 
 end

@@ -18,22 +18,31 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+(* This module implements operations on filenames, represented by an
+   abstract type, so that manipulations of filenames are better checked. *)
 
-begin library "ocplib-system"
+open StringCompat
 
-  files = [
-    "date.ml";
-    "ocpUnix.ml";
-    "ocpFilename.ml";
-    "debug.ml";
-    "fileTemplate.ml"
-   ]
+include (FileSig.FILE_OPERATIONS)
 
+val equal : t -> t -> bool
 
-  requires = [
-    "ocplib-lang";
-    "ocplib-unix";
-    "ocplib-file";
-  ]
+(* conversions to and from filenames *)
+val to_string : t -> string
+val of_string : string -> t
 
-end
+(* OS specific versions *)
+val of_unix_string : string -> t
+val of_win32_string : string -> t
+
+(* Force either /absolute_path or ./implicit_path *)
+val to_rooted_string : t -> string
+
+val of_path : string -> string list -> t
+
+module Op : sig
+
+  (* [file // basename] is an alias for [add_basename] *)
+  val (//) : t -> string -> t
+
+  end

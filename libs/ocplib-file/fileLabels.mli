@@ -19,17 +19,33 @@
 (**************************************************************************)
 
 
-(** Get all the lines of a files *)
-val of_file : string -> string list
+(** Interface of File with labels. *)
+
+
+(** Get all the lines of a file (possibly discarding some lines).  If
+    [line_break] is set, '\n' are kept (default is false).*)
+val lines_of_file : filename:string -> string array
 
 (** [file_of_lines name lines] saves the [lines] into the file [name] *)
-val to_file : string -> string list -> unit
+val file_of_lines : filename:string -> string array -> unit
 
-(** [iter_lines f filename] reads [filename] line by line, applying [f] to each one. *)
-val iter : (string -> unit) -> string -> unit
+(** Get the contents of a file *)
+val string_of_file : filename:string -> string
 
-(** [iteri_lines f filename] reads [filename] line by line, applying [f] to each one. *)
-val iteri : (int -> string -> unit) -> string -> unit
+(** [file_of_string name str] saves [str] into the file [name]. *)
+val file_of_string : filename:string -> str:string -> unit
 
-(** [sub_lines filename off len] returns [len] lines of [filename], starting at [off] *)
-val sub : string -> int -> int -> string list
+(*
+  val genlex_of_file : keywords:string list -> ?discard:(string -> bool)
+  -> filename:string -> OcpGenlex.t
+
+(** Output a line in a channel *)
+val output_line : oc:out_channel -> str:string -> unit
+
+(** Get the contents of a channel *)
+val string_of_channel : ic:in_channel -> string
+
+(** Cut a filename at the last extension position *)
+val cut_at_last_extension : basename:string -> string * string
+
+*)

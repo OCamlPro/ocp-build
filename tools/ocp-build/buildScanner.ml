@@ -61,7 +61,7 @@ let scan_directory_for_files directory extensions =
 
 let scan_directory_for_extensions directory extensions =
   scan_directory (fun _dirname basename filename ->
-    let (_, last_ext) = File.cut_last_extension basename in
+    let (_, last_ext) = FileString.cut_at_last_extension basename in
     let last_ext = String.lowercase last_ext in
     let f = StringMap.find last_ext extensions in
     f filename

@@ -18,9 +18,19 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+let rev t =
+  let len = Array.length t in
+  let last = len-1 in
+  for i = 0 to len/2 - 1 do
+    let x = t.(i) in
+    t.(i) <- t.(last-i);
+    t.(last-i) <- x;
+  done
 
-let to_file = File.file_of_lines
-let of_file = File.lines_of_file
-let iter = File.iter_lines
-let iteri = File.iteri_lines
-let sub = File.sub_lines
+let () =
+  for i = 0 to 5 do
+    let t = Array.init i (fun i -> i) in
+    let rev_t = Array.of_list (List.rev (Array.to_list t)) in
+    rev t;
+    assert (t = rev_t)
+  done

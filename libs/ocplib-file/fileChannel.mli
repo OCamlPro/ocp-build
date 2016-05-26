@@ -19,21 +19,12 @@
 (**************************************************************************)
 
 
-begin library "ocplib-system"
+open StringCompat
 
-  files = [
-    "date.ml";
-    "ocpUnix.ml";
-    "ocpFilename.ml";
-    "debug.ml";
-    "fileTemplate.ml"
-   ]
+include (FileSig.CONTENT_OPERATIONS with
+          type in_file := in_channel
+                                     and type out_file = out_channel)
 
-
-  requires = [
-    "ocplib-lang";
-    "ocplib-unix";
-    "ocplib-file";
-  ]
-
-end
+(* [output_line ic line] outputs [line] in [ic], followed by a
+   line-terminator. *)
+val output_line : out_channel -> string -> unit
