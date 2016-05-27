@@ -1,4 +1,4 @@
-AC_INIT(ocp-build,1.99.16-beta)
+AC_INIT(ocp-build,1.99.17-beta)
 CONFIGURE_ARGS=$*
 
 # As stated in the GNU manuals, variables are not expansed when
