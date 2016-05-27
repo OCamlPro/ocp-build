@@ -18,22 +18,4 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
-begin library "ocplib-system"
-
-  files = [
-    "date.ml";
-    "ocpUnix.ml";
-    "ocpFilename.ml";
-    "debug.ml";
-    "fileTemplate.ml"
-   ]
-
-
-  requires = [
-    "ocplib-lang";
-    "ocplib-unix";
-    "ocplib-file";
-  ]
-
-end
+val rev : 'a array -> unit

@@ -18,22 +18,13 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+(* are we running on Win32 ? *)
+val win32 : bool
 
-begin library "ocplib-system"
+(* OS specific values *)
+val path_separator : char
+val dir_separator : char
+val dir_separator_string : string
+val line_separator : string
 
-  files = [
-    "date.ml";
-    "ocpUnix.ml";
-    "ocpFilename.ml";
-    "debug.ml";
-    "fileTemplate.ml"
-   ]
-
-
-  requires = [
-    "ocplib-lang";
-    "ocplib-unix";
-    "ocplib-file";
-  ]
-
-end
+val default_buffer_size : int

@@ -30,6 +30,7 @@ begin library "ocplib-lang"
     "ocpGenlex.ml"
     "ocpHashtbl.ml"
     "ocpDigest.ml"
+    "ocpArray.ml";
     "option.ml"
     "intMap.ml"
     "intSet.ml"
@@ -43,6 +44,7 @@ begin library "ocplib-lang"
     "stringSubst.ml"
     "manpage.ml"
     "stringTemplate.ml"
+    "reentrantBuffers.ml";
   ]
   requires = [ "ocplib-debug" string_compat ]
 end

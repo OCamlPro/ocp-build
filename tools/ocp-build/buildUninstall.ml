@@ -94,7 +94,7 @@ let rec uninstall_by_uninstaller state uninstall_file_d =
       uninstall_file_d;
     state.un_errors <- state.un_errors + 1
   end else
-    let list = File.lines_of_file uninstall_file_d in
+    let list = FileLines.read_file uninstall_file_d in
     List.iter (fun line ->
       match OcpString.cut_at line ' ' with
       | "OCP", _ -> ()
@@ -158,7 +158,7 @@ let finish state =
   ) dirs
 
 let load_uninstaller filename =
-    let list = File.lines_of_file filename in
+    let list = FileLines.read_file filename in
     let name = Filename.chop_suffix (Filename.basename filename) ".uninstall" in
     let un = {
       un_nfiles = 0;

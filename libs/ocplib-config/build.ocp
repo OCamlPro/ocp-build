@@ -28,7 +28,7 @@ begin library "ocplib-config"
 
 
   requires = [
-    "ocplib-system";
+    "ocplib-file";
   ]
 
 end

@@ -22,7 +22,7 @@ open StringCompat
 
 include StringTemplate
 let create filename labels defaults =
-  StringTemplate.create (lazy (File.string_of_file filename)) labels defaults
+  StringTemplate.create (lazy (FileString.string_of_file filename)) labels defaults
 
 module Set = struct
   open Genlex
@@ -87,7 +87,7 @@ module Set = struct
     of_lines (OcpString.split s '\n')
 
   let of_file filename =
-    of_lines ( File.lines_of_file filename )
+    of_lines ( FileLines.read_file filename )
 
 end
 

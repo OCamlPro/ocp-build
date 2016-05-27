@@ -220,8 +220,8 @@ let end_command b proc time status =
         [
           Printf.sprintf "[%d.%d] '%s'" r.rule_id proc.proc_step
             (term_escape (String.concat "' '" cmd_args));
-          File.string_of_file (temp_stdout b r);
-          File.string_of_file (temp_stderr b r);
+          FileString.string_of_file (temp_stdout b r);
+          FileString.string_of_file (temp_stderr b r);
         ] :: b.errors
 
 

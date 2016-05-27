@@ -351,7 +351,7 @@ let exec_class_hooks o =
 
 let really_load filename sections =
   let temp_file = File.add_suffix filename ".tmp" in
-  if File.X.exists temp_file then
+  if File.exists temp_file then
     begin
       Printf.eprintf "File %s exists\n" (File.to_string temp_file);
       Printf.eprintf "An error may have occurred during previous configuration save.\n";
@@ -360,7 +360,7 @@ let really_load filename sections =
       exit 1
     end
   else
-    let ic = File.X.open_in filename in
+    let ic = File.open_in filename in
     try
       let s = Stream.of_channel ic in
       try
@@ -943,8 +943,8 @@ let save opfile =
   let old_file =
     let old_file = File.add_suffix filename ".old" in
     let old_old_file = File.add_suffix old_file ".old" in
-    if File.X.exists old_old_file then Sys.remove (File.to_string old_old_file);
-    if File.X.exists old_file then
+    if File.exists old_old_file then Sys.remove (File.to_string old_old_file);
+    if File.exists old_file then
       Sys.rename (File.to_string old_file) (File.to_string old_old_file);
     old_file in
   let oc = Buffer.create 1000 in
@@ -1036,13 +1036,13 @@ let save opfile =
         opfile.file_rc <- !rem
       end;
     Hashtbl.clear once_values_rev;
-    File.X.write_of_string temp_file (Buffer.contents oc);
-    begin try File.X.rename filename old_file with  _ -> () end;
-    begin try File.X.rename temp_file filename with _ -> () end;
+    File.write_file temp_file (Buffer.contents oc);
+    begin try File.rename filename old_file with  _ -> () end;
+    begin try File.rename temp_file filename with _ -> () end;
     exec_hooks "after_save" opfile.file_after_save_hooks ();
   with
       e ->
-        File.X.write_of_string temp_file (Buffer.contents oc);
+        File.write_file temp_file (Buffer.contents oc);
         exec_hooks "after_save" opfile.file_after_save_hooks ();
         raise e
 
@@ -1368,7 +1368,7 @@ let info_of_option prefix o =
   | _ ->
     {
       M.option_name = o.option_name;
-      M.option_shortname = 
+      M.option_shortname =
         Printf.sprintf "%s%s" prefix (shortname o);
       M.option_short_help =
         (match o.option_short_help with | None -> "" | Some s -> s);
@@ -1425,19 +1425,19 @@ let simple_args_oi prefix opfile oi = match oi.M.option_kind with
   | ArgInt ->
     ["--" ^ oi.M.option_shortname,
      Arg.Int
-       (fun i -> 
+       (fun i ->
           set_simple_option opfile oi.M.option_name (string_of_int i)),
      Printf.sprintf "<int> %s" oi.M.option_short_help]
   | ArgFloat ->
     ["--" ^ oi.M.option_shortname,
      Arg.Float
-       (fun f -> 
+       (fun f ->
           set_simple_option opfile oi.M.option_name (string_of_float f)),
      Printf.sprintf "<float> %s" oi.M.option_short_help]
   | ArgBool ->
     ["--" ^ oi.M.option_shortname,
      Arg.Bool
-       (fun b -> 
+       (fun b ->
           set_simple_option opfile oi.M.option_name (string_of_bool b)),
      Printf.sprintf "<bool> %s" oi.M.option_short_help]
   | ArgOther ->

@@ -44,13 +44,13 @@ let print_loc filename pos =
   let line = ref 1 in
   let last_line_pos = ref 0 in
   begin try
-          let s = File.string_of_file filename in
-          for i = 0 to pos - 1 do
-            if s.[i] = '\n' then begin
-              incr line;
-              last_line_pos := i
-            end
-          done
+      let s = FileString.string_of_file filename in
+      for i = 0 to pos - 1 do
+        if s.[i] = '\n' then begin
+          incr line;
+          last_line_pos := i
+        end
+      done
     with _ -> ()
   end;
   let pos = pos - !last_line_pos in
@@ -60,7 +60,7 @@ let print_loc filename pos =
 exception ParseError
 
 let token_list_of_filename filename lexer =
-  let s = File.string_of_file filename in
+  let s = FileString.string_of_file filename in
   let str1 = Stream.of_string s in
   let str2 = lexer str1 in
   let list = ref [] in
@@ -325,7 +325,7 @@ let _ =
     | _ -> None)
 ;;
 
-let safe_mkdir = File.RawIO.safe_mkdir
+let safe_mkdir = FileString.safe_mkdir
 (*
   let rec safe_mkdir filename =
   try

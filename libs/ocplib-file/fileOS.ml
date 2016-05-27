@@ -19,21 +19,12 @@
 (**************************************************************************)
 
 
-begin library "ocplib-system"
+open StringCompat
 
-  files = [
-    "date.ml";
-    "ocpUnix.ml";
-    "ocpFilename.ml";
-    "debug.ml";
-    "fileTemplate.ml"
-   ]
+let win32 = (Sys.os_type = "Win32")
+let dir_separator = if win32 then '\\' else '/'
+let path_separator = if win32 then ';' else ':'
+let dir_separator_string = String.make 1 dir_separator
+let line_separator = if win32 then "\r\n" else "\n"
 
-
-  requires = [
-    "ocplib-lang";
-    "ocplib-unix";
-    "ocplib-file";
-  ]
-
-end
+let default_buffer_size = if win32 then 32768 else 65536

@@ -1284,12 +1284,12 @@ let rec find_source_with_extension b lib src_dir kernel_name exts =
   | ext :: rem_exts ->
     let basename1 = kernel_name ^ "." ^ ext in
     let test1 = File.add_basename src_dir.dir_file basename1 in
-    if File.X.exists test1 then
+    if File.exists test1 then
       (basename1, ext)
     else
     let basename2 = invert_capital (kernel_name ^ "." ^ ext) in
     let test2 = File.add_basename src_dir.dir_file basename2 in
-    if File.X.exists test2 then
+    if File.exists test2 then
       (basename2, ext)
     else
       find_source_with_extension b lib src_dir kernel_name rem_exts
@@ -1301,7 +1301,7 @@ let get_packed_objects lib r src_dir pack_of obj_ext =
   let packed_cmx_files = ref [] in
   let b = r.rule_context in
   List.iter (fun basename ->
-    let basename, extension = File.cut_last_extension basename in
+    let basename, extension = FileString.cut_at_last_extension basename in
     let (filename, obj_extension) =
       if extension = "" then
         find_source_with_extension b lib src_dir basename
@@ -1361,7 +1361,7 @@ let rec find_git_commit dir =
       else ref
 
     with _ ->
-      let head = try File.string_of_file filename with _ -> "??" in
+      let head = try FileString.string_of_file filename with _ -> "??" in
       Printf.eprintf "Warning: unreadable-git-commit\nHEAD %S:\n%S\n%!"
         filename head;
       "unreadable-git-commit"
@@ -1459,19 +1459,19 @@ let create_ml_file_if_needed b lib mut_dir options ml_file =
 
     let ml_content = Buffer.contents b in
 
-    if File.X.exists tmp_ml_file then begin
-      let old_ml_content = File.X.read_to_string tmp_ml_file in
+    if File.exists tmp_ml_file then begin
+      let old_ml_content = File.read_file tmp_ml_file in
       if ml_content <> old_ml_content then begin
      if verbose 2 then
        Printf.fprintf stderr "create %s [outdated]\n%!"
          (File.to_string tmp_ml_file);
-            File.X.write_of_string tmp_ml_file ml_content
+            File.write_file tmp_ml_file ml_content
       end
     end else begin
       if verbose 2 then
      Printf.fprintf stderr "create %s [unexisting] \n%!"
        (File.to_string tmp_ml_file);
-        File.X.write_of_string tmp_ml_file ml_content;
+        File.write_file tmp_ml_file ml_content;
     end;
     tmp_ml
   end else ml_file
@@ -1484,24 +1484,24 @@ let create_ml_file_if_needed b lib mut_dir options ml_file =
 let copy_mli_if_needed b mut_dir mll_file kernel_name =
   try
     let mli_file = File.add_basename mll_file.file_dir.dir_file (kernel_name ^ ".mli") in
-    if File.X.exists mli_file  then begin
-      let mli_content = File.X.read_to_string mli_file in
+    if File.exists mli_file  then begin
+      let mli_content = File.read_file mli_file in
       let tmp_mli = add_file b mut_dir (kernel_name ^ ".mli") in
       let tmp_mli_file = tmp_mli.file_file in
-      if File.X.exists tmp_mli_file then
-        let old_mli_content = File.X.read_to_string tmp_mli_file in
+      if File.exists tmp_mli_file then
+        let old_mli_content = File.read_file tmp_mli_file in
         if mli_content <> old_mli_content then begin
      if verbose 2 then
        Printf.fprintf stderr "cp %s %s [outdated]\n%!"
          (File.to_string mli_file) (File.to_string tmp_mli_file);
-            File.X.write_of_string tmp_mli_file mli_content
+            File.write_file tmp_mli_file mli_content
    end else
      ()
       else begin
    if verbose 2 then
      Printf.fprintf stderr "cp %s %s [unexisting] \n%!"
        (File.to_string mli_file) (File.to_string tmp_mli_file);
-        File.X.write_of_string tmp_mli_file mli_content;
+        File.write_file tmp_mli_file mli_content;
       end
     end (* else
       Printf.eprintf "MLI FILE %S does not exist\n%!"
@@ -1623,10 +1623,10 @@ let add_ml_source b lib ptmp ml_file options =
                         Printf.bprintf b "let files = [\n";
                         List.iter (fun (file, src_file) ->
                           Printf.bprintf b "%S, %S;"
-                            file (File.string_of_file (file_filename src_file))
+                            file (FileString.string_of_file (file_filename src_file))
                         ) sources;
                         Printf.bprintf b "  ]\n";
-                        File.file_of_string (file_filename new_ml_file)
+                        FileString.file_of_string (file_filename new_ml_file)
                           (Buffer.contents b);
                         ())));
           new_ml_file
@@ -2497,9 +2497,9 @@ let add_rules bc lib target_name target_files =
             ) substitutions;
           in
           let actor () =
-            let s = File.string_of_file (file_filename from_file) in
+            let s = FileString.string_of_file (file_filename from_file) in
             let s = BuildSubst.subst subst s in
-            File.file_of_string (file_filename to_file) s
+            FileString.file_of_string (file_filename to_file) s
           in
           add_rule_source r from_file;
           add_rule_target r to_file;
@@ -2524,7 +2524,7 @@ let add_rules bc lib target_name target_files =
             let make_subst = StringSubst.empty_subst () in
             StringSubst.add_to_subst make_subst "\\ " " ";
             let vars = ref [] in
-            File.X.iter_lines (fun line ->
+            File.iter_lines (fun line ->
               let _, line = StringSubst.iter_subst make_subst line in
               if String.length line > 0 && line.[0] <> '#' then
                 let var, value = OcpString.cut_at line '=' in
