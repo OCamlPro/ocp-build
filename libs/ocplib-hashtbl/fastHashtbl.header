@@ -1,0 +1,95 @@
+
+type ('a, 'b) t = {
+  mutable lookup_table_size : int;
+  mutable storage_table_size : int;
+  mutable storage_free_slot : int;
+  mutable length : int;
+  mutable lookup_table : int array;
+  mutable storage_table_keys : 'a array;
+  mutable storage_table_values : 'b array;
+  mutable storage_table_next : int array;
+}
+
+let create initial_size =
+  let lookup_initial_size = min (max 13 initial_size) Sys.max_array_length in
+  {
+    lookup_table_size = lookup_initial_size;
+    storage_table_size = 0;
+    storage_free_slot = (-1);
+    length = 0;
+    lookup_table = Array.create lookup_initial_size (-1);
+    storage_table_keys = [||];
+    storage_table_values = [||];
+    storage_table_next = [||];
+  }
+
+let clear h =
+  for i = 0 to h.lookup_table_size - 1 do
+    h.lookup_table.(i) <- (-1);
+  done;
+  h.length <- 0;
+  h.storage_table_size <- 0;
+  h.storage_table_keys <- [||];
+  h.storage_table_values <- [||];
+  h.storage_table_next <- [||]
+
+let length h = h.length
+
+let addr_repr = Obj.repr (Some 0)
+let float_repr = Obj.repr (3.)
+
+let representant v =
+  let v = Obj.repr v in
+  if Obj.is_block v && Obj.tag v = Obj.double_tag then
+    Obj.magic float_repr
+  else
+    Obj.magic addr_repr
+
+let copy h =
+  { h with
+    lookup_table = Array.copy h.lookup_table;
+    storage_table_keys = Array.copy h.storage_table_keys;
+    storage_table_values = Array.copy h.storage_table_values;
+    storage_table_next = Array.copy h.storage_table_next;
+  }
+
+
+(* Functorial interface *)
+
+module type HashedType =
+  sig
+    type t
+    val equal: t -> t -> bool
+    val hash: t -> int
+  end
+
+module type S =
+  sig
+    type key
+    type 'a t
+    val create: int -> 'a t
+    val clear: 'a t -> unit
+    val copy: 'a t -> 'a t
+    val add: 'a t -> key -> 'a -> unit
+    val remove: 'a t -> key -> unit
+    val find: 'a t -> key -> 'a
+    val find_all: 'a t -> key -> 'a list
+    val replace : 'a t -> key -> 'a -> unit
+    val mem : 'a t -> key -> bool
+    val iter: (key -> 'a -> unit) -> 'a t -> unit
+    val fold: (key -> 'a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+    val length: 'a t -> int
+  end
+
+module Make(H: HashedType): (S with type key = H.t) =
+  struct
+    type key = H.t
+    type 'a hashtbl = (key, 'a) t
+    type 'a t = 'a hashtbl
+    let create = create
+    let clear = clear
+    let copy = copy
+    let length = length
+
+    let hash key = (H.hash key) land max_int
+    let equal = H.equal

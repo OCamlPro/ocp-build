@@ -1,0 +1,23 @@
+A Faire:
+========
+
+* Mesurer les performances des deux implantations en fonction
+With init = 100
+With float_key = true
+With float_value = true
+With only_store = true
+With fast version = true
+4.260 seconds
+With fast version = false
+15.708 seconds
+With only_store = false
+With fast version = true
+29.821 seconds
+With fast version = false
+34.008 seconds
+
+float/float
+
+stores:         4.26 / 15.70
+stores + gets: 29.82 / 34.01
+gets
