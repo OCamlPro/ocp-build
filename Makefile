@@ -12,12 +12,13 @@ compat_SRCDIR=$(STRcompat_SRCDIR)/string-compat
 debug_SRCDIR=libs/ocplib-debug
 lang_SRCDIR=libs/ocplib-lang
 unix_SRCDIR=libs/ocplib-unix
+file_SRCDIR=libs/ocplib-file
 system_SRCDIR=libs/ocplib-system
 config_SRCDIR=libs/ocplib-config
 OCP_BUILD_SRCDIR=tools/ocp-build
 OCP_BUILD_DSTDIR=$(OBUILD_DSTDIR)/ocp-build
 
-OCPLIB_NAMES=debug lang unix system config compat subcmd
+OCPLIB_NAMES=debug lang unix file system config compat subcmd
 
 INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
     $(OCP_BUILD_SRCDIR)
@@ -30,26 +31,30 @@ STRING_COMPAT=$(compat_SRCDIR)/stringCompat.ml
 OCPLIB_DEBUG= $(debug_SRCDIR)/debugVerbosity.ml	\
     $(debug_SRCDIR)/debugTyperex.ml
 
-OCPLIB_LANG= $(lang_SRCDIR)/ocpPervasives.ml				\
-    $(lang_SRCDIR)/ocpList.ml $(lang_SRCDIR)/ocpString.ml		\
-    $(lang_SRCDIR)/ocpStream.ml $(lang_SRCDIR)/ocpGenlex.ml		\
-    $(lang_SRCDIR)/ocpHashtbl.ml $(lang_SRCDIR)/ocpDigest.ml		\
-    $(lang_SRCDIR)/option.ml $(lang_SRCDIR)/intMap.ml			\
-    $(lang_SRCDIR)/intSet.ml $(lang_SRCDIR)/stringMap.ml		\
-    $(lang_SRCDIR)/stringSet.ml $(lang_SRCDIR)/toposort.ml		\
-    $(lang_SRCDIR)/linearToposort.ml $(lang_SRCDIR)/ocamllexer.ml	\
-    $(lang_SRCDIR)/trie.ml $(lang_SRCDIR)/ocpLang.ml			\
-    $(lang_SRCDIR)/stringSubst.ml $(lang_SRCDIR)/manpage.ml		\
-    $(lang_SRCDIR)/stringTemplate.ml
+OCPLIB_LANG= $(lang_SRCDIR)/ocpPervasives.ml			\
+    $(lang_SRCDIR)/ocpList.ml $(lang_SRCDIR)/ocpString.ml	\
+    $(lang_SRCDIR)/ocpStream.ml $(lang_SRCDIR)/ocpGenlex.ml	\
+    $(lang_SRCDIR)/ocpHashtbl.ml $(lang_SRCDIR)/ocpDigest.ml	\
+    $(lang_SRCDIR)/ocpArray.ml $(lang_SRCDIR)/option.ml		\
+    $(lang_SRCDIR)/intMap.ml $(lang_SRCDIR)/intSet.ml		\
+    $(lang_SRCDIR)/stringMap.ml $(lang_SRCDIR)/stringSet.ml	\
+    $(lang_SRCDIR)/toposort.ml $(lang_SRCDIR)/linearToposort.ml	\
+    $(lang_SRCDIR)/ocamllexer.ml $(lang_SRCDIR)/trie.ml		\
+    $(lang_SRCDIR)/ocpLang.ml $(lang_SRCDIR)/stringSubst.ml	\
+    $(lang_SRCDIR)/manpage.ml $(lang_SRCDIR)/stringTemplate.ml	\
+    $(lang_SRCDIR)/reentrantBuffers.ml
 
 OCPLIB_UNIX= $(unix_SRCDIR)/minUnix.ml $(unix_SRCDIR)/onlyUnix.ml	\
     $(unix_SRCDIR)/onlyWin32.ml
 
-OCPLIB_SYSTEM= $(system_SRCDIR)/reentrantBuffers.ml			\
-    $(system_SRCDIR)/file.ml $(system_SRCDIR)/fileLines.ml		\
-    $(system_SRCDIR)/fileLabels.ml $(system_SRCDIR)/date.ml		\
-    $(system_SRCDIR)/ocpUnix.ml $(system_SRCDIR)/ocpFilename.ml	\
-    $(system_SRCDIR)/debug.ml  $(system_SRCDIR)/fileTemplate.ml
+OCPLIB_FILE= $(file_SRCDIR)/fileSig.ml $(file_SRCDIR)/fileOS.ml	\
+    $(file_SRCDIR)/fileChannel.ml $(file_SRCDIR)/fileString.ml	\
+    $(file_SRCDIR)/fileLines.ml $(file_SRCDIR)/file.ml		\
+    $(file_SRCDIR)/dir.ml 
+
+OCPLIB_SYSTEM= $(system_SRCDIR)/date.ml $(system_SRCDIR)/ocpUnix.ml	\
+    $(system_SRCDIR)/ocpFilename.ml $(system_SRCDIR)/debug.ml		\
+    $(system_SRCDIR)/fileTemplate.ml
 
 OCPLIB_CONFIG= $(config_SRCDIR)/pythonConfig.ml \
     $(config_SRCDIR)/simpleConfig.ml
@@ -121,9 +126,9 @@ BUILD_MAIN= $(OCP_BUILD_SRCDIR)/buildArgs.ml	\
     $(OCP_BUILD_SRCDIR)/buildMain.ml
 
 OCP_BUILD_MLS= $(STRING_COMPAT) $(OCPLIB_DEBUG) $(OCPLIB_LANG)		\
-  $(OCPLIB_UNIX) $(OCPLIB_SYSTEM) $(OCPLIB_CONFIG) $(BUILD_MISC)	\
-  $(BUILD_PROJECT) $(BUILD_ENGINE) $(BUILD_OCAML_OBJS) $(BUILD_LIB)	\
-  $(BUILD_OCAMLFIND) $(BUILD_OCAML) $(BUILD_MAIN)
+  $(OCPLIB_UNIX) $(OCPLIB_FILE) $(OCPLIB_SYSTEM) $(OCPLIB_CONFIG)	\
+  $(BUILD_MISC) $(BUILD_PROJECT) $(BUILD_ENGINE) $(BUILD_OCAML_OBJS)	\
+  $(BUILD_LIB) $(BUILD_OCAMLFIND) $(BUILD_OCAML) $(BUILD_MAIN)
 
 OCP_BUILD_MLLS= \
    $(lang_SRCDIR)/ocamllexer.mll $(OCP_BUILD_SRCDIR)/metaLexer.mll 

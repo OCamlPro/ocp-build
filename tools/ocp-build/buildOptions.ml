@@ -179,12 +179,12 @@ let arg_set_string_option option =
     ), "STRING " ^ LowLevel.get_help option)
 
 let load_config config filename =
-  if not (File.X.exists filename) then begin
+  if not (File.exists filename) then begin
     try
       Printf.eprintf
         "Warning: file %S does not exist. Creating with default values.\n%!"
         (File.to_string filename);
-      File.Dir.make_all (File.dirname filename);
+      Dir.make_all (File.dirname filename);
 
       SimpleConfig.set_config_file config filename;
       SimpleConfig.save_with_help config
@@ -387,7 +387,7 @@ module OCamlOptions = struct
 
   let load () =
     try
-      if File.X.exists ocaml_config_file then
+      if File.exists ocaml_config_file then
         SimpleConfig.load ocaml_config
     with e ->
       Printf.eprintf
@@ -518,7 +518,7 @@ module ProjectOptions = struct
     let project_config_file = File.add_basename project_config_dir
         project_config_basename in
     try
-      if File.X.exists project_config_file then begin
+      if File.exists project_config_file then begin
         SimpleConfig.set_config_file project_config project_config_file;
         SimpleConfig.load project_config
       end
@@ -989,7 +989,7 @@ let rec shortcut_arg new_name old_name list =
 let find_project_root () =
   Printf.eprintf "find_project_root\n%!";
   try
-    BuildOCP.find_root (File.X.getcwd()) [ project_build_dirname ]
+    BuildOCP.find_root (File.getcwd()) [ project_build_dirname ]
   with  Not_found ->
     Printf.eprintf "Error: could not find project root (%s/ directory)\n"
       project_build_dirname;

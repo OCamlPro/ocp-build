@@ -3,8 +3,9 @@
 (*                              OCamlPro TypeRex                          *)
 (*                                                                        *)
 (*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
-(*   This file is distributed under the terms of the GPL v3.0             *)
-(*      (GNU Public Licence version 3.0).                                 *)
+(*   This file is distributed under the terms of the LGPL v2.1 with       *)
+(*   the special exception on linking described in the file LICENSE.      *)
+(*      (GNU Lesser General Public Licence version 2.1)                   *)
 (*                                                                        *)
 (*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
 (*                                                                        *)
@@ -17,6 +18,7 @@
 (*  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE      *)
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
+
 
 
 open StringCompat
@@ -207,7 +209,7 @@ let add_option_lines t section lines =
 
 let read filename =
 (*  Printf.fprintf stderr "ConfigParser.read\n%!"; *)
-  let lines = File.X.read_lines filename in
+  let lines = Array.to_list (File.read_lines filename) in
   let rec iter t section lines =
     match lines with
         [] -> ()
@@ -273,4 +275,4 @@ let write file t =
   let b = Buffer.create 1000 in
   write_section b t default_section_name;
   List.iter (write_section b t) (sections t);
-  File.X.write_of_string file (Buffer.contents b)
+  File.write_file file (Buffer.contents b)

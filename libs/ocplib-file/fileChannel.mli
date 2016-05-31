@@ -3,8 +3,9 @@
 (*                              OCamlPro TypeRex                          *)
 (*                                                                        *)
 (*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
-(*   This file is distributed under the terms of the GPL v3.0             *)
-(*      (GNU Public Licence version 3.0).                                 *)
+(*   This file is distributed under the terms of the LGPL v2.1 with       *)
+(*   the special exception on linking described in the file LICENSE.      *)
+(*      (GNU Lesser General Public Licence version 2.1)                   *)
 (*                                                                        *)
 (*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
 (*                                                                        *)
@@ -19,17 +20,13 @@
 (**************************************************************************)
 
 
-(** Get all the lines of a files *)
-val of_file : string -> string list
 
-(** [file_of_lines name lines] saves the [lines] into the file [name] *)
-val to_file : string -> string list -> unit
+open StringCompat
 
-(** [iter_lines f filename] reads [filename] line by line, applying [f] to each one. *)
-val iter : (string -> unit) -> string -> unit
+include (FileSig.CONTENT_OPERATIONS with
+          type in_file := in_channel
+                                     and type out_file = out_channel)
 
-(** [iteri_lines f filename] reads [filename] line by line, applying [f] to each one. *)
-val iteri : (int -> string -> unit) -> string -> unit
-
-(** [sub_lines filename off len] returns [len] lines of [filename], starting at [off] *)
-val sub : string -> int -> int -> string list
+(* [output_line ic line] outputs [line] in [ic], followed by a
+   line-terminator. *)
+val output_line : out_channel -> string -> unit

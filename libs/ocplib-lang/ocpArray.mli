@@ -3,8 +3,9 @@
 (*                              OCamlPro TypeRex                          *)
 (*                                                                        *)
 (*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
-(*   This file is distributed under the terms of the GPL v3.0             *)
-(*      (GNU Public Licence version 3.0).                                 *)
+(*   This file is distributed under the terms of the LGPL v2.1 with       *)
+(*   the special exception on linking described in the file LICENSE.      *)
+(*      (GNU Lesser General Public Licence version 2.1)                   *)
 (*                                                                        *)
 (*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
 (*                                                                        *)
@@ -19,8 +20,4 @@
 (**************************************************************************)
 
 
-let to_file = File.file_of_lines
-let of_file = File.lines_of_file
-let iter = File.iter_lines
-let iteri = File.iteri_lines
-let sub = File.sub_lines
+val rev : 'a array -> unit

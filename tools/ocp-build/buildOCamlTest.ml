@@ -52,7 +52,7 @@ let check_output options subst output  option_name output_name =
   in
   if output_check <> [] then
     let cmd_output = try
-      File.string_of_file output
+      FileString.string_of_file output
     with _ -> failwith
                 (Printf.sprintf "Missing output on %s" output_name)
     in
@@ -61,7 +61,7 @@ let check_output options subst output  option_name output_name =
     let expected_output_file =
       BuildSubst.subst subst expected_output_file in
     let expected_output =
-      try File.string_of_file expected_output_file
+      try FileString.string_of_file expected_output_file
       with _ ->
         Printf.eprintf "Warning: missing expected output file %S\n%!"
           expected_output_file;

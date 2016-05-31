@@ -173,12 +173,12 @@ let rec copy_rec where log src dst =
   match st.MinUnix.st_kind with
   | MinUnix.S_DIR ->
     safe_mkdir where log dst;
-    File.RawIO.iter_dir (fun basename ->
+    FileString.iter_dir (fun basename ->
       copy_rec where log (Filename.concat src basename)
         (Filename.concat dst basename)) src
   | MinUnix.S_REG ->
     add_log log FILE dst;
-    File.RawIO.copy_file src dst_d;
+    FileString.copy_file src dst_d;
     MinUnix.chmod dst_d st.MinUnix.st_perm
   | _ ->
     failwith (Printf.sprintf
@@ -433,7 +433,7 @@ let find_installdir where what lib_name =
       None -> ()
     | Some destdir ->
       try
-        File.RawIO.safe_mkdir destdir
+        FileString.safe_mkdir destdir
       with e ->
         Printf.eprintf "Error: install DESTDIR %S can be created\n%!"
           destdir;

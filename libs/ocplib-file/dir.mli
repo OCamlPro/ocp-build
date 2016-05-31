@@ -3,8 +3,9 @@
 (*                              OCamlPro TypeRex                          *)
 (*                                                                        *)
 (*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
-(*   This file is distributed under the terms of the GPL v3.0             *)
-(*      (GNU Public Licence version 3.0).                                 *)
+(*   This file is distributed under the terms of the LGPL v2.1 with       *)
+(*   the special exception on linking described in the file LICENSE.      *)
+(*      (GNU Lesser General Public Licence version 2.1)                   *)
 (*                                                                        *)
 (*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
 (*                                                                        *)
@@ -19,7 +20,15 @@
 (**************************************************************************)
 
 
+
 open StringCompat
 
-val get : int -> bytes
-val free : bytes -> unit
+val mkdir : File.t -> int -> unit
+val make : File.t -> unit
+val make_all : File.t -> unit
+val list : File.t -> string list
+val list_files : File.t -> File.t list
+val iter : (string -> unit) -> File.t -> unit
+val iter_files : (File.t -> unit) -> File.t -> unit
+val remove : File.t -> unit
+val remove_all : File.t -> unit
