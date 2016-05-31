@@ -1,0 +1,16 @@
+AC_OUTPUT
+
+echo
+echo "Summary:"
+echo "prefix=${prefix}"
+echo "exec_prefix=${exec_prefix}"
+echo "bindir=${bindir}"
+echo "   (Executables will be installed there)"
+echo "libdir=${libdir}"
+echo "ocamldir=${ocamldir}"
+echo "   (OCaml files will be installed there)"
+echo "metadir=${metadir}"
+echo "   (META files will be installed there)"
+echo "datarootdir=${datarootdir}"
+echo "mandir=${mandir}"
+echo "   (Manual pages will be installed there)"

@@ -69,7 +69,8 @@ let rec find_in_PATH command path =
     try
       check_command_exists filename
     with _ ->
-      if MinUnix.os_type = MinUnix.WINDOWS || MinUnix.os_type = MinUnix.CYGWIN then
+      if MinUnix.os_type = MinUnix.WINDOWS ||
+         MinUnix.os_type = MinUnix.CYGWIN then
         try
           check_command_exists (filename ^ ".exe")
         with _ ->

@@ -19,21 +19,22 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+type option_value =
+    Module of option_module
+  | StringValue of string
+  | IntValue of int
+  | FloatValue of float
+  | List of option_value list
+  | SmallList of option_value list
+  | OnceValue of option_value
+  | DelayedValue of (Buffer.t -> string -> unit)
+and  option_module = (string * option_value) list
 
+type load_error =
+  | FileDoesNotExist
+  | FileCannotBeRead
+  | ParseError of int * string
+  | FileHasTempBackup of File.t
+  | SetOptionFailed of string * string
 
-begin library "ocplib-config"
-
-  files = [
-        "pythonConfig.ml"; (* Python config files *)
-
-          "simpleConfigTypes.ml" (* internal types *)
-          "simpleConfigOCaml.ml" (* OCaml-like syntax  *)
-          "simpleConfig.ml" (* config files *)
-   ]
-
-
-  requires = [
-    "ocplib-file";
-  ]
-
-end
+exception LoadError of File.t * load_error

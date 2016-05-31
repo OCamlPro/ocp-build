@@ -19,21 +19,29 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+(* This is supposed to be a generic interface for reading/writing files.
+  Normally, we would have the same module for Python syntax.
+  Unfortunately:
+  * we have not yet completely abstracted away the syntax from SimpleConfig,
+    there are still some OCaml-like specific stuff (like comments)
+  * it is not clear if we can split printing in the same way, between
+    beginner and advanced options, in the Python syntax, as final options
+    might be added to the last defined section instead of the DEFAULT section.
+*)
 
 
-begin library "ocplib-config"
+val parse : File.t -> in_channel -> SimpleConfigTypes.option_module
 
-  files = [
-        "pythonConfig.ml"; (* Python config files *)
+val reset : unit -> unit
+val save_module :
+  bool ->
+  string ->
+  Buffer.t ->
+  (string list * string * SimpleConfigTypes.option_value) list ->
+  unit
 
-          "simpleConfigTypes.ml" (* internal types *)
-          "simpleConfigOCaml.ml" (* OCaml-like syntax  *)
-          "simpleConfig.ml" (* config files *)
-   ]
+val save_value :
+  string -> Buffer.t -> SimpleConfigTypes.option_value -> unit
 
-
-  requires = [
-    "ocplib-file";
-  ]
-
-end
+val save_binding :
+  Buffer.t -> string -> SimpleConfigTypes.option_value -> unit
