@@ -98,8 +98,12 @@ libs/ocplib-unix/onlyWin32.cmo : libs/ocplib-unix/minUnix.cmi \
     libs/ocplib-unix/onlyWin32.cmi
 libs/ocplib-unix/onlyWin32.cmx : libs/ocplib-unix/minUnix.cmx \
     libs/ocplib-unix/onlyWin32.cmi
-libs/ocplib-file/fileSig.cmo : libs/ocplib-unix/minUnix.cmi
-libs/ocplib-file/fileSig.cmx : libs/ocplib-unix/minUnix.cmx
+libs/ocplib-file/fileSig.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-unix/minUnix.cmi
+libs/ocplib-file/fileSig.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-unix/minUnix.cmx
 libs/ocplib-file/fileOS.cmo : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-file/fileOS.cmi
@@ -124,6 +128,10 @@ libs/ocplib-file/fileString.cmx : \
     libs/ocplib-lang/ocpString.cmx libs/ocplib-lang/ocpList.cmx \
     libs/ocplib-unix/minUnix.cmx libs/ocplib-file/fileChannel.cmx \
     libs/ocplib-file/fileString.cmi
+libs/ocplib-file/fileLines.cmo : libs/ocplib-file/fileString.cmi \
+    libs/ocplib-file/fileLines.cmi
+libs/ocplib-file/fileLines.cmx : libs/ocplib-file/fileString.cmx \
+    libs/ocplib-file/fileLines.cmi
 libs/ocplib-file/file.cmo : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
@@ -142,14 +150,6 @@ libs/ocplib-file/dir.cmo : libs/ocplib-compat/string-compat/stringCompat.cmo \
 libs/ocplib-file/dir.cmx : libs/ocplib-compat/string-compat/stringCompat.cmx \
     libs/ocplib-unix/minUnix.cmx libs/ocplib-file/file.cmx \
     libs/ocplib-file/dir.cmi
-libs/ocplib-file/fileLines.cmo : libs/ocplib-file/fileString.cmi \
-    libs/ocplib-file/fileLines.cmi
-libs/ocplib-file/fileLines.cmx : libs/ocplib-file/fileString.cmx \
-    libs/ocplib-file/fileLines.cmi
-libs/ocplib-file/fileLabels.cmo : libs/ocplib-file/fileString.cmi \
-    libs/ocplib-file/fileLabels.cmi
-libs/ocplib-file/fileLabels.cmx : libs/ocplib-file/fileString.cmx \
-    libs/ocplib-file/fileLabels.cmi
 libs/ocplib-system/date.cmo : libs/ocplib-unix/minUnix.cmi \
     libs/ocplib-system/date.cmi
 libs/ocplib-system/date.cmx : libs/ocplib-unix/minUnix.cmx \
@@ -190,13 +190,23 @@ libs/ocplib-config/pythonConfig.cmo : libs/ocplib-lang/stringMap.cmi \
 libs/ocplib-config/pythonConfig.cmx : libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
     libs/ocplib-file/file.cmx libs/ocplib-config/pythonConfig.cmi
+libs/ocplib-config/simpleConfigTypes.cmo : libs/ocplib-file/file.cmi
+libs/ocplib-config/simpleConfigTypes.cmx : libs/ocplib-file/file.cmx
+libs/ocplib-config/simpleConfigOCaml.cmo : \
+    libs/ocplib-config/simpleConfigTypes.cmo libs/ocplib-lang/ocpString.cmi \
+    libs/ocplib-config/simpleConfigOCaml.cmi
+libs/ocplib-config/simpleConfigOCaml.cmx : \
+    libs/ocplib-config/simpleConfigTypes.cmx libs/ocplib-lang/ocpString.cmx \
+    libs/ocplib-config/simpleConfigOCaml.cmi
 libs/ocplib-config/simpleConfig.cmo : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocpString.cmi libs/ocplib-lang/intMap.cmi \
+    libs/ocplib-config/simpleConfigTypes.cmo \
+    libs/ocplib-config/simpleConfigOCaml.cmi libs/ocplib-lang/intMap.cmi \
     libs/ocplib-file/file.cmi libs/ocplib-config/simpleConfig.cmi
 libs/ocplib-config/simpleConfig.cmx : \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocpString.cmx libs/ocplib-lang/intMap.cmx \
+    libs/ocplib-config/simpleConfigTypes.cmx \
+    libs/ocplib-config/simpleConfigOCaml.cmx libs/ocplib-lang/intMap.cmx \
     libs/ocplib-file/file.cmx libs/ocplib-config/simpleConfig.cmi
 tools/ocp-build/logger.cmo :
 tools/ocp-build/logger.cmx :
@@ -880,13 +890,12 @@ libs/ocplib-file/fileChannel.cmi : \
 libs/ocplib-file/fileString.cmi : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-file/fileSig.cmo
+libs/ocplib-file/fileLines.cmi :
 libs/ocplib-file/file.cmi : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-file/fileSig.cmo
 libs/ocplib-file/dir.cmi : libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-file/file.cmi
-libs/ocplib-file/fileLines.cmi :
-libs/ocplib-file/fileLabels.cmi :
 libs/ocplib-system/date.cmi : libs/ocplib-unix/minUnix.cmi
 libs/ocplib-system/ocpUnix.cmi :
 libs/ocplib-system/ocpFilename.cmi :
@@ -895,6 +904,8 @@ libs/ocplib-system/fileTemplate.cmi :
 libs/ocplib-config/pythonConfig.cmi : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-file/file.cmi
+libs/ocplib-config/simpleConfigOCaml.cmi : \
+    libs/ocplib-config/simpleConfigTypes.cmo libs/ocplib-file/file.cmi
 libs/ocplib-config/simpleConfig.cmi : libs/ocplib-lang/intMap.cmi \
     libs/ocplib-file/file.cmi
 tools/ocp-build/buildMtime.cmi :

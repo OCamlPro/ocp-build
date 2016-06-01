@@ -1,0 +1,9 @@
+
+# ocp-build working directories
+_obuild
+
+# ocp-lint working directories
+_olint
+
+# backups of modified files
+*~

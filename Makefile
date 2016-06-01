@@ -57,6 +57,8 @@ OCPLIB_SYSTEM= $(system_SRCDIR)/date.ml $(system_SRCDIR)/ocpUnix.ml	\
     $(system_SRCDIR)/fileTemplate.ml
 
 OCPLIB_CONFIG= $(config_SRCDIR)/pythonConfig.ml \
+    $(config_SRCDIR)/simpleConfigTypes.ml \
+    $(config_SRCDIR)/simpleConfigOCaml.ml \
     $(config_SRCDIR)/simpleConfig.ml
 
 BUILD_MISC= $(OCP_BUILD_SRCDIR)/logger.ml				\
@@ -179,11 +181,7 @@ clean: partialclean
 	rm -f $(OCP_BUILD_BOOTER) ocp-build.byte
 	rm -rf _obuild
 
-distclean: clean
-	rm -f autoconf/config.log
-	rm -f autoconf/config.status
-	rm -f $(MAKE_CONFIG)
-	rm -rf autoconf/autom4te.cache
+distclean: clean ocp-distclean
 	rm -f $(compat_SRCDIR)/stringCompat.ml
 
 #  "buildVersion.ml" (ocp2ml ; env_strings = [ "datadir" ])
@@ -211,7 +209,7 @@ install-ocp-build:
 	$(OCPBUILD_INSTALL) $(OCPLIB_LIBS)
 
 install-ocp-pp:
-	$(OCPBUILD_INSTALL) ocp-pp
+	$(OCPBUILD_INSTALL) ocp-pp ocp-autoconf
 
 configure: autoconf/configure.ac autoconf/m4/*.m4
 	cd autoconf/; \
@@ -276,6 +274,8 @@ publish-opam:
 
 include .depend
 
+include autoconf/Makefile.rules
+
 .SUFFIXES: .ml .mll .mli .mly .c .o .cmo .cmi .cmx
 
 .mll.ml:
@@ -296,4 +296,6 @@ include .depend
 .c.o:
 	$(OCAMLC) -c $(INCLUDES) $<
 	mv `basename $*.o` $*.o
+
+
 

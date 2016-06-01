@@ -265,7 +265,7 @@ let read filename =
 
 let write_section b t section =
   let options = options t section in
-  if section <> default_section_name then
+  if section <> default_section_name && section <> "" then
     Printf.bprintf b "[%s]\n" section;
   StringMap.iter (fun o v ->
     Printf.bprintf b "%s = %s\n" o v
