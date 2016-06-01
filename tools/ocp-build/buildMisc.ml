@@ -209,8 +209,7 @@ end = struct
       let rec iter path cmd =
         match path with
           [] ->
-          Printf.kprintf failwith
-            "BuildMisc.win_find_in_path: file %S not found in PATH\n%!" cmd
+            failwith (Printf.sprintf "BuildMisc.win_find_in_path: file %S not found in PATH\n%!" cmd)
         | dir :: tail ->
           let test1 = Filename.concat dir cmd in
           (*          test test1; *)

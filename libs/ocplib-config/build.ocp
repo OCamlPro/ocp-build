@@ -24,11 +24,8 @@
 begin library "ocplib-config"
 
   files = [
-        "pythonConfig.ml"; (* Python config files *)
-
-          "simpleConfigTypes.ml" (* internal types *)
-          "simpleConfigOCaml.ml" (* OCaml-like syntax  *)
-          "simpleConfig.ml" (* config files *)
+        "simpleConfig.ml" (* OCaml-syntax config files *)
+        "pythonConfig.ml" (* Python config files *)
    ]
 
 

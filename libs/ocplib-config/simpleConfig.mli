@@ -35,6 +35,9 @@ val create_config_file : File.t -> config_file
 
 
 
+
+
+
 (* Loading and saving config_files *)
 
 (* [load file] loads the option file. All options whose value is specified
@@ -301,17 +304,3 @@ val prefixed_args :
   string -> config_file -> (string * Arg.spec * string) list
 
 end
-
-
-(* Errors that can be raised by SimpleConfig.load *)
-
-type load_error =
-  | FileDoesNotExist
-  | FileCannotBeRead
-  | ParseError of int * string
-  | FileHasTempBackup of File.t
-  | SetOptionFailed of string * string
-
-exception LoadError of File.t * load_error
-
-val string_of_load_error : File.t -> load_error -> string
