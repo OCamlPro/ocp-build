@@ -1,9 +1,0 @@
-#!/bin/sh
-
-if ! test -e ./autoconf/configure; then
-    echo ./autoconf/configure not present: running ocp-autoconf
-    ocp-autoconf
-fi
-
-cd autoconf
-./configure $*

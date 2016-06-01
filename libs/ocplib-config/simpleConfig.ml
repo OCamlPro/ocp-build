@@ -19,6 +19,7 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+
 (* TODO:
   * remove all [exit] calls. A library should never exit, but raise a
      different exception for every possible error.
@@ -28,7 +29,19 @@
 open StringCompat
 
 module LowLevel = struct
-  include SimpleConfigTypes
+
+open Genlex
+
+type option_value =
+    Module of option_module
+  | StringValue of string
+  | IntValue of int
+  | FloatValue of float
+  | List of option_value list
+  | SmallList of option_value list
+  | OnceValue of option_value
+  | DelayedValue of (Buffer.t -> string -> unit)
+and  option_module = (string * option_value) list
 
 exception SideEffectOption
 exception OptionNotFound
@@ -202,7 +215,119 @@ let create_option config_file option_names
     option_names ?short_help long_help ?level
     option_class default_value
 
+let once_values = Hashtbl.create 13
+let once_values_counter = ref 0
+let once_values_rev = Hashtbl.create 13
+
+let lexer = make_lexer ["="; "{"; "}"; "["; "]"; ";"; "("; ")"; ","; "."; "@"]
+
+  (*
+let rec parse_gwmlrc = parser
+  | [< id = parse_id; 'Kwd "="; v = parse_option ;
+       eof = parse_gwmlrc >] -> (id, v) :: eof
+  | [< >] -> []
+
+and parse_option = parser
+  | [< 'Kwd "{"; v = parse_gwmlrc; 'Kwd "}" >] -> Module v
+  | [< 'Ident s >] -> StringValue s
+  | [< 'String s >] -> StringValue s
+  | [< 'Int i >] -> IntValue i
+  | [< 'Float f >] -> FloatValue  f
+  | [< 'Kwd "@"; 'Int i; v = parse_once_value i >] -> OnceValue v
+  | [< 'Char c >] -> StringValue (String.make 1 c)
+  | [< 'Kwd "["; v = parse_list [] >] -> List v
+  | [< 'Kwd "("; v = parse_list [] >] -> List v
+
+and parse_id = parser
+[< 'Ident s >] -> s
+  |   [< 'String s >] -> s
+
+and parse_list list = parser
+[< 'Kwd ";"; strm__ >] -> parse_list (list) strm__
+  |   [< 'Kwd "," ; strm__ >] -> parse_list (list) strm__
+  |   [< 'Kwd "." ; strm__ >] -> parse_list (list) strm__
+  |   [< v = parse_option; strm__ >] -> parse_list (v :: list) strm__
+  |   [< 'Kwd "]" >] -> List.rev list
+  |   [< 'Kwd ")" >] -> List.rev list
+
+    *)
+
 exception SyntaxError
+
+let parse_config_file str =
+
+  let rec parse_top options =
+    match Stream.peek str with
+    | Some (Ident s | String s) ->
+      begin
+        Stream.junk str;
+        match Stream.next str with
+        | Kwd "=" ->
+          let v = parse_option () in
+          parse_top ( (s,v) :: options)
+        | _ -> failwith "Operator '=' expected"
+      end
+    | tok -> List.rev options, tok
+
+  and parse_option () =
+    match Stream.next str with
+    | Ident s | String s -> StringValue s
+    | Int i -> IntValue i
+    | Float f -> FloatValue f
+    | Char c -> StringValue (String.make 1 c)
+    | Kwd "[" -> parse_list "]" []
+    | Kwd "(" -> parse_list ")" []
+    | Kwd "{" ->
+      begin
+      let (options, tok) = parse_top [] in
+      match tok with
+      | Some (Kwd "}") ->
+        Stream.junk str;
+        Module options
+      | _ -> failwith "Symbol '}' expected"
+      end
+    | Kwd "@" ->
+      begin
+        match Stream.next str with
+        | Int i ->
+          let v = parse_once_value i in
+          OnceValue v
+        | _ -> failwith "expected int"
+      end
+    | _ -> failwith "expected value"
+
+  and parse_once_value i =
+    match Stream.next str with
+    | Kwd "@" ->
+      begin
+        try Hashtbl.find once_values i with Not_found ->
+          Printf.kprintf failwith "once value @%d@ is unknown" i
+      end
+    | Kwd "=" ->
+      let v = parse_option () in
+      Hashtbl.add once_values i v;
+      v
+    | _ -> failwith "operators '=' or '@' expected"
+
+  and parse_list end_kwd values =
+    match Stream.peek str with
+    | None ->
+      Printf.kprintf failwith "reached end of file before %s" end_kwd
+    | Some (Kwd ( ";" | "," | ".") ) ->
+      Stream.junk str;
+      parse_list end_kwd values
+    | Some (Kwd kwd) when kwd = end_kwd ->
+      Stream.junk str;
+      List (List.rev values)
+    | _ ->
+      let v = parse_option () in
+      parse_list end_kwd (v :: values)
+
+  in
+  let (options, tok) = parse_top [] in
+  match tok with
+  | Some _ -> failwith "ident or string expected"
+  | None -> options
 
 let exec_hooks name list o =
   List.iter
@@ -226,86 +351,213 @@ let exec_option_hooks o =
 let exec_class_hooks o =
   exec_hooks "class" o.option_class.class_hooks o
 
-let string_of_load_error file error =
-    match error with
-    | FileHasTempBackup temp_file ->
-      Printf.sprintf "Temporary backup file %s exists"
-        (File.to_string temp_file)
-    | FileDoesNotExist ->
-      Printf.sprintf "File %s does not exist" (File.to_string file)
-    | FileCannotBeRead ->
-      Printf.sprintf "File %s cannot be read" (File.to_string file)
-    | ParseError (pos, msg) ->
-      Printf.sprintf "Parse error in file %s at pos %d: %s"
-        (File.to_string file) pos msg
-    | SetOptionFailed (o, error) ->
-      Printf.sprintf "Setting option %s failed with %s" o
-         error
-
 let really_load filename sections =
   let temp_file = File.add_suffix filename ".tmp" in
   if File.exists temp_file then
-    raise (LoadError (filename, FileHasTempBackup temp_file));
-
-  let ic = try
-      File.open_in filename
-    with _ ->
-      raise (LoadError (filename,
-                        try
-                          if File.exists filename then raise Exit;
-                          FileDoesNotExist
-                        with _ -> FileCannotBeRead
-                       ))
-  in
-  try
-    let list = SimpleConfigOCaml.parse filename ic in
-    let affect_option o =
+    begin
+      Printf.eprintf "File %s exists\n" (File.to_string temp_file);
+      Printf.eprintf "An error may have occurred during previous configuration save.\n";
+      Printf.eprintf "Please, check your configurations files, and rename/remove this file\n";
+      Printf.eprintf "before restarting\n";
+      exit 1
+    end
+  else
+    let ic = File.open_in filename in
+    try
+      let s = Stream.of_channel ic in
       try
-        begin try
-            o.option_value <-
-              o.option_class.from_value (find_value o.option_name list)
+        let stream = lexer s in
+        Hashtbl.clear once_values;
+        let list =
+          try parse_config_file stream with
+          | e ->
+                Printf.eprintf "Syntax error while parsing file %s at pos %d:(%s)\n"
+                  (File.to_string filename) (Stream.count s) (Printexc.to_string e);
+                exit 2
+        in
+        Hashtbl.clear once_values;
+        let affect_option o =
+          try
+            begin try
+                    o.option_value <-
+                      o.option_class.from_value (find_value o.option_name list)
+              with
+                  SideEffectOption -> ()
+            end;
+            exec_class_hooks o;
+            exec_option_hooks o
           with
-            SideEffectOption -> ()
-        end;
-        exec_class_hooks o;
-        exec_option_hooks o
+              SideEffectOption -> ()
+            | OptionNotFound ->
+              if !print_options_not_found then
+                begin
+                  Printf.fprintf stderr "Option ";
+                  List.iter (fun s -> Printf.fprintf stderr "%s " s) o.option_name;
+                  Printf.fprintf stderr "not found in %s\n" (File.to_string filename);
+                end
+            | e ->
+              Printf.fprintf stderr "Exception: %s while handling option:"
+                (Printexc.to_string e);
+              List.iter (fun s -> Printf.fprintf stderr "%s " s) o.option_name;
+              Printf.fprintf stderr "\n";
+              Printf.fprintf stderr "  in %s\n" (File.to_string filename);
+              Printf.fprintf stderr "Aborting\n.";
+              exit 2
+        in
+
+      (* The options are affected by sections, from the first defined one to
+         the last defined one ("defined" in the order of the program execution).
+         Don't change this. *)
+      List.iter (fun s ->
+          List.iter affect_option s.section_options) sections;
+        close_in ic;
+        list
       with
-      | SideEffectOption -> ()
-      | OptionNotFound ->
-        if !print_options_not_found then
-          begin
-            Printf.fprintf stderr "Option ";
-            List.iter (fun s -> Printf.fprintf stderr "%s " s) o.option_name;
-            Printf.fprintf stderr "not found in %s\n" (File.to_string filename);
-          end
-      | e ->
-        raise (LoadError (filename,
-                          SetOptionFailed (String.concat "." o.option_name,
-                                           Printexc.to_string e)))
-            (*
-          Printf.fprintf stderr "Exception: %s while handling option:"
-            (Printexc.to_string e);
-          List.iter (fun s -> Printf.fprintf stderr "%s " s) o.option_name;
-          Printf.fprintf stderr "\n";
-          Printf.fprintf stderr "  in %s\n" (File.to_string filename);
-          Printf.fprintf stderr "Aborting\n.";
-          exit 2 *)
-    in
+        e ->
+        Printf.fprintf stderr "Error %s in %s\n" (Printexc.to_string e) (File.to_string filename);
+          []
+    with
+      e -> close_in ic; raise e
 
-    (* The options are affected by sections, from the first defined one to
-       the last defined one ("defined" in the order of the program execution).
-       Don't change this. *)
-    List.iter (fun s ->
-        List.iter affect_option s.section_options) sections;
-    close_in ic;
-    list
-  with
-  | e ->
-    close_in ic;
-    raise e
 
+let exit_exn = Exit
+
+let safe_string s =
+  if s = "" then "\"\""
+  else
+    try
+      match s.[0] with
+        'a'..'z' | 'A'..'Z' ->
+          for i = 1 to String.length s - 1 do
+            match s.[i] with
+              'a'..'z' | 'A'..'Z' | '_' | '0'..'9' -> ()
+            | _ -> raise exit_exn
+          done;
+          s
+      | _ ->
+          if Int64.to_string (Int64.of_string s) = s ||
+             string_of_float (float_of_string s) = s
+          then
+            s
+          else raise exit_exn
+    with
+      _ -> Printf.sprintf "\"%s\"" (String.escaped s)
 
 let with_help = ref false
+
+let comment s =
+  Printf.sprintf "(* %s *)"
+    (OcpString.replace_chars s  ['\n', " *)\n(* "])
+
+let compact_string oc f =
+  let b = Buffer.create 100 in
+  f b;
+  let s = Buffer.contents b in
+  let b = Buffer.create 100 in
+  let rec iter b i len s =
+    if i < len then
+      let c = s.[i] in
+      if c = ' ' || c = '\n' || c = '\t' then begin
+          iter_space b (i+1) len s
+        end
+      else begin
+          Buffer.add_char b c;
+          iter b (i+1) len s
+        end
+  and  iter_space b i len s =
+    if i < len then
+      let c = s.[i] in
+      if c = ' ' || c = '\n' || c = '\t' then begin
+          iter_space b (i+1) len s
+        end
+      else begin
+          Buffer.add_char b ' ';
+          Buffer.add_char b c;
+          iter b (i+1) len s
+        end
+  in
+  iter b 0 (String.length s) s;
+  let ss = Buffer.contents b in
+  Buffer.add_string oc (if String.length ss < 80 then ss else s)
+
+let rec save_module indent oc list =
+  let subm = ref [] in
+  List.iter
+    (fun (name, help, value) ->
+       match name with
+         [] -> assert false
+       | [name] ->
+           if !with_help && help <> "" then
+             Printf.bprintf oc "\n%s\n" (comment help);
+           Printf.bprintf oc "%s%s = " indent (safe_string name);
+           save_value indent oc value;
+           Printf.bprintf oc "\n"
+       | m :: tail ->
+           let p =
+             try List.assoc m !subm with
+               e -> let p = ref [] in subm := (m, p) :: !subm; p
+           in
+           p := (tail, help, value) :: !p)
+    list;
+  List.iter
+    (fun (m, p) ->
+       Printf.bprintf oc "%s%s = {\n" indent (safe_string m);
+       save_module (indent ^ "  ") oc !p;
+       Printf.bprintf oc "%s}\n" indent)
+    !subm
+and save_list indent oc list =
+  match list with
+    [] -> ()
+  | [v] -> save_value indent oc v
+  | v :: tail ->
+      save_value indent oc v; Printf.bprintf oc ", "; save_list indent oc tail
+and save_list_nl indent oc list =
+  match list with
+    [] -> ()
+  | [v] -> Printf.bprintf oc "\n%s" indent; save_value indent oc v
+  | v :: tail ->
+      Printf.bprintf oc "\n%s" indent;
+      save_value indent oc v;
+      Printf.bprintf oc ";";
+      save_list_nl indent oc tail
+and save_value indent oc v =
+  match v with
+    StringValue s -> Printf.bprintf oc "%s" (safe_string s)
+  | IntValue i -> Printf.bprintf oc "%d" i
+  | FloatValue f -> Printf.bprintf oc "%F" f
+  | List l ->
+      compact_string oc (fun oc ->
+          Printf.bprintf oc "[";
+          save_list_nl (indent ^ "  ") oc l;
+          Printf.bprintf oc "\n%s]" indent)
+  | DelayedValue f -> f oc indent
+  | SmallList l ->
+      Printf.bprintf oc "(";
+      save_list (indent ^ "  ") oc l;
+      Printf.bprintf oc ")"
+  | Module m ->
+      compact_string oc (fun oc ->
+          Printf.bprintf oc "{";
+          save_module_fields (indent ^ "  ") oc m;
+          Printf.bprintf oc "%s}" indent)
+  | OnceValue v ->
+      try
+        let i = Hashtbl.find once_values_rev v in Printf.bprintf oc "@%Ld@" i
+      with
+        Not_found ->
+          incr once_values_counter;
+          let i = Int64.of_int !once_values_counter in
+          Hashtbl.add once_values_rev v i;
+          Printf.bprintf oc "@%Ld = " i;
+          save_value indent oc v
+and save_module_fields indent oc m =
+  match m with
+    [] -> ()
+  | (name, v) :: tail ->
+      Printf.bprintf oc "%s%s = " indent (safe_string name);
+      save_value indent oc v;
+      Printf.bprintf oc "\n";
+      save_module_fields indent oc tail
 
 let config_file f = f.file_name
 
@@ -325,6 +577,9 @@ let append opfile filename =
         opfile.file_rc
   with
     Not_found -> Printf.fprintf stderr "No %s found\n" (File.to_string filename)
+
+let ( !! ) o = o.option_value
+let ( =:= ) o v = o.option_value <- v; exec_class_hooks o; exec_option_hooks o
 
 let rec value_to_string v =
   match v with
@@ -516,16 +771,13 @@ let rec value_to_option v2c v =
   | OnceValue v -> value_to_option v2c v
   | _ -> Some (v2c v)
 
-let save_module indent oc v =
-  SimpleConfigOCaml.save_module !with_help indent oc v
-
 let save_delayed_list_value oc indent c2v =
   let indent = indent ^ "  " in
   fun v ->
     try
       let v = c2v v in
       Printf.bprintf oc "\n%s" indent;
-      SimpleConfigOCaml.save_value indent oc v;
+      save_value indent oc v;
       Printf.bprintf oc ";"
     with _ -> ()
 
@@ -700,8 +952,9 @@ let save opfile =
   let oc = Buffer.create 1000 in
   (*  let oc = open_out temp_file in *)
   try
-    SimpleConfigOCaml.reset ();
+    once_values_counter := 0;
     title_opfile := true;
+    Hashtbl.clear once_values_rev;
     let advanced = ref false in
     List.iter (fun s ->
       let options =
@@ -740,17 +993,16 @@ let save opfile =
       List.iter (fun s ->
         let options = List.filter (fun o -> o.option_level > 0)
           s.section_options in
-        if options = [] then () else
-          let _ = () in
-          Printf.bprintf oc "\n\n";
-          Printf.bprintf oc "(*************************************)\n";
+        if options = [] then () else let _ = () in
+                                     Printf.bprintf oc "\n\n";
+                                     Printf.bprintf oc "(*************************************)\n";
 
-          Printf.bprintf oc "(* SECTION : %-11s FOR EXPERTS *)\n" (string_of_string_list s.section_name);
-          Printf.bprintf oc "(* %-33s *)\n" s.section_help;
-          Printf.bprintf oc "(*************************************)\n";
-          Printf.bprintf oc "\n\n";
-          save_module "" oc (List.map option_to_value options)
-        ) opfile.file_sections;
+                                     Printf.bprintf oc "(* SECTION : %-11s FOR EXPERTS *)\n" (string_of_string_list s.section_name);
+                                     Printf.bprintf oc "(* %-33s *)\n" s.section_help;
+                                     Printf.bprintf oc "(*************************************)\n";
+                                     Printf.bprintf oc "\n\n";
+                                     save_module "" oc (List.map option_to_value options)
+      ) opfile.file_sections;
     end;
     if not opfile.file_pruned then
       begin
@@ -778,12 +1030,14 @@ let save opfile =
         if !rem <> [] then begin
           Printf.bprintf oc "\n(*\n The following options are not used (errors, obsolete, ...) \n*)\n";
           List.iter (fun (name, value) ->
-              SimpleConfigOCaml.save_binding oc name value
+            Printf.bprintf oc "%s = " (safe_string name);
+            save_value "  " oc value;
+            Printf.bprintf oc "\n"
           ) !rem;
         end;
         opfile.file_rc <- !rem
       end;
-    SimpleConfigOCaml.reset ();
+    Hashtbl.clear once_values_rev;
     File.write_file temp_file (Buffer.contents oc);
     begin try File.rename filename old_file with  _ -> () end;
     begin try File.rename temp_file filename with _ -> () end;
@@ -829,9 +1083,9 @@ let help oc opfile =
             o.option_class.class_name
             (String.concat "\n" o.option_long_help);
           begin try
-              SimpleConfigOCaml.reset ();
-              SimpleConfigOCaml.save_value "" oc
-                (o.option_class.to_value o.option_value)
+              once_values_counter := 0;
+              Hashtbl.clear once_values_rev;
+              save_value "" oc (o.option_class.to_value o.option_value)
             with
               _ -> ()
           end;
@@ -1007,9 +1261,6 @@ let strings_of_option o =
        | Some (to_string, _) -> to_string o.option_value)
       *)
 
-
-let ( !! ) o = o.option_value
-let ( =:= ) o v = o.option_value <- v; exec_class_hooks o; exec_option_hooks o
 
 let restore_default o =
   o =:= o.option_default
@@ -1285,12 +1536,3 @@ let if_different  value name option default fields =
 end
 
 include LowLevel
-
-let () =
-  Printexc.register_printer (fun exn ->
-      match exn with
-      | LoadError (file, error) ->
-        Some (Printf.sprintf "LoadError(%S, %s)"
-                (File.to_string file)
-                (string_of_load_error file error))
-      | _ -> None)

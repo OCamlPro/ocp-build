@@ -1,2 +1,0 @@
-
-if include "autoconf/config.ocpgen" then {} else {}

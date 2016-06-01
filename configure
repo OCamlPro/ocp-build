@@ -1,9 +1,8 @@
 #!/bin/sh
 
-if ! test -e ./autoconf/configure; then
-    echo ./autoconf/configure not present: running ocp-autoconf
-    ocp-autoconf
-fi
+cd autoconf; ./configure $*
+cd ..
+echo Creating root directory _obuild/
+mkdir -p _obuild
+rm -f boot/.ocpstop
 
-cd autoconf
-./configure $*
