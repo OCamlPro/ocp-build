@@ -184,8 +184,11 @@ AC_DEFUN([AC_CHECK_OCAML_PKG],
   found=no
   for pkg in $1 $2 ; do
     if $OCAMLFIND query $pkg >/dev/null 2>/dev/null; then
-      AC_MSG_RESULT([found])
       AS_TR_SH([OCAML_PKG_$1])=$pkg
+      ocaml_pkg_version=$($OCAMLFIND query -l $pkg|grep version: | awk '{ print $[]2}')
+      AS_TR_SH([OCAML_PKG_$1_VERSION])=$ocaml_pkg_version
+
+      AC_MSG_RESULT([$ocaml_pkg_version])
       found=yes
       break
     fi
