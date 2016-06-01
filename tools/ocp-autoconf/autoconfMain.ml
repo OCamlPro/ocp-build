@@ -449,7 +449,7 @@ let () =
   in
   let config_vars =
     default_config_vars @
-    (List.map (fun s -> s, Some ("extra_" ^ String.lowercase s)
+    (List.map (fun s -> s, Some ("conf_" ^ String.lowercase s)
               ) !!extra_config_vars)  in
 
   let config_vars =
