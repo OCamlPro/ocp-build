@@ -1007,9 +1007,11 @@ let strings_of_option o =
        | Some (to_string, _) -> to_string o.option_value)
       *)
 
-
+module Op = struct
 let ( !! ) o = o.option_value
 let ( =:= ) o v = o.option_value <- v; exec_class_hooks o; exec_option_hooks o
+end
+include Op
 
 let restore_default o =
   o =:= o.option_default

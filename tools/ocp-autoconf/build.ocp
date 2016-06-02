@@ -22,6 +22,12 @@ begin program "ocp-autoconf";
         "skeleton/autoconf/configure.trailer";
 
       ]);
+    "autoconfArgs.ml";
+    "autoconfCommon.ml";
+    "autoconfGlobalConfig.ml";
+    "autoconfProjectConfig.ml";
+    "autoconfAutoconf.ml";
+    "autoconfOpam.ml";
     "autoconfMain.ml";
   ];
   requires = [

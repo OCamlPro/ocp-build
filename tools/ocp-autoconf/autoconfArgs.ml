@@ -19,27 +19,23 @@
 (**************************************************************************)
 
 open StringCompat
-open SimpleConfig.Op (* !! and =:= *)
-open AutoconfArgs
 
-let () =
-  Arg.parse AutoconfArgs.arg_list AutoconfArgs.arg_anon AutoconfArgs.arg_usage;
+let arg_git_add = ref false
+let arg_save_template = ref false
 
-  AutoconfGlobalConfig.load ();
-  AutoconfProjectConfig.load ();
+let arg_list = Arg.align [
+    "--save-template", Arg.Set arg_save_template,
+    " Save a template if configuration file is not found";
+    "--git-add", Arg.Set arg_git_add,
+    " Call 'git add' at the end";
+  ]
 
-  let autoconf_files = AutoconfAutoconf.manage () in
-
-  let opam_files =
-    if !!AutoconfProjectConfig.manage_opam then
-      AutoconfOpam.manage ()
-    else []
-  in
-
-  let files = autoconf_files @ opam_files in
-
-  if !arg_git_add then begin
-    let cmd = Printf.sprintf "git add %s" (String.concat " " files) in
-    AutoconfCommon.command cmd
-  end;
-  ()
+let arg_usage =
+  String.concat "\n" [
+    Printf.sprintf "%s [OPTIONS]" (Filename.basename Sys.executable_name);
+    "Available options:";
+  ]
+let arg_anon s =
+  Printf.eprintf "Error: unexpected argument %S\n%!" s;
+  Arg.usage arg_list arg_usage;
+  exit 2

@@ -315,3 +315,10 @@ type load_error =
 exception LoadError of File.t * load_error
 
 val string_of_load_error : File.t -> load_error -> string
+
+module Op : sig
+
+  val ( !! ) : 'a config_option -> 'a
+  val ( =:= ) : 'a config_option -> 'a -> unit
+
+  end

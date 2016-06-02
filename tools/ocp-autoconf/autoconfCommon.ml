@@ -19,27 +19,37 @@
 (**************************************************************************)
 
 open StringCompat
-open SimpleConfig.Op (* !! and =:= *)
-open AutoconfArgs
 
-let () =
-  Arg.parse AutoconfArgs.arg_list AutoconfArgs.arg_anon AutoconfArgs.arg_usage;
+let homedir = try
+    Sys.getenv "HOME"
+  with Not_found -> "/"
 
-  AutoconfGlobalConfig.load ();
-  AutoconfProjectConfig.load ();
+let curdir = Sys.getcwd ()
 
-  let autoconf_files = AutoconfAutoconf.manage () in
+let files = AutoconfFiles.files
 
-  let opam_files =
-    if !!AutoconfProjectConfig.manage_opam then
-      AutoconfOpam.manage ()
-    else []
-  in
+let find_content filename =
+  try
+    List.assoc filename files
+  with Not_found ->
+    Printf.eprintf "Template for file %S not found\n%!" filename;
+    exit 2
 
-  let files = autoconf_files @ opam_files in
+let save_file ?(override=true) filename =
+  assert (OcpString.starts_with filename "skeleton/");
+  let _,dst_filename = OcpString.cut_at filename '/' in
+  if override || not (Sys.file_exists dst_filename) then
+    let content = find_content filename in
+    let dirname = Filename.dirname dst_filename in
+    FileString.safe_mkdir dirname;
+    FileString.write_file dst_filename content;
+    Printf.eprintf "* %s saved\n%!" dst_filename;
+    ()
 
-  if !arg_git_add then begin
-    let cmd = Printf.sprintf "git add %s" (String.concat " " files) in
-    AutoconfCommon.command cmd
-  end;
-  ()
+let command cmd =
+  Printf.eprintf "Calling %s...\n%!" cmd;
+  let code = Sys.command cmd in
+  if code <> 0 then begin
+    Printf.eprintf "Error: %S returned non-zero status (%d)\n%!" cmd code;
+    exit 2
+  end

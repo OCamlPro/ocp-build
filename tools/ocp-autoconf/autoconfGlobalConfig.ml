@@ -19,27 +19,38 @@
 (**************************************************************************)
 
 open StringCompat
-open SimpleConfig.Op (* !! and =:= *)
 open AutoconfArgs
 
-let () =
-  Arg.parse AutoconfArgs.arg_list AutoconfArgs.arg_anon AutoconfArgs.arg_usage;
+let (!!) = SimpleConfig.(!!)
+let (=:=) = SimpleConfig.(=:=)
 
-  AutoconfGlobalConfig.load ();
-  AutoconfProjectConfig.load ();
+let homedir = File.of_string AutoconfCommon.homedir
 
-  let autoconf_files = AutoconfAutoconf.manage () in
+let config_file = File.add_basenames homedir
+    [ ".ocp"; "ocp-autoconf"; "ocp-autoconf.conf" ]
+let config = SimpleConfig.create_config_file config_file
 
-  let opam_files =
-    if !!AutoconfProjectConfig.manage_opam then
-      AutoconfOpam.manage ()
-    else []
-  in
+let default_copyright = SimpleConfig.create_option config
+    [ "default_copyright" ]
+    [ "Project Copyright, if not specified" ]
+    (SimpleConfig.option_option SimpleConfig.string_option)
+    None
 
-  let files = autoconf_files @ opam_files in
+let load () =
 
-  if !arg_git_add then begin
-    let cmd = Printf.sprintf "git add %s" (String.concat " " files) in
-    AutoconfCommon.command cmd
-  end;
-  ()
+  begin
+    try
+      SimpleConfig.load config
+    with
+    | SimpleConfig.LoadError (_, error) as exn ->
+      begin
+        match error with
+        | SimpleConfig.FileDoesNotExist ->
+          Printf.eprintf "Warning: %S does not exist.\n%!"
+            (File.to_string config_file);
+          Printf.eprintf "Generating a default version.\n%!";
+          File.safe_mkdir (File.dirname config_file);
+          SimpleConfig.save_with_help config;
+        | _ -> raise exn
+      end
+  end
