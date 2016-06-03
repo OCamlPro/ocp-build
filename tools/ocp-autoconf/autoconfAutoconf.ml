@@ -210,6 +210,11 @@ let manage () =
         "metadir";
         "PACKAGE_NAME";
         "PACKAGE_VERSION";
+        "OPAM_REPO";
+        "OPAM_REPO_OFFICIAL_REMOTE";
+        "OPAM_REPO_FORK_REMOTE";
+        "DOWNLOAD_URL_PREFIX";
+
       ]) @
     (List.map (fun s ->
          s, Some ("conf_" ^ String.lowercase s)) [
@@ -280,6 +285,19 @@ let manage () =
     (String.concat " "
        ("Makefile.config" :: "config.ocpgen" :: "ocaml-config.h" ::
         !!extra_config_files));
+
+  Printf.fprintf oc "OPAM_REPO=%s\n"
+    !!AutoconfGlobalConfig.opam_repo;
+  Printf.fprintf oc "OPAM_REPO_OFFICIAL_REMOTE=%s\n"
+    !!AutoconfGlobalConfig.opam_repo_official_remote;
+  Printf.fprintf oc "OPAM_REPO_FORK_REMOTE=%s\n"
+    !!AutoconfGlobalConfig.opam_repo_fork_remote;
+  if !!AutoconfProjectConfig.download_url_prefix <> "" then
+    Printf.fprintf oc "DOWNLOAD_URL_PREFIX=%s\n"
+      !!AutoconfProjectConfig.download_url_prefix
+  else
+    Printf.fprintf oc "DOWNLOAD_URL_PREFIX=http://github.com/%s/archive/\n"
+      !!AutoconfProjectConfig.github_project;
 
   output_string oc
     (AutoconfCommon.find_content "skeleton/autoconf/configure.trailer");

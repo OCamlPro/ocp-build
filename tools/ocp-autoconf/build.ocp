@@ -11,6 +11,7 @@ begin program "ocp-autoconf";
         "skeleton/build.ocp";
         "skeleton/.gitignore";
         "skeleton/LICENSE";
+        "skeleton/push-opam.sh";
 
         "skeleton/autoconf/m4/ax_compare_version.m4";
         "skeleton/autoconf/m4/ocaml.m4";

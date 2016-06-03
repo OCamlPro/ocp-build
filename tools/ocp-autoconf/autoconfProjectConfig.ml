@@ -132,6 +132,20 @@ let manage_opam = SimpleConfig.create_option config
     SimpleConfig.bool_option
     (not (Sys.file_exists "opam"))
 
+let opam_fields = SimpleConfig.create_option config
+    [ "opam_fields" ]
+    [ "Fields of the 'opam' file to generate (other ones should come from";
+      "the 'opam.trailer' file)." ]
+    (SimpleConfig.list_option SimpleConfig.string_option)
+    [
+      "opam-version";
+      "build";
+      "install";
+      "remove";
+      "depends";
+      "available";
+    ]
+
 let opam_maintainer = SimpleConfig.create_option config
     [ "opam_maintainer" ]
     [ "Maintainer of the OPAM package" ]
@@ -156,6 +170,19 @@ let dev_repo = SimpleConfig.create_option config
     SimpleConfig.string_option
     ""
 
+let github_project = SimpleConfig.create_option config
+    [ "github_project" ]
+    [ "Name of the project on Github (Organization/Project). Other fields can be inferred from this if left empty" ]
+    SimpleConfig.string_option
+    ""
+
+let download_url_prefix = SimpleConfig.create_option config
+    [ "download_url_prefix" ]
+    [ "Prefix of the download URL. The download URL should be";
+      "${download_url_prefix}${package_version}.tar.gz" ]
+    SimpleConfig.string_option
+    ""
+
 let bug_reports = SimpleConfig.create_option config
     [ "bug_reports" ]
     [ "URL where bug reports should be issued" ]
@@ -175,62 +202,74 @@ let install_packages = SimpleConfig.create_option config
     []
 
 
+let format_version = SimpleConfig.create_option config
+    [ "format_version" ]
+    [ "Version of the format of this file" ]
+    SimpleConfig.int_option
+    0
+
+let current_format_version = 1
+
 let update_options () =
 
-  let old_project_name = SimpleConfig.create_option config
-      [ "project"; "name" ]
-      [ "(Deprecated, use project_name and remove this option)" ]
-      SimpleConfig.string_option
-      ""
-  in
-  let old_project_version = SimpleConfig.create_option config
-      [ "project"; "version" ]
-      [ "(Deprecated, use project_version and remove this option)" ]
-      SimpleConfig.string_option
-      ""
-  in
-  let old_project_copyright = SimpleConfig.create_option config
-      [ "project"; "copyright" ]
-      [ "(Deprecated, use project_copyright and remove this option)" ]
-      SimpleConfig.string_option
-      ""
-  in
+  if !!format_version < 1 then begin
+    format_version =:= 1;
+    let old_project_name = SimpleConfig.create_option config
+        [ "project"; "name" ]
+        [ "(Deprecated, use project_name and remove this option)" ]
+        SimpleConfig.string_option
+        ""
+    in
+    let old_project_version = SimpleConfig.create_option config
+        [ "project"; "version" ]
+        [ "(Deprecated, use project_version and remove this option)" ]
+        SimpleConfig.string_option
+        ""
+    in
+    let old_project_copyright = SimpleConfig.create_option config
+        [ "project"; "copyright" ]
+        [ "(Deprecated, use project_copyright and remove this option)" ]
+        SimpleConfig.string_option
+        ""
+    in
 
-  if !!old_project_name <> "" then begin
-    Printf.eprintf "Warning: you should remove deprecated 'project.name'\n%!";
-    project_name =:= !!old_project_name;
-    old_project_name =:= "";
-    arg_save_template := true;
-  end;
-  if !!old_project_version <> "" then begin
-    Printf.eprintf "Warning: you should remove deprecated 'project.version'\n%!";
+    if !!old_project_name <> "" then begin
+      Printf.eprintf "Warning: you should remove deprecated 'project.name'\n%!";
+      project_name =:= !!old_project_name;
+      old_project_name =:= "";
+      arg_save_template := true;
+    end;
+    if !!old_project_version <> "" then begin
+      Printf.eprintf "Warning: you should remove deprecated 'project.version'\n%!";
 
-    project_version =:= !!old_project_version;
-    old_project_version =:= "";
-    arg_save_template := true;
-  end;
+      project_version =:= !!old_project_version;
+      old_project_version =:= "";
+      arg_save_template := true;
+    end;
 
-  if !!old_project_copyright <> "" then begin
-    Printf.eprintf "Warning: you should remove deprecated 'project.copyright'\n%!";
-    project_copyright =:= !!old_project_copyright;
-    old_project_copyright =:= "";
-    arg_save_template := true;
+    if !!old_project_copyright <> "" then begin
+      Printf.eprintf "Warning: you should remove deprecated 'project.copyright'\n%!";
+      project_copyright =:= !!old_project_copyright;
+      old_project_copyright =:= "";
+      arg_save_template := true;
+    end;
   end;
   ()
 
 let global_to_project () =
 
-  if !!project_copyright = "" then begin
+  (*
+  begin
     match !!AutoconfGlobalConfig.default_copyright with
     | None -> ()
     | Some copyright -> project_copyright =:= copyright
   end;
-
+*)
   ()
 
 let save ~update =
 
-  if update then update_options ();
+  update_options ();
   global_to_project ();
 
   Printf.eprintf "Saving template file %S\n%!"
@@ -249,13 +288,15 @@ let load () =
       | SimpleConfig.FileDoesNotExist ->
         Printf.eprintf "Error: %S does not exist.\n%!"
           (File.to_string config_file);
-        if !arg_save_template then
-          save ~update:false
-        else begin
+        if !arg_save_template then begin
+          format_version =:= current_format_version;
+          save ()
+        end else begin
           Printf.eprintf "Use option --save-template to create an example.\n%!";
         end;
         exit 2
       | _ -> raise exn
   end;
 
-  if !arg_save_template then save ~update:true
+  if !arg_save_template ||
+     !!format_version < current_format_version then save ()

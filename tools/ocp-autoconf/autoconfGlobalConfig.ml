@@ -36,6 +36,36 @@ let default_copyright = SimpleConfig.create_option config
     (SimpleConfig.option_option SimpleConfig.string_option)
     None
 
+let opam_repo = SimpleConfig.create_option config
+    [ "opam_repo" ]
+    [ "Local copy of your fork of the OPAM public repository" ]
+    SimpleConfig.string_option
+    ""
+
+let opam_repo_official_remote = SimpleConfig.create_option config
+    [ "opam_repo_official_remote" ]
+    [ "Name of GIT remote for the official OPAM repository" ]
+    SimpleConfig.string_option
+    ""
+
+let opam_repo_fork_remote = SimpleConfig.create_option config
+    [ "opam_repo_fork_remote" ]
+    [ "Name of GIT remote for your fork of the OPAM repository" ]
+    SimpleConfig.string_option
+    ""
+
+let format_version = SimpleConfig.create_option config
+    [ "format_version" ]
+    [ "Version of the format of this file" ]
+    SimpleConfig.int_option
+    0
+
+let current_format_version = 2
+
+let save () =
+  File.safe_mkdir (File.dirname config_file);
+  SimpleConfig.save_with_help config
+
 let load () =
 
   begin
@@ -49,8 +79,14 @@ let load () =
           Printf.eprintf "Warning: %S does not exist.\n%!"
             (File.to_string config_file);
           Printf.eprintf "Generating a default version.\n%!";
-          File.safe_mkdir (File.dirname config_file);
-          SimpleConfig.save_with_help config;
+          save ()
         | _ -> raise exn
       end
+  end;
+
+  if !!format_version < current_format_version then begin
+    format_version =:= current_format_version;
+    Printf.eprintf "Updating %S to version %d\n%!"
+      (File.to_string config_file) current_format_version;
+    save ()
   end
