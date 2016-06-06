@@ -30,9 +30,11 @@ let () =
     [
     "build.ocp";
     "Makefile";
-    "ocp-autoconf.ac";
     ".gitignore";
     "LICENSE";
+    ".travis.yml";
+    ".travis-install.sh";
+    ".travis-ci.sh";
   ]
 
 let () =

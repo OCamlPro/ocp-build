@@ -28,10 +28,15 @@ let apply_makers () =
         let maker = StringMap.find file !AutoconfCommon.makers in
         Printf.eprintf "Calling maker for %S\n%!" file;
         maker ();
-
+        AutoconfCommon.makers := StringMap.remove file !AutoconfCommon.makers;
       with Not_found ->
         Printf.eprintf "Warning: no maker found for file %S\n%!" file
     ) !!AutoconfProjectConfig.manage_files;
+  Printf.eprintf "Unactive makers:  ";
+  StringMap.iter (fun file _ ->
+      Printf.eprintf "%s  " file;
+    ) !AutoconfCommon.makers;
+  Printf.eprintf "\n%!";
   ()
 
 let () =
