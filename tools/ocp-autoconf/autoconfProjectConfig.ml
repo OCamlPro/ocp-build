@@ -22,20 +22,59 @@ open StringCompat
 open SimpleConfig.Op (* !! and =:= *)
 open AutoconfArgs
 
+type package = {
+  name : string;
+  version : string option;
+  opam : string option;
+}
+
+let make_package ?version ?opam name =
+  { name; version; opam }
+
 let package_option =
   let open SimpleConfig.LowLevel in
   SimpleConfig.LowLevel.define_option_class
     "package"
     (fun v ->
        match v with
-       | StringValue s -> s, None
-       | List [StringValue s; StringValue v]
-       | SmallList [StringValue s; StringValue v] -> s, Some v
+       | StringValue name -> make_package name
+       | List [StringValue s; StringValue version]
+       | SmallList [StringValue s; StringValue version] ->
+         make_package ~version s
+       | Module m ->
+         let name = ref None in
+         let version = ref None in
+         let opam = ref None in
+         List.iter (fun (field, field_value) ->
+             match field with
+             | "name" -> name := Some (value_to_string field_value)
+             | "version" -> version := Some (value_to_string field_value)
+             | "opam" -> opam := Some (value_to_string field_value)
+             | _ ->
+               Printf.kprintf failwith "Unknown file %S in package" field
+           ) m;
+         begin match !name with
+           | None -> failwith "Missing field 'name' in package"
+           | Some name ->
+             let version = !version in
+             let opam = !opam in
+             make_package ?version ?opam name
+         end
        | _ -> failwith "Wrong package format"
     )
-    (function
-      | s, None -> StringValue s
-      | s, Some v -> SmallList [StringValue s; StringValue v]
+    (function { name; version; opam } ->
+    match version, opam with
+    | None, None -> StringValue name
+    | Some version, None -> SmallList [StringValue name; StringValue version]
+    | _ ->
+      let fields = [ "name", StringValue name ] in
+      let fields = match version with
+          None -> fields
+        | Some version -> ("version", StringValue version) :: fields in
+      let fields = match opam with
+          None -> fields
+        | Some opam -> ("opam", StringValue opam) :: fields in
+      Module fields
     )
 
 
@@ -52,6 +91,12 @@ let project_version = SimpleConfig.create_option config
     [ "Project Version" ] SimpleConfig.string_option
     "1.0"
 
+let manage_files = SimpleConfig.create_option config
+    [ "manage_files" ]
+    [ "Files managed by ocp-autoconf in this project" ]
+    (SimpleConfig.list_option SimpleConfig.string_option)
+    [ "autoconf" ]
+
 let project_copyright = SimpleConfig.create_option config
     [ "project_copyright" ]
     [ "Project Copyright" ]
@@ -61,7 +106,7 @@ let project_copyright = SimpleConfig.create_option config
 let ocaml_minimal_version = SimpleConfig.create_option config
     [ "ocaml_minimal_version" ]
     [ "Minimal version of OCaml" ] SimpleConfig.string_option
-    "3.12.1"
+    "3.12.0"
 
 let ocaml_unsupported_version = SimpleConfig.create_option config
     [ "ocaml_unsupported_version" ]
@@ -70,19 +115,25 @@ let ocaml_unsupported_version = SimpleConfig.create_option config
 
 let need_packages = SimpleConfig.create_option config
     [ "need_packages" ]
-    [ "Packages needed by the project" ]
+    [ "Packages (ocamlfind) needed by the project. They can be specified as";
+      "a list with items of the forms:";
+      " * \"findlib\"";
+      " * (\"findlib\", \"version\")";
+      " * { name=\"findlib\" version=\"version\" opam=\"package\" }";
+      "The later form can be used to specify a different opam package name.";
+    ]
     (SimpleConfig.list_option package_option)
     []
 
 let need_tools = SimpleConfig.create_option config
     [ "need_tools" ]
-    [ "Tools needed by the project" ]
+    [ "Tools needed by the project. Tested by ./configure." ]
     (SimpleConfig.list_option SimpleConfig.string_option)
     [ "ocp-build" ]
 
 let optional_packages = SimpleConfig.create_option config
     [ "optional_packages" ]
-    [ "Packages that could be used by the project" ]
+    [ "Packages (ocamlfind) that could be used by the project" ]
     (SimpleConfig.list_option SimpleConfig.string_option)
     []
 
@@ -94,25 +145,34 @@ let need_modules = SimpleConfig.create_option config
 
 let extra_config_files = SimpleConfig.create_option config
     [ "extra_config_files" ]
-    [ "Extra files to be substituted" ]
+    [ "Extra files to be substituted. Their paths should be related to ";
+      "the autoconf/ subdirectory."
+    ]
     (SimpleConfig.list_option SimpleConfig.string_option)
     []
 
 let extra_m4_files = SimpleConfig.create_option config
     [ "extra_m4_files" ]
-    [ "Extra m4 files to be added" ]
+    [ "Extra m4 files to be added. They will be copied in autoconf/m4/." ]
     (SimpleConfig.list_option SimpleConfig.string_option)
     []
 
 let extra_config_vars = SimpleConfig.create_option config
     [ "extra_config_vars" ]
-    [ "Extra variables to be substituted" ]
+    [ "Extra variables to be substituted. These variables will appear";
+      "directly in autoconf/Makefile.config, and as conf_xxx variables";
+      "in autoconf/config.ocpgen, where xxx is their lowercase translation.";
+    ]
     (SimpleConfig.list_option SimpleConfig.string_option)
     []
 
 let extra_bool_vars = SimpleConfig.create_option config
     [ "extra_bool_vars" ]
-    [ "Extra variables to be substituted as boolean" ]
+    [ "Extra variables to be substituted as boolean. Same as";
+      "extra_config_vars, but they will appear as booleans in";
+      "autoconf/config.ocpgen";
+
+    ]
     (SimpleConfig.list_option SimpleConfig.string_option)
     []
 
@@ -125,12 +185,6 @@ let need_ocamlyacc = SimpleConfig.create_option config
     [ "need_ocamlyacc" ]
     [ "Does the project need ocamlyacc" ] SimpleConfig.bool_option
     false
-
-let manage_opam = SimpleConfig.create_option config
-    [ "manage_opam" ]
-    [ "ocp-autoconf should manage the 'opam' file" ]
-    SimpleConfig.bool_option
-    (not (Sys.file_exists "opam"))
 
 let opam_fields = SimpleConfig.create_option config
     [ "opam_fields" ]
@@ -164,51 +218,66 @@ let homepage = SimpleConfig.create_option config
     SimpleConfig.string_option
     ""
 
-let dev_repo = SimpleConfig.create_option config
-    [ "dev_repo" ]
-    [ "URL of public development repository" ]
-    SimpleConfig.string_option
-    ""
-
 let github_project = SimpleConfig.create_option config
     [ "github_project" ]
     [ "Name of the project on Github (Organization/Project). Other fields can be inferred from this if left empty" ]
     SimpleConfig.string_option
     ""
 
+let dev_repo = SimpleConfig.create_option config
+    [ "dev_repo" ]
+    [ "URL of public development repository.";
+      "If github_project is specified, the value is automatically inferred."
+    ]
+    SimpleConfig.string_option
+    ""
+
 let download_url_prefix = SimpleConfig.create_option config
     [ "download_url_prefix" ]
     [ "Prefix of the download URL. The download URL should be";
-      "${download_url_prefix}${package_version}.tar.gz" ]
+      "${download_url_prefix}${package_version}.tar.gz.";
+      "If github_project is specified, the value is automatically inferred."
+    ]
     SimpleConfig.string_option
     ""
 
 let bug_reports = SimpleConfig.create_option config
     [ "bug_reports" ]
-    [ "URL where bug reports should be issued" ]
+    [ "URL where bug reports should be issued.";
+      "If github_project is specified, the value is automatically inferred."
+    ]
     SimpleConfig.string_option
     ""
 
-let opam_remove_files = SimpleConfig.create_option config
-    [ "opam_remove_files" ]
-    [ "Files to remove on OPAM remove" ]
+let opam_configure_line = SimpleConfig.create_option config
+    [ "opam_configure_line" ]
+    [ "Line to appear in opam build instructions" ]
     (SimpleConfig.list_option SimpleConfig.string_option)
+    [
+      "./configure";
+      "--prefix"; "%{prefix}%";
+      "--with-ocamldir"; "%{prefix}%/lib";
+      "--with-metadir"; "%{prefix}%/lib";
+    ]
+
+let opam_remove_commands = SimpleConfig.create_option config
+    [ "opam_remove_commands" ]
+    [ "Commands to call on OPAM remove" ]
+    (SimpleConfig.list_option (SimpleConfig.list_option
+                                 SimpleConfig.string_option))
     []
 
 let install_packages = SimpleConfig.create_option config
     [ "install_packages" ]
-    [ "ocp-build packages to install" ]
+    [ "ocp-build packages to install and uninstall." ]
     (SimpleConfig.list_option SimpleConfig.string_option)
     []
-
 
 let format_version = SimpleConfig.create_option config
     [ "format_version" ]
     [ "Version of the format of this file" ]
     SimpleConfig.int_option
     0
-
-let current_format_version = 1
 
 let update_options () =
 
@@ -254,7 +323,25 @@ let update_options () =
       arg_save_template := true;
     end;
   end;
+
+  if !!format_version < 2 then begin
+    format_version =:= 2;
+
+    StringMap.iter (fun file _ ->
+        if not (Sys.file_exists file) then begin
+          manage_files =:= file :: !!manage_files
+        end
+      ) !AutoconfCommon.makers;
+
+  end;
+
+  if !!format_version < 3 then begin
+    format_version =:= 3;
+  end;
+
   ()
+
+let current_format_version = 3
 
 let global_to_project () =
 
@@ -278,24 +365,32 @@ let save ~update =
   ()
 
 let load () =
-
   begin
     try
-      SimpleConfig.load config
+      Printf.eprintf "Loading project: %s ...%!"
+        (File.to_string config_file);
+      SimpleConfig.load config;
+      Printf.eprintf "ok\n%!";
     with
     | SimpleConfig.LoadError (_, error) as exn ->
-      match error with
-      | SimpleConfig.FileDoesNotExist ->
-        Printf.eprintf "Error: %S does not exist.\n%!"
-          (File.to_string config_file);
-        if !arg_save_template then begin
-          format_version =:= current_format_version;
-          save ()
-        end else begin
-          Printf.eprintf "Use option --save-template to create an example.\n%!";
-        end;
-        exit 2
-      | _ -> raise exn
+      Printf.eprintf "failed\n%!";
+      begin
+        match error with
+        | SimpleConfig.FileDoesNotExist ->
+          Printf.eprintf "Error: %S does not exist.\n%!"
+            (File.to_string config_file);
+          if !arg_save_template then begin
+            format_version =:= current_format_version;
+            save ()
+          end else begin
+            Printf.eprintf "Use option --save-template to create an example.\n%!";
+          end;
+          exit 2
+        | _ -> raise exn
+      end;
+    | exn ->
+      Printf.eprintf "failed\n%!";
+      raise exn
   end;
 
   if !arg_save_template ||

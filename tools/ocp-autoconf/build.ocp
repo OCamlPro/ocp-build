@@ -1,6 +1,7 @@
 
 begin program "ocp-autoconf";
 
+  version = package_version
   files = [
     "autoconfVersion.ml" (ocp2ml);
     "autoconfFiles.ml" (file2string = [
@@ -24,6 +25,7 @@ begin program "ocp-autoconf";
 
       ]);
     "autoconfArgs.ml";
+    "autoconfFS.ml";
     "autoconfCommon.ml";
     "autoconfGlobalConfig.ml";
     "autoconfProjectConfig.ml";

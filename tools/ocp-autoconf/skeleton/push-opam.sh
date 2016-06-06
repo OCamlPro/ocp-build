@@ -1,5 +1,14 @@
 #!/bin/sh
 
+#############################################################################
+#
+#          This file is managed by ocp-autoconf.
+#
+#  Remove it from `manage_files` in 'ocp-autoconf.config' if you want to
+#  modify it manually.
+#
+#############################################################################
+
 . ./autoconf/Makefile.config
 VERSION=${PACKAGE_VERSION}
 PACKAGE=${PACKAGE_NAME}

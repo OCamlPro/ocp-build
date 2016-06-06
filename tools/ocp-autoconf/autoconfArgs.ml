@@ -20,6 +20,7 @@
 
 open StringCompat
 
+let arg_force = ref false
 let arg_git_add = ref false
 let arg_save_template = ref false
 
@@ -28,6 +29,8 @@ let arg_list = Arg.align [
     " Save a template if configuration file is not found";
     "--git-add", Arg.Set arg_git_add,
     " Call 'git add' at the end";
+    "-f", Arg.Set arg_force,
+    " Force overwrite of existing files";
   ]
 
 let arg_usage =

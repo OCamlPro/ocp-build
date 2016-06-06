@@ -588,6 +588,10 @@ ac_subst_vars='LTLIBOBJS
 LIBOBJS
 OCAML_USE_BINANNOT
 HAS_BYTES
+DOWNLOAD_URL_PREFIX
+OPAM_REPO_FORK_REMOTE
+OPAM_REPO_OFFICIAL_REMOTE
+OPAM_REPO
 ROOTDIR
 OCAMLYACC
 OCAMLLEXDOTOPT
@@ -3784,6 +3788,10 @@ if test "$OCAMLC" = "no"; then
    as_fn_error $? "You must install the OCaml compiler" "$LINENO" 5
 fi
 
+if test "${OCAMLVERSION}" = ""; then
+   as_fn_error $? "No OCaml version. ocamlc -version is not parsable." "$LINENO" 5
+fi
+
 if test "$VERSION_CHECK" = "yes" ; then
   for ac_prog in gawk mawk nawk awk
 do
@@ -4345,6 +4353,13 @@ fi
 
 
 
+(**************************************************************)
+(*                                                            *)
+(* From autoconf.ac:                                          *)
+(*                                                            *)
+(**************************************************************)
+
+
 HAS_BYTES=3.12.1
 
 
@@ -4419,6 +4434,17 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
   fi
 
 
+(**************************************************************)
+(*                                                            *)
+(* END of autoconf.ac                                         *)
+(*                                                            *)
+(**************************************************************)
+
+
+
+
+
+
 
 
 
@@ -4446,6 +4472,10 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
 
 ac_config_files="$ac_config_files Makefile.config config.ocpgen ocaml-config.h"
 
+OPAM_REPO=/home/lefessan/WindowsSharedFolder/opam-repository-with-archives
+OPAM_REPO_OFFICIAL_REMOTE=ocaml
+OPAM_REPO_FORK_REMOTE=origin
+DOWNLOAD_URL_PREFIX=http://github.com/OCamlPro/typerex-build/archive/
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
 # tests run on this system so they can be shared between configure

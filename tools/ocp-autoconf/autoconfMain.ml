@@ -22,21 +22,32 @@ open StringCompat
 open SimpleConfig.Op (* !! and =:= *)
 open AutoconfArgs
 
+let apply_makers () =
+  List.iter (fun file ->
+      try
+        let maker = StringMap.find file !AutoconfCommon.makers in
+        Printf.eprintf "Calling maker for %S\n%!" file;
+        maker ();
+
+      with Not_found ->
+        Printf.eprintf "Warning: no maker found for file %S\n%!" file
+    ) !!AutoconfProjectConfig.manage_files;
+  ()
+
 let () =
   Arg.parse AutoconfArgs.arg_list AutoconfArgs.arg_anon AutoconfArgs.arg_usage;
 
   AutoconfGlobalConfig.load ();
   AutoconfProjectConfig.load ();
 
-  let autoconf_files = AutoconfAutoconf.manage () in
+  if !arg_git_add then begin
+    if not (Sys.file_exists ".git") then
+      AutoconfCommon.command "git init"
+  end;
 
-  let opam_files =
-    if !!AutoconfProjectConfig.manage_opam then
-      AutoconfOpam.manage ()
-    else []
-  in
+  apply_makers ();
 
-  let files = autoconf_files @ opam_files in
+  let files = AutoconfFS.commit "ocp-autoconf.files" in
 
   if !arg_git_add then begin
     let cmd = Printf.sprintf "git add %s" (String.concat " " files) in

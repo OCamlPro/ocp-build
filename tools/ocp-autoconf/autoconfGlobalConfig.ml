@@ -70,9 +70,13 @@ let load () =
 
   begin
     try
-      SimpleConfig.load config
+      Printf.eprintf "Loading user config: %s ...%!"
+        (File.to_string config_file);
+      SimpleConfig.load config;
+      Printf.eprintf "ok\n%!";
     with
     | SimpleConfig.LoadError (_, error) as exn ->
+      Printf.eprintf "failed\n%!";
       begin
         match error with
         | SimpleConfig.FileDoesNotExist ->
@@ -82,6 +86,9 @@ let load () =
           save ()
         | _ -> raise exn
       end
+    | exn ->
+      Printf.eprintf "failed\n%!";
+      raise exn
   end;
 
   if !!format_version < current_format_version then begin

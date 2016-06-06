@@ -38,6 +38,10 @@ if test "$OCAMLC" = "no"; then
    AC_MSG_ERROR([You must install the OCaml compiler])
 fi
 
+if test "${OCAMLVERSION}" = ""; then
+   AC_MSG_ERROR([No OCaml version. ocamlc -version is not parsable.])
+fi
+
 if test "$VERSION_CHECK" = "yes" ; then
   AX_COMPARE_VERSION( [$OCAMLVERSION], [lt], [${OCAML_MINIMAL_VERSION}],
   AC_MSG_ERROR([Your version of OCaml: $OCAMLVERSION is not supported. You need ${OCAML_MINIMAL_VERSION} at least.]))
@@ -109,9 +113,23 @@ AC_SUBST(OCAMLBIN)
 AC_PROG_OCAMLLEX
 AC_PROG_OCAMLYACC
 
+(**************************************************************)
+(*                                                            *)
+(* From autoconf.ac:                                          *)
+(*                                                            *)
+(**************************************************************)
+
+
 HAS_BYTES=3.12.1
 AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [4.02.0],, HAS_BYTES=4.02.0)
 AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [4.03.0],, HAS_BYTES=4.03.0)
+
+(**************************************************************)
+(*                                                            *)
+(* END of autoconf.ac                                         *)
+(*                                                            *)
+(**************************************************************)
+
 AC_SUBST(OCAMLYACC)
 AC_SUBST(OCAMLLEX)
 AC_SUBST(CONFIGURE_ARGS)
@@ -127,6 +145,10 @@ AC_SUBST(ocamldir)
 AC_SUBST(metadir)
 AC_SUBST(PACKAGE_NAME)
 AC_SUBST(PACKAGE_VERSION)
+AC_SUBST(OPAM_REPO)
+AC_SUBST(OPAM_REPO_OFFICIAL_REMOTE)
+AC_SUBST(OPAM_REPO_FORK_REMOTE)
+AC_SUBST(DOWNLOAD_URL_PREFIX)
 AC_SUBST(OCAMLVERSION)
 AC_SUBST(OCAMLC)
 AC_SUBST(OCAMLOPT)
@@ -139,6 +161,10 @@ AC_SUBST(OCAMLBIN)
 AC_SUBST(HAS_BYTES)
 AC_SUBST(OCAML_USE_BINANNOT)
 AC_CONFIG_FILES(Makefile.config config.ocpgen ocaml-config.h)
+OPAM_REPO=/home/lefessan/WindowsSharedFolder/opam-repository-with-archives
+OPAM_REPO_OFFICIAL_REMOTE=ocaml
+OPAM_REPO_FORK_REMOTE=origin
+DOWNLOAD_URL_PREFIX=http://github.com/OCamlPro/typerex-build/archive/
 AC_OUTPUT
 
 echo
