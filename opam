@@ -1,3 +1,11 @@
+(**************************************************************)
+(*                                                            *)
+(*      This file is managed by ocp-autoconf                  *)
+(*  Remove it from `manage_files` in 'ocp-autoconf.config'    *)
+(*  if you want to modify it manually (or use 'opam.trailer') *)
+(*                                                            *)
+(**************************************************************)
+
 opam-version: "1.2"
 maintainer: "Fabrice Le Fessant <fabrice.le_fessant@ocamlpro.com>"
 authors: [

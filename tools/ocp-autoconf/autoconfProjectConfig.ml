@@ -256,8 +256,8 @@ let opam_configure_line = SimpleConfig.create_option config
     [
       "./configure";
       "--prefix"; "%{prefix}%";
-      "--with-ocamldir"; "%{prefix}%/lib";
-      "--with-metadir"; "%{prefix}%/lib";
+      "--with-ocamldir=%{prefix}%/lib";
+      "--with-metadir=%{prefix}%/lib";
     ]
 
 let opam_remove_commands = SimpleConfig.create_option config

@@ -191,33 +191,46 @@ let () =
            AutoconfFS.fprintf oc "AC_CHECK_OCAML_MODULE(%s)\n" modname
          ) !!need_modules;
 
+       AutoconfFS.fprintf oc "OPAM_REPO=%s\n"
+         !!AutoconfGlobalConfig.opam_repo;
+       AutoconfFS.fprintf oc "OPAM_REPO_OFFICIAL_REMOTE=%s\n"
+         !!AutoconfGlobalConfig.opam_repo_official_remote;
+       AutoconfFS.fprintf oc "OPAM_REPO_FORK_REMOTE=%s\n"
+         !!AutoconfGlobalConfig.opam_repo_fork_remote;
+       if !!AutoconfProjectConfig.download_url_prefix <> "" then
+         AutoconfFS.fprintf oc "DOWNLOAD_URL_PREFIX=%s\n"
+           !!AutoconfProjectConfig.download_url_prefix
+       else
+         AutoconfFS.fprintf oc "DOWNLOAD_URL_PREFIX=http://github.com/%s/archive/\n"
+           !!AutoconfProjectConfig.github_project;
+
        if Sys.file_exists "ocp-autoconf.ac" then begin
          Printf.eprintf "  using %S\n%!" "ocp-autoconf.ac";
         AutoconfFS.fprintf oc "\n";
         AutoconfFS.fprintf oc
-          "(**************************************************************)\n";
+          "###############################################################\n";
         AutoconfFS.fprintf oc
-          "(*                                                            *)\n";
+          "##                                                            #\n";
         AutoconfFS.fprintf oc
-          "(* From autoconf.ac:                                          *)\n";
+          "## From autoconf.ac:                                          #\n";
         AutoconfFS.fprintf oc
-          "(*                                                            *)\n";
+          "##                                                            #\n";
         AutoconfFS.fprintf oc
-          "(**************************************************************)\n";
+          "###############################################################\n";
         AutoconfFS.fprintf oc "\n";
 
          AutoconfFS.output_string oc (FileString.read_file "ocp-autoconf.ac");
                  AutoconfFS.fprintf oc "\n";
         AutoconfFS.fprintf oc
-          "(**************************************************************)\n";
+          "###############################################################\n";
         AutoconfFS.fprintf oc
-          "(*                                                            *)\n";
+          "##                                                            #\n";
         AutoconfFS.fprintf oc
-          "(* END of autoconf.ac                                         *)\n";
+          "## END of autoconf.ac                                         #\n";
         AutoconfFS.fprintf oc
-          "(*                                                            *)\n";
+          "##                                                            #\n";
         AutoconfFS.fprintf oc
-          "(**************************************************************)\n";
+          "###############################################################\n";
         AutoconfFS.fprintf oc "\n";
 
        end else begin
@@ -318,19 +331,6 @@ let () =
          (String.concat " "
             ("Makefile.config" :: "config.ocpgen" :: "ocaml-config.h" ::
              !!extra_config_files));
-
-       AutoconfFS.fprintf oc "OPAM_REPO=%s\n"
-         !!AutoconfGlobalConfig.opam_repo;
-       AutoconfFS.fprintf oc "OPAM_REPO_OFFICIAL_REMOTE=%s\n"
-         !!AutoconfGlobalConfig.opam_repo_official_remote;
-       AutoconfFS.fprintf oc "OPAM_REPO_FORK_REMOTE=%s\n"
-         !!AutoconfGlobalConfig.opam_repo_fork_remote;
-       if !!AutoconfProjectConfig.download_url_prefix <> "" then
-         AutoconfFS.fprintf oc "DOWNLOAD_URL_PREFIX=%s\n"
-           !!AutoconfProjectConfig.download_url_prefix
-       else
-         AutoconfFS.fprintf oc "DOWNLOAD_URL_PREFIX=http://github.com/%s/archive/\n"
-           !!AutoconfProjectConfig.github_project;
 
        AutoconfFS.output_string oc
          (AutoconfCommon.find_content "skeleton/autoconf/configure.trailer");
