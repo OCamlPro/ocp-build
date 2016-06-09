@@ -19,43 +19,41 @@
 (**************************************************************************)
 
 open StringCompat
-open SimpleConfig.Op (* !! and =:= *)
-open AutoconfArgs
 
-let apply_makers () =
-  List.iter (fun file ->
-      try
-        let maker = StringMap.find file !AutoconfCommon.makers in
-        Printf.eprintf "Calling maker for %S\n%!" file;
-        maker ();
-        AutoconfCommon.makers := StringMap.remove file !AutoconfCommon.makers;
-      with Not_found ->
-        Printf.eprintf "Warning: no maker found for file %S\n%!" file
-    ) !!AutoconfProjectConfig.manage_files;
-  Printf.eprintf "Unactive makers:  ";
-  StringMap.iter (fun file _ ->
-      Printf.eprintf "%s  " file;
-    ) !AutoconfCommon.makers;
-  Printf.eprintf "\n%!";
-  ()
+let homedir = try
+    Sys.getenv "HOME"
+  with Not_found -> "/"
 
-let () =
-  Arg.parse AutoconfArgs.arg_list AutoconfArgs.arg_anon AutoconfArgs.arg_usage;
+let curdir = Sys.getcwd ()
 
-  AutoconfGlobalConfig.load ();
-  AutoconfProjectConfig.load ();
+let find_content filename =
+  try
+    List.assoc filename AutoconfFiles.files
+  with Not_found ->
+    Printf.eprintf "Template for file %S not found\n%!" filename;
+    exit 2
 
-  if !arg_git_add then begin
-    if not (Sys.file_exists ".git") then
-      AutoconfCommon.command "git init"
+let save_file ?(override=true) filename =
+  assert (OcpString.starts_with filename "skeleton/");
+  let _,dst_filename = OcpString.cut_at filename '/' in
+  if override || not (Sys.file_exists dst_filename) then
+    let content = find_content filename in
+    AutoconfFS.write_file dst_filename content;
+    ()
+
+let command cmd =
+  Printf.eprintf "Calling %s...\n%!" cmd;
+  let code = Sys.command cmd in
+  if code <> 0 then begin
+    Printf.eprintf "Error: %S returned non-zero status (%d)\n%!" cmd code;
+    exit 2
+  end
+
+let makers = ref StringMap.empty
+
+let register_maker file (maker : unit -> unit) =
+  if StringMap.mem file !makers then begin
+    Printf.eprintf "Error: two makers for files %S\n%!" file;
+    exit 2
   end;
-
-  apply_makers ();
-
-  let files = AutoconfFS.commit "ocp-autoconf.files" in
-
-  if !arg_git_add then begin
-    let cmd = Printf.sprintf "git add %s" (String.concat " " files) in
-    AutoconfCommon.command cmd
-  end;
-  ()
+  makers := StringMap.add file maker !makers

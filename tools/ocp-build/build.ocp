@@ -21,6 +21,7 @@
 copyright = [ "OCamlPro/INRIA 2011-2013" ]
 authors = [ "Fabrice LE FESSANT <fabrice.le_fessant@ocamlpro.com>" ]
 license = [ "GPLv3" ]
+version = package_version
 
 (* Only install the ocp-build, so set install=true in it *)
 install = false

@@ -19,43 +19,26 @@
 (**************************************************************************)
 
 open StringCompat
-open SimpleConfig.Op (* !! and =:= *)
-open AutoconfArgs
 
-let apply_makers () =
-  List.iter (fun file ->
-      try
-        let maker = StringMap.find file !AutoconfCommon.makers in
-        Printf.eprintf "Calling maker for %S\n%!" file;
-        maker ();
-        AutoconfCommon.makers := StringMap.remove file !AutoconfCommon.makers;
-      with Not_found ->
-        Printf.eprintf "Warning: no maker found for file %S\n%!" file
-    ) !!AutoconfProjectConfig.manage_files;
-  Printf.eprintf "Unactive makers:  ";
-  StringMap.iter (fun file _ ->
-      Printf.eprintf "%s  " file;
-    ) !AutoconfCommon.makers;
-  Printf.eprintf "\n%!";
-  ()
+let arg_force = ref false
+let arg_git_add = ref false
+let arg_save_template = ref false
 
-let () =
-  Arg.parse AutoconfArgs.arg_list AutoconfArgs.arg_anon AutoconfArgs.arg_usage;
+let arg_list = Arg.align [
+    "--save-template", Arg.Set arg_save_template,
+    " Save a template if configuration file is not found";
+    "--git-add", Arg.Set arg_git_add,
+    " Call 'git add' at the end";
+    "-f", Arg.Set arg_force,
+    " Force overwrite of existing files";
+  ]
 
-  AutoconfGlobalConfig.load ();
-  AutoconfProjectConfig.load ();
-
-  if !arg_git_add then begin
-    if not (Sys.file_exists ".git") then
-      AutoconfCommon.command "git init"
-  end;
-
-  apply_makers ();
-
-  let files = AutoconfFS.commit "ocp-autoconf.files" in
-
-  if !arg_git_add then begin
-    let cmd = Printf.sprintf "git add %s" (String.concat " " files) in
-    AutoconfCommon.command cmd
-  end;
-  ()
+let arg_usage =
+  String.concat "\n" [
+    Printf.sprintf "%s [OPTIONS]" (Filename.basename Sys.executable_name);
+    "Available options:";
+  ]
+let arg_anon s =
+  Printf.eprintf "Error: unexpected argument %S\n%!" s;
+  Arg.usage arg_list arg_usage;
+  exit 2

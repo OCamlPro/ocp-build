@@ -25,6 +25,10 @@ if test "$OCAMLC" = "no"; then
    AC_MSG_ERROR([You must install the OCaml compiler])
 fi
 
+if test "${OCAMLVERSION}" = ""; then
+   AC_MSG_ERROR([No OCaml version. ocamlc -version is not parsable.])
+fi
+
 if test "$VERSION_CHECK" = "yes" ; then
   AX_COMPARE_VERSION( [$OCAMLVERSION], [lt], [${OCAML_MINIMAL_VERSION}],
   AC_MSG_ERROR([Your version of OCaml: $OCAMLVERSION is not supported. You need ${OCAML_MINIMAL_VERSION} at least.]))
