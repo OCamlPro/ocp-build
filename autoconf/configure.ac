@@ -112,23 +112,27 @@ AC_SUBST(OCAMLDEP)
 AC_SUBST(OCAMLBIN)
 AC_PROG_OCAMLLEX
 AC_PROG_OCAMLYACC
+OPAM_REPO=/home/lefessan/WindowsSharedFolder/opam-repository-with-archives
+OPAM_REPO_OFFICIAL_REMOTE=ocaml
+OPAM_REPO_FORK_REMOTE=origin
+DOWNLOAD_URL_PREFIX=http://github.com/OCamlPro/typerex-build/archive/
 
-(**************************************************************)
-(*                                                            *)
-(* From autoconf.ac:                                          *)
-(*                                                            *)
-(**************************************************************)
+###############################################################
+##                                                            #
+## From autoconf.ac:                                          #
+##                                                            #
+###############################################################
 
 
 HAS_BYTES=3.12.1
 AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [4.02.0],, HAS_BYTES=4.02.0)
 AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [4.03.0],, HAS_BYTES=4.03.0)
 
-(**************************************************************)
-(*                                                            *)
-(* END of autoconf.ac                                         *)
-(*                                                            *)
-(**************************************************************)
+###############################################################
+##                                                            #
+## END of autoconf.ac                                         #
+##                                                            #
+###############################################################
 
 AC_SUBST(OCAMLYACC)
 AC_SUBST(OCAMLLEX)
@@ -161,10 +165,6 @@ AC_SUBST(OCAMLBIN)
 AC_SUBST(HAS_BYTES)
 AC_SUBST(OCAML_USE_BINANNOT)
 AC_CONFIG_FILES(Makefile.config config.ocpgen ocaml-config.h)
-OPAM_REPO=/home/lefessan/WindowsSharedFolder/opam-repository-with-archives
-OPAM_REPO_OFFICIAL_REMOTE=ocaml
-OPAM_REPO_FORK_REMOTE=origin
-DOWNLOAD_URL_PREFIX=http://github.com/OCamlPro/typerex-build/archive/
 AC_OUTPUT
 
 echo

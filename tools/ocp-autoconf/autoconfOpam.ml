@@ -45,6 +45,22 @@ let () =
       let already_done = ref StringSet.empty in
 
       let oc = AutoconfFS.create_file "opam" in
+      AutoconfFS.fprintf oc
+        "(**************************************************************)\n";
+        AutoconfFS.fprintf oc
+          "(*                                                            *)\n";
+        AutoconfFS.fprintf oc
+          "(*      This file is managed by ocp-autoconf                  *)\n";
+        AutoconfFS.fprintf oc
+          "(*  Remove it from `manage_files` in 'ocp-autoconf.config'    *)\n";
+        AutoconfFS.fprintf oc
+          "(*  if you want to modify it manually (or use 'opam.trailer') *)\n";
+        AutoconfFS.fprintf oc
+          "(*                                                            *)\n";
+        AutoconfFS.fprintf oc
+          "(**************************************************************)\n";
+        AutoconfFS.fprintf oc "\n";
+
       List.iter (fun field ->
           if not (StringSet.mem field !already_done) then
             let () =
