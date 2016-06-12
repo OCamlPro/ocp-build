@@ -234,7 +234,9 @@ let () =
         AutoconfFS.fprintf oc "\n";
 
        end else begin
-         Printf.eprintf "  no file %S\n%!" "ocp-autoconf.ac";
+         Printf.eprintf "  no file %S\n%!" "ocp-autoconf.ac. Creating one.";
+         let file = "ocp-autoconf.ac" in
+         AutoconfCommon.save_file (Filename.concat "skeleton" file)
        end;
 
        let default_config_vars =
