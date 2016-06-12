@@ -279,6 +279,12 @@ let format_version = SimpleConfig.create_option config
     SimpleConfig.int_option
     0
 
+(* If the file does not exist, here is the version it should start with *)
+let initial_format_version = 1
+
+(* This is the current version *)
+let current_format_version = 3
+
 let update_options () =
 
   if !!format_version < 1 then begin
@@ -339,9 +345,9 @@ let update_options () =
     format_version =:= 3;
   end;
 
-  ()
+  assert (!!format_version = current_format_version);
 
-let current_format_version = 3
+  ()
 
 let global_to_project () =
 
@@ -380,7 +386,7 @@ let load () =
           Printf.eprintf "Error: %S does not exist.\n%!"
             (File.to_string config_file);
           if !arg_save_template then begin
-            format_version =:= current_format_version;
+            format_version =:= initial_format_version;
             save ()
           end else begin
             Printf.eprintf "Use option --save-template to create an example.\n%!";
