@@ -16,28 +16,37 @@ PREFIX=$HOME/.opam/$OCAML_VERSION
 opam remove ocp-build
 opam pin remove -y typerex-lint
 
-rm -f my-package.install_log
-opam pin -y add ocp-build . 2>&1 | tee -a  my-package.install_log
-opam install -y ocp-build 2>&1 | tee -a my-package.install_log
-
-curl -X POST --data  @my-package.install_log "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
+rm -f my-package.install.log
+opam pin -y add ocp-build . 2>&1 | tee -a  my-package.install.log
+opam install -y ocp-build 2>&1 | tee -a my-package.install.log
 
 if [ $? -eq 0 ];then
    echo "Installation OK"
 else
+   echo "Install on ${OCAML_VERSION} failed. End of log (30 lines):" > my-package.install.tail
+   echo '```' >> my-package.install.tail
+   tail -n 30 my-package.install.log >> my-package.install.tail
+   echo '```' >> my-package.install.tail
+  curl -X POST --data  @my-package.install.tail "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
    exit 2
 fi
 
-rm -f my-package.remove_log
-opam remove my-package 2>&1 | tee -a my-package.remove_log
-
-curl -X POST --data  @my-package.remove_log "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
+rm -f my-package.remove.log
+opam remove my-package 2>&1 | tee -a my-package.remove.log
 
 if [ $? -eq 0 ];then
    echo "Removal OK"
 else
+    echo "Removal on ${OCAML_VERSION} failed. End of log (30 lines):" > my-package.remove.tail
+   echo '```' > my-package.remove.tail
+   tail -n 30 my-package.remove.log >> my-package.remove.tail
+   echo '```' >> my-package.remove.tail
+   curl -X POST --data  @my-package.remove.tail "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
+
    exit 2
 fi
+
+exit 0
 
 if [ "${OCAML_VERSION}" != "4.02.3" ] ; then
    echo No lint
@@ -51,6 +60,7 @@ else
 
    ocp-lint --init
    ocp-lint --path ${PROJECT} > lint.stdout 2> lint.stderr
+   
    cat lint.stdout lint.stderr > lint.log
    
    curl -X POST --data  @lint.log "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
