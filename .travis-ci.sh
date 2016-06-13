@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 export OPAMYES=1 OPAMVERBOSE=1
 eval `opam config env`
@@ -18,7 +18,7 @@ opam pin remove -y typerex-lint
 
 opam pin add ocp-build .
 
-opam install -y ocp-build &> my-package.install_log
+opam install -y ocp-build 2> my-package.install_log
 
 echo opam install finished >> my-package.install_log
 head -n 10 my-package.install_log
@@ -31,9 +31,10 @@ else
    exit 2
 fi
 
-opam remove my-package &> my-package.remove_log
+opam remove my-package 2> my-package.remove_log
+echo opam install finished >> my-package.remove_log
 
-curl -X POST --data  @my-package.remove_log "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
+#curl -X POST --data  @my-package.remove_log "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
 if [ $? -eq 0 ];then
    echo "Removal OK"
 else
@@ -54,5 +55,5 @@ else
    ocp-lint --path ${PROJECT} &> lint.log
    head -n 50 lint.log
    
-   curl -X POST --data  @lint.log "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
+#   curl -X POST --data  @lint.log "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
 fi
