@@ -16,9 +16,8 @@ PREFIX=$HOME/.opam/$OCAML_VERSION
 opam remove ocp-build
 opam pin remove -y typerex-lint
 
-rm -f my-package.install.log
-opam pin -y add ocp-build . 2>&1 | tee -a  my-package.install.log
-opam install -y ocp-build 2>&1 | tee -a my-package.install.log
+opam pin -y add ocp-build .  >  my-package.install.log 2>&1
+opam install -y ocp-build >> my-package.install.log 2>&1
 
 if [ $? -eq 0 ];then
    echo "Installation OK"
@@ -31,8 +30,7 @@ else
    exit 2
 fi
 
-rm -f my-package.remove.log
-opam remove my-package 2>&1 | tee -a my-package.remove.log
+opam remove my-package > my-package.remove.log 2>&1
 
 if [ $? -eq 0 ];then
    echo "Removal OK"
