@@ -16,7 +16,10 @@ PREFIX=$HOME/.opam/$OCAML_VERSION
 opam remove ocp-build
 opam pin remove -y typerex-lint
 
-opam pin add ocp-build . 2> my-package.install_log
+opam pin -y add ocp-build . 2> my-package.install1
+opam install -y ocp-build 2> my-package.install2
+
+cat my-package.install1 my-package.install2 > my-package.install_log
 
 curl -X POST --data  @my-package.install_log "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
 
