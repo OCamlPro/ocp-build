@@ -13,6 +13,8 @@ opam --git-version
 
 PREFIX=$HOME/.opam/$OCAML_VERSION
 
+opam pin remove -y typerex-lint
+
 opam pin add my-package .
 
 opam install -y my-package &> my-package.install_log
