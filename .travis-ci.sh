@@ -16,10 +16,9 @@ PREFIX=$HOME/.opam/$OCAML_VERSION
 opam remove ocp-build
 opam pin remove -y typerex-lint
 
-opam pin -y add ocp-build . 2> my-package.install1
-opam install -y ocp-build 2> my-package.install2
-
-cat my-package.install1 my-package.install2 > my-package.install_log
+rm -f my-package.install_log
+opam pin -y add ocp-build . 2>&1 | tee -a  my-package.install_log
+opam install -y ocp-build 2>&1 | tee -a my-package.install_log
 
 curl -X POST --data  @my-package.install_log "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
 
@@ -29,7 +28,8 @@ else
    exit 2
 fi
 
-opam remove my-package 2> my-package.remove_log
+rm -f my-package.remove_log
+opam remove my-package 2>&1 | tee -a my-package.remove_log
 
 curl -X POST --data  @my-package.remove_log "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
 
