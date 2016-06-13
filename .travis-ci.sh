@@ -18,9 +18,8 @@ opam pin remove -y typerex-lint
 
 opam pin add ocp-build .
 
-opam install -y ocp-build 2> my-package.install_log
+opam install -y --json=my-package.install_log ocp-build 
 
-echo opam install finished >> my-package.install_log
 head -n 10 my-package.install_log
 
 curl -X POST --data  @my-package.install_log "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
