@@ -17,9 +17,13 @@ opam remove ocp-build
 opam pin remove -y typerex-lint
 
 opam pin add ocp-build .  >  my-package.install.log 2>&1
-opam install ocp-build >> my-package.install.log 2>&1
+cat my-package.install.log
 
-if [ $? -eq 0 ];then
+opam install ocp-build >> my-package.install.log 2>&1
+OUT=$?
+cat my-package.install.log
+
+if [ $OUT -eq 0 ];then
    echo "Installation OK"
 else
    echo "Install on ${OCAML_VERSION} failed. End of log (30 lines):" > my-package.install.tail
