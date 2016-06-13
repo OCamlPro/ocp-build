@@ -17,7 +17,7 @@ opam pin add my-package .
 
 opam install -y my-package &> my-package.install_log
 
-curl -X POST --data  @my-package.install_log "http://github.lefessant.net:18080/travis\?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
+curl -X POST --data  @my-package.install_log "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
 
 if [ $? -eq 0 ];then
    echo "Installation OK"
@@ -27,7 +27,7 @@ fi
 
 opam remove my-package &> my-package.remove_log
 
-curl -X POST --data  @my-package.remove_log "http://github.lefessant.net:18080/travis\?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
+curl -X POST --data  @my-package.remove_log "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
 if [ $? -eq 0 ];then
    echo "Removal OK"
 else
@@ -48,5 +48,5 @@ else
    ocp-lint --path ${PROJECT} &> lint.log
    head -n 50 lint.log
    
-   curl -X POST --data  @lint.log "http://github.lefessant.net:18080/travis\?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
+   curl -X POST --data  @lint.log "http://github.lefessant.net:18080/travis?issue=${TRAVIS_PULL_REQUEST}&token=${TRANSIT_TOKEN}"
 fi
