@@ -42,7 +42,7 @@ type value =
   | Int of int
   | Version of version
 
-type expression = { desc : expr_desc; loc : Location.t }
+type expression = { desc : expr_desc; eloc : Location.t }
 and expr_desc =
 | Pexp_ident of string Location.loc
 | Pexp_uident of string Location.loc

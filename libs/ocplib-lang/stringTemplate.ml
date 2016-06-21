@@ -45,7 +45,7 @@ let create content must defaults =
   let defaults = match defaults with
     | None -> []
     | Some defaults ->
-      List.iter (fun (s, default) ->
+      List.iter (fun (s, _default) ->
         if not (StringMap.mem s !labels) then begin
           labels := StringMap.add s !nargs !labels;
           incr nargs;

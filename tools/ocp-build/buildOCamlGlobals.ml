@@ -94,12 +94,12 @@ let make_build_targets lib cin =
        else []) @
       !(lib.lib_build_targets)
 
-let make_doc_targets lib cin =
+let make_doc_targets lib _cin =
    match ocaml_package lib with
   | None -> []
   | Some lib -> !(lib.lib_doc_targets)
 
-let make_test_targets lib cin =
+let make_test_targets lib _cin =
    match ocaml_package lib with
   | None -> []
   | Some lib -> !(lib.lib_test_targets)

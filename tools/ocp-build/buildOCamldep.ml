@@ -18,14 +18,15 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
 open StringCompat
-
-
 open BuildOCamlTypes
 open BuildOCamlVariables
+open BuildEngineTypes
+open BuildTypes
+open BuildOCPTypes
+open BuildValue.Types
 
-(* let verbose = DebugVerbosity.verbose [ "B" ] "BuildOCamldep" *)
+let verbose = DebugVerbosity.verbose [ "B" ] "BuildOCamldep"
 
 let parse_dependencies b =
   let s = Buffer.contents b in
@@ -176,12 +177,6 @@ When reading, we must keep track of what project this file belongs to.
 Then, we can infer from which projects the dependencies are
 *)
 
-open BuildEngineTypes
-open BuildTypes
-open BuildGlobals
-open BuildOCPTypes
-open BuildValue.Types
-
 let print_dependencies deps =
   List.iter (fun (dep, deps) ->
     Printf.eprintf "%s: " dep;
@@ -244,7 +239,7 @@ let load_modules_dependencies lib options force dst_dir pack_for needs_odoc file
     else "Pervasives" :: modules
   in
 
-  let (is_ml, modname, basename) = modname_of_file envs force source in
+  let (is_ml, _modname, basename) = modname_of_file envs force source in
 
   let modules =
     if not is_ml || nointernaldeps.get envs then modules

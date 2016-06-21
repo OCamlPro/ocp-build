@@ -21,8 +21,6 @@
 
 
 
-let verbose = DebugVerbosity.verbose [ "OcpLang" ] "LinearToposort"
-
 type node = {
   mutable node_incoming_edges : node IntMap.t;
   mutable node_outgoing_edges : node IntMap.t;
@@ -66,7 +64,7 @@ end) = (struct
     (* Phase 1: add all nodes to the graph, computing edges and initial
        positions *)
 
-    let rec add t node =
+    let add t node =
       if not (IntMap.mem node.node_id !graph) then begin
         graph := IntMap.add node.node_id (t,node) !graph;
         node.node_position <- !initial_position;
@@ -179,12 +177,12 @@ end) = (struct
       let cycle = ref [] in
       IntMap.iter (fun _ (t, node) ->
         let incoming_edges = ref [] in
-        IntMap.iter (fun node2_id node2 ->
+        IntMap.iter (fun node2_id _node2 ->
           let (t2, _) = IntMap.find node2_id !graph in
           incoming_edges := t2 :: !incoming_edges;
         ) node.node_incoming_edges;
         let outgoing_edges = ref [] in
-        IntMap.iter (fun node2_id node2 ->
+        IntMap.iter (fun node2_id _node2 ->
           let (t2, _) = IntMap.find node2_id !graph in
           outgoing_edges := t2 :: !outgoing_edges;
         ) node.node_outgoing_edges;

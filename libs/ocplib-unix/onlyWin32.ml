@@ -19,7 +19,6 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
 open MinUnix
 
 external waitpids : int -> int array -> int * MinUnix.process_status
@@ -42,7 +41,7 @@ external getFileInformationByHandle : MinUnix.file_descr -> fileinfo
 external getFileInformationByName : string -> fileinfo
   = "onlyWin32_getFileInformationByName_ml"
 
-let rec waitpid1 pid =
+let waitpid1 pid =
   let (_, status) = waitpid [] pid in
   match status with
   | MinUnix.WEXITED n -> n

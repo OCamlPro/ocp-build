@@ -34,12 +34,12 @@ let to_list map =
 
 let to_list1 map =
   let list = ref [] in
-  iter (fun x y -> list := x :: !list) map;
+  iter (fun x _y -> list := x :: !list) map;
   List.rev !list
 
 let to_list2 map =
   let list = ref [] in
-  iter (fun x y -> list := y :: !list) map;
+  iter (fun _x y -> list := y :: !list) map;
   List.rev !list
 
 exception MinElt
@@ -51,5 +51,3 @@ let min_elt map =
     iter (fun key v -> x := Some (key, v); raise exn_MinElt) map;
     None
   with MinElt -> !x
-
-

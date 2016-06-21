@@ -27,7 +27,6 @@ open BuildEngineContext
 open BuildEngineRules
 open BuildEngineTypes
 
-
 let verbose = DebugVerbosity.verbose ["B"] "BuildGlobals"
 
 (* Under Windows, we cannot use dot-prefixed directories *)

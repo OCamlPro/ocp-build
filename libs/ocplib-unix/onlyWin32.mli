@@ -49,6 +49,12 @@ external getFileInformationByName : string -> fileinfo
 
 (** {6 High-level process and redirection management} *)
 
+val system : string -> process_status
+(** Execute the given command, wait until it terminates, and return
+   its termination status. The string is interpreted by the shell
+   [/bin/sh] and therefore can contain redirections, quotes, variables,
+   etc. The result [WEXITED 127] indicates that the shell couldn't
+   be executed. *)
 
 val create_process :
   string -> string array -> file_descr -> file_descr -> file_descr -> int

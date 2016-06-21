@@ -45,7 +45,6 @@ val install :
 
 val find_installdir :
   install_where ->
-  install_what ->
   string -> string option
 
 

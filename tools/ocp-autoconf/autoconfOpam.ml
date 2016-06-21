@@ -24,7 +24,7 @@ open SimpleConfig.Op (* !! and =:= *)
 
 let opam_version = "1.2"
 
-let abort oc =
+let abort _oc =
   exit 2
 
 let wrong_value oc field options =

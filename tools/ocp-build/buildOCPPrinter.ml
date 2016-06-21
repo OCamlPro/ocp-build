@@ -31,7 +31,7 @@ let string_of_package_type = function
   | SyntaxPackage -> "SyntaxPackage"
   | RulesPackage -> "RulesPackage"
 
-let bprint_string b indent s = Printf.bprintf b "%S" s
+let bprint_string b _indent s = Printf.bprintf b "%S" s
 
 let rec
     (*
@@ -137,7 +137,7 @@ let package_dependency printer b indent pd =
   Printf.bprintf b "  %s}};\n" indent;
   Printf.bprintf b "%s}" indent
 
-let package_uid b indent p =
+let package_uid b _indent p =
   Printf.bprintf b "{ package with package_uid = \"%s_%d\" }"
     p.package_name p.package_id
 
@@ -173,7 +173,7 @@ let package package_info b indent p =
     Printf.bprintf b "%s%S, %s" indent s
       (match digest with
        | None -> "None"
-       | Some digest -> "Some _")
+       | Some _digest -> "Some _")
   ) b indent p.package_filenames;
   Printf.bprintf b ";\n";
   Printf.bprintf b "%s  package_id = %d;\n" indent p.package_id;

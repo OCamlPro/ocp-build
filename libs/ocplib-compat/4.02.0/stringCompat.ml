@@ -40,7 +40,21 @@ module Char = struct
   let lowercase_ascii = lowercase
 end
 
-module StringSet = Set.Make(String)
+module StringSet = struct
+  module M = Set.Make(String)
+  include M
+
+  let of_list list =
+    let map = ref empty in
+    List.iter (fun x -> map := add x !map) list;
+    !map
+
+  let to_list set =
+    let list = ref [] in
+    iter (fun e -> list := e :: !list) set;
+    List.rev !list
+
+end
 
 module StringMap = struct
   module M = Map.Make(String)

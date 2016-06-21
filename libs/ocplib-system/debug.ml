@@ -19,10 +19,7 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
-
 open StringCompat
-
 
 let verbose = ref false
 
@@ -86,14 +83,14 @@ end) : S = struct
 
   let fdebug f =
     match X.debug_channel () with
-      | Some c ->
+      | Some _c ->
         Option.iter (pp_print_string debug_formatter) (X.prefix ());
         kfprintf (fun fmt -> pp_print_flush fmt ()) debug_formatter f
       | None -> Format.ifprintf Format.err_formatter f
 
   let fdebugln f =
     match X.debug_channel () with
-      | Some c ->
+      | Some _c ->
         Option.iter (pp_print_string debug_formatter) (X.prefix ());
         kfprintf (fun fmt -> pp_print_newline fmt () ; pp_print_flush fmt ())
           debug_formatter f

@@ -91,7 +91,6 @@ type arg_action =
   | SetString of string SimpleConfig.config_option * string
   | SetStrings of string list SimpleConfig.config_option * string
   | SetStringOption of string option SimpleConfig.config_option * string
-  | SetStringsOption of string list option SimpleConfig.config_option * string
   | Apply of (unit -> unit)
 
 let save_configs = ref []
@@ -188,7 +187,8 @@ let load_config config filename =
 
       SimpleConfig.set_config_file config filename;
       SimpleConfig.save_with_help config
-    with e ->
+    with
+    | _e ->
       Printf.eprintf "Warning: could not save file %S\n%!"
         (File.to_string filename)
   end else
@@ -223,7 +223,7 @@ let apply_arguments () =
     | SetString (option, s) -> option =:= s
     | SetStrings (option, s) -> option =:= [s]
     | SetStringOption (option, s) -> option =:= Some s
-    | SetStringsOption (option, s) -> option =:= Some [s]
+    (*    | SetStringsOption (option, s) -> option =:= Some [s] *)
     | Apply f -> f ()
   ) (List.rev !arguments);
 
@@ -995,8 +995,6 @@ let find_project_root () =
       project_build_dirname;
     Printf.eprintf "  Did you run 'ocp-build init' ?\n%!";
     BuildMisc.clean_exit 2
-
-module StringSet = Set.Make(String)
 
 let merge lists =
   let args = ref [] in

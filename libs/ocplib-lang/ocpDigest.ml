@@ -25,6 +25,8 @@ open StringCompat
 
 (* Message digest (MD5) *)
 
+  (*
+
 type t = string
 
 external unsafe_string: string -> int -> int -> t = "caml_md5_string"
@@ -51,7 +53,7 @@ let input chan =
   let digest = Bytes.create 16 in
   really_input chan digest 0 16;
   digest
-
+  *)
 (*
 let to_hex d =
   let result = Bytes.create 32 in

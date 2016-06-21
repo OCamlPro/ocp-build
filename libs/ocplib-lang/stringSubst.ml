@@ -122,7 +122,7 @@ let subst config s =
   iter 0;
   !has_subst, Buffer.contents b
 
-let rec iter_subst config s =
+let iter_subst config s =
   let nsubst = ref 0 in
   let rec iter s =
     let has_subst, s = subst config s in
@@ -223,7 +223,7 @@ module M = struct
     iter 0;
     !has_subst, Buffer.contents b
 
-  let rec iter_subst config s info =
+  let iter_subst config s info =
     let nsubst = ref 0 in
     let rec iter s =
       let has_subst, s = subst config s info in
@@ -276,6 +276,7 @@ module Static = struct
     ) array;
     t
 
+      (*
   let add_to_copy subst key v =
     let rec add_to_copy key pos v node =
       if pos < String.length key then
@@ -291,13 +292,16 @@ module Static = struct
         { node with result = Some v }
     in
     add_to_copy key 0 v subst
+      *)
 
+      (*
   let subst_of_list list =
     let c = empty_subst () in
     List.iter (fun (key,v) ->
       add_prefix_map key 0 v c;
     ) list;
     c
+      *)
 
   let rec find_in_map b info node s pos =
     (*  Printf.fprintf stderr "find_in_map %d/%d\n" pos (String.length s); *)
@@ -341,7 +345,7 @@ module Static = struct
     iter 0;
     !has_subst, Buffer.contents b
 
-  let rec iter_subst t info s =
+  let iter_subst t info s =
     let nsubst = ref 0 in
     let rec iter s =
       let has_subst, s = subst t info s in

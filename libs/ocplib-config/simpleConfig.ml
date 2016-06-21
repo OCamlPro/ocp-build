@@ -202,8 +202,6 @@ let create_option config_file option_names
     option_names ?short_help long_help ?level
     option_class default_value
 
-exception SyntaxError
-
 let exec_hooks name list o =
   List.iter
     (fun f ->
@@ -426,29 +424,6 @@ let rec value_to_hasharray v2c v =
   | OnceValue v -> value_to_hasharray v2c v
   | _ -> failwith (Printf.sprintf "Options: not a list option for list2")
 
-let rec value_to_safelist v2c v =
-  match v with
-    List l | SmallList l ->
-      let rec iter list left =
-        match left with
-          [] -> list
-        | x :: tail ->
-            let list =
-              try v2c x :: list with
-                _ -> list
-            in
-            iter list tail
-      in
-      List.rev (iter [] (List.rev l))
-  | OnceValue v -> value_to_safelist v2c v
-  | StringValue s ->
-      failwith
-        (Printf.sprintf "Options: not a list option (StringValue [%s])" s)
-  | FloatValue _ -> failwith "Options: not a list option (FloatValue)"
-  | IntValue _ -> failwith "Options: not a list option (IntValue)"
-  | Module _ -> failwith "Options: not a list option (Module)"
-  | DelayedValue _ -> failwith "Options: not a list option (Delayed)"
-
 let rec value_to_intmap f v2c v =
   match v with
     List l | SmallList l ->
@@ -464,24 +439,6 @@ let rec value_to_intmap f v2c v =
       in
       iter IntMap.empty l
   | OnceValue v -> value_to_intmap f v2c v
-  | StringValue s ->
-      failwith
-        (Printf.sprintf "Options: not a list option (StringValue [%s])" s)
-  | FloatValue _ -> failwith "Options: not a list option (FloatValue)"
-  | IntValue _ -> failwith "Options: not a list option (IntValue)"
-  | Module _ -> failwith "Options: not a list option (Module)"
-  | DelayedValue _ -> failwith "Options: not a list option (Delayed)"
-
-let rec value_to_listiter v2c v =
-  match v with
-    List l | SmallList l ->
-      List.iter
-        (fun v ->
-           try ignore (v2c v) with
-             SideEffectOption -> ())
-        l;
-      raise SideEffectOption
-  | OnceValue v -> value_to_listiter v2c v
   | StringValue s ->
       failwith
         (Printf.sprintf "Options: not a list option (StringValue [%s])" s)
@@ -536,7 +493,7 @@ let list_to_value c2v l =
        List.iter (save_delayed_list_value oc indent c2v) l;
        Printf.bprintf oc "\n%s]" indent)
 
-let intmap_to_value name c2v map =
+let intmap_to_value _name c2v map =
   DelayedValue
     (fun oc indent ->
        let save = save_delayed_list_value oc indent c2v in
@@ -550,13 +507,56 @@ let hasharray_to_value x c2v l =
        Printf.bprintf oc "[";
        let save = save_delayed_list_value oc indent c2v in
        for i = 0 to Array.length l - 1 do
-         Hashtbl.iter (fun a b -> save (0, x, b)) l.(i)
+         Hashtbl.iter (fun _a b -> save (0, x, b)) l.(i)
        done;
        Printf.bprintf oc "\n%s]" indent)
 
 let smalllist_to_value c2v l = SmallList (convert_list c2v l [])
 
 (*
+
+let rec value_to_safelist v2c v =
+  match v with
+    List l | SmallList l ->
+      let rec iter list left =
+        match left with
+          [] -> list
+        | x :: tail ->
+            let list =
+              try v2c x :: list with
+                _ -> list
+            in
+            iter list tail
+      in
+      List.rev (iter [] (List.rev l))
+  | OnceValue v -> value_to_safelist v2c v
+  | StringValue s ->
+      failwith
+        (Printf.sprintf "Options: not a list option (StringValue [%s])" s)
+  | FloatValue _ -> failwith "Options: not a list option (FloatValue)"
+  | IntValue _ -> failwith "Options: not a list option (IntValue)"
+  | Module _ -> failwith "Options: not a list option (Module)"
+  | DelayedValue _ -> failwith "Options: not a list option (Delayed)"
+
+let rec value_to_listiter v2c v =
+  match v with
+    List l | SmallList l ->
+      List.iter
+        (fun v ->
+           try ignore (v2c v) with
+             SideEffectOption -> ())
+        l;
+      raise SideEffectOption
+  | OnceValue v -> value_to_listiter v2c v
+  | StringValue s ->
+      failwith
+        (Printf.sprintf "Options: not a list option (StringValue [%s])" s)
+  | FloatValue _ -> failwith "Options: not a list option (FloatValue)"
+  | IntValue _ -> failwith "Options: not a list option (IntValue)"
+  | Module _ -> failwith "Options: not a list option (Module)"
+  | DelayedValue _ -> failwith "Options: not a list option (Delayed)"
+
+
 let value_to_path v =
   List.map File.of_string
     (let rec iter v =
@@ -628,20 +628,24 @@ let hasharray_option x cl =
   define_option_class "Hashtable array" (value_to_hasharray cl.from_value)
     (hasharray_to_value x cl.to_value)
 
+(*
 let safelist_option cl =
   define_option_class (cl.class_name ^ " List")
     (value_to_safelist cl.from_value)
     (list_to_value cl.to_value)
+*)
 
 let intmap_option f cl =
   define_option_class (cl.class_name ^ " IntMap")
     (value_to_intmap f cl.from_value)
     (intmap_to_value cl.class_name cl.to_value)
 
+    (*
 let listiter_option cl =
   define_option_class (cl.class_name ^ " List")
     (value_to_listiter cl.from_value)
     (list_to_value cl.to_value)
+    *)
 
 let smalllist_option cl =
   define_option_class (cl.class_name ^ " List") (value_to_list cl.from_value)
@@ -808,10 +812,12 @@ let clear_option_hooks option = option.option_hooks <- []
 let class_hook option_class f =
   option_class.class_hooks <- f :: option_class.class_hooks
 
+        (*
 let rec iter_order f list =
   match list with
     [] -> ()
   | v :: tail -> f v; iter_order f tail
+
 
 let help oc opfile =
   List.iter (fun s ->
@@ -838,7 +844,7 @@ let help oc opfile =
           Printf.bprintf oc "\n")
       s.section_options;
   ) opfile.file_sections
-
+    *)
 
 let tuple2_to_value (c1, c2) (a1, a2) =
   SmallList [to_value c1 a1; to_value c2 a2]
@@ -1141,7 +1147,7 @@ let simple_options prefix opfile =
   opfile.file_sections;
   List.rev !list
 
-let simple_args_oi prefix opfile oi = match oi.M.option_kind with
+let simple_args_oi opfile oi = match oi.M.option_kind with
   | ArgWith ->
     let with_ =
       "--with-" ^ oi.M.option_shortname,
@@ -1202,7 +1208,7 @@ let simple_args_oi prefix opfile oi = match oi.M.option_kind with
 
 let simple_args prefix opfile =
   List.fold_left
-    (fun acc oi -> (simple_args_oi prefix opfile oi) @ acc)
+    (fun acc oi -> (simple_args_oi opfile oi) @ acc)
     [] (simple_options prefix opfile)
 
 let prefixed_args prefix file =
@@ -1212,6 +1218,7 @@ let prefixed_args prefix file =
        Printf.sprintf "-%s:%s" prefix s, f, h)
     (simple_args "" file)
 
+    (*
 let strings_of_section_options prefix s =
   let list = ref [] in
   List.iter
@@ -1219,7 +1226,7 @@ let strings_of_section_options prefix s =
       try list := info_of_option prefix o :: !list  with _ -> ())
   s.section_options;
   List.rev !list
-
+    *)
 
 
 type option_info = M.option_info = {
@@ -1232,7 +1239,9 @@ type option_info = M.option_info = {
     option_kind : option_kind;
   }
 
+  (*
 let info_of_option o = info_of_option "" o
+  *)
 
 let sections file = file.file_sections
 let section_name s = string_of_string_list s.section_name
@@ -1258,12 +1267,13 @@ let option_value_to_string v =
     StringValue s -> s
   | IntValue i -> string_of_int i
   | FloatValue f -> string_of_float f
-  | OnceValue v -> "OnceValue"
+  | OnceValue _v -> "OnceValue"
   | Module _ -> "Module"
   | List _ -> "List"
   | SmallList _ -> "SmallList"
   | DelayedValue _ -> "DelayedValue"
 
+    (*
 let must_field assocs name option =
   try from_value option (List.assoc name assocs)
   with _ -> raise Not_found
@@ -1280,6 +1290,7 @@ let if_different  value name option default fields =
   if value <> default then
     (name, to_value option value) :: fields
   else fields
+    *)
 
 
 

@@ -121,7 +121,7 @@ module Make (M : Map.S) = struct
     in
     traverse [] t
 
-  let rec fold f t acc =
+  let fold f t acc =
     let rec traverse revp t acc = match t with
       | Node (None,m) ->
 	  M.fold (fun x -> traverse (x::revp)) m acc
@@ -167,7 +167,7 @@ module Make (M : Map.S) = struct
 
   let filter fn t =
     let f = ref empty in
-    let rec aux k v =
+    let aux k v =
       if fn k v then
         f := add k v !f in
     iter aux t;
@@ -177,7 +177,7 @@ module Make (M : Map.S) = struct
   let partition fn t =
     let ok   = ref empty in
     let fail = ref empty in
-    let rec aux k v =
+    let aux k v =
       if fn k v then
          ok := add k v !ok
       else
@@ -200,27 +200,27 @@ module Make (M : Map.S) = struct
       add k v empty
 
     (* XXX TODO *)
-    let max_binding t =
+    let max_binding _t =
       Printf.eprintf "TODO\n%!";
       assert false
 
-    let min_binding t =
+    let min_binding _t =
       Printf.eprintf "TODO\n%!";
       assert false
 
-    let split k t =
+    let split _k _t =
       Printf.eprintf "TODO\n%!";
       assert false
 
-    let merge t1 t1 =
+    let merge _t1 _t1 =
       Printf.eprintf "TODO\n%!";
       assert false
 
-    let bindings t =
+    let bindings _t =
       Printf.eprintf "TODO\n%!";
       assert false
 
-    let union t1 t2 =
+    let union _t1 _t2 =
       Printf.eprintf "TODO\n%!";
       assert false
 end

@@ -49,7 +49,7 @@ let commit filename =
       ) !files in
     let modified = ref false in
     Printf.eprintf "Proposed list of changes:\n%!";
-    List.iter (fun (file, content, new_md5) ->
+    List.iter (fun (file, _content, new_md5) ->
         try
           let old_md5 = StringMap.find file !old_files in
           let current_md5 = try

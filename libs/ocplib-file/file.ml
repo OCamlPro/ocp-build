@@ -287,13 +287,13 @@ let size file = FileString.size (to_string file)
 let stat filename = MinUnix.stat (to_string filename)
 let lstat filename = MinUnix.lstat (to_string filename)
 
+let getcwd () = of_string (Sys.getcwd ())
+
   (*
     let size64 filename =
     let s = MinUnix.LargeFile.stat (to_string filename) in
     s.MinUnix.LargeFile.st_size
   *)
-
-let getcwd () = of_string (Sys.getcwd ())
 
 let open_in filename = open_in (to_string filename)
 let open_out filename = open_out (to_string filename)
@@ -323,7 +323,7 @@ let last_extension file =
   FileString.last_extension (extensions file)
 
 let chop_extension f =
-  let (basename, ext) = OcpString.cut_at f.file_basename '.' in
+  let (basename, _ext) = OcpString.cut_at f.file_basename '.' in
   let ext_len = String.length f.file_basename - String.length basename in
   if ext_len = 0 then f else
     let len = String.length f.file_string in
@@ -341,7 +341,6 @@ let temp_file t ext =
   of_string (Filename.temp_file (to_string t) ext)
 
 let current_dir_name = of_string "."
-let getcwd () = of_string (Sys.getcwd ())
 
 let to_rooted_string t =
   if is_absolute t then

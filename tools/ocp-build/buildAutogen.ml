@@ -44,7 +44,7 @@ let create_package name ptype dirname_t =
 
   let map = !map in
   let files = ref [] in
-  StringMap.iter (fun modfile (file, basename, ext) ->
+  StringMap.iter (fun _modfile (file, basename, ext) ->
     match ext with
         "ml" ->
           if not (StringMap.mem (basename ^ ".mll") map) &&

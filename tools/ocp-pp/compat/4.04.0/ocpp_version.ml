@@ -50,7 +50,7 @@ module StringMap = struct
 
   let to_list_of_keys map =
     let list = ref [] in
-    iter (fun x y -> list := x :: !list) map;
+    iter (fun x _y -> list := x :: !list) map;
     List.rev !list
 end
 
@@ -91,7 +91,7 @@ module Compat = struct
       (match s with None -> "" | Some c -> Printf.sprintf "%c" c)
     | NONREC -> "nonrec"
     | HASHOP op -> Printf.sprintf "hashop(%S)" op
-    | DOCSTRING docstring -> "docstring _"
+    | DOCSTRING _docstring -> "docstring _"
     | HASH -> "#"
     | _  -> assert false
 

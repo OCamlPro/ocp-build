@@ -79,7 +79,7 @@ let read_oasis filename =
               else (* indent > current_indent *)
                 match !lines with
                     [] -> assert false
-                  | Line (previous_line, new_lines) :: _ ->
+                  | Line (_previous_line, new_lines) :: _ ->
                     new_lines := Line (line, ref []) :: !new_lines;
                     let stack = (indent, new_lines) :: stack in
                     read_line stack ic

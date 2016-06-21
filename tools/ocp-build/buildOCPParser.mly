@@ -15,7 +15,6 @@
 
 open StringCompat
 
-open BuildValue.Types
 open BuildOCPTree
 open BuildOCPTypes
   (* TODO: location of the type in ocamlyacc is erroneous, for example here token "main"

@@ -19,8 +19,6 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
-
 open MinUnix
 open OcpLang
 
@@ -29,6 +27,7 @@ let assoc_of_env env =
   let el = List.map (fun s -> String.splitn 2 s '=') el in
   List.map (function [k] -> (k, "") | [k;v] -> (k,v) | _ -> assert false) el
 
+        (*
 let env_of_assoc el =
   let env = List.map (fun (k,v) -> k ^ "=" ^ v) el in
   Array.of_list env
@@ -40,6 +39,7 @@ let putenv_in env k v =
 
 let getenv_in env k =
   List.assoc k (assoc_of_env env)
+    *)
 
 let expand_in env s =
   let el = assoc_of_env env in
@@ -111,7 +111,7 @@ let safe_mkdir dir perm =
   try mkdir dir perm
   with Unix_error (EEXIST, _, _) -> ()
 
-let rec safe_rec_mkdir dir perm =
+let safe_rec_mkdir dir perm =
   let dirs = String.split dir Filename.dir_sep.[0] in
   let (_ : string) = List.fold_left
     (fun p d ->

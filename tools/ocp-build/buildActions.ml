@@ -19,18 +19,9 @@
 (**************************************************************************)
 
 
-
-
-
-open BuildOCamlConfig.TYPES
 open BuildTerm
 open BuildOptions
-
 open BuildGlobals
-
-
-
-
 
 let time_steps = ref []
 let time_step (msg : string) =

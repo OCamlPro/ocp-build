@@ -66,6 +66,7 @@ type install_what = {
   install_asm_lib : bool;
 }
 
+  (*
 type package_uninstaller = {
   mutable un_nfiles : int;
   mutable un_ndirs : int;
@@ -77,10 +78,11 @@ type package_uninstaller = {
   mutable un_type : string;
   mutable un_packages : string list;
 }
+  *)
 
-type kind = DIR | FILE | VERSION | WARNING | DESCR | TYPE | PACK
+type kind = DIR | FILE | VERSION | WARNING | TYPE | PACK
 
-type log = (kind * string) list
+(* type log = (kind * string) list *)
 
 module List = struct
   include List
@@ -207,7 +209,6 @@ let save_uninstall_log uninstall_file log =
     | DIR -> "DIR"
     | VERSION -> "VER"
     | WARNING -> "WAR"
-    | DESCR -> "LOG"
     | TYPE -> "TYP"
     | PACK -> "PCK"
     ) (String.escaped file);
@@ -428,20 +429,21 @@ let install where what lib installdir =
 (* TODO: we might install the same package several times in different
    directories, no ? *)
 
-let find_installdir where what lib_name =
+let find_installdir where lib_name =
   (match where.install_destdir with
       None -> ()
     | Some destdir ->
       try
         FileString.safe_mkdir destdir
-      with e ->
+      with
+      | _e ->
         Printf.eprintf "Error: install DESTDIR %S can be created\n%!"
           destdir;
         BuildMisc.clean_exit 2
   );
 
     (* Check whether it is already installed : *)
-  let rec iter possible libdirs =
+  let iter possible libdirs =
     match libdirs with
       [] ->
         begin
@@ -453,7 +455,7 @@ let find_installdir where what lib_name =
             Some installdir
         end
 
-    | libdir :: libdirs ->
+    | libdir :: _libdirs ->
       let installdir = Filename.concat libdir lib_name in
       let installdir_d = in_destdir where installdir in
 

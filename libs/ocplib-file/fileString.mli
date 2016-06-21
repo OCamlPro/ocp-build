@@ -19,8 +19,6 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
-
 (* This module implements operations on filenames represented as strings,
    as in the Filename module of the Standard Library. *)
 

@@ -20,8 +20,6 @@
 (**************************************************************************)
 
 
-  open Lexing
-
 type token =
 | STRING of string
 | IDENT of string

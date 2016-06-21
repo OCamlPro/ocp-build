@@ -39,11 +39,13 @@ type 'a package_dependency = 'a BuildOCPTypes.package_dependency =
       dep_options : BuildValue.Types.env;
     }
 
+      (*
 type mklib_kind =
     MKLIB_Unix
   | MKLIB_Msvc
+      *)
 
-and package_info = {
+type package_info = {
   lib_context : BuildEngineTypes.build_context;
   lib_id : int;
   lib_name : string;

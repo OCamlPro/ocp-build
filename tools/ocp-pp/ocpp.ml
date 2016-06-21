@@ -32,7 +32,6 @@ let debug_ocpp = try
 with Not_found -> false
 
 open Lexing
-open Longident
 open Location
 open Parser
 open Ocpp_types
@@ -89,7 +88,7 @@ let lexbuf_of_file filename =
   let lines =
     try
       lines_of_file filename
-    with e ->
+    with _e ->
       Printf.eprintf "Error: could not include file %S\n%!" filename;
       exit 2
   in
@@ -176,7 +175,8 @@ let name_of_token token =
   | COLONEQUAL -> "COLONEQUAL"
   | COLONGREATER -> "COLONGREATER"
   | COMMA -> "COMMA"
-  | COMMENT (begin_pos, end_pos) -> "COMMENT of (int * int)"
+  | COMMENT (begin_pos, _end_loc) ->
+    Printf.sprintf "COMMENT (%S)" begin_pos
   | CONSTRAINT -> "CONSTRAINT"
   | DO -> "DO"
   | DONE -> "DONE"
@@ -296,7 +296,8 @@ let string_of_token token =
   | COLONEQUAL -> ":="
   | COLONGREATER -> ":>"
   | COMMA -> ","
-  | COMMENT (comment, pos) -> Printf.sprintf "COMMENT %s" (String.escaped comment)
+  | COMMENT (comment, _loc) ->
+    Printf.sprintf "COMMENT (%s)" (String.escaped comment)
   | CONSTRAINT -> "constraint"
   | DO -> "do"
   | DONE -> "done"
@@ -450,7 +451,7 @@ let parse_expr tokens lexbuf =
   let tokens = ref tokens in
   let module P = Ocpp_parser in
   try
-    P.ocpp_expr (fun lexbuf ->
+    P.ocpp_expr (fun _lexbuf ->
         match !tokens with
           [] -> P.EOF
         | token :: tail -> tokens := tail;
@@ -663,7 +664,7 @@ let rec get_token lexer =
   | Some token -> token
 
 let bool_of_expr = function
-  | String s -> failwith "bool(String)"
+  | String s -> Printf.kprintf failwith "bool(%s)" s
   | Int n -> n <> 0
   | Undefined s -> Printf.kprintf failwith "bool(Undefined %S)" s.txt
   | Version _ -> failwith "bool(Version)"
@@ -850,7 +851,7 @@ and preprocess_directive lexer  directive =
     | Int 0 ->
       stack := (AfterIf false, !keep) :: !stack;
       keep := false
-    | Int n ->
+    | Int _n ->
       stack := (AfterIf true, !keep) :: !stack;
       keep := true
     | Undefined s ->

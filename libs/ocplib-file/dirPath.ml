@@ -19,8 +19,6 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
-
 open StringCompat
 
 let find_in_path path name =

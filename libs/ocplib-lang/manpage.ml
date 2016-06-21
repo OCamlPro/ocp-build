@@ -19,6 +19,16 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+type 'man_block man_page = {
+  man_name : string;   (* "OPAM" "GCC" *)
+  man_section : int;
+  man_date : string;
+  man_release : string; (* "SOFT VERSION" *)
+  man_org : string; (* GNU, OPAM Manual *)
+  man_text :'man_block list;
+}
+
+module CMDLINER = struct
 
 type man_block =
 | S of string
@@ -31,15 +41,6 @@ type pager =
 | PAGER
 | GROFF
 
-type 'man_block man_page = {
-  man_name : string;   (* "OPAM" "GCC" *)
-  man_section : int;
-  man_date : string;
-  man_release : string; (* "SOFT VERSION" *)
-  man_org : string; (* GNU, OPAM Manual *)
-  man_text :'man_block list;
-}
-
 (*---------------------------------------------------------------------------
   Copyright (c) 2011-2012 Daniel C. Bünzli. All rights reserved.
   Distributed under a BSD3 license, see license at the end of the file.
@@ -50,7 +51,6 @@ let str = Printf.sprintf
 let pr = Format.fprintf
 let pr_str = Format.pp_print_string
 let pr_char = Format.pp_print_char
-let str_of_pp pp v = pp Format.str_formatter v; Format.flush_str_formatter ()
 
 let pr_to_temp_file pr v = try
                              let exec = Filename.basename Sys.argv.(0) in
@@ -97,7 +97,7 @@ let pr_tokens ?(groff = false) ppf s =
   (* Plain text output *)
 
 let plain_esc c s = match c with 'g' -> "" (* groff specific *) | _ ->  s
-let pr_indent ppf c = for i = 1 to c do pr_char ppf ' ' done
+let pr_indent ppf c = for _ = 1 to c do pr_char ppf ' ' done
 let pr_plain_blocks subst ppf ts =
   let buf = Buffer.create 1024 in
   let escape t = escape subst plain_esc buf t in
@@ -203,6 +203,8 @@ let rec print ?(subst = fun x -> x) fmt ppf (page : 'a man_page) = match fmt wit
   | PAGER -> pr_to_pager (print ~subst) ppf page
   | PLAIN -> pr_plain_page subst ppf page
   | GROFF -> pr_groff_page subst ppf page
+
+end
 
 module RAW = struct
 

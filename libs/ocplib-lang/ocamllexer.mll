@@ -24,10 +24,6 @@
 {
   open StringCompat
 
-open Lexing
-
-(* open Misc *)
-
 type token =
     Kwd of string
   | Ident of string
@@ -229,7 +225,7 @@ and comment = parse
   | "*)"
       { match !comment_start_pos with
         | [] -> assert false
-        | [x] -> ()
+        | [_] -> ()
         | _ :: l -> comment_start_pos := l;
                     comment lexbuf;
        }
