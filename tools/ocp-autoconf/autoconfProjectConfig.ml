@@ -360,7 +360,7 @@ let global_to_project () =
 *)
   ()
 
-let save ~update =
+let save () =
 
   update_options ();
   global_to_project ();

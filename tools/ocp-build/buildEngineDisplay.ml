@@ -63,7 +63,7 @@ let pretty_rule_name rule len =
       term_bold (File.basename (File.chop_extension f)); ".";
       String.concat "." (File.extensions f) ; pad ]
 
-let print_stat_line b proc =
+let print_stat_line b _proc =
   let npar = IntMap.cardinal b.build_stats_running_rules in
   let buf = Buffer.create 100 in
   IntMap.iter (fun _ (r,_) ->
@@ -340,7 +340,7 @@ and eprint_command indent cmd =
     Printf.eprintf "%sCopy %s to %s\n" indent (string_of_argument f1) (string_of_argument f2)
   | Move (_, f1, f2) ->
     Printf.eprintf "%sRename %s to %s\n" indent (string_of_argument f1) (string_of_argument f2)
-  | MoveIfExists (f1, f2, f3) ->
+  | MoveIfExists (f1, f2, _link) ->
     if verbose 4 then
       Printf.eprintf "%sRename? %s to %s\n" indent (string_of_argument f1) (string_of_argument f2)
   | DynamicAction (s,_) ->

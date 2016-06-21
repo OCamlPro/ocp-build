@@ -53,35 +53,18 @@ end
    where toto is a syntax, OR set the "pp_master" option. If we depend
    on a package, and this package depends on another syntax, it does
    not matter.
-
-
-
 *)
 
-(* open OcpLang *)
-(* open OcpSystem *)
-
-
 open BuildMisc
-
 open BuildEngineTypes
-
-
-
 open BuildEngineRules
-
-
 open BuildValue.Types
-
-
 open BuildTypes
-open BuildGlobals
-
-
 open BuildOCamlTypes
 open BuildOCamlVariables
 open BuildOCamlMisc
 
+let verbose = DebugVerbosity.verbose ["B"] "BuildOCamlSyntaxes"
 
 let execution_dependencies pk kind =
   if pk.lib.lib_installed then [] else
@@ -282,7 +265,7 @@ let get_pp lib basename options =
       | [s1;s2] ->
         begin
           match s1, s1.lib_type, s2, s2.lib_type with
-          | _, ProgramPackage, pksy, ProgramPackage ->
+          | _, ProgramPackage, _pksy, ProgramPackage ->
             Printf.eprintf "Error with package %S, filw %S:\n"
               lib.lib.lib_name basename;
             Printf.eprintf "   Only one preprocessor can be specified.\n%!";

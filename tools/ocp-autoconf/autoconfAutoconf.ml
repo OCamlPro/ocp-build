@@ -352,7 +352,7 @@ let () =
 
        let oc = AutoconfFS.create_file "autoconf/config.ocpgen.in" in
        List.iter (function
-           | (var, None)-> ()
+           | (_var, None)-> ()
            | (var, Some name) ->
              AutoconfFS.fprintf oc "%s=\"@%s@\"\n" name var;
          ) config_vars;

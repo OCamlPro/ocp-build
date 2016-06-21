@@ -108,11 +108,7 @@ let _ =
 (*                                                                     *)
 (***********************************************************************)
 
-(* Fabrice: It is important to show that we are expert in OCaml, and
-   that the code that we write is clean and efficient. It is
-   unfortunately not the case of all the following functions.
-
-   So, I divided the file between a CLEAN section and a DIRTY section.
+(*  I divided the file between a CLEAN section and a DIRTY section.
    We should rewrite code from DIRTY to CLEAN and only document
    functions in the CLEAN section.
 *)
@@ -123,7 +119,7 @@ let diff a b =
   let rec aux accu = function
     | h1::t1, h2::t2 when h1<h2 -> aux (h1::accu) (t1, h2::t2)
     | h1::t1, h2::t2 when h1>h2 -> aux (h2::accu) (h1::t1, t2)
-    | h1::t1, h2::t2            -> aux accu (t1, t2)
+    | _h1::t1, _h2::t2            -> aux accu (t1, t2)
     | [], l | l, []             -> (List.rev accu) @ l in
   aux [] (a, b)
 
@@ -134,8 +130,8 @@ let sub a b =
   let rec aux accu = function
     | h1::t1, h2::t2 when h1<h2 -> aux (h1::accu) (t1, h2::t2)
     | h1::t1, h2::t2 when h1>h2 -> aux accu (h1::t1, t2)
-    | h1::t1, h2::t2            -> aux accu (t1, t2)
-    | [], l                     -> List.rev accu
+    | _h1::t1, _h2::t2            -> aux accu (t1, t2)
+    | [], _l                     -> List.rev accu
     | l, []                     -> (List.rev accu) @ l in
   aux [] (a, b)
 
@@ -291,7 +287,7 @@ let rec inv_assoc x = function
 
 let rec inv_mem_assoc x = function
   | [] -> false
-  | (a, b) :: l -> compare b x = 0 || inv_mem_assoc x l
+  | (_a, b) :: l -> compare b x = 0 || inv_mem_assoc x l
 
 (* Compatibility 3.11 -> 3.12 *)
 let rec iteri i f = function

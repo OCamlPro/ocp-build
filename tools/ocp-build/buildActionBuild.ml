@@ -49,10 +49,9 @@ open BuildTerm
 open BuildActions
 open BuildValue.Types
 
-let max_stage = ref 20
+let verbose = DebugVerbosity.verbose ["B"] "BuildActionBuild"
 
-type target =
-  | TargetPackage of package_info
+let max_stage = ref 20
 
 let build_max = ref false
 
@@ -62,8 +61,6 @@ let load_installed_ocp = ref true
 let make_build_targets = ref false
 let make_doc_targets = ref false
 let make_test_targets = ref false
-
-let _ = DebugVerbosity.add_submodules "B" [ "BuildMain" ]
 
 let print_installed install_where =
   let open BuildUninstall in
@@ -261,7 +258,7 @@ let do_print_fancy_project_info pj =
     let missing_roots =
     (* remove all missing pkgs that depend on another to get the missing roots *)
       List.filter
-        (fun (name,pkgs) ->
+        (fun (name, _pkgs) ->
           not
             (List.exists
                (fun (_,pks) ->
@@ -853,7 +850,7 @@ let add_synomyms arg_list1 synonyms =
     let rec iter list =
       match list with
       [] -> assert false
-      | (s, action, help) :: tail when s = s2 -> (s1, action, help)
+      | (s, action, help) :: _tail when s = s2 -> (s1, action, help)
       | _ :: tail -> iter tail
     in
     iter arg_list1

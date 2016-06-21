@@ -34,10 +34,9 @@ open BuildValue.Types
 
 
 let load_META_files pj ocamllib top_dirname =
-  let add_META meta_dirname basename meta_filename =
+  let add_META meta_dirname meta_filename =
     (*
       Printf.eprintf "dirname=%S\n%!" dirname;
-      Printf.eprintf "basename=%S\n%!" basename;
       Printf.eprintf "filename=%S\n%!" filename;
     *)
     try
@@ -262,10 +261,10 @@ This will be done later, in BuildOCP.verify_packages
   Array.iter (fun basename ->
     let filename = Filename.concat top_dirname basename in
     if OcpString.starts_with basename "META." then
-      add_META top_dirname basename filename
+      add_META top_dirname filename
     else
     if Sys.is_directory filename then
       let meta_filename = Filename.concat filename "META" in
       if Sys.file_exists meta_filename then
-        add_META filename "META" meta_filename
+        add_META filename meta_filename
   ) files

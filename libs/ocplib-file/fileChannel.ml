@@ -19,12 +19,9 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
-
 open StringCompat
 
 type out_file = out_channel
-type in_file = in_channel
 
 let output_line chan string =
   output_string chan (string ^ FileOS.line_separator)
@@ -67,9 +64,6 @@ let string_of_file = read_file
 
 let write_file = output_string
 let file_of_string = write_file
-
-let channel_of_string = output_string
-
 
 let read_subfile ic pos len =
   seek_in ic pos;

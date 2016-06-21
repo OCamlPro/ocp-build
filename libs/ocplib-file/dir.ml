@@ -19,11 +19,10 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
 open StringCompat
 
-  let mkdir dir perm = MinUnix.mkdir (File.to_string dir) perm
-  let make dir = mkdir dir 0o755
+let mkdir dir perm = MinUnix.mkdir (File.to_string dir) perm
+let make dir = mkdir dir 0o755
 
 let rec make_all dir =
   if File.exists dir then begin

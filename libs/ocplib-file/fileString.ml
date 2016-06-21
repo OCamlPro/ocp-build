@@ -23,12 +23,7 @@
 
 open StringCompat
 
-type t = string
-
-
-
-
-
+(* type t = string *)
 
 let cut_at_last_extension basename =
   try
@@ -40,7 +35,7 @@ let cut_at_last_extension basename =
 let extensions_of_basename basename =
   match OcpString.split basename '.' with
     [] | [_] -> []
-  | filename :: xx -> xx
+  | _basename :: exts -> exts
 
 let last_extension extensions =
   try

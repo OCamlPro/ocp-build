@@ -182,7 +182,7 @@ let rule_need_execution =
                   BuildMisc.clean_exit 2
               in
               actions @ commands
-            | Function (name, printer, actor) ->
+            | Function (_name, printer, _actor) ->
               printer cmdbuf;
               commands
           in
@@ -700,7 +700,8 @@ let rule_executed b r execution_status =
               Printf.eprintf "target %s updated to mtime %s\n%!"
                 filename
                 (BuildMtime.to_string f.file_mtime);
-          with e ->
+          with
+          | _e ->
             BuildEngineDisplay.add_error b
               [Printf.sprintf "Target %s not built" (file_filename f);]
       end;
@@ -742,7 +743,7 @@ let rule_executed b r execution_status =
 let cross_dirname b dirname =
   match b.cross_arg with
     None -> dirname
-  | Some arch ->
+  | Some _arch ->
     let cross_dirname = Filename.concat dirname b.build_dir_basename in
     if not (Sys.file_exists cross_dirname) then dirname else cross_dirname
 
@@ -811,7 +812,7 @@ let add_dependency b r target_file filenames =
   try
     add_dependency b r target_file filenames
   with EmptyListOfDependencies ->
-    let (rule_filename, rule_loc, rule_project) = r.rule_loc in
+    let (rule_filename, rule_loc, _rule_project) = r.rule_loc in
     BuildMisc.print_loc rule_filename rule_loc;
     Printf.eprintf "Error, unexpected situation:\n";
     Printf.eprintf "  Dependencies needed by %s\n"
@@ -1094,7 +1095,7 @@ let parallel_loop b ncores =
               let status =
                 match proc.proc_last with
                   None -> status
-                | Some cmd ->
+                | Some _cmd ->
                   let status = command_executed b proc status in
                   if verbose 3 then
                     Printf.eprintf "[%d.%d] Just finished executing\n%!"

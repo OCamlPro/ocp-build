@@ -19,7 +19,6 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
 open StringCompat
 
 (** [find_in_path path filename] searches a file in a list of directories. *)

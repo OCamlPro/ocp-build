@@ -185,7 +185,7 @@ let print_indented_command cmd =
     Printf.eprintf "\tCopy %s to %s\n" (string_of_argument f1) (string_of_argument f2)
   | Move (_, f1, f2) ->
     Printf.eprintf "\tRename %s to %s\n" (string_of_argument f1) (string_of_argument f2)
-  | MoveIfExists (f1, f2, _f3) ->
+  | MoveIfExists (f1, f2, _link) ->
     if verbose 4 then
       Printf.eprintf "\tRename? %s to %s\n" (string_of_argument f1) (string_of_argument f2)
   | DynamicAction (s,_) ->

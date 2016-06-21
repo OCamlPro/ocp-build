@@ -19,6 +19,9 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+module Op : sig
+  val (/) : string -> string -> string
+end
 
 
 (** [get_extension "foo/bar.t"] returns [Some "t"] *)

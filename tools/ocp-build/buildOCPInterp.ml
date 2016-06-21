@@ -222,7 +222,8 @@ let read_config_file (pj:state) filename =
         pj.config_files <- StringMap.add filename digest pj.config_files
     end;
     Some (content, digest)
-  with e ->
+  with
+  | _e ->
     Printf.eprintf "Error: file %S does not exist.\n%!" filename;
     None
 
@@ -341,7 +342,7 @@ and translate_toplevel_statement pj config stmt =
         translate_toplevel_statements pj config ifelse
     end
 
-  | _ -> translate_simple_statement pj config stmt
+  | _ -> translate_simple_statement config stmt
 
 and translate_statements pj config list =
   match list with
@@ -361,9 +362,9 @@ and translate_statement pj config stmt =
         | Some ifelse ->
           translate_statements pj config ifelse
     end
-  | _ -> translate_simple_statement pj config stmt
+  | _ -> translate_simple_statement config stmt
 
-and translate_simple_statement pj config stmt =
+and translate_simple_statement config stmt =
   match stmt with
   | StmtOption option ->
     { config with config_env =
@@ -588,11 +589,11 @@ let subst_basename filename =
 
 let filesubst = BuildSubst.create_substituter
     [
-      "file", (fun (file, (env : env list) ) -> file);
-      "basefile", (fun (file, env) -> Filename.basename file);
-      "basename", (fun (file, env) -> subst_basename file);
-      "dirname", (fun (file, env) -> Filename.dirname file);
-      "extensions", (fun (file, env) ->
+      "file", (fun (file, (_env : env list) ) -> file);
+      "basefile", (fun (file, _env) -> Filename.basename file);
+      "basename", (fun (file, _env) -> subst_basename file);
+      "dirname", (fun (file, _env) -> Filename.dirname file);
+      "extensions", (fun (file, _env) ->
         try
           let pos = String.index file '.' in
           String.sub file pos (String.length file - pos)
@@ -625,7 +626,7 @@ let _ =
     BuildValue.value (List.rev files)
   in
 
-  let subst_file envs ( env : env) =
+  let subst_file envs ( _env : env) =
     let to_ext = BuildValue.get_strings_with_default envs "to_ext" [] in
     let to_file = match to_ext with
         [ to_ext ] -> "%{dirname}%/%{basename}%" ^ to_ext
@@ -649,7 +650,7 @@ let _ =
   add_primitive "subst_ext" subst_help subst_file;
   add_primitive "subst_file" subst_help subst_file;
 
-  add_primitive "basefiles" [] (fun envs env ->
+  add_primitive "basefiles" [] (fun envs _env ->
     subst_files envs "%{basefile}%"
   );
 
@@ -686,7 +687,7 @@ let _ =
     "- string : the string";
     "- strings : the list of strings";
   ]
-    (fun envs env ->
+    (fun envs _env ->
       let string = BuildValue.get_string envs "string" in
       let strings = BuildValue.get_strings envs "strings" in
       let bool = List.mem string strings in
@@ -697,19 +698,19 @@ let _ =
   add_function "disp" [
     "Display its environment ENV"
   ]
-    (fun envs env ->
+    (fun _envs env ->
       Printf.printf "disp:\n%!";
       eprint_env "" env;
       BuildValue.value []
     );
 
   add_function "exit" []
-    (fun envs env ->
+    (fun envs _env ->
       let code = BuildValue.get_local_string_with_default envs "code" "0" in
       exit (int_of_string code)
     );
 
-  add_function "pack" [] (fun envs env ->
+  add_function "pack" [] (fun envs _env ->
     let to_module = BuildValue.get_local envs "to_module" in
     let files = BuildValue.get_local_prop_list envs "files" in
 
@@ -747,7 +748,7 @@ let _ =
     "- p : the package";
     "ENV can contain:";
     "- file : a filename that will be appended";
-  ] (fun envs env ->
+  ] (fun envs _env ->
     let p = BuildValue.get_local_string envs "p" in
     let s = Printf.sprintf "%%{%s_FULL_DST_DIR}%%" p in
     let s = try
@@ -764,7 +765,7 @@ let _ =
     "- p : the package";
     "ENV can contain:";
     "- file : a filename that will be appended";
-  ] (fun envs env ->
+  ] (fun envs _env ->
     let p = BuildValue.get_local_string envs "p" in
     let s = Printf.sprintf "%%{%s_FULL_SRC_DIR}%%" p in
     let s =try
@@ -775,13 +776,13 @@ let _ =
     VString s
   );
 
-  add_function "byte_exe" [] (fun envs env ->
+  add_function "byte_exe" [] (fun envs _env ->
     let p = BuildValue.get_local_string envs "p" in
     let s = Printf.sprintf "%%{%s_FULL_DST_DIR}%%/%s.byte" p p in
     VString s
   );
 
-  add_function "asm_exe" [] (fun envs env ->
+  add_function "asm_exe" [] (fun envs _env ->
     let p = BuildValue.get_local_string envs "p" in
     let s = Printf.sprintf "%%{%s_FULL_DST_DIR}%%/%s.asm" p p in
     VString s
@@ -796,7 +797,7 @@ let _ =
     "- sep : a string, whose first char will be the separator";
     "    (default to space)";
   ]
-    (fun envs env ->
+    (fun envs _env ->
       let s = BuildValue.get_string envs "s" in
       let sep = BuildValue.get_string_with_default envs "sep" " " in
       let sep = if sep = "" then ' ' else sep.[0] in
@@ -811,7 +812,7 @@ let _ =
     "ENV can contain:";
     "- sep : a string, whose first char will be the separator";
     "    (default to space)";
-  ] (fun envs env ->
+  ] (fun envs _env ->
     let s = BuildValue.get_string envs "s" in
     let sep = BuildValue.get_string_with_default envs "sep" " " in
     let sep = if sep = "" then ' ' else sep.[0] in

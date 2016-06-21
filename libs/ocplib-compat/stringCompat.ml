@@ -94,7 +94,21 @@ end
 
 #endif
 
-module StringSet = Set.Make(String)
+module StringSet = struct
+  module M = Set.Make(String)
+  include M
+
+  let of_list list =
+    let map = ref empty in
+    List.iter (fun x -> map := add x !map) list;
+    !map
+
+  let to_list set =
+    let list = ref [] in
+    iter (fun e -> list := e :: !list) set;
+    List.rev !list
+
+end
 
 module StringMap = struct
   module M = Map.Make(String)
@@ -111,6 +125,6 @@ module StringMap = struct
 
   let to_list_of_keys map =
     let list = ref [] in
-    iter (fun x y -> list := x :: !list) map;
+    iter (fun x _y -> list := x :: !list) map;
     List.rev !list
 end

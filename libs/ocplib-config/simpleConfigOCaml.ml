@@ -197,8 +197,9 @@ let rec save_module with_help indent oc list =
            Printf.bprintf oc "\n"
        | m :: tail ->
            let p =
-             try List.assoc m !subm with
-               e -> let p = ref [] in subm := (m, p) :: !subm; p
+             try List.assoc m !subm
+             with
+             | Not_found -> let p = ref [] in subm := (m, p) :: !subm; p
            in
            p := (tail, help, value) :: !p)
     list;

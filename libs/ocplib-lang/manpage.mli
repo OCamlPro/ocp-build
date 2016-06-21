@@ -20,17 +20,6 @@
 (**************************************************************************)
 
 
-type man_block =
-  | S of string
-  | P of string
-  | I of string * string
-  | NOBLANK
-
-type pager =
-  | PLAIN
-  | PAGER
-  | GROFF
-
 type 'div man_page = {
     man_name : string;   (* "OPAM" "GCC" *)
     man_section : int;
@@ -40,10 +29,25 @@ type 'div man_page = {
     man_text : 'div list;
 }
 
-val print :
-  ?subst:(string -> string) -> pager ->
-  Format.formatter ->
-  man_block man_page -> unit
+module CMDLINER : sig
+
+  type man_block =
+  | S of string
+  | P of string
+  | I of string * string
+  | NOBLANK
+
+  type pager =
+  | PLAIN
+  | PAGER
+  | GROFF
+
+  val print :
+    ?subst:(string -> string) -> pager ->
+    Format.formatter ->
+    man_block man_page -> unit
+
+end
 
 module RAW : sig
 

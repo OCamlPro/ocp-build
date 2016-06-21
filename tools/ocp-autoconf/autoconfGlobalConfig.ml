@@ -19,7 +19,6 @@
 (**************************************************************************)
 
 open StringCompat
-open AutoconfArgs
 
 let (!!) = SimpleConfig.(!!)
 let (=:=) = SimpleConfig.(=:=)

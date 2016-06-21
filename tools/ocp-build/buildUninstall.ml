@@ -110,10 +110,10 @@ let rec uninstall_by_uninstaller state uninstall_file_d =
       | "DIR", file ->
         let file_d = in_destdir state file in
         state.un_dirs <- file_d :: state.un_dirs
-      | "VER", version -> ()
-      | "WAR", warning -> ()
-      | "LOG", log -> ()
-      | "TYP", kind -> ()
+      | "VER", _version -> ()
+      | "WAR", _warning -> ()
+      | "LOG", _log -> ()
+      | "TYP", _kind -> ()
       | "PCK", name ->
         let name =
           if Filename.check_suffix name ".uninstall" then
@@ -174,8 +174,8 @@ let load_uninstaller filename =
     List.iter (fun line ->
       match OcpString.cut_at line ' ' with
       | "OCP", _ -> ()
-      | "REG", file -> un.un_nfiles <- 1 + un.un_nfiles
-      | "DIR", file -> un.un_ndirs <- 1 + un.un_ndirs
+      | "REG", _file -> un.un_nfiles <- 1 + un.un_nfiles
+      | "DIR", _file -> un.un_ndirs <- 1 + un.un_ndirs
       | "VER", v -> un.un_version <- v
       | "WAR", w -> un.un_warning <- Some w
       | "LOG", d -> un.un_descr <- d

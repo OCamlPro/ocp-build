@@ -18,7 +18,7 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
+(*
 open StringCompat
 open BuildMisc
 type unused
@@ -249,3 +249,4 @@ let load_object_file filename =
   let obj_desc = inspector.insp_reader filename ic in
   close_in ic;
   obj_desc
+*)

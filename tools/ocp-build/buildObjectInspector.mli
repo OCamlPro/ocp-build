@@ -18,7 +18,7 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
+(*
 type unused
 
 type cmo_desc = {
@@ -75,3 +75,4 @@ type obj_desc =
 
 (* Load the description of some object files *)
 val load_object_file : string -> obj_desc
+*)

@@ -25,23 +25,7 @@ open BuildArgs
 open BuildTerm
 open BuildActions
 
-module StringSet = struct
-  include StringSet
-
-  let of_list list =
-    let map = ref empty in
-    List.iter (fun x -> map := add x !map) list;
-    !map
-  let to_list set =
-    let list = ref [] in
-    StringSet.iter (fun e -> list := e :: !list) set;
-    List.rev !list
-end
-
-let do_install bc dest_dir where install_what
-    projects
-    package_map
-  =
+let do_install bc dest_dir _install_what projects _package_map =
 
   let install_dirs = ref StringSet.empty in
   List.iter (fun p ->
@@ -74,7 +58,6 @@ let do_install bc dest_dir where install_what
       Printf.printf "Packages %s are already installed, removing first...\n"
         names;
       let state =
-        let open BuildOCamlInstall in
         BuildUninstall.init dest_dir install_dirs
       in
       List.iter
@@ -91,7 +74,7 @@ let do_install bc dest_dir where install_what
   end;
 
   let projects_to_install = ref StringMap.empty in
-  let rec add_to_install p =
+  let add_to_install p =
     let module P = (val p : Package) in
     let lib = P.info in
       if lib.lib_install &&
@@ -144,7 +127,7 @@ let arg_list =
   BuildOptions.merge
     [
       [
-  "-install-bundle", Arg.String (fun s ->
+  "-install-bundle", Arg.String (fun _s ->
     Printf.eprintf "Warning: option -install-bundle is obsolete\n%!"
     ),
   "BUNDLE Install a bundle packages to uninstall all\n  packages at once";
@@ -163,7 +146,7 @@ let action () =
   let install_where = BuildOCamlInstall.install_where p.cin p.cout in
   let install_what = BuildOCamlInstall.install_what () in
   do_install bc install_where.BuildOCamlInstall.install_destdir
-    install_where install_what projects package_map;
+    install_what projects package_map;
   ()
 
 

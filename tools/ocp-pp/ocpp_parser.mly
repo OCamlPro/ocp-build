@@ -27,11 +27,11 @@
 open Location
 open Ocpp_types
 
-let mkexp d =  { desc = d; loc = symbol_rloc() }
+let mkexp d =  { desc = d; eloc = symbol_rloc() }
 let mkrhs rhs pos = mkloc rhs (rhs_loc pos)
 let mkoperator name pos =
   let loc = rhs_loc pos in
-  { desc = Pexp_ident(mkloc name loc); loc = loc }
+  { desc = Pexp_ident(mkloc name loc); eloc = loc }
 let mkinfix arg1 name arg2 =
   mkexp(Pexp_apply(mkoperator name 2, [arg1;arg2]))
 

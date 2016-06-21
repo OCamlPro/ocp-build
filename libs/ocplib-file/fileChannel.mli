@@ -19,13 +19,11 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
-
 open StringCompat
 
 include (FileSig.CONTENT_OPERATIONS with
           type in_file := in_channel
-                                     and type out_file = out_channel)
+          and type out_file = out_channel)
 
 (* [output_line ic line] outputs [line] in [ic], followed by a
    line-terminator. *)

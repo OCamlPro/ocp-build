@@ -25,7 +25,9 @@ include Filename
 
 open OcpLang
 
-let (/) = concat
+module Op = struct
+  let (/) = concat
+end
 
 let get_extension filename =
   let filename = basename filename in

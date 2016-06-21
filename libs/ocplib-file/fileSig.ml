@@ -19,7 +19,6 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
 open StringCompat
 
 module type CONTENT_OPERATIONS = sig

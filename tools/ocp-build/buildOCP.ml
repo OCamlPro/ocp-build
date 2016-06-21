@@ -30,6 +30,7 @@ open BuildValue.Types
 
 let verbose = DebugVerbosity.verbose ["B";"BP"] "BuildOCP"
 
+  (*
 type temp_package = {
   tpk_pk : final_package;
   mutable tpk_need_validation : int;
@@ -49,6 +50,7 @@ type temp_state = {
   missing : (string * string, temp_tag list ref) Hashtbl.t;
   conflicts :  (final_package * final_package *  final_package) list ref;
 }
+  *)
 
 let print_missing_deps = ref false
 
@@ -317,7 +319,7 @@ let update_deps pj =
   ()
 
 
-let reset_package_ids debug array =
+let reset_package_ids _debug array =
   for i = 0 to Array.length array - 1 do
     (*    Printf.eprintf "reset_package_ids[%s] %s_%d -> %s_%d%!\n" debug
           array.(i).package_name array.(i).package_id array.(i).package_name i; *)
@@ -845,13 +847,13 @@ let verify_packages packages =
 
   if !missing_dep_of <> StringMap.empty then begin
     let ncount = ref 0 in
-    StringMap.iter (fun dep pkgs ->
+    StringMap.iter (fun dep _pkgs ->
       if not (StringMap.mem dep !missing_dep_on) then
         incr ncount
     ) !missing_dep_of;
     if !print_missing_deps then begin
       Printf.eprintf "Warning: %d missing dependencies\n" !ncount;
-      StringMap.iter (fun dep pkgs ->
+      StringMap.iter (fun dep _pkgs ->
         if not (StringMap.mem dep !missing_dep_on) then
           let rec iter indent dep =
             try
@@ -1026,7 +1028,8 @@ let load_project_state filename =
     try
             really_input ic magic 0 magic_len;
             Bytes.to_string magic
-    with e ->
+    with
+    | _e ->
       close_in ic;
       failwith "load_project_state: truncated file"
   in
@@ -1092,7 +1095,7 @@ let find_package pj file =
   Array.iter (fun pk ->
     List.iter (fun (filename, _) ->
       check_file pk filename;
-      let (kernel, extension) = FileString.cut_at_last_extension filename in
+      let (_kernel, extension) = FileString.cut_at_last_extension filename in
       match extension with
       | "ml" -> check_file pk (filename ^ ".mli")
       | "mli" -> ()
