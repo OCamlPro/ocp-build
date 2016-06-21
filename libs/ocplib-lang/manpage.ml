@@ -97,7 +97,7 @@ let pr_tokens ?(groff = false) ppf s =
   (* Plain text output *)
 
 let plain_esc c s = match c with 'g' -> "" (* groff specific *) | _ ->  s
-let pr_indent ppf c = for _ = 1 to c do pr_char ppf ' ' done
+let pr_indent ppf c = for _i = 1 to c do pr_char ppf ' ' done
 let pr_plain_blocks subst ppf ts =
   let buf = Buffer.create 1024 in
   let escape t = escape subst plain_esc buf t in
