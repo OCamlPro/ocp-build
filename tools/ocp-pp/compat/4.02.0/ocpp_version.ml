@@ -79,6 +79,7 @@ module Compat = struct
     | INT32(int32) -> Printf.sprintf "INT32(%ld)" int32
     | INT64(int64) -> Printf.sprintf "INT64(%Ld)" int64
     | FLOAT float -> Printf.sprintf "FLOAT(%s)" float
+    | SHARP -> "SHARP"
     | _  -> assert false
 
   let string_of_token = function
@@ -90,7 +91,12 @@ module Compat = struct
     | INT32(int32) -> Printf.sprintf "%ld" int32
     | INT64(int64) -> Printf.sprintf "%Ld" int64
     | FLOAT float -> float
+    | SHARP -> "#"
     | _  -> assert false
+
+  let is_sharp = function
+    | SHARP -> true
+    | _ -> false
 
   let int_of_token = function
     | INT n -> n

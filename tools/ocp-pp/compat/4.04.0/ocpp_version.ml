@@ -78,7 +78,7 @@ module Compat = struct
       (match s with None -> "None" | Some c -> Printf.sprintf "Some %c" c)
     | FLOAT (float, s) -> Printf.sprintf "FLOAT(%s,%s)" float
       (match s with None -> "None" | Some c -> Printf.sprintf "Some %c" c)
-    | SHARP -> "SHARP"
+    | HASH -> "HASH"
     | _  -> assert false
 
   let string_of_token = function
@@ -90,13 +90,13 @@ module Compat = struct
     | FLOAT (float, s) -> Printf.sprintf "%s%s" float
       (match s with None -> "" | Some c -> Printf.sprintf "%c" c)
     | NONREC -> "nonrec"
-    | SHARPOP op -> Printf.sprintf "sharpop(%S)" op
+    | HASHOP op -> Printf.sprintf "hashop(%S)" op
     | DOCSTRING docstring -> "docstring _"
-    | SHARP -> "#"
+    | HASH -> "#"
     | _  -> assert false
 
   let is_sharp = function
-    | SHARP -> true
+    | HASH -> true
     | _ -> false
 
   let int_of_token = function

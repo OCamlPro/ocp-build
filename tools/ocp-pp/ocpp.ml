@@ -236,7 +236,6 @@ let name_of_token token =
   | RPAREN -> "RPAREN"
   | SEMI -> "SEMI"
   | SEMISEMI -> "SEMISEMI"
-  | SHARP -> "SHARP"
   | SIG -> "SIG"
   | STAR -> "STAR"
   | STRUCT -> "STRUCT"
@@ -356,7 +355,6 @@ let string_of_token token =
   | RPAREN -> ")"
   | SEMI -> ";"
   | SEMISEMI -> ";;"
-  | SHARP -> "#"
   | SIG -> "sig"
   | STAR -> "*"
   | STRUCT -> "struct"
@@ -728,9 +726,25 @@ let rec preprocess lexer =
     end;
     preprocess lexer lexbuf
 *)
-
-  | SHARP when !after_eol ->
-    if debug_ocpp then
+  | EOF ->
+    begin
+      match !stack with
+        [] -> EOF
+      | (InIncludedFileAt (old_lexbuf, queue, curr_p), _) :: stack_tail ->
+        old_lexbuf.lex_curr_p <- curr_p;
+        queued_tokens := queue;
+        after_eol := true;
+        if debug_ocpp then
+          Printf.eprintf "Popping old lexbuf from stack\n%!";
+        current_lexbuf := old_lexbuf;
+        stack := stack_tail;
+        preprocess lexer
+      | _ ->
+        Printf.kprintf failwith "unclosed #if/#ifdef"
+    end
+  | _ ->
+    if Compat.is_sharp token && !after_eol then begin
+      if debug_ocpp then
       Printf.eprintf "SHARP maybe directive...\n%!";
     begin match get_token lexer with
     | INCLUDE ->
@@ -763,25 +777,11 @@ let rec preprocess lexer =
       if debug_ocpp then
         Printf.eprintf "oups, not a directive\n%!";
       queued_tokens := token :: !queued_tokens;
-      SHARP
+      token
     end
-  | EOF ->
-    begin
-      match !stack with
-        [] -> EOF
-      | (InIncludedFileAt (old_lexbuf, queue, curr_p), _) :: stack_tail ->
-        old_lexbuf.lex_curr_p <- curr_p;
-        queued_tokens := queue;
-        after_eol := true;
-        if debug_ocpp then
-          Printf.eprintf "Popping old lexbuf from stack\n%!";
-        current_lexbuf := old_lexbuf;
-        stack := stack_tail;
-        preprocess lexer
-      | _ ->
-        Printf.kprintf failwith "unclosed #if/#ifdef"
-    end
-  | _ ->
+    end else begin
+
+
     after_eol := false;
     if !keep then begin
       if !stack <> [] then begin
@@ -794,6 +794,7 @@ let rec preprocess lexer =
     end
     else
       preprocess lexer
+ end
 
 and preprocess_directive lexer  directive =
   let rec iter lexer  tokens =

@@ -46,13 +46,19 @@ let name_of_token = function
   | LBRACKETPERCENT|LBRACKETPERCENTPERCENT
   | LBRACKETAT|LBRACKETATAT|LBRACKETATATAT|PERCENT|PLUSEQ -> "4.02.1 token"
   | STRING (s,_) -> Printf.sprintf "STRING(%S,_)" s
+  | SHARP -> "SHARP"
   | _  -> assert false
 
 let string_of_token = function
   | LBRACKETPERCENT|LBRACKETPERCENTPERCENT
   | LBRACKETAT|LBRACKETATAT|LBRACKETATATAT|PERCENT|PLUSEQ -> "4.02.1 token"
   | STRING (s,_) -> Printf.sprintf "%S" s
+  | SHARP -> "#"
   | _  -> assert false
+
+let is_sharp = function
+  | SHARP -> true
+  | _ -> false
 
 let int_of_token = function
   | INT n -> n

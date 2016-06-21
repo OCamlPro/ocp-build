@@ -25,8 +25,9 @@ if ocaml_version = "4.01.0+ocp1" || ocaml_version = "4.02.1+ocp1" then {
 
 begin program "ocp-pp";
 
+  files = []
   if ocaml_version < "4.02" then {
-    files = [ pack Ocpp_version [
+    files += [ pack Ocpp_version [
 
       "compat/4.00.0/config.ml"
       "compat/4.00.0/terminfo.ml"
@@ -36,17 +37,20 @@ begin program "ocp-pp";
       "compat/4.00.0/syntaxerr.ml"
       "compat/4.00.0/longident.ml"
 
-
-      "compat/stringCompat.ml";
-      "compat/parser.ml";
-      "compat/lexer.mll" (pp = []);
-      "compat/compat.ml";
+      "compat/4.00.0/stringCompat.ml";
+      "compat/4.00.0/parser.ml";
+      "compat/4.00.0/lexer.mll" (pp = []);
+      "compat/4.00.0/compat.ml";
     ] ];
   } else {
     if ocaml_version < "4.03" then {
-      files = [ "compat/4.02.0/ocpp_version.ml" ];
+      files += [ "compat/4.02.0/ocpp_version.ml" ];
     } else {
-      files = [ "compat/4.03.0/ocpp_version.ml" ];
+      if ocaml_version < "4.04" then {
+      files += [ "compat/4.03.0/ocpp_version.ml" ];
+      } else {
+        files += [ "compat/4.04.0/ocpp_version.ml" ];
+      }
     }
     requires = [  "compiler-libs.common" ];
   };
