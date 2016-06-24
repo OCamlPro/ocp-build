@@ -23,6 +23,18 @@
 (* open BuildBase *)
 open BuildOCPTypes
 
+type warning =
+[ `MissingDirectory of string * string * string
+| `PackageConflict of
+    BuildOCPTypes.final_package * BuildOCPTypes.final_package *
+      BuildOCPTypes.final_package
+| `BadInstalledPackage of string * string
+| `MissingDependency of string * string * string
+| `KindMismatch of string * string * string * string
+| `IncompletePackage of BuildOCPTypes.final_package
+| `MissingPackage of string * BuildOCPTypes.final_package list
+]
+
 val print_loaded_ocp_files : bool ref
 val print_package_deps : bool ref
 val print_missing_deps : bool ref
@@ -31,7 +43,11 @@ val init_packages : unit -> BuildOCPInterp.state
 val load_ocp_files :
   BuildOCPInterp.config ->
   BuildOCPInterp.state -> File.t list -> int
-val verify_packages : BuildOCPInterp.state -> BuildOCPTypes.project
+
+val verify_packages :
+  [> warning ] BuildWarnings.set ->
+  BuildOCPInterp.state ->
+  BuildOCPTypes.project
 
 (* val load_project : File.t list -> project * int *)
 
@@ -40,7 +56,7 @@ val verify_packages : BuildOCPInterp.state -> BuildOCPTypes.project
 val find_root : File.t -> string list -> File.t
 
 (*
-val save_project : File.t -> project -> unit
+  val save_project : File.t -> project -> unit
 *)
 
 val scan_root : File.t -> File.t list
@@ -60,6 +76,9 @@ val find_obuild : (string -> unit) -> string -> unit
 val empty_config : unit -> BuildOCPInterp.config
 val generated_config : unit -> BuildOCPInterp.config
 
-val print_conflicts : project -> bool -> unit
+val print_conflict :
+  'a BuildOCPTypes.package ->
+  'b BuildOCPTypes.package ->
+  'c BuildOCPTypes.package -> unit
 
 (* val eprint_project : string -> project -> unit *)

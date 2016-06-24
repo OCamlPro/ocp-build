@@ -86,9 +86,10 @@ and 'a package_dependency =
     }
 
 and project = {
-  mutable project_disabled : final_package array;
-  mutable project_incomplete : final_package array;
   mutable project_sorted : final_package array;
+  mutable project_disabled : final_package array;
+  (*
+  mutable project_incomplete : final_package array;
   mutable project_missing : (string * final_package list) list;
-  mutable project_conflicts :  (final_package * final_package *  final_package) list;
+  *)
 }

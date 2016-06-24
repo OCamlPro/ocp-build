@@ -169,18 +169,20 @@ let add_project_dep pk s options =
  for which we should use another loading phase.
 *)
 
-let check_package pk =
+let check_package w pk =
   let options = pk.package_options in
 
     if BuildValue.get_bool_with_default [options] "enabled" true &&
        not ( BuildMisc.exists_as_directory pk.package_dirname ) then begin
       (* TODO: we should probably do much more than that, i.e. disable also a
          package when some files are missing. *)
-      Printf.eprintf "Warning: directory %S for package does not exist:\n"
-        pk.package_dirname;
-      Printf.eprintf "  Package %S in %S disabled.\n%!"
-        pk.package_name pk.package_filename;
-      pk.package_options <- BuildValue.set_bool options "enabled" false;
+         BuildWarnings.add w
+           (`MissingDirectory
+               (
+                 pk.package_dirname,
+                 pk.package_name,
+                 pk.package_filename));
+         pk.package_options <- BuildValue.set_bool options "enabled" false;
     end else begin
 
       pk.package_version <- BuildValue.get_string_with_default [pk.package_options]

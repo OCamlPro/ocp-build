@@ -61,8 +61,8 @@ let action () =
     if !make_doc_targets then make_build_targets := true;
   );
 
-  let p = BuildActions.load_project () in
-  let (bc, projects, _package_map) = BuildActionBuild.do_build p in
+
+  let (p, bc, projects, _package_map) = BuildActionBuild.do_build () in
   do_test bc.build_context (BuildActionBuild.get_ncores p.cin) projects;
   ()
 

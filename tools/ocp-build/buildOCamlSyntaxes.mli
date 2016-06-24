@@ -18,8 +18,13 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+type warning = [
+| `SyntaxDepDeclaredAsNotSyntax of string * string * string
+| `SyntaxDepNotDeclared of string * string * string
+]
 
 val get_pp :
+  [> warning ] BuildWarnings.set ->
   BuildOCamlTypes.ocaml_package ->
   string -> (* source basename *)
   BuildValue.Types.env ->
@@ -31,6 +36,7 @@ val add_pp_requires :
   BuildEngineTypes.build_rule -> BuildOCamlTypes.pp -> unit
 
 val get_tool_requires :
+  [> warning ] BuildWarnings.set ->
   string ->
   BuildOCamlTypes.ocaml_package ->
   string list ->

@@ -18,15 +18,28 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+val subcommand : BuildArgs.subcommand
+val action : unit -> unit
+val arg_list : (string * Arg.spec * string) list
 
-val plugin : (module BuildTypes.Plugin)
+val load_initial_project :
+  BuildActionsWarnings.set ->
+  BuildActions.project_info ->
+  BuildOCPInterp.state ->
+  BuildTypes.builder_context *
+    (module BuildTypes.Package) StringCompat.StringMap.t
 
-(* From the [validated_projects] table, fill the other
-   tables *)
-val create :
-  [> BuildOCamlSyntaxes.warning ] BuildWarnings.set ->
-  BuildOptions.config_input ->
-  BuildOCamlConfig.TYPES.config_output ->
-  BuildTypes.builder_context ->
-  BuildOCPTypes.project ->
-  (module BuildTypes.Package) array
+val init_env :
+  unit ->
+    BuildActionsWarnings.set *
+    BuildActions.project_info * BuildOCPInterp.state *
+    BuildOCPTypes.project
+
+val init_project :
+  BuildActionsWarnings.set ->
+  BuildActions.project_info ->
+  BuildOCPInterp.state ->
+  BuildTypes.builder_context *
+    (module BuildTypes.Package) StringCompat.StringMap.t
+
+val chdir_to_project : BuildActions.project_info -> unit

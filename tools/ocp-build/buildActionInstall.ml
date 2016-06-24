@@ -140,8 +140,7 @@ let arg_list =
 
 let action () =
   BuildActionBuild.make_build_targets := true;
-  let p = BuildActions.load_project () in
-  let (bc, projects,package_map) = BuildActionBuild.do_build p in
+  let (p, bc, projects,package_map) = BuildActionBuild.do_build () in
 
   let install_where = BuildOCamlInstall.install_where p.cin p.cout in
   let install_what = BuildOCamlInstall.install_what () in

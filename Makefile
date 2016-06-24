@@ -63,6 +63,7 @@ OCPLIB_CONFIG= $(config_SRCDIR)/pythonConfig.ml \
 
 BUILD_MISC= $(OCP_BUILD_SRCDIR)/logger.ml				\
     $(OCP_BUILD_SRCDIR)/buildMisc.ml					\
+    $(OCP_BUILD_SRCDIR)/buildWarnings.ml				\
     $(OCP_BUILD_SRCDIR)/buildMtime.ml					\
     $(OCP_BUILD_SRCDIR)/buildScanner.ml					\
     $(OCP_BUILD_SRCDIR)/buildSubst.ml					\
@@ -115,6 +116,7 @@ BUILD_OCAML= $(OCP_BUILD_SRCDIR)/buildOCamlConfig.ml	\
 
 BUILD_MAIN= $(OCP_BUILD_SRCDIR)/buildArgs.ml	\
     $(OCP_BUILD_SRCDIR)/buildActions.ml		\
+    $(OCP_BUILD_SRCDIR)/buildActionsWarnings.ml	\
     $(OCP_BUILD_SRCDIR)/buildActionInit.ml	\
     $(OCP_BUILD_SRCDIR)/buildActionPrefs.ml	\
     $(OCP_BUILD_SRCDIR)/buildActionConfigure.ml	\
@@ -156,8 +158,10 @@ all: build-ocps
 	@echo Libraries will be installed in ${ocamldir}
 	@echo META files will be installed in ${metadir}
 
-build-ocps: $(OCP_BUILD_BOOTER)
+_obuild: Makefile
 	$(OCP_BUILD_BOOTER) init
+
+build-ocps: $(OCP_BUILD_BOOTER) _obuild
 	$(OCP_BUILD_BOOTER)
 
 depend: $(OCP_BUILD_MLS) $(OCP_BUILD_TMPS)

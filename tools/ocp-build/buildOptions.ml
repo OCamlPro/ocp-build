@@ -987,7 +987,6 @@ let rec shortcut_arg new_name old_name list =
       else shortcut_arg new_name old_name list
 
 let find_project_root () =
-  Printf.eprintf "find_project_root\n%!";
   try
     BuildOCP.find_root (File.getcwd()) [ project_build_dirname ]
   with  Not_found ->

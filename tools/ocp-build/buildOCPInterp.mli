@@ -88,7 +88,9 @@ val new_package_dep :
 
 val read_ocamlconf :  state -> config -> string -> config
 
-val check_package : final_package -> unit
+val check_package :
+  [> `MissingDirectory of string * string * string ] BuildWarnings.set
+  -> final_package -> unit
 
 type prim
 

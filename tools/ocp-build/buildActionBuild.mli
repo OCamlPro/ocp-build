@@ -28,12 +28,13 @@ val make_build_targets : bool ref
 
 
 val do_build :
-  BuildActions.project_info ->
-  BuildTypes.builder_context * (module BuildTypes.Package) list *
+  unit ->
+  BuildActions.project_info *
+    BuildTypes.builder_context * (module BuildTypes.Package) list *
   (module BuildTypes.Package) StringCompat.StringMap.t
 
-val do_read_env : BuildActions.project_info -> BuildOCPInterp.state
+(* val do_read_env : BuildActions.project_info -> BuildOCPInterp.state *)
 
 
 val get_ncores : BuildOptions.config_input -> int
-val finally_do : (unit -> unit) list ref
+(* val finally_do : (unit -> unit) list ref  *)

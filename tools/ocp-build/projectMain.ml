@@ -96,7 +96,8 @@ let _ =
   let state = BuildOCP.init_packages () in
   let config = BuildOCP.empty_config () in
   let nerrors = BuildOCP.load_ocp_files config state files in
-  let pj = BuildOCP.verify_packages state in
+  let w = BuildWarnings.empty_set () in
+  let pj = BuildOCP.verify_packages w state in
   if nerrors > 0 then exit 2;
   print_dependencies pj packages;
   ()

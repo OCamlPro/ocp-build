@@ -61,7 +61,8 @@ let () =
            | _ ->
              need_pkgs := pkg :: !need_pkgs
          ) !!need_packages;
-       if !!optional_packages <> [] then need_ocamlfind := true;
+       if !!optional_packages <> [] || !!need_packages <> [] then
+         need_ocamlfind := true;
 
        let need_packages = List.rev !need_pkgs in
 

@@ -133,7 +133,7 @@ type project_info = {
   cout : BuildOCamlConfig.TYPES.config_output;
 }
 
-let load_project () =
+let load_project w =
   let project_dir = BuildOptions.find_project_root () in
 
   time_step "Loading configuration files...";
@@ -147,7 +147,7 @@ let load_project () =
       OnlyUnix.isatty MinUnix.stdout && OnlyUnix.isatty MinUnix.stderr)));
 
   time_step "Checking OCaml config...";
-  let cout = BuildOCamlConfig.check_config cin in
+  let cout = BuildOCamlConfig.check_config w cin in
   time_step "   Done checking OCaml config.";
 
 
