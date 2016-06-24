@@ -41,7 +41,7 @@ let env_warnings_kind = "env"
 let pj_warnings_kind = "project"
 
 let arg_no_warnings_string = "--no-warnings"
-let arg_warnings_fmt = ("--%s-warnings" :  ('a -> 'b, unit, string) format)
+let arg_warnings_fmt = ("--%s-warnings" :  _ format)
 let arg_pj_warnings_string = Printf.sprintf arg_warnings_fmt pj_warnings_kind
 let arg_env_warnings_string = Printf.sprintf arg_warnings_fmt env_warnings_kind
 let arg_all_warnings_string = "--all-warnings"
