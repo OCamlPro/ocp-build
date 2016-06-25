@@ -41,12 +41,12 @@ let env_warnings_kind = "env"
 let pj_warnings_kind = "project"
 
 let arg_no_warnings_string = "--no-warnings"
-let arg_warnings_fmt = ("--%s-warnings" :  _ format)
+let arg_warnings_fmt = format_of_string "--%s-warnings"
 let arg_pj_warnings_string = Printf.sprintf arg_warnings_fmt pj_warnings_kind
 let arg_env_warnings_string = Printf.sprintf arg_warnings_fmt env_warnings_kind
 let arg_all_warnings_string = "--all-warnings"
 
-let warnings_filename_fmt = ("_obuild/%s_warnings.data" : _ format)
+let warnings_filename_fmt = format_of_string "_obuild/%s_warnings.data"
 
 let arg_print_env_warnings = ref PrintWarningsIfChanged
 let arg_print_pj_warnings = ref PrintWarningsIfChanged
