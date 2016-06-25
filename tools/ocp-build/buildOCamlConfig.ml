@@ -31,6 +31,10 @@ open BuildValue.Types
 open BuildConfig
 open BuildOptions
 
+type warning = [
+| `MissingTool of string
+]
+
 module TYPES = struct
 
   type ocaml_config = {
@@ -162,7 +166,7 @@ let check_is_ocamlyacc = check_is_compiler ',' ocamlyacc_prefixes [ "-version" ]
 let check_is_ocamlmklib = check_is_compiler ',' ocamlmklib_prefixes [ "-version" ]
 
 
-let check_config cin =
+let check_config w cin =
 
   let cout = {
     cout_ocamlc = None;
@@ -290,8 +294,8 @@ let check_config cin =
   let ocamldoc = find_first_in_path path check_is_ocamldoc
       [ "ocamldoc" ] in
   begin match ocamldoc with
-      None ->
-      Printf.eprintf "Warning: Could not find OCaml ocamldoc tool.\n";
+    None ->
+      BuildWarnings.add w (`MissingTool "ocamldoc");
       cout.cout_ocamldoc <- Some [ "no-ocamldoc-detected" ]
     | Some ocamldoc ->
       cout.cout_ocamldoc <- Some [ocamldoc];

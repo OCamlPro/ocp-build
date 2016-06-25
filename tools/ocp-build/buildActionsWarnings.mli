@@ -18,15 +18,22 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+val arg_list : (string * Arg.spec * string) list
 
-val plugin : (module BuildTypes.Plugin)
+type warning =
+[
+| BuildOCP.warning
+| BuildOCamlConfig.warning
+| BuildOCamlSyntaxes.warning
+]
 
-(* From the [validated_projects] table, fill the other
-   tables *)
-val create :
-  [> BuildOCamlSyntaxes.warning ] BuildWarnings.set ->
-  BuildOptions.config_input ->
-  BuildOCamlConfig.TYPES.config_output ->
-  BuildTypes.builder_context ->
-  BuildOCPTypes.project ->
-  (module BuildTypes.Package) array
+type set = warning BuildWarnings.set
+
+val set_default_is_always : unit -> unit
+
+(* [print_env_warnings set] prints warnings from [set],
+   using [filename] as a reminder of former warnings, and update
+   [filename] consequently. [kind] is a simple string to characterize
+   these warnings, typically "env" or "project" *)
+val print_env_warnings : set -> unit
+val print_pj_warnings : set -> unit

@@ -28,6 +28,18 @@ open BuildOCPTypes
 
 open BuildValue.Types
 
+type warning =
+[ `MissingDirectory of string * string * string
+| `PackageConflict of
+    BuildOCPTypes.final_package * BuildOCPTypes.final_package *
+      BuildOCPTypes.final_package
+| `BadInstalledPackage of string * string
+| `MissingDependency of string * string * string
+| `KindMismatch of string * string * string * string
+| `IncompletePackage of BuildOCPTypes.final_package
+| `MissingPackage of string * BuildOCPTypes.final_package list
+]
+
 let verbose = DebugVerbosity.verbose ["B";"BP"] "BuildOCP"
 
   (*
@@ -103,30 +115,23 @@ let load_ocp_files global_config packages files =
   iter [ "", "<root>", global_config ] files;
   !nerrors
 
-let print_conflicts pj verbose_conflicts =
-  if pj.project_conflicts <> [] then
-    if verbose_conflicts then
-      List.iter (fun (pk, pk2, pk3) ->
-        Printf.eprintf "Warning: two projects called %S\n" pk.package_name;
-        let print_package msg pk =
-          let msg_len = String.length msg in
-          let dirname_len = String.length pk.package_dirname in
-          let filename_len = String.length pk.package_filename in
-          if msg_len + dirname_len + filename_len > 70 then
-            Printf.eprintf "  %s %s\n     (%s)\n" msg
-              pk.package_dirname pk.package_filename
-          else
-            Printf.eprintf "  %s %s (%s)\n" msg
-              pk.package_dirname pk.package_filename;
-        in
-        print_package "In" pk;
-        print_package "In" pk2;
-        print_package "Keeping" pk3;
-      ) pj.project_conflicts
+let print_conflict pk pk2 pk3 =
+  Printf.eprintf "Warning: two projects called %S\n" pk.package_name;
+  let print_package msg pk =
+    let msg_len = String.length msg in
+    let dirname_len = String.length pk.package_dirname in
+    let filename_len = String.length pk.package_filename in
+    if msg_len + dirname_len + filename_len > 70 then
+      Printf.eprintf "  %s %s\n     (%s)\n" msg
+        pk.package_dirname pk.package_filename
     else
-      Printf.eprintf
-        "Warning: %d package conflicts solved (use -print-conflicts)\n%!"
-        ( List.length pj.project_conflicts )
+      Printf.eprintf "  %s %s (%s)\n" msg
+        pk.package_dirname pk.package_filename;
+  in
+  print_package "In" pk;
+  print_package "In" pk2;
+  print_package "Keeping" pk3;
+  ()
 
 (*
   let dump_dot_packages filename pj =
@@ -341,17 +346,16 @@ type tpk = {
   mutable tpk_required_by : tpk IntMap.t;
 }
 
-let verify_packages packages =
+let verify_packages w packages =
   let packages = BuildOCPInterp.final_state packages in
 
   (* Verify that package directories really exist, and add 'requires'
      to pk.package_deps_map *)
-  Array.iter BuildOCPInterp.check_package packages;
+  Array.iter (BuildOCPInterp.check_package w) packages;
 
 
   let disabled_packages = ref [] in
   let tpk_packages = ref [] in
-  let conflicts = ref [] in
   let tpk_id = ref 0 in
 
   (* (1) Verify that a given package is only provided by one
@@ -428,7 +432,8 @@ let verify_packages packages =
         raise Not_found
 
       | PackageConflict ->
-        conflicts := (tpk.tpk_pk, tpk2.tpk_pk, tpk.tpk_pk) :: !conflicts;
+        BuildWarnings.add w
+          (`PackageConflict (tpk.tpk_pk, tpk2.tpk_pk, tpk.tpk_pk));
         remove_tpk tpk2;
         raise Not_found
 
@@ -504,8 +509,8 @@ let verify_packages packages =
         (* Happens if verify_unicity discards this package because
            it knows a better one. *)
         ()
-    else
-      disabled_packages := pk :: !disabled_packages
+(*    else
+      disabled_packages := pk :: !disabled_packages *)
   in
   Array.iter check_package_unicity packages;
 
@@ -589,8 +594,8 @@ let verify_packages packages =
   let missing_dep_of = ref StringMap.empty in
   let missing_dep_on = ref StringMap.empty in
 
-  let missing_packages = ref [] in
-  let incomplete_packages = ref [] in
+  (*  let missing_packages = ref [] in *)
+  (*  let incomplete_packages = ref [] in *)
   let sorted_packages = ref [] in
   let h2 = Hashtbl.create 113 in
   let add_require pk (dep, pk2) =
@@ -607,9 +612,13 @@ let verify_packages packages =
       | LibraryPackage
       | TestPackage
       | ObjectsPackage ->
+        (*
         Printf.eprintf
           "Warning: installed package %s depends on source package %s\n%!"
           pk.package_name pk2.package_name;
+        *)
+        BuildWarnings.add w (`BadInstalledPackage
+                                (pk.package_name, pk2.package_name));
         raise Exit
     end;
 
@@ -618,7 +627,7 @@ let verify_packages packages =
     dep2.dep_syntax <- dep.dep_syntax;
   in
   let add_missing pk tag dep =
-    missing_packages := (dep.dep_project, [pk]) :: !missing_packages;
+    BuildWarnings.add w (`MissingPackage (dep.dep_project, [pk]));
     let dep = dep.dep_project ^ ":" ^ tag in
     let pk = pk.package_name ^ ":" ^ tag in
     begin
@@ -663,8 +672,12 @@ let verify_packages packages =
               let pk2 = Hashtbl.find h2 (dep.dep_project, "") in
               add_require pk (dep, pk2)
             with Not_found ->
+              BuildWarnings.add w
+                (`MissingDependency ("", tpk.tpk_name, dep.dep_project));
+(*
               Printf.eprintf "Warning: missing dependency, %S requires %S\n%!"
                 tpk.tpk_name dep.dep_project;
+*)
               add_missing pk "" dep;
               raise Exit
           ) pk.pi.package_deps_map;
@@ -718,8 +731,8 @@ let verify_packages packages =
                     | LibraryPackage
                     | ObjectsPackage
                       ->
-                      Printf.eprintf
-                        "Warning: %S depends on %S, that only exists in native code\n%!" pk.package_name pk2.package_name;
+                      BuildWarnings.add w
+                        (`KindMismatch ("bytecode", pk.package_name, "native", pk2.package_name));
                         raise Exit
                     | ProgramPackage
                     | SyntaxPackage ->
@@ -740,13 +753,17 @@ let verify_packages packages =
                       | SyntaxPackage
                         -> assert false
                     with Not_found ->
+                      BuildWarnings.add w
+                        (`MissingDependency ("bytecode", tpk.tpk_name, dep.dep_project));
+(*
                       Printf.eprintf "Warning: missing dependency, bytecode %S requires %S bytecode\n%!"
                         tpk.tpk_name dep.dep_project;
+*)
                       add_missing pk "byte" dep;
                       raise Exit
               ) pk.pi.package_deps_map;
             with Exit ->
-              Printf.eprintf "\tDisabling bytecode version of %S\n%!" tpk.tpk_name;
+              (*              Printf.eprintf "\tDisabling bytecode version of %S\n%!" tpk.tpk_name; *)
               has_byte := false;
           end;
 
@@ -779,8 +796,9 @@ let verify_packages packages =
                     | LibraryPackage
                     | ObjectsPackage
                       ->
-                      Printf.eprintf
-                        "Warning: %S depends on %S, that only exists in byte code\n%!" pk.package_name pk2.package_name;
+                      BuildWarnings.add w
+                        (`KindMismatch ("native", pk.package_name,
+                                        "bytecode", pk2.package_name));
                         raise Exit
                     | ProgramPackage
                     | SyntaxPackage ->
@@ -801,13 +819,16 @@ let verify_packages packages =
                       | SyntaxPackage
                         -> assert false
                     with Not_found ->
-                                           (*                Printf.eprintf "Warning: missing dependency, native %S requires %S native\n%!"
+                      BuildWarnings.add w
+                        (`MissingDependency ("native", tpk.tpk_name, dep.dep_project));
+
+                      (*                Printf.eprintf "Warning: missing dependency, native %S requires %S native\n%!"
                                                              tpk.tpk_name dep.dep_project; *)
                       add_missing pk "asm" dep;
                       raise Exit
               ) pk.pi.package_deps_map;
             with Exit ->
-              Printf.eprintf "\tDisabling native version of %S\n%!" tpk.tpk_name;
+              (*              Printf.eprintf "\tDisabling native version of %S\n%!" tpk.tpk_name; *)
               has_asm := false;
           end;
 
@@ -835,16 +856,16 @@ let verify_packages packages =
                 pk.package_options <- BuildValue.set_bool pk.package_options
                   "has_asm" false;
           end else begin
-            Printf.eprintf "Warning: both versions disabled\n";
             raise Exit
           end
       with Exit ->
-        Printf.eprintf "Package %S disabled\n%!" tpk.tpk_name;
         tpk.tpk_enabled <- false;
-        incomplete_packages := pk :: !incomplete_packages
+        disabled_packages := pk :: !disabled_packages;
+        BuildWarnings.add w (`IncompletePackage pk)
     ) queue
   done;
 
+  (*
   if !missing_dep_of <> StringMap.empty then begin
     let ncount = ref 0 in
     StringMap.iter (fun dep _pkgs ->
@@ -876,7 +897,8 @@ let verify_packages packages =
     end else begin
       Printf.eprintf "Warning: %d missing and %d disabled (use -print-missing)\n%!" !ncount (List.length !incomplete_packages);
     end;
-  end;
+ end;
+  *)
 
   if IntMap.cardinal !waiting_queue > 0 then begin
     Printf.eprintf "*****************************************************\n";
@@ -917,22 +939,23 @@ let verify_packages packages =
 
   List.iter update_deps sorted_packages;
 
-  let npackages = Array.length packages in
+  (*  let npackages = Array.length packages in *)
 
   let pj = {
-    (*    project_files = files; *)
     project_sorted = Array.of_list sorted_packages;
-    project_missing = !missing_packages;
     project_disabled = Array.of_list !disabled_packages;
+    (*
+    project_missing = !missing_packages;
     project_incomplete = Array.of_list !incomplete_packages;
-    project_conflicts = ! conflicts;
+    *)
   } in
   (* TODO: fix this assertion. The equality stands only if we count
-     also duplicated packages. *)
+     also duplicated packages.
   assert (npackages >=
             Array.length pj.project_sorted +
             Array.length pj.project_incomplete +
             Array.length pj.project_disabled);
+  *)
 
   (* Change the package IDs: the package_requires_map is not correct anymore ! *)
   reset_package_ids "project_sorted" pj.project_sorted;
@@ -968,7 +991,7 @@ let verify_packages packages =
     end;
   ) pj.project_sorted;
 
-  reset_package_ids "project_incomplete" pj.project_incomplete;
+  (*  reset_package_ids "project_incomplete" pj.project_incomplete; *)
   reset_package_ids "project_disabled" pj.project_disabled;
   (*
     begin match !print_dot_packages with

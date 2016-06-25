@@ -27,23 +27,24 @@ version = package_version
 install = false
 
 begin library "ocp-build-misc"
-  install = true
+  install = true;
   files = [
     "logger.ml"
+    "ocamldot.ml"
+    "versioning.ml"
+
     "buildMisc.ml";
     "buildMtime.ml";      (* How modification times are computed *)
 
     "buildScanner.ml"; (* Scan directories looking for files with particular properties *)
-    "buildSubst.ml"
-      "buildFind.ml"
-    "buildTerm.ml"
-    "ocamldot.ml"
-    "buildValue.ml"
-    "versioning.ml"
-  ]
+    "buildSubst.ml";
+    "buildFind.ml";
+    "buildTerm.ml";
+    "buildValue.ml";
+    "buildWarnings.ml";
+  ];
 
-   requires =  [
-    "ocplib-lang"; "ocplib-unix" "ocplib-system" ]
+  requires =  [ "ocplib-lang"; "ocplib-unix" "ocplib-system" ];
 
 end
 
@@ -167,6 +168,7 @@ begin program "ocp-build"
   files = [
     "buildArgs.ml"
     "buildActions.ml";          (* Main possible actions *)
+    "buildActionsWarnings.ml";          (* Main possible actions *)
     "buildActionInit.ml"
     "buildActionPrefs.ml"
     "buildActionConfigure.ml"

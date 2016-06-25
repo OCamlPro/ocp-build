@@ -215,18 +215,17 @@ let package_x_package_x_package b indent (p1,p2,p3) =
   package_uid b indent p3
 
 let project b indent p =
-  let indent2 = indent ^ "  " in
   Printf.bprintf b "{\n";
+  Printf.bprintf b ";\n%s  project_sorted = " indent;
+  array_of final_package b indent p.project_sorted;
+  (*
   Printf.bprintf b "%s  project_disabled = " indent;
   array_of final_package b indent p.project_disabled;
   Printf.bprintf b ";\n%s  project_incomplete = " indent;
   array_of final_package b indent p.project_incomplete;
-  Printf.bprintf b ";\n%s  project_sorted = " indent;
-  array_of final_package b indent p.project_sorted;
   Printf.bprintf b ";\n%s  project_missing = " indent;
   list_of string_x_package_list b indent p.project_missing;
-  Printf.bprintf b ";\n%s  project_conflicts = " indent;
-  list_of package_x_package_x_package b indent2 p.project_conflicts;
+  *)
   Printf.bprintf b " }\n"
 
 let string_of_project p =

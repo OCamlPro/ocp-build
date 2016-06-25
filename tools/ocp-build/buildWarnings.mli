@@ -18,15 +18,14 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+type 'a set
 
-val plugin : (module BuildTypes.Plugin)
-
-(* From the [validated_projects] table, fill the other
-   tables *)
-val create :
-  [> BuildOCamlSyntaxes.warning ] BuildWarnings.set ->
-  BuildOptions.config_input ->
-  BuildOCamlConfig.TYPES.config_output ->
-  BuildTypes.builder_context ->
-  BuildOCPTypes.project ->
-  (module BuildTypes.Package) array
+val empty_set : unit -> 'a set
+val add : 'a set -> 'a -> unit
+val iter : ('a -> unit) -> 'a set -> unit
+val count : 'a set -> int
+val sort : 'a set -> unit
+val equal : 'a set -> 'a set -> bool
+val copy : 'a set -> 'a set
+val clear : 'a set -> unit
+val diff : 'a set -> 'a set -> 'a set

@@ -64,6 +64,11 @@ open BuildOCamlTypes
 open BuildOCamlVariables
 open BuildOCamlMisc
 
+type warning = [
+| `SyntaxDepDeclaredAsNotSyntax of string * string * string
+| `SyntaxDepNotDeclared of string * string * string
+]
+
 let verbose = DebugVerbosity.verbose ["B"] "BuildOCamlSyntaxes"
 
 let execution_dependencies pk kind =
@@ -97,7 +102,6 @@ For camlp4 and camlp5, we should:
 - at the package creation, add all camlp4/camlp5 packages to 'requires',
 with the nolink option.
 
- *)
 
 let warnings = Hashtbl.create 13
 let print_warnings s =
@@ -105,8 +109,9 @@ let print_warnings s =
     Hashtbl.add warnings s ();
     List.iter (Printf.eprintf "Warning: %s\n%!") s
   end
+ *)
 
-let get_tool_require tool_name lib s =
+let get_tool_require w tool_name lib s =
   let bc = lib.lib.lib_builder_context in
   let pk_name, kind = OcpString.cut_at s ':' in
   let _exe_ext =
@@ -133,17 +138,19 @@ let get_tool_require tool_name lib s =
   List.iter (fun dep ->
     if dep.dep_project == pk then begin
       if not dep.dep_syntax then begin
-        print_warnings [
+        BuildWarnings.add w
+          (`SyntaxDepDeclaredAsNotSyntax (lib.lib.lib_name, tool_name, pk_name))
+(*        print_warnings [
         Printf.sprintf "package %S" lib.lib.lib_name;
-        Printf.sprintf "%s_requires: dependency %S not declared as syntax" tool_name pk_name ]
+          Printf.sprintf "%s_requires: dependency %S not declared as syntax" tool_name pk_name ] *)
       end;
 
       declared := true
     end
   ) lib.lib.lib_requires;
   if not !declared then begin
-    Printf.fprintf stderr "Warning: package %s\n%!" lib.lib.lib_name;
-    Printf.fprintf stderr "Warning: %s_requires dependency %S not declared\n%!" tool_name pk_name
+    BuildWarnings.add w
+      (`SyntaxDepNotDeclared (lib.lib.lib_name, tool_name, pk_name));
   end;
   match BuildOCamlGlobals.ocaml_package pk with
   | None ->
@@ -153,8 +160,8 @@ let get_tool_require tool_name lib s =
 
   | Some lib -> execution_dependencies lib kind
 
-let get_tool_requires tool_name lib tool_requires =
-  List.flatten (List.map (get_tool_require tool_name lib) tool_requires)
+let get_tool_requires w tool_name lib tool_requires =
+  List.flatten (List.map (get_tool_require w tool_name lib) tool_requires)
 
 (* TODO: for syntax extensions:
 1/ check the "syntax" attribute.
@@ -171,7 +178,7 @@ let get_tool_requires tool_name lib tool_requires =
 let add_pp_requires r pp =
   List.iter (fun file -> add_rule_source r file) pp.pp_requires
 
-let get_pp lib basename options =
+let get_pp w lib basename options =
   let options = [ options; lib.lib.lib_options ] in
 (*  Printf.eprintf "get_pp %S\n%!" lib.lib.lib_name; *)
   let pp_flags =
@@ -181,7 +188,7 @@ let get_pp lib basename options =
   |  [] ->
     let pp_requires =  pp_requires_option.get options in
     let pp_option = pp_option.get options in
-    let pp_requires = get_tool_requires "pp" lib pp_requires in
+    let pp_requires = get_tool_requires w "pp" lib pp_requires in
 
     {
       pp_flags = pp_flags;

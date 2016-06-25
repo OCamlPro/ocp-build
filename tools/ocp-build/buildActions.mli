@@ -33,4 +33,5 @@ type project_info = {
 }
 
 
-val load_project : unit -> project_info
+val load_project :
+  [> `MissingTool of string ] BuildWarnings.set -> project_info

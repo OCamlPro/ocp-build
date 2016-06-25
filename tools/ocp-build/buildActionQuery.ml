@@ -115,6 +115,11 @@ let do_list_packages pj =
     Printf.printf "\n";
   ) (List.sort (fun pk1 pk2 -> compare pk1.package_name pk2.package_name)
       (Array.to_list pj.project_sorted));
+  Printf.printf "DISABLED:\n%!";
+  Array.iter (fun pk ->
+    Printf.printf "  %s (in %s)\n" pk.package_name pk.package_dirname
+  ) pj.project_disabled;
+  (*
   Printf.printf "MISSING:\n%!";
   List.iter (fun (package_name, missed_by) ->
     Printf.printf "  %s missed by:\n" package_name;
@@ -122,28 +127,19 @@ let do_list_packages pj =
       Printf.printf "    %s (in %s)\n" pk.package_name pk.package_dirname
     ) missed_by;
   ) pj.project_missing;
-  Printf.printf "DISABLED:\n%!";
-  Array.iter (fun pk ->
-    Printf.printf "  %s (in %s)\n" pk.package_name pk.package_dirname
-  ) pj.project_disabled;
   Printf.printf "INCOMPLETE:\n%!";
   Array.iter (fun pk ->
     Printf.printf "  %s (in %s)\n" pk.package_name pk.package_dirname
   ) pj.project_incomplete;
+  *)
   ()
 
 let action () =
-  let p = BuildActions.load_project () in
-  let state = BuildActionBuild.do_read_env p in
+  let (_env_w, p, state, pj) = BuildActionInit.init_env () in
 
-    time_step "Sorting packages...";
-    let pj = BuildOCP.verify_packages state in
-
-    time_step "   Done sorting packages";
-
-    if !list_arg then
-      do_list_packages pj
-    else
+  if !list_arg then
+    do_list_packages pj
+  else
     do_reply_to_queries pj;
 
   ()

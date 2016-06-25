@@ -64,10 +64,10 @@ open BuildOCamlTypes
 open BuildOCamlVariables
 open BuildOCamlMisc
 
-let comp_deps lib options =
+let comp_deps w lib options =
   let options = [ options; lib.lib.lib_options ] in
   let comp_requires =  comp_requires_option.get options in
-  BuildOCamlSyntaxes.get_tool_requires "comp" lib comp_requires
+  BuildOCamlSyntaxes.get_tool_requires w "comp" lib comp_requires
 
 let string_of_libloc lib =
   Printf.sprintf "File %S, line 0, characters 0-1:\nPackage %S:"
@@ -1085,7 +1085,7 @@ let mli2odoc lib ptmp kernel_name envs pack_for force mli_file seq_order =
     ) lib.lib.lib_requires
 
 
-let add_mli_source b lib ptmp mli_file options =
+let add_mli_source w b lib ptmp mli_file options =
   let envs = [ options; lib.lib.lib_options ] in
 
 
@@ -1124,8 +1124,8 @@ let add_mli_source b lib ptmp mli_file options =
       ptmp.src_files <- IntMap.add mli_file.file_id mli_file ptmp.src_files;
 
       let copy_dir = copy_dir lib mli_file in
-      let ppv = BuildOCamlSyntaxes.get_pp lib basename options in
-      let comp_deps = comp_deps lib options in
+      let ppv = BuildOCamlSyntaxes.get_pp w lib basename options in
+      let comp_deps = comp_deps w lib options in
       let mli_file, force =
         match ppv.pp_option with
           [] -> mli_file, Force_not
@@ -1509,7 +1509,7 @@ let copy_mli_if_needed b mut_dir mll_file kernel_name =
    to tell the build system that the mli does not exist. *)
 
 
-let add_ml_source b lib ptmp ml_file options =
+let add_ml_source w b lib ptmp ml_file options =
   let needs_odoc = needs_odoc lib in
 
   let envs = [ options; lib.lib.lib_options ] in
@@ -1558,7 +1558,7 @@ let add_ml_source b lib ptmp ml_file options =
 
   end else
 
-    let comp_deps = comp_deps lib options in
+    let comp_deps = comp_deps w lib options in
     let copy_objects_from = get_copy_objects_from lib envs  in
     match copy_objects_from with
     | Some src_lib ->
@@ -1569,7 +1569,7 @@ let add_ml_source b lib ptmp ml_file options =
       let copy_dir = copy_dir lib ml_file in
       let old_ml_file = ml_file in
       let ml_file = create_ml_file_if_needed b lib lib.lib.lib_mut_dir envs ml_file in
-      let ppv = BuildOCamlSyntaxes.get_pp lib basename options in
+      let ppv = BuildOCamlSyntaxes.get_pp w lib basename options in
 
       (* [has_mli] = None | Some (build_file, in_source_directory_predicate) *)
       let _has_mli =
@@ -1711,7 +1711,7 @@ let add_ml_source b lib ptmp ml_file options =
          (* MLI file does exist !!! We should probably put a warning, as we
             have no information on how to compile this file !!*)
 
-              ignore (add_mli_source b lib ptmp mli_file (BuildValue.set_bool options "ml" false) : unit);
+              ignore (add_mli_source w b lib ptmp mli_file (BuildValue.set_bool options "ml" false) : unit);
               let cmi_file = find_dst_file dst_dir cmi_name in
               Some cmi_file
             | None -> None
@@ -1952,11 +1952,7 @@ let add_ml_source b lib ptmp ml_file options =
 
       end
 
-let add_mll_source b lib ptmp mll_file options =
-  (*  let src_dir = lib.lib.lib_src_dir in *)
-  (*
-    let dst_dir = lib.lib.lib_dst_dir in
-  *)
+let add_mll_source w b lib ptmp mll_file options =
   let envs = [ options; lib.lib.lib_options ] in
   let basename = mll_file.file_basename in
   let kernel_name = Filename.chop_suffix basename ".mll" in
@@ -1964,7 +1960,7 @@ let add_mll_source b lib ptmp mll_file options =
   if lib.lib.lib_installed then
 
     let ml_file = add_file b lib.lib.lib_src_dir (kernel_name ^ ".ml") in
-    add_ml_source b lib ptmp ml_file options
+    add_ml_source w b lib ptmp ml_file options
 
   else
 
@@ -1987,21 +1983,16 @@ let add_mll_source b lib ptmp mll_file options =
 
     let ml_file = add_file b lib.lib.lib_mut_dir (kernel_name ^ ".ml") in
     add_mll2ml_rule lib mll_file ml_file options;
-    add_ml_source b lib ptmp ml_file options
+    add_ml_source w b lib ptmp ml_file options
 
-let add_mly_source b lib ptmp mly_file options =
-  (*  let src_dir = lib.lib.lib_src_dir in *)
-  (*
-    let dst_dir = lib.lib.lib_dst_dir in
-  *)
-  let _bc = lib.lib.lib_builder_context in
+let add_mly_source w b lib ptmp mly_file options =
   let envs = [ options; lib.lib.lib_options ] in
   let basename = mly_file.file_basename in
   let kernel_name = Filename.chop_suffix basename ".mly" in
 
   if lib.lib.lib_installed then
     let ml_file = add_file b mly_file.file_dir (kernel_name ^ ".ml") in
-    add_ml_source b lib ptmp ml_file options
+    add_ml_source w b lib ptmp ml_file options
   else
 
     let copy_objects_from = get_copy_objects_from lib envs  in
@@ -2016,11 +2007,11 @@ let add_mly_source b lib ptmp mly_file options =
       let ml_file = add_file b lib.lib.lib_mut_dir (kernel_name ^ ".ml") in
       let mli_filename = kernel_name ^ ".mli" in
       let mli_file = add_file b lib.lib.lib_mut_dir mli_filename in
-      add_mli_source b lib ptmp mli_file options;
+      add_mli_source w b lib ptmp mli_file options;
       add_mly2ml_rule b lib mly_file ml_file mli_file options;
-      add_ml_source b lib ptmp ml_file options
+      add_ml_source w b lib ptmp ml_file options
 
-let rec process_source b lib ptmp src_dir (basename, options) =
+let rec process_source w b lib ptmp src_dir (basename, options) =
   let bc = lib.lib.lib_builder_context in
   let envs = [ options; lib.lib.lib_options ] in
 
@@ -2079,40 +2070,40 @@ let rec process_source b lib ptmp src_dir (basename, options) =
     | None -> ()
     | Some obj_lib ->
       let src_dir = obj_lib.lib.lib_src_dir in
-      List.iter (process_source b lib ptmp src_dir) obj_lib.lib_sources
+      List.iter (process_source w b lib ptmp src_dir) obj_lib.lib_sources
     end
 
   | "ml" ->
-    add_ml_source b lib ptmp src_file options
+    add_ml_source w b lib ptmp src_file options
   | "mll" ->
-    add_mll_source b lib ptmp src_file options
+    add_mll_source w b lib ptmp src_file options
   | "mly" ->
-    add_mly_source b lib ptmp src_file options
+    add_mly_source w b lib ptmp src_file options
   | "mli" ->
-    add_mli_source b lib ptmp src_file options
+    add_mli_source w b lib ptmp src_file options
     (* other ones: .ml4, mli4, .ml5, .mli5, .mly4, .mly5, .mll4, .mll5 *)
   | ext ->
     if ml_file_option.get envs
       || List.mem ext (BuildValue.get_strings_with_default envs "ml_exts" [])
       || List.mem ext (BuildValue.get_strings_with_default envs "impl_exts" [])
     then
-      add_ml_source b lib ptmp src_file options
+      add_ml_source w b lib ptmp src_file options
     else
       if mli_file_option.get envs
         || List.mem ext (BuildValue.get_strings_with_default envs "mli_exts" [])
         || List.mem ext (BuildValue.get_strings_with_default envs "intf_exts" [])
       then
-        add_mli_source b lib ptmp src_file options
+        add_mli_source w b lib ptmp src_file options
       else
         if
           List.mem ext (BuildValue.get_strings_with_default envs "mll_exts" [])
         then
-          add_mll_source b lib ptmp src_file options
+          add_mll_source w b lib ptmp src_file options
         else
           if
             List.mem ext (BuildValue.get_strings_with_default envs "mly_exts" [])
           then
-            add_mly_source b lib ptmp src_file options
+            add_mly_source w b lib ptmp src_file options
           else
             begin
 
@@ -2123,7 +2114,7 @@ let rec process_source b lib ptmp src_dir (basename, options) =
               clean_exit 2;
             end
 
-let process_source b lib ptmp src_dir (basename, options) =
+let process_source w b lib ptmp src_dir (basename, options) =
   let bc = lib.lib.lib_builder_context in
   let envs = [ options; lib.lib.lib_options ] in
   let src_dir =
@@ -2151,9 +2142,9 @@ let process_source b lib ptmp src_dir (basename, options) =
         let subdir = File.add_basenames (File.of_string "") subdir in
         Filename.concat (File.to_string subdir) basename
   in
-  process_source b lib ptmp src_dir (basename, options)
+  process_source w b lib ptmp src_dir (basename, options)
 
-let process_sources b lib =
+let process_sources w b lib =
   let ptmp = new_package_temp_variables () in
   begin
     match lib.lib.lib_type with
@@ -2172,7 +2163,7 @@ let process_sources b lib =
     | ObjectsPackage ->
       let src_dir = lib.lib.lib_src_dir in
       let _dst_dir = lib.lib.lib_dst_dir in
-      List.iter (process_source b lib ptmp src_dir) lib.lib_sources;
+      List.iter (process_source w b lib ptmp src_dir) lib.lib_sources;
   end;
 
   ptmp.cmo_files := List.rev !(ptmp.cmo_files);
@@ -2184,11 +2175,11 @@ let process_sources b lib =
   ptmp.o_files := List.rev !(ptmp.o_files);
   ptmp
 
-let add_library b lib =
+let add_library w b lib =
 (*  let src_dir = lib.lib.lib_src_dir in *)
   let dst_dir = lib.lib.lib_dst_dir in
   let envs = [lib.lib.lib_options] in
-  let ptmp = process_sources b lib in
+  let ptmp = process_sources w b lib in
 
 
   let cclib =  cclib_option.get envs in
@@ -2275,10 +2266,10 @@ let add_library b lib =
   ()
 
 
-let add_objects b lib =
+let add_objects w b lib =
 (*  let src_dir = lib.lib.lib_src_dir in *)
 (*  let dst_dir = lib.lib.lib_dst_dir in *)
-  let ptmp = process_sources b lib in
+  let ptmp = process_sources w b lib in
   let envs = [lib.lib.lib_options] in
 
   if byte_option.get  envs  then begin
@@ -2557,10 +2548,10 @@ let add_rules bc lib target_name target_files =
   ()
 
 
-let add_program b lib =
+let add_program w b lib =
 (*  let src_dir = lib.lib.lib_src_dir in *)
   let dst_dir = lib.lib.lib_dst_dir in
-  let ptmp = process_sources b lib in
+  let ptmp = process_sources w b lib in
 
   begin (* Fast check of libraries modules *)
     let map = ref StringMap.empty in
@@ -2731,7 +2722,7 @@ let plugin =
   end in
   (module Plugin : Plugin)
 
-let create cin cout bc state =
+let create w cin cout bc state =
 
   BuildOCamlGlobals.reset ();
 (*  BuildOCPPrinter.eprint_project "BuildOCamlRules.create" ptmp; *)
@@ -2770,12 +2761,12 @@ let create cin cout bc state =
 
       begin
       match lib.lib.lib_type with
-        LibraryPackage -> add_library b  lib
-      | ProgramPackage -> add_program b  lib
+        LibraryPackage -> add_library w b  lib
+      | ProgramPackage -> add_program w b  lib
       | TestPackage ->
-        if lib.lib_sources <> [] then add_program b  lib;
+        if lib.lib_sources <> [] then add_program w b  lib;
         lib.lib.lib_options <- BuildValue.set_bool lib.lib.lib_options "install" false
-      | ObjectsPackage -> add_objects b  lib
+      | ObjectsPackage -> add_objects w b  lib
       | SyntaxPackage -> ()
       | RulesPackage -> ()
       end;
