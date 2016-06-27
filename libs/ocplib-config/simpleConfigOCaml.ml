@@ -148,9 +148,20 @@ let safe_string s =
     with
       _ -> Printf.sprintf "\"%s\"" (String.escaped s)
 
-let comment s =
-  Printf.sprintf "(* %s *)"
-    (OcpString.replace_chars s  ['\n', " *)\n(* "])
+let comment option_name option_comment =
+  let option_comment = Printf.sprintf "[%s]: %s" option_name option_comment in
+  let lines = OcpString.split option_comment '\n' in
+  let max_length = ref 10 in
+  List.iter (fun line ->
+      let len = String.length line in
+      if len > !max_length then max_length := len) lines;
+  let spaces = String.make !max_length ' ' in
+  let lines = List.map (fun line ->
+      let len = String.length line in
+      if len < !max_length then
+        line ^ String.sub spaces 0 (!max_length - len)
+      else line) lines in
+  Printf.sprintf "(* %s *)" (String.concat " *)\n(* " lines)
 
 let compact_string oc f =
   let b = Buffer.create 100 in
@@ -191,7 +202,7 @@ let rec save_module with_help indent oc list =
          [] -> assert false
        | [name] ->
            if with_help && help <> "" then
-             Printf.bprintf oc "\n%s\n" (comment help);
+             Printf.bprintf oc "\n%s\n" (comment name help);
            Printf.bprintf oc "%s%s = " indent (safe_string name);
            save_value indent oc value;
            Printf.bprintf oc "\n"
