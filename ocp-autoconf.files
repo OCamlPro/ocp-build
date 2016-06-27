@@ -15,5 +15,5 @@ autoconf/m4/ocaml.m4 bffe7da970a9e23a89b611c00360f36f
 autoconf/ocaml-config.h.in 361f7d5a23b30c6c49756a9e34c2dcf9
 build.ocp 4f02c2f6cf1c5b1a3733e483151d5eb4
 configure 3ffc5da4b7c00140c3024342e64cc2a5
-opam d65adc5850b40cd03e64a71fdfaa5a48
+opam b8a8bcab6da1879e2e53f0038cf4eaaf
 push-opam.sh 963d1ccef3296188b67060b3e70732b2
