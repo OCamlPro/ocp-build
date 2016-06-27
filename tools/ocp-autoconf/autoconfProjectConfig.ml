@@ -186,19 +186,27 @@ let need_ocamlyacc = SimpleConfig.create_option config
     [ "Does the project need ocamlyacc" ] SimpleConfig.bool_option
     false
 
+let default_opam_fields =    [
+     "opam-version";
+     "maintainer";
+     "authors";
+     "homepage";
+     "maintainer";
+     "dev-repo";
+     "bug-reports";
+     "build";
+     "install";
+     "remove";
+     "depends";
+     "available";
+    ]
+
 let opam_fields = SimpleConfig.create_option config
     [ "opam_fields" ]
     [ "Fields of the 'opam' file to generate (other ones should come from";
       "the 'opam.trailer' file)." ]
     (SimpleConfig.list_option SimpleConfig.string_option)
-    [
-      "opam-version";
-      "build";
-      "install";
-      "remove";
-      "depends";
-      "available";
-    ]
+    default_opam_fields
 
 let opam_maintainer = SimpleConfig.create_option config
     [ "opam_maintainer" ]
@@ -279,11 +287,23 @@ let format_version = SimpleConfig.create_option config
     SimpleConfig.int_option
     0
 
+let travis_versions = SimpleConfig.create_option config
+    [ "travis_versions" ]
+    [ "Versions of OCaml to build on Travis." ]
+    (SimpleConfig.list_option SimpleConfig.string_option)
+    [
+      "system";
+      "3.12.1";
+      "4.01.0";
+      "4.02.3";
+      "4.03.0";
+    ]
+
 (* If the file does not exist, here is the version it should start with *)
 let initial_format_version = 1
 
 (* This is the current version *)
-let current_format_version = 3
+let current_format_version = 4
 
 let update_options () =
 
@@ -343,6 +363,19 @@ let update_options () =
 
   if !!format_version < 3 then begin
     format_version =:= 3;
+  end;
+
+  if !!format_version < 4 then begin
+    format_version =:= 4;
+
+    if !!opam_fields = [
+        "opam-version";
+        "build";
+        "install";
+        "remove";
+        "available";
+      ] then
+      opam_fields =:= default_opam_fields;
   end;
 
   assert (!!format_version = current_format_version);
