@@ -1,7 +1,16 @@
 Change log
 ==========
 
-2016-05-12:
+2016-06-27: Version 1.99.17-beta
+* Fix ocp-pp problems with 4.02.3 docstrings comments
+* Warnings are displayed on `ocp-build init`, and only if changed on
+  `ocp-build build`
+* Compatibility 4.04.0+trunk
+* Module `File` was moved to `ocplib-file`.
+* Fast Hashtbl in `ocplib-hashtbl`
+* New tool `ocp-autoconf` to generate `./configure` for OCaml projects
+
+2016-05-12: Version 1.99.16-beta
 * Fix ocp-pp issue with ocamldoc comments in 4.03
 
 2016-05-11:
