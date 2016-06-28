@@ -115,8 +115,8 @@ let ocaml_unsupported_version = SimpleConfig.create_option config
 
 let need_packages = SimpleConfig.create_option config
     [ "need_packages" ]
-    [ "Packages (ocamlfind) needed by the project. They can be specified as";
-      "a list with items of the forms:";
+    [ "Packages (ocamlfind) needed by the project.";
+      "They can be specified as a list with items of the forms:";
       " * \"findlib\"";
       " * (\"findlib\", \"version\")";
       " * { name=\"findlib\" version=\"version\" opam=\"package\" }";
@@ -133,7 +133,7 @@ let need_tools = SimpleConfig.create_option config
 
 let optional_packages = SimpleConfig.create_option config
     [ "optional_packages" ]
-    [ "Packages (ocamlfind) that could be used by the project" ]
+    [ "ocamlfind packages that could be used by the project" ]
     (SimpleConfig.list_option SimpleConfig.string_option)
     []
 
@@ -145,23 +145,25 @@ let need_modules = SimpleConfig.create_option config
 
 let extra_config_files = SimpleConfig.create_option config
     [ "extra_config_files" ]
-    [ "Extra files to be substituted. Their paths should be related to ";
-      "the autoconf/ subdirectory."
+    [ "Extra files to be substituted.";
+      "Their paths should be related to the autoconf/ subdirectory."
     ]
     (SimpleConfig.list_option SimpleConfig.string_option)
     []
 
 let extra_m4_files = SimpleConfig.create_option config
     [ "extra_m4_files" ]
-    [ "Extra m4 files to be added. They will be copied in autoconf/m4/." ]
+    [ "Extra m4 files to be added.";
+      "They will be copied in autoconf/m4/." ]
     (SimpleConfig.list_option SimpleConfig.string_option)
     []
 
 let extra_config_vars = SimpleConfig.create_option config
     [ "extra_config_vars" ]
-    [ "Extra variables to be substituted. These variables will appear";
-      "directly in autoconf/Makefile.config, and as conf_xxx variables";
-      "in autoconf/config.ocpgen, where xxx is their lowercase translation.";
+    [ "Extra variables to be substituted.";
+      "These variables will appear directly in autoconf/Makefile.config,";
+      "and as conf_xxx variables in autoconf/config.ocpgen, where xxx is";
+      "their lowercase translation.";
     ]
     (SimpleConfig.list_option SimpleConfig.string_option)
     []
@@ -186,19 +188,27 @@ let need_ocamlyacc = SimpleConfig.create_option config
     [ "Does the project need ocamlyacc" ] SimpleConfig.bool_option
     false
 
+let default_opam_fields =    [
+     "opam-version";
+     "maintainer";
+     "authors";
+     "homepage";
+     "maintainer";
+     "dev-repo";
+     "bug-reports";
+     "build";
+     "install";
+     "remove";
+     "depends";
+     "available";
+    ]
+
 let opam_fields = SimpleConfig.create_option config
     [ "opam_fields" ]
-    [ "Fields of the 'opam' file to generate (other ones should come from";
-      "the 'opam.trailer' file)." ]
+    [ "Fields of the 'opam' file to generate.";
+      "(other ones should come from the 'opam.trailer' file)." ]
     (SimpleConfig.list_option SimpleConfig.string_option)
-    [
-      "opam-version";
-      "build";
-      "install";
-      "remove";
-      "depends";
-      "available";
-    ]
+    default_opam_fields
 
 let opam_maintainer = SimpleConfig.create_option config
     [ "opam_maintainer" ]
@@ -220,7 +230,8 @@ let homepage = SimpleConfig.create_option config
 
 let github_project = SimpleConfig.create_option config
     [ "github_project" ]
-    [ "Name of the project on Github (Organization/Project). Other fields can be inferred from this if left empty" ]
+    [ "Name of the project on Github (Organization/Project).";
+      "Other fields can be inferred from this if left empty" ]
     SimpleConfig.string_option
     ""
 
@@ -234,8 +245,9 @@ let dev_repo = SimpleConfig.create_option config
 
 let download_url_prefix = SimpleConfig.create_option config
     [ "download_url_prefix" ]
-    [ "Prefix of the download URL. The download URL should be";
-      "${download_url_prefix}${package_version}.tar.gz.";
+    [ "Prefix of the download URL.";
+      "The download URL should be:";
+      "   ${download_url_prefix}${package_version}.tar.gz.";
       "If github_project is specified, the value is automatically inferred."
     ]
     SimpleConfig.string_option
@@ -279,11 +291,23 @@ let format_version = SimpleConfig.create_option config
     SimpleConfig.int_option
     0
 
+let travis_versions = SimpleConfig.create_option config
+    [ "travis_versions" ]
+    [ "Versions of OCaml to build on Travis." ]
+    (SimpleConfig.list_option SimpleConfig.string_option)
+    [
+      "system";
+      "3.12.1";
+      "4.01.0";
+      "4.02.3";
+      "4.03.0";
+    ]
+
 (* If the file does not exist, here is the version it should start with *)
 let initial_format_version = 1
 
 (* This is the current version *)
-let current_format_version = 3
+let current_format_version = 4
 
 let update_options () =
 
@@ -343,6 +367,19 @@ let update_options () =
 
   if !!format_version < 3 then begin
     format_version =:= 3;
+  end;
+
+  if !!format_version < 4 then begin
+    format_version =:= 4;
+
+    if !!opam_fields = [
+        "opam-version";
+        "build";
+        "install";
+        "remove";
+        "available";
+      ] then
+      opam_fields =:= default_opam_fields;
   end;
 
   assert (!!format_version = current_format_version);

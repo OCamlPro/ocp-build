@@ -31,7 +31,8 @@ let wrong_value oc field options =
   if List.mem field !!opam_fields then begin
     Printf.eprintf
       "Error: cannot set 'opam' field %S:\n" field;
-    Printf.eprintf "You should set a correct value for \"%s\"\n" options;
+    Printf.eprintf "You should set a correct value for \"%s\"\n"
+      (String.concat "\" or \"" options);
     Printf.eprintf "or just remove %S from 'opam_fields'\n%!" field;
     Printf.eprintf "in the 'ocp-autoconf.config' file.\n";
     abort oc
@@ -158,7 +159,7 @@ let () =
               if opam_maintainer <> "" then
                 AutoconfFS.fprintf oc "maintainer: %S\n" opam_maintainer
               else
-                wrong_value oc field "opam_maintainer"
+                wrong_value oc field ["opam_maintainer"]
 
             | "authors" ->
               let authors = !!AutoconfProjectConfig.authors in
@@ -169,14 +170,14 @@ let () =
                 AutoconfFS.fprintf oc "]\n";
               end
               else
-                wrong_value oc field "authors"
+                wrong_value oc field ["authors"]
 
             | "homepage" ->
               let homepage = !!AutoconfProjectConfig.homepage in
               if homepage <> "" then
                 AutoconfFS.fprintf oc "homepage: %S\n" homepage
               else
-                wrong_value oc field "homepage"
+                wrong_value oc field ["homepage"]
 
             | "dev-repo" ->
               let dev_repo = !!AutoconfProjectConfig.dev_repo in
@@ -186,7 +187,7 @@ let () =
               if dev_repo <> "" then
                 AutoconfFS.fprintf oc "dev-repo: %S\n"  dev_repo
               else
-                wrong_value oc field "dev_repo"
+                wrong_value oc field ["dev_repo"; "github_project"]
 
             | "bug-reports" ->
               let bug_reports = !!AutoconfProjectConfig.bug_reports in
@@ -196,26 +197,13 @@ let () =
               if bug_reports <> "" then
                 AutoconfFS.fprintf oc "bug-reports: %S\n" bug_reports
               else
-                wrong_value oc field "bug_reports"
+                wrong_value oc field ["bug_reports"; "github_project"]
 
             | _ ->
               Printf.eprintf "Error: no support for opam field %S\n%!" field;
               abort oc
 
-        ) [
-        "opam-version";
-        "maintainer";
-        "authors";
-        "homepage";
-        "maintainer";
-        "dev-repo";
-        "bug-reports";
-        "build";
-        "install";
-        "remove";
-        "depends";
-        "available";
-      ];
+        ) !!opam_fields;
 
       if Sys.file_exists "opam.trailer" then begin
         Printf.eprintf "   using %S\n%!" "opam.trailer";
@@ -259,6 +247,7 @@ let () =
 
         AutoconfFS.write_file "push-opam.sh"
           (AutoconfCommon.find_content "skeleton/push-opam.sh");
+        Unix.chmod "push-opam.sh" 0o755;
 
       end
     )

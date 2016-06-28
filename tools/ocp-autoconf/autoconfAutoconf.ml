@@ -32,7 +32,6 @@ let () =
     "Makefile";
     ".gitignore";
     "LICENSE";
-    ".travis.yml";
     ".travis-install.sh";
     ".travis-ci.sh";
   ]
@@ -41,6 +40,24 @@ let () =
   AutoconfCommon.register_maker "configure"
     (fun () ->
        AutoconfCommon.save_file "skeleton/configure";
+       Unix.chmod "configure" 0o755;
+    )
+
+let () =
+  AutoconfCommon.register_maker ".travis.yml"
+    (fun () ->
+       let s = AutoconfCommon.find_content "skeleton/.travis.yml" in
+       let oc = AutoconfFS.create_file ".travis.yml" in
+       AutoconfFS.output_string oc s;
+       List.iter (fun version ->
+           if version = "system" ||
+              (version >= !!ocaml_minimal_version &&
+               (!!ocaml_unsupported_version = "" ||
+                !!ocaml_unsupported_version > version)) then
+             AutoconfFS.output_string oc
+               (Printf.sprintf "  - OCAML_VERSION=%s\n" version)
+         ) !!travis_versions;
+       AutoconfFS.close_file oc
     )
 
 let () =
