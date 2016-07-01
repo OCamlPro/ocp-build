@@ -23,6 +23,7 @@
 
 
 begin library "ocplib-lang"
+  version = package_version
 
   files = [
     "ocpPervasives.ml"

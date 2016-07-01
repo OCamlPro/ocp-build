@@ -22,6 +22,7 @@
 
 
 begin library "ocplib-system"
+  version = package_version
 
   files = [
     "date.ml";

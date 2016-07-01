@@ -24,6 +24,7 @@ if ocaml_version = "4.01.0+ocp1" || ocaml_version = "4.02.1+ocp1" then {
 
 
 begin program "ocp-pp";
+  version = package_version
 
   files = []
   if ocaml_version < "4.02" then {

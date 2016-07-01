@@ -19,6 +19,7 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+version = package_version
 
 if ocaml_version = "4.01.0+ocp1" || ocaml_version = "4.02.1+ocp1" then {
 
