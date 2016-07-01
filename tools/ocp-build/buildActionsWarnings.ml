@@ -46,7 +46,7 @@ let arg_pj_warnings_string = Printf.sprintf arg_warnings_fmt pj_warnings_kind
 let arg_env_warnings_string = Printf.sprintf arg_warnings_fmt env_warnings_kind
 let arg_all_warnings_string = "--all-warnings"
 
-let warnings_filename_fmt = format_of_string "_obuild/%s_warnings.data"
+let warnings_filename_fmt = format_of_string "%s/_obuild/%s_warnings.data"
 
 let arg_print_env_warnings = ref PrintWarningsIfChanged
 let arg_print_pj_warnings = ref PrintWarningsIfChanged
@@ -108,8 +108,10 @@ let print_warning (w : warning) =
       Printf.eprintf "  * %S\n%!" pk.package_name) pks
 
 
-let print_warnings arg_print_warnings warnings_kind w =
-  let warnings_filename = Printf.sprintf warnings_filename_fmt warnings_kind in
+let print_warnings project_dir arg_print_warnings warnings_kind w =
+  let warnings_filename =
+    Printf.sprintf warnings_filename_fmt (File.to_string project_dir)
+      warnings_kind in
   let count = BuildWarnings.count w in
   if count = 0 then begin
     (try Sys.remove warnings_filename with _ -> ());
@@ -161,8 +163,8 @@ let set_default_is_always () =
     arg_print_pj_warnings := PrintWarningsAlways;
   ()
 
-let print_env_warnings w =
-  print_warnings !arg_print_env_warnings env_warnings_kind w
+let print_env_warnings project_dir w =
+  print_warnings project_dir !arg_print_env_warnings env_warnings_kind w
 
-let print_pj_warnings w =
-  print_warnings !arg_print_pj_warnings pj_warnings_kind  w
+let print_pj_warnings project_dir w =
+  print_warnings project_dir !arg_print_pj_warnings pj_warnings_kind  w

@@ -22,5 +22,6 @@
 
 
 begin library "ocplib-subcmd"
+  version = package_version
   files = [ "subcommands.ml" ]
 end

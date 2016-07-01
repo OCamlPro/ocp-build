@@ -23,6 +23,8 @@
 
 begin library "ocplib-config"
 
+  version = package_version
+
   files = [
         "pythonConfig.ml"; (* Python config files *)
 

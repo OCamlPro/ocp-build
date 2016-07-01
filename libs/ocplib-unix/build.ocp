@@ -21,6 +21,7 @@
 
 
 begin library "ocplib-unix"
+  version = package_version
   files = [
     "minUnix.ml" "minUnix_c.c"
     "onlyUnix.ml" "onlyUnix_c.c"
