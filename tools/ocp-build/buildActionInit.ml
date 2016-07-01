@@ -380,7 +380,7 @@ let load_initial_project pre_w p state =
     !h
   in
 
-  BuildActionsWarnings.print_pj_warnings (BuildWarnings.diff w pre_w);
+  BuildActionsWarnings.print_pj_warnings p.project_dir (BuildWarnings.diff w pre_w);
 
   (bc, package_map)
 
@@ -496,7 +496,7 @@ let init_env () =
         VPair (VString pk.package_name, VObject pk.package_options)
       ) env_pj.project_sorted)));
 
-  BuildActionsWarnings.print_env_warnings w;
+  BuildActionsWarnings.print_env_warnings p.project_dir w;
 
   (w, p, env_state, env_pj)
 
