@@ -40,7 +40,10 @@ let split_simplify s =
   let bs = Bytes.of_string s in
   for i = 0 to String.length s - 1 do
     match s.[i] with
-    | ',' -> bs.[i] <- ' '
+    | ','
+    | '\t'
+    | '\n'
+      -> bs.[i] <- ' '
     | _ -> ()
   done;
   let s = Bytes.to_string bs in
