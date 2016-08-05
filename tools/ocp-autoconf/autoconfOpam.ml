@@ -245,9 +245,7 @@ let () =
 
       end else begin
 
-        AutoconfFS.write_file "push-opam.sh"
+        AutoconfFS.write_file ~exe:true "push-opam.sh"
           (AutoconfCommon.find_content "skeleton/push-opam.sh");
-        Unix.chmod "push-opam.sh" 0o755;
-
       end
     )
