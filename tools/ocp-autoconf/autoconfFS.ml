@@ -25,8 +25,8 @@ let add_post_commit_hook (f : unit -> string list) =
   post_commit_hooks := f :: !post_commit_hooks
 
 let files = ref []
-let write_file filename content =
-  files := (filename, content) :: !files
+let write_file ?(exe=false) filename content =
+  files := (filename, exe, content) :: !files
 
 let create_file filename =
   (filename, Buffer.create 1000)
@@ -44,12 +44,12 @@ let commit filename =
           ) filename
       with Sys_error _ -> ()
     end;
-    let files = List.map (fun (file, content) ->
-        (file, content, Digest.to_hex (Digest.string content))
+    let files = List.map (fun (file, exe, content) ->
+        (file, content, exe, Digest.to_hex (Digest.string content))
       ) !files in
     let modified = ref false in
     Printf.eprintf "Proposed list of changes:\n%!";
-    List.iter (fun (file, _content, new_md5) ->
+    List.iter (fun (file, _content, _exe, new_md5) ->
         try
           let old_md5 = StringMap.find file !old_files in
           let current_md5 = try
@@ -75,12 +75,12 @@ let commit filename =
       Printf.eprintf "Aborting: no modification done.\n%!";
       exit 2
     end;
-    List.iter (fun (file, content, digest) ->
+    List.iter (fun (file, content, exe, digest) ->
         let dirname = Filename.dirname file in
         FileString.safe_mkdir dirname;
         FileString.write_file file content;
-        if file = "configure" then begin
-          Unix.chmod "configure"  0o755;
+        if file = "configure" || exe then begin
+          Unix.chmod file 0o755;
         end;
         old_files := StringMap.add file digest !old_files
       ) files;
@@ -91,7 +91,7 @@ let commit filename =
       ) !old_files;
     close_out oc;
 
-    let files = filename :: List.map (fun (file,_,_) -> file) files in
+    let files = filename :: List.map (fun (file,_, _,_) -> file) files in
     let files = ref files in
 
     List.iter (fun hook ->

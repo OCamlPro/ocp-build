@@ -174,6 +174,12 @@ let () =
 
             | "homepage" ->
               let homepage = !!AutoconfProjectConfig.homepage in
+              let homepage =
+                if homepage = "" &&
+                   !!github_project <> "" then
+                  Printf.sprintf "http://github.com/%s" !!github_project
+                else homepage
+              in
               if homepage <> "" then
                 AutoconfFS.fprintf oc "homepage: %S\n" homepage
               else
@@ -230,9 +236,9 @@ let () =
 let () =
   AutoconfCommon.register_maker "push-opam.sh" (fun () ->
 
-      if not ( Sys.file_exists "descr" && Sys.file_exists "findlib") then begin
+      if not ( Sys.file_exists "descr") then begin
         Printf.eprintf
-          "Warning: files 'descr' and 'findlib' need to be present for\n";
+          "Warning: files 'descr' need to be present for\n";
         Printf.eprintf "  'push-opam.sh' to be generated.\n%!";
       end else
       if (!!AutoconfProjectConfig.download_url_prefix = "" &&
@@ -245,9 +251,7 @@ let () =
 
       end else begin
 
-        AutoconfFS.write_file "push-opam.sh"
+        AutoconfFS.write_file ~exe:true "push-opam.sh"
           (AutoconfCommon.find_content "skeleton/push-opam.sh");
-        Unix.chmod "push-opam.sh" 0o755;
-
       end
     )
