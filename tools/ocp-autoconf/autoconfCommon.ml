@@ -33,12 +33,12 @@ let find_content filename =
     Printf.eprintf "Template for file %S not found\n%!" filename;
     exit 2
 
-let save_file ?(override=true) filename =
+let save_file ?exe ?(override=true) filename =
   assert (OcpString.starts_with filename "skeleton/");
   let _,dst_filename = OcpString.cut_at filename '/' in
   if override || not (Sys.file_exists dst_filename) then
     let content = find_content filename in
-    AutoconfFS.write_file dst_filename content;
+    AutoconfFS.write_file ?exe dst_filename content;
     ()
 
 let command cmd =

@@ -31,9 +31,13 @@ CMD="mkdir -p ${OPAM_REPO}/packages/${PACKAGE}/${PACKAGE}.${VERSION}"
 echo $CMD
 $CMD
 
-CMD="cp opam descr findlib ${OPAM_REPO}/packages/${PACKAGE}/${PACKAGE}.${VERSION}/"
+CMD="cp opam descr ${OPAM_REPO}/packages/${PACKAGE}/${PACKAGE}.${VERSION}/"
 echo $CMD
 $CMD
+
+CMD="cp findlib ${OPAM_REPO}/packages/${PACKAGE}/${PACKAGE}.${VERSION}/"
+echo $CMD
+$CMD || echo OK
 
 URL=${DOWNLOAD_URL_PREFIX}${VERSION}.tar.gz
 TMPFILE=/tmp/push-ocaml.tmp

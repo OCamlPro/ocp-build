@@ -39,8 +39,7 @@ let () =
 let () =
   AutoconfCommon.register_maker "configure"
     (fun () ->
-       AutoconfCommon.save_file "skeleton/configure";
-       Unix.chmod "configure" 0o755;
+       AutoconfCommon.save_file ~exe:true "skeleton/configure";
     )
 
 let () =
