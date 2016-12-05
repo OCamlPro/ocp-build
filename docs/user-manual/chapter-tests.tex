@@ -5,7 +5,7 @@
 
 Running tests is simple:
 \begin{verbatim}
-ocp-build -tests
+ocp-build tests
 \end{verbatim}
 
 \ocpbuild{} will compile all the tests, and run them. \ocpbuild{} will
@@ -31,7 +31,7 @@ are benchmarks or serialized.
 \subsection{Creating an independant ``test'' package}
 
 A ``test'' package is a program that is only compiled when 
-\ocpbuild{} is ran with argument \verb+-tests+.
+\ocpbuild{} is ran with argument \verb+tests+.
 
 \begin{verbatim}
 begin test "my-lib-test"

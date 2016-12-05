@@ -91,6 +91,12 @@ end
 *)
 let ocaml_dep dep = BuildOCamlGlobals.ocaml_package dep.dep_project
 
+let ocamlc_command options ocamlc_specific ocamlc_generic =
+  let ocamlc_command = ocamlc_specific.get options in
+  if ocamlc_command = [] then
+    ocamlc_generic.get options
+  else ocamlc_command
+
 let copy_dir lib src_file =
   let b = lib.lib.lib_context in
   let mut_dirname =
@@ -192,8 +198,7 @@ let c_includes lib =
       | TestPackage -> assert false
       | LibraryPackage
       | ObjectsPackage ->
-        if dep.dep_link
-          || (BuildValue.get_bool_with_default [dep.dep_options] "externals_only" false)
+        if dep.dep_link || externals_only.get [dep.dep_options]
         then begin
           add_include_dir lib.lib.lib_src_dir;
         end
@@ -232,10 +237,9 @@ let command_includes lib pack_for =
           | TestPackage -> assert false
           | LibraryPackage
           | ObjectsPackage ->
-            if dep.dep_link ||
-               (BuildValue.get_bool_with_default [dep.dep_options] "externals_only" false) then begin
-         add_include_dir lib.lib.lib_dst_dir;
-         add_include_dir lib.lib.lib_src_dir;
+            if dep.dep_link || externals_only.get [dep.dep_options] then begin
+              add_include_dir lib.lib.lib_dst_dir;
+              add_include_dir lib.lib.lib_src_dir;
             end
           | SyntaxPackage -> ()
           | RulesPackage ->
@@ -343,6 +347,7 @@ let add_c2o_rule b lib seq src_file target_file options =
   add_more_rule_sources lib r [] options;
   add_rule_source r src_file;
   add_rule_sources r seq;
+  (* Why do we add bytecomp_deps before generating a .o from a .c ? *)
   List.iter (fun dep ->
     if dep.dep_link then
       match ocaml_dep dep  with
@@ -398,52 +403,53 @@ let add_mly2ml_rule b lib src_file ml_target_file mli_target_file options =
 *)
 
 
-let add_nopervasives_flag options flags =
-  if nopervasives.get options then
-    (S "-nopervasives" ) :: flags
-  else flags
+let add_flag option flag options flags =
+  if option.get options && not (List.mem (S flag) flags) then
+    (S flag) :: flags else flags
 
-let add_asmdebug_flag options flags =
-  if asmdebug_option.get options then
-    (S "-g" ) :: flags
-  else flags
-
-let add_bytedebug_flag options flags =
-  if asmdebug_option.get options then
-    (S "-g" ) :: flags
-  else flags
+let add_nopervasives_flag = add_flag nopervasives "-nopervasives"
+let add_asmdebug_flag = add_flag asmdebug_option "-g"
+let add_bytedebug_flag = add_flag bytedebug_option "-g"
+let add_debug_flag = add_flag debug_option "-g"
 
 let bytelinkflags lib =
   let options = [lib.lib.lib_options] in
-  add_bytedebug_flag options (
-    add_nopervasives_flag options (
-      List.map argument_of_string  (bytelink_option.get options)
+  add_debug_flag options (
+    add_bytedebug_flag options (
+      add_nopervasives_flag options (
+        List.map argument_of_string  (bytelink_option.get options)
+      )
     )
   )
+
 let asmlinkflags lib =
   let options = [lib.lib.lib_options] in
-  add_asmdebug_flag options (
-    add_nopervasives_flag options (
-      List.map argument_of_string (asmlink_option.get options )
+  add_debug_flag options (
+    add_asmdebug_flag options (
+      add_nopervasives_flag options (
+        List.map argument_of_string (asmlink_option.get options )
+      )
     )
   )
 
 let depflags options =
     List.map argument_of_string ( dep_option.get options)
 let bytecompflags options =
+  add_debug_flag options (
   add_bytedebug_flag options (
     add_nopervasives_flag options (
     List.map argument_of_string ( bytecomp_option.get options)
-    ))
+    )))
 let docflags options =
   add_nopervasives_flag options (
     List.map argument_of_string ( doc_option.get options)
   )
 let asmcompflags options =
+  add_debug_flag options (
   add_asmdebug_flag options (
     add_nopervasives_flag options (
     List.map argument_of_string (asmcomp_option.get options )
-    ))
+    )))
 
 let needs_odoc lib =
   match lib.lib.lib_type with
@@ -612,10 +618,9 @@ let add_files_to_link_to_command case cmd options cmx_files =
 let add_cmos2cma_rule lib ptmp cclib cmo_files cma_file =
   if not lib.lib.lib_installed then
     let options = [lib.lib.lib_options] in
-
-
-    let cmd = new_command (ocamlc_cmd.get options)
-      (bytelinkflags lib) in
+    let cmd = new_command
+      (ocamlc_command options ocamlc2cma_cmd ocamlc_cmd
+      ) (bytelinkflags lib) in
     add_command_args cmd  [S "-a"; S "-o"; BF cma_file];
     if cclib <> "" then
       add_command_strings cmd [ "-custom" ; "-cclib"; cclib ];
@@ -683,7 +688,7 @@ let add_cmxs2cmxa_rule b lib cclib cmi_files cmx_files cmxo_files stubs_files =
     add_rule_sources r cmxo_files;
     add_rule_sources r cmi_files;
 
-    if BuildValue.get_bool_with_default options "cmxs_plugin" true then begin
+    if cmxs_plugin.get options then begin
 
       let temp_cmxs = add_temp_file b src_dir basename_cmxs in
 
@@ -739,8 +744,7 @@ let get_link_order lib =
       lib.lib.lib_requires []
     in
     let tolink =
-      let link_order = BuildValue.get_strings_with_default [lib.lib.lib_options] "link_order"
-          [] in
+      let link_order = link_order.get [lib.lib.lib_options] in
       if link_order = [] then tolink else
         let map = List.fold_left (fun map lib ->
             StringMap.add lib.lib.lib_name lib map
@@ -758,12 +762,13 @@ let get_link_order lib =
 let add_cmos2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
   if not lib.lib.lib_installed then
     let options = [lib.lib.lib_options] in
-    (*
-      let src_dir = lib.lib.lib_src_dir in
-      let dst_dir = lib.lib.lib_dst_dir in
-    *)
-
-    let cmd = new_command (ocamlc_cmd.get  options ) linkflags in
+    let ocamlc_command =
+      if is_toplevel.get options then
+        ocamlmktop_cmd.get options
+      else
+        ocamlc_command options ocamlc2byte_cmd ocamlc_cmd
+    in
+    let cmd = new_command ocamlc_command linkflags in
     add_command_args cmd [S "-o"; BF byte_file];
     let custom = ref false in
     List.iter (fun o_file ->
@@ -836,11 +841,9 @@ let add_cmos2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
 let add_cmxs2asm_rule lib ptmp linkflags cclib cmx_files cmxo_files o_files opt_file =
   if  not lib.lib.lib_installed then
     let options = [lib.lib.lib_options] in
-    (*
-      let src_dir = lib.lib.lib_src_dir in
-      let dst_dir = lib.lib.lib_dst_dir in
-    *)
-    let cmd = new_command (ocamlopt_cmd.get  options ) linkflags in
+    let cmd = new_command
+      (ocamlc_command options ocamlopt2asm_cmd ocamlopt_cmd)
+      linkflags in
     add_command_args cmd [S "-o"; BF opt_file];
     if cclib <> "" then
       add_command_args cmd [S "-cclib"; S cclib];
@@ -2195,7 +2198,8 @@ let add_library w b lib =
         Some a_file
       else
         try
-          let a_file = BuildValue.get_string envs "libstubs" in
+          let a_file = libstubs.get envs in
+          if a_file = "" then raise (Var_not_found "libstubs");
           let a_file = subst global_subst a_file in
           if Filename.basename a_file <> libbasename then begin
             Printf.eprintf "%s\nError: %s=%S basename differs from %S^%s^%S=\"%s\"\n%!"
@@ -2314,17 +2318,18 @@ let local_subst (file, env) s =
   s
 
 let add_rules bc lib target_name target_files =
+  let lib_options =  [lib.lib.lib_options] in
   let _b = bc.build_context in
   let dirname = lib.lib.lib_dirname in
-  let files = BuildValue.get_strings_with_default [lib.lib.lib_options] "source_files" [] in
+  let files = BuildValue.get_strings_with_default lib_options "source_files" [] in
   List.iter (fun file ->
     ignore ( add_file lib.lib.lib_context lib.lib.lib_src_dir file : build_file );
   ) files;
   let build_rules =
-    BuildValue.get_local_prop_list_with_default [lib.lib.lib_options]
+    BuildValue.get_local_prop_list_with_default lib_options
       (target_name ^ "_rules") [] in
   let build_targets =
-    BuildValue.get_local_prop_list_with_default [lib.lib.lib_options]
+    BuildValue.get_local_prop_list_with_default lib_options
       (target_name ^ "_targets") [] in
 
   List.iter (fun (file, _env) ->
@@ -2549,7 +2554,7 @@ let add_rules bc lib target_name target_files =
 
 
 let add_program w b lib =
-(*  let src_dir = lib.lib.lib_src_dir in *)
+  let lib_options =  [lib.lib.lib_options] in
   let dst_dir = lib.lib.lib_dst_dir in
   let ptmp = process_sources w b lib in
 
@@ -2557,51 +2562,56 @@ let add_program w b lib =
     let map = ref StringMap.empty in
     List.iter (fun dep ->
       if dep.dep_link then
-      match ocaml_dep dep with
-      | None -> ()
-      | Some lib1 ->
-      match lib1.lib.lib_type with
-        | TestPackage -> assert false
-        | ProgramPackage
-(*        | ProjectToplevel *)
-        | ObjectsPackage
-          -> ()
-        | RulesPackage -> ()
-        | LibraryPackage ->
-          let modules = lib1.lib_modules in
-          let modules = !modules in
-          StringMap.iter (fun modname (kind1, _) ->
-            try
-              let (kind2, lib2) = StringMap.find modname !map in
-              match kind1, kind2 with
-              | (ML | MLandMLI), (ML | MLandMLI) ->
-                Printf.eprintf
-                  "Warning: program %s, requirements %s and %s both\n"
-                  lib.lib.lib_name lib2.lib.lib_name lib1.lib.lib_name;
-                Printf.eprintf "\tdefine a module name %s.\n" modname;
-              | _ -> ()
-            with Not_found ->
-              map := StringMap.add modname (kind1,lib1) !map
-          ) modules
-        | SyntaxPackage ->
-(* Nothing to do ? *)
-          ()
+        match ocaml_dep dep with
+        | None -> ()
+        | Some lib1 ->
+          match lib1.lib.lib_type with
+          | TestPackage -> assert false
+          | ProgramPackage
+        (*        | ProjectToplevel *)
+          | ObjectsPackage
+            -> ()
+          | RulesPackage -> ()
+          | LibraryPackage ->
+            let modules = lib1.lib_modules in
+            let modules = !modules in
+            StringMap.iter (fun modname (kind1, _) ->
+              try
+                let (kind2, lib2) = StringMap.find modname !map in
+                match kind1, kind2 with
+                | (ML | MLandMLI), (ML | MLandMLI) ->
+                  Printf.eprintf
+                    "Warning: program %s, requirements %s and %s both\n"
+                    lib.lib.lib_name lib2.lib.lib_name lib1.lib.lib_name;
+                  Printf.eprintf "\tdefine a module name %s.\n" modname;
+                | _ -> ()
+              with Not_found ->
+                map := StringMap.add modname (kind1,lib1) !map
+            ) modules
+          | SyntaxPackage ->
+          (* Nothing to do ? *)
+            ()
     ) lib.lib.lib_requires
   end;
 
-  let cclib =  cclib_option.get [lib.lib.lib_options] in
+  let cclib =  cclib_option.get lib_options in
   let cclib = String.concat " "  cclib in
+  let is_toplevel = is_toplevel.get lib_options in
+  let linkall = force_link_option.get lib_options || is_toplevel in
   begin
     let linkflags = bytelinkflags lib in
     let linkflags =
-      if !(ptmp.cmo_files) <> [] then linkflags else S "-linkall" :: linkflags in
+      if linkall || !(ptmp.cmo_files) = [] then
+        S "-linkall" :: linkflags
+      else linkflags
+    in
     let byte_file = add_dst_file b dst_dir (lib.lib_archive ^ byte_exe) in
     add_cmos2byte_rule lib ptmp linkflags cclib !(ptmp.cmo_files)
       !(ptmp.o_files) byte_file;
-    if byte_option.get  [lib.lib.lib_options]  then begin
+    if byte_option.get  lib_options  then begin
       lib.lib_byte_targets <- (byte_file, RUN_BYTE) :: lib.lib_byte_targets;
       lib.lib_bytelink_deps <- byte_file :: lib.lib_bytelink_deps;
-(*      lib.lib_bytecomp_deps <- byte_file :: lib.lib_bytecomp_deps; *)
+      (*      lib.lib_bytecomp_deps <- byte_file :: lib.lib_bytecomp_deps; *)
       lib.lib_cmo_objects <- !(ptmp.cmo_files) @ lib.lib_cmo_objects;
     end
   end;
@@ -2609,14 +2619,15 @@ let add_program w b lib =
   if !(ptmp.cmx_files) <> [] then begin
     let linkflags = asmlinkflags lib in
     let linkflags =
-      if !(ptmp.cmx_files) <> [] then linkflags else S "-linkall" :: linkflags in
+      if linkall || !(ptmp.cmx_files) = [] then  S "-linkall" :: linkflags
+      else linkflags in
     let asm_file = add_dst_file b dst_dir (lib.lib_archive ^ asm_exe) in
     add_cmxs2asm_rule lib ptmp linkflags cclib
       !(ptmp.cmx_files) !(ptmp.cmxo_files) !(ptmp.o_files) asm_file;
-    if  asm_option.get [lib.lib.lib_options] then begin
+    if  asm_option.get lib_options && not is_toplevel then begin
       lib.lib_asm_targets <- (asm_file, RUN_ASM) :: lib.lib_asm_targets;
       lib.lib_asmlink_deps <- asm_file :: lib.lib_asmlink_deps;
-(*      lib.lib_asmcomp_deps <- asm_file :: lib.lib_asmcomp_deps; *)
+      (*      lib.lib_asmcomp_deps <- asm_file :: lib.lib_asmcomp_deps; *)
       lib.lib_asm_cmx_objects <- !(ptmp.cmx_files) @ lib.lib_asm_cmx_objects;
       lib.lib_asm_cmxo_objects <- !(ptmp.cmxo_files) @ lib.lib_asm_cmxo_objects;
     end

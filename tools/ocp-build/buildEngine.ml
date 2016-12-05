@@ -44,7 +44,7 @@ let _ =
     match !sigint_received with
     | None -> sigint_received := Some t1
     | Some t0 ->
-      if t1 -. t0 > 5. then begin
+      if t1 -. t0 > 1. then begin
         Printf.eprintf "BuildEngine: forcing exit on second SIGINT\n%!";
         exit 2
       end)

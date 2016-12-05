@@ -42,4 +42,8 @@ if ocaml_version = "4.01.0+ocp1" || ocaml_version = "4.02.1+ocp1" then {
     pp_deps = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
   end
 
+  begin program "ocplib-compat-top"
+      is_toplevel = true
+      requires= [ "ocplib-compat" ]
+  end
 }

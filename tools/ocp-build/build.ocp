@@ -180,11 +180,13 @@ begin program "ocp-build"
     "buildActionQuery.ml"
     "buildActionHelp.ml"
     "buildMain.ml" (* Driver of program *)
+  ];
+
+  requires = [
+    "ocp-build-lib"
+    "ocp-build-ocaml-plugin"
+      "ocp-build-oasis"
   ]
-  requires = [ "ocp-build-lib"
-                 "ocp-build-ocaml-plugin"
-                 "ocp-build-oasis"
-             ]
 
 end
 

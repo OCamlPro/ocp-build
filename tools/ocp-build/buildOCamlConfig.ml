@@ -61,6 +61,7 @@ module TYPES = struct
     mutable cout_ocamldep : string list option;
     mutable cout_ocamlyacc : string list option;
     mutable cout_ocamlmklib : string list option;
+    mutable cout_ocamlmktop : string list option;
     mutable cout_ocamllex : string list option;
     mutable cout_meta_dirnames : string list;
     mutable cout_native_support : bool option;
@@ -156,6 +157,8 @@ let ocamlyacc_prefixes = [
   "The OCaml parser generator" ]
 let ocamlmklib_prefixes =
   [ "ocamlmklib" ]
+let ocamlmktop_prefixes =
+  [ "ocamlmklib" ]
 
 let check_is_ocamlc = check_is_compiler ',' ocamlc_prefixes  [ "-v" ]
 let check_is_ocamldoc = check_is_compiler ' 'ocamldoc_prefixes  [ "-version" ]
@@ -164,12 +167,14 @@ let check_is_ocamllex = check_is_compiler ',' ocamllex_prefixes  [ "-version" ]
 let check_is_ocamldep = check_is_compiler ',' ocamldep_prefixes [ "-version" ]
 let check_is_ocamlyacc = check_is_compiler ',' ocamlyacc_prefixes [ "-version" ]
 let check_is_ocamlmklib = check_is_compiler ',' ocamlmklib_prefixes [ "-version" ]
+let check_is_ocamlmktop = check_is_compiler ',' ocamlmktop_prefixes [ "-version" ]
 
 
 let check_config w cin =
 
   let cout = {
     cout_ocamlc = None;
+    cout_ocamlmktop = None;
     cout_ocamldoc = None;
     cout_ocamlcc = None;
     cout_ocamlopt = None;
@@ -332,6 +337,16 @@ let check_config w cin =
       cout.cout_ocamlmklib <- Some [ocamlmklib];
   end;
 
+  let ocamlmktop = find_first_in_path path
+    check_is_ocamlc [ "ocamlmktop" ] in
+  begin match ocamlmktop with
+      None ->
+      Printf.eprintf "Warning: Could not find OCaml ocamlmktop tool.\n";
+      cout.cout_ocamlmktop <- Some [ "no-ocamlmktop-detected" ];
+  | Some ocamlmktop ->
+      cout.cout_ocamlmktop <- Some [ocamlmktop];
+  end;
+
   let ocamlfind_path =
     if cin.cin_use_ocamlfind then
       MetaConfig.load_config ()
@@ -359,6 +374,7 @@ let check_config w cin =
 
 let ocamldep_cmd = BuildValue.new_strings_option "ocamldep" [ "ocamldep.opt" ]
 let ocamlc_cmd = BuildValue.new_strings_option "ocamlc" [ "ocamlc.opt" ]
+let ocamlmktop_cmd = BuildValue.new_strings_option "ocamlmktop" [ "ocamlmktop" ]
 let ocamldoc_cmd = BuildValue.new_strings_option "ocamldoc" [ "ocamldoc" ]
 let ocamlcc_cmd = BuildValue.new_strings_option "ocamlcc" [ "ocamlc.opt" ]
 let ocamlopt_cmd = BuildValue.new_strings_option "ocamlopt" [ "ocamlopt.opt" ]
@@ -399,6 +415,8 @@ let set_global_config cout =
     ocamlyacc_cmd.set cmd);
   (match cout.cout_ocamlmklib with None -> () | Some cmd ->
     ocamlmklib_cmd.set cmd);
+  (match cout.cout_ocamlmktop with None -> () | Some cmd ->
+    ocamlmktop_cmd.set cmd);
   (match cout.cout_native_support with None -> () | Some bool ->
     native_support.set bool);
   (match cout.cout_byte_support with None -> () | Some bool ->

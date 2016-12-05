@@ -960,24 +960,48 @@ let verify_packages w packages =
   (* Change the package IDs: the package_requires_map is not correct anymore ! *)
   reset_package_ids "project_sorted" pj.project_sorted;
 
-  Array.iter (fun pk ->
-    pk.pi.package_requires_map <- IntMap.empty
-  ) pj.project_sorted;
-
   (* TODO: The impact of this is that all dependencies are sorted in
      the same order in all packages. This might, however, not be what
      someone wants, because you might want to have a different link
      order than the one globally inferred.  *)
   Array.iter (fun pk ->
-    if requires_keep_order_option.get [pk.package_options]  then
+    if requires_keep_order_option.get [pk.package_options]  then begin
+      (* This option does not work.
+
+      Printf.eprintf "pk=%s\n%!" pk.package_name;
+      List.iter (fun dep ->
+        Printf.eprintf "  pj=%s\n%!" dep.dep_project.package_name;
+        IntMap.iter (fun _ dep ->
+          Printf.eprintf "    pj=%s\n%!" dep.dep_project.package_name
+        ) dep.dep_project.pi.package_requires_map;
+        List.iter (fun name ->
+          Printf.eprintf "     after: %s\n%!" name;
+          try
+            let pj2 = StringMap.find name pk.pi.package_deps_map in
+            Printf.eprintf "pj2 = %s\n%!"
+              pj2.dep_project.package_name;
+            force_add_dep dep pj2
+          with Not_found ->
+            Printf.eprintf "Project %s not found\n%!" name
+        ) (BuildValue.get_strings_with_default
+            [dep.dep_options]  "after"  []);
+      ) pk.pi.package_requires;
+      *)
       let (sorted, cycle, _ ) = PackageLinkSorter.sort pk.pi.package_requires in
       assert (cycle = []);
+      (*
+      Printf.eprintf "pk=%s\n%!" pk.package_name;
+      List.iter (fun dep ->
+        Printf.eprintf "  pj=%s\n%!" dep.dep_project.package_name;
+      ) sorted;
+      *)
       pk.pi.package_requires <- sorted
-    else
+    end else begin
       pk.pi.package_requires <- List.sort (fun dep1 dep2 ->
         compare
           dep1.dep_project.package_id
           dep2.dep_project.package_id) pk.pi.package_requires;
+    end;
 
     if !print_package_deps || verbose 9 then begin
       Printf.eprintf "Package %S[%d]\n" pk.package_name pk.package_id;
@@ -989,6 +1013,11 @@ let verify_packages w packages =
           (if dp.dep_syntax then " (syntax)" else "");
       ) pk.pi.package_requires
     end;
+  ) pj.project_sorted;
+
+  (* Do this after toposort ! *)
+  Array.iter (fun pk ->
+    pk.pi.package_requires_map <- IntMap.empty
   ) pj.project_sorted;
 
   (*  reset_package_ids "project_incomplete" pj.project_incomplete; *)
