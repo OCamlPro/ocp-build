@@ -160,9 +160,6 @@ all: build-ocps
 	@echo Libraries will be installed in ${ocamldir}
 	@echo META files will be installed in ${metadir}
 
-_obuild: Makefile
-	$(OCP_BUILD_BOOTER) init
-
 build-ocps: $(OCP_BUILD_BOOTER) _obuild
 	$(OCP_BUILD_BOOTER)
 

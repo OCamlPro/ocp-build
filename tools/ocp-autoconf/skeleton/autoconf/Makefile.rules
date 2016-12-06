@@ -6,7 +6,7 @@ autoconf/Makefile.config: autoconf/configure
 #	ocp-autoconf || touch autoconf/configure
 
 _obuild:
-        ocp-build init
+	ocp-build init
 
 ocp-build-build: _obuild
 	ocp-build
