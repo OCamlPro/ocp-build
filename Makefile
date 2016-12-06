@@ -21,7 +21,8 @@ OCP_BUILD_DSTDIR=$(OBUILD_DSTDIR)/ocp-build
 OCPLIB_NAMES=debug lang unix file system config compat subcmd
 
 INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
-    $(OCP_BUILD_SRCDIR)
+    $(OCP_BUILD_SRCDIR) \
+    -I $(OCP_BUILD_SRCDIR)/lang1
 OCPLIB_LIBS=$(foreach lib, $(OCPLIB_NAMES), ocplib-$(lib))
 
 OCP_BUILD_BOOTER=boot/ocp-build.asm
@@ -75,8 +76,9 @@ BUILD_PROJECT= $(OCP_BUILD_SRCDIR)/buildOCPTypes.ml	\
     $(OCP_BUILD_SRCDIR)/lang1/buildOCPTree.ml			\
     $(OCP_BUILD_SRCDIR)/lang1/buildOCPParser.ml		\
     $(OCP_BUILD_SRCDIR)/lang1/buildOCPParse.ml		\
+    $(OCP_BUILD_SRCDIR)/lang1/buildOCPPrims.ml		\
+    $(OCP_BUILD_SRCDIR)/lang1/buildOCPInterp.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCPPrinter.ml		\
-    $(OCP_BUILD_SRCDIR)/buildOCPInterp.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCP.ml
 
 BUILD_ENGINE= $(OCP_BUILD_SRCDIR)/buildEngineTypes.ml	\
@@ -137,7 +139,7 @@ OCP_BUILD_MLS= $(STRING_COMPAT) $(OCPLIB_DEBUG) $(OCPLIB_LANG)		\
 OCP_BUILD_MLLS= \
    $(lang_SRCDIR)/ocamllexer.mll $(OCP_BUILD_SRCDIR)/metaLexer.mll 
 
-OCP_BUILD_MLYS= $(OCP_BUILD_SRCDIR)/buildOCPParser.mly
+OCP_BUILD_MLYS= $(OCP_BUILD_SRCDIR)/lang1/buildOCPParser.mly
 
 OCP_BUILD_CS= $(unix_SRCDIR)/minUnix_c.c			\
  $(unix_SRCDIR)/onlyWin32_c.c $(unix_SRCDIR)/onlyUnix_c.c
@@ -192,8 +194,8 @@ distclean: clean ocp-distclean
 $(OCP_BUILD_SRCDIR)/buildVersion.ml: Makefile $(MAKE_CONFIG)
 	echo "let version=\"$(PACKAGE_VERSION)\"" > $(OCP_BUILD_SRCDIR)/buildVersion.ml
 
-$(OCP_BUILD_SRCDIR)/buildOCPParser.cmi: $(OCP_BUILD_SRCDIR)/buildOCPParser.mli
-	$(OCAMLC) -c -o $(OCP_BUILD_SRCDIR)/buildOCPParser.cmi $(INCLUDES) $(OCP_BUILD_SRCDIR)/buildOCPParser.mli
+$(OCP_BUILD_SRCDIR)/lang1/buildOCPParser.cmi: $(OCP_BUILD_SRCDIR)/lang1/buildOCPParser.mli
+	$(OCAMLC) -c -o $(OCP_BUILD_SRCDIR)/lang1/buildOCPParser.cmi $(INCLUDES) $(OCP_BUILD_SRCDIR)/lang1/buildOCPParser.mli
 
 doc:
 	cd docs/user-manual; $(MAKE)

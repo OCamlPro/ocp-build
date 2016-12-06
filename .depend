@@ -1,50 +1,135 @@
 libs/ocplib-compat/string-compat/stringCompat.cmo :
 libs/ocplib-compat/string-compat/stringCompat.cmx :
-libs/ocplib-config/pythonConfig.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-file/file.cmi libs/ocplib-config/pythonConfig.cmi
-libs/ocplib-config/pythonConfig.cmx : libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-file/file.cmx libs/ocplib-config/pythonConfig.cmi
-libs/ocplib-config/pythonConfig.cmi : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-file/file.cmi
-libs/ocplib-config/simpleConfig.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-config/simpleConfigTypes.cmo \
-    libs/ocplib-config/simpleConfigOCaml.cmi libs/ocplib-lang/intMap.cmi \
-    libs/ocplib-file/file.cmi libs/ocplib-config/simpleConfig.cmi
-libs/ocplib-config/simpleConfig.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-config/simpleConfigTypes.cmx \
-    libs/ocplib-config/simpleConfigOCaml.cmx libs/ocplib-lang/intMap.cmx \
-    libs/ocplib-file/file.cmx libs/ocplib-config/simpleConfig.cmi
-libs/ocplib-config/simpleConfig.cmi : libs/ocplib-lang/intMap.cmi \
-    libs/ocplib-file/file.cmi
-libs/ocplib-config/simpleConfigOCaml.cmo : \
-    libs/ocplib-config/simpleConfigTypes.cmo libs/ocplib-lang/ocpString.cmi \
-    libs/ocplib-config/simpleConfigOCaml.cmi
-libs/ocplib-config/simpleConfigOCaml.cmx : \
-    libs/ocplib-config/simpleConfigTypes.cmx libs/ocplib-lang/ocpString.cmx \
-    libs/ocplib-config/simpleConfigOCaml.cmi
-libs/ocplib-config/simpleConfigOCaml.cmi : \
-    libs/ocplib-config/simpleConfigTypes.cmo libs/ocplib-file/file.cmi
-libs/ocplib-config/simpleConfigTypes.cmo : libs/ocplib-file/file.cmi
-libs/ocplib-config/simpleConfigTypes.cmx : libs/ocplib-file/file.cmx
-libs/ocplib-debug/debugTyperex.cmo : libs/ocplib-debug/debugTyperex.cmi
-libs/ocplib-debug/debugTyperex.cmx : libs/ocplib-debug/debugTyperex.cmi
-libs/ocplib-debug/debugTyperex.cmi :
 libs/ocplib-debug/debugVerbosity.cmo : libs/ocplib-debug/debugVerbosity.cmi
 libs/ocplib-debug/debugVerbosity.cmx : libs/ocplib-debug/debugVerbosity.cmi
-libs/ocplib-debug/debugVerbosity.cmi :
-libs/ocplib-file/dir.cmo : libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-unix/minUnix.cmi libs/ocplib-file/file.cmi \
-    libs/ocplib-file/dir.cmi
-libs/ocplib-file/dir.cmx : libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-unix/minUnix.cmx libs/ocplib-file/file.cmx \
-    libs/ocplib-file/dir.cmi
-libs/ocplib-file/dir.cmi : libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-file/file.cmi
+libs/ocplib-debug/debugTyperex.cmo : libs/ocplib-debug/debugTyperex.cmi
+libs/ocplib-debug/debugTyperex.cmx : libs/ocplib-debug/debugTyperex.cmi
+libs/ocplib-lang/ocpPervasives.cmo : libs/ocplib-lang/ocpPervasives.cmi
+libs/ocplib-lang/ocpPervasives.cmx : libs/ocplib-lang/ocpPervasives.cmi
+libs/ocplib-lang/ocpList.cmo : libs/ocplib-lang/ocpList.cmi
+libs/ocplib-lang/ocpList.cmx : libs/ocplib-lang/ocpList.cmi
+libs/ocplib-lang/ocpString.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/ocpList.cmi libs/ocplib-lang/ocpString.cmi
+libs/ocplib-lang/ocpString.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/ocpList.cmx libs/ocplib-lang/ocpString.cmi
+libs/ocplib-lang/ocpStream.cmo : libs/ocplib-lang/ocpString.cmi \
+    libs/ocplib-lang/ocpStream.cmi
+libs/ocplib-lang/ocpStream.cmx : libs/ocplib-lang/ocpString.cmx \
+    libs/ocplib-lang/ocpStream.cmi
+libs/ocplib-lang/ocpGenlex.cmo : libs/ocplib-lang/ocpGenlex.cmi
+libs/ocplib-lang/ocpGenlex.cmx : libs/ocplib-lang/ocpGenlex.cmi
+libs/ocplib-lang/ocpHashtbl.cmo : libs/ocplib-lang/ocpHashtbl.cmi
+libs/ocplib-lang/ocpHashtbl.cmx : libs/ocplib-lang/ocpHashtbl.cmi
+libs/ocplib-lang/ocpDigest.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/ocpDigest.cmi
+libs/ocplib-lang/ocpDigest.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/ocpDigest.cmi
+libs/ocplib-lang/ocpArray.cmo : libs/ocplib-lang/ocpArray.cmi
+libs/ocplib-lang/ocpArray.cmx : libs/ocplib-lang/ocpArray.cmi
+libs/ocplib-lang/option.cmo : libs/ocplib-lang/option.cmi
+libs/ocplib-lang/option.cmx : libs/ocplib-lang/option.cmi
+libs/ocplib-lang/intMap.cmo : libs/ocplib-lang/intMap.cmi
+libs/ocplib-lang/intMap.cmx : libs/ocplib-lang/intMap.cmi
+libs/ocplib-lang/intSet.cmo : libs/ocplib-lang/intSet.cmi
+libs/ocplib-lang/intSet.cmx : libs/ocplib-lang/intSet.cmi
+libs/ocplib-lang/stringMap.cmo : libs/ocplib-lang/stringMap.cmi
+libs/ocplib-lang/stringMap.cmx : libs/ocplib-lang/stringMap.cmi
+libs/ocplib-lang/stringSet.cmo : libs/ocplib-lang/stringSet.cmi
+libs/ocplib-lang/stringSet.cmx : libs/ocplib-lang/stringSet.cmi
+libs/ocplib-lang/toposort.cmo : libs/ocplib-lang/toposort.cmi
+libs/ocplib-lang/toposort.cmx : libs/ocplib-lang/toposort.cmi
+libs/ocplib-lang/linearToposort.cmo : libs/ocplib-lang/intMap.cmi \
+    libs/ocplib-lang/linearToposort.cmi
+libs/ocplib-lang/linearToposort.cmx : libs/ocplib-lang/intMap.cmx \
+    libs/ocplib-lang/linearToposort.cmi
+libs/ocplib-lang/ocamllexer.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/ocamllexer.cmi
+libs/ocplib-lang/ocamllexer.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/ocamllexer.cmi
+libs/ocplib-lang/trie.cmo : libs/ocplib-lang/trie.cmi
+libs/ocplib-lang/trie.cmx : libs/ocplib-lang/trie.cmi
+libs/ocplib-lang/ocpLang.cmo : libs/ocplib-lang/ocpString.cmi \
+    libs/ocplib-lang/ocpStream.cmi libs/ocplib-lang/ocpPervasives.cmi \
+    libs/ocplib-lang/ocpList.cmi libs/ocplib-lang/ocpHashtbl.cmi \
+    libs/ocplib-lang/ocpGenlex.cmi libs/ocplib-lang/ocpDigest.cmi \
+    libs/ocplib-lang/ocpLang.cmi
+libs/ocplib-lang/ocpLang.cmx : libs/ocplib-lang/ocpString.cmx \
+    libs/ocplib-lang/ocpStream.cmx libs/ocplib-lang/ocpPervasives.cmx \
+    libs/ocplib-lang/ocpList.cmx libs/ocplib-lang/ocpHashtbl.cmx \
+    libs/ocplib-lang/ocpGenlex.cmx libs/ocplib-lang/ocpDigest.cmx \
+    libs/ocplib-lang/ocpLang.cmi
+libs/ocplib-lang/stringSubst.cmo : libs/ocplib-lang/stringSubst.cmi
+libs/ocplib-lang/stringSubst.cmx : libs/ocplib-lang/stringSubst.cmi
+libs/ocplib-lang/manpage.cmo : libs/ocplib-lang/manpage.cmi
+libs/ocplib-lang/manpage.cmx : libs/ocplib-lang/manpage.cmi
+libs/ocplib-lang/stringTemplate.cmo : libs/ocplib-lang/stringSubst.cmi \
+    libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/stringTemplate.cmi
+libs/ocplib-lang/stringTemplate.cmx : libs/ocplib-lang/stringSubst.cmx \
+    libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/stringTemplate.cmi
+libs/ocplib-lang/reentrantBuffers.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/reentrantBuffers.cmi
+libs/ocplib-lang/reentrantBuffers.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/reentrantBuffers.cmi
+libs/ocplib-unix/minUnix.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-unix/minUnix.cmi
+libs/ocplib-unix/minUnix.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-unix/minUnix.cmi
+libs/ocplib-unix/onlyUnix.cmo : libs/ocplib-unix/minUnix.cmi \
+    libs/ocplib-unix/onlyUnix.cmi
+libs/ocplib-unix/onlyUnix.cmx : libs/ocplib-unix/minUnix.cmx \
+    libs/ocplib-unix/onlyUnix.cmi
+libs/ocplib-unix/onlyWin32.cmo : libs/ocplib-unix/minUnix.cmi \
+    libs/ocplib-unix/onlyWin32.cmi
+libs/ocplib-unix/onlyWin32.cmx : libs/ocplib-unix/minUnix.cmx \
+    libs/ocplib-unix/onlyWin32.cmi
+libs/ocplib-file/fileSig.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-unix/minUnix.cmi
+libs/ocplib-file/fileSig.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-unix/minUnix.cmx
+libs/ocplib-file/fileOS.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-file/fileOS.cmi
+libs/ocplib-file/fileOS.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-file/fileOS.cmi
+libs/ocplib-file/fileChannel.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/reentrantBuffers.cmi libs/ocplib-lang/ocpArray.cmi \
+    libs/ocplib-file/fileOS.cmi libs/ocplib-file/fileChannel.cmi
+libs/ocplib-file/fileChannel.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/reentrantBuffers.cmx libs/ocplib-lang/ocpArray.cmx \
+    libs/ocplib-file/fileOS.cmx libs/ocplib-file/fileChannel.cmi
+libs/ocplib-file/fileString.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/ocpString.cmi libs/ocplib-lang/ocpList.cmi \
+    libs/ocplib-unix/minUnix.cmi libs/ocplib-file/fileChannel.cmi \
+    libs/ocplib-file/fileString.cmi
+libs/ocplib-file/fileString.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/ocpString.cmx libs/ocplib-lang/ocpList.cmx \
+    libs/ocplib-unix/minUnix.cmx libs/ocplib-file/fileChannel.cmx \
+    libs/ocplib-file/fileString.cmi
+libs/ocplib-file/fileLines.cmo : libs/ocplib-file/fileString.cmi \
+    libs/ocplib-file/fileLines.cmi
+libs/ocplib-file/fileLines.cmx : libs/ocplib-file/fileString.cmx \
+    libs/ocplib-file/fileLines.cmi
 libs/ocplib-file/file.cmo : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
@@ -57,160 +142,26 @@ libs/ocplib-file/file.cmx : \
     libs/ocplib-file/fileString.cmx libs/ocplib-file/fileOS.cmx \
     libs/ocplib-file/fileLines.cmx libs/ocplib-file/fileChannel.cmx \
     libs/ocplib-file/file.cmi
-libs/ocplib-file/file.cmi : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-file/fileSig.cmo
-libs/ocplib-file/fileChannel.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/reentrantBuffers.cmi libs/ocplib-lang/ocpArray.cmi \
-    libs/ocplib-file/fileOS.cmi libs/ocplib-file/fileChannel.cmi
-libs/ocplib-file/fileChannel.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/reentrantBuffers.cmx libs/ocplib-lang/ocpArray.cmx \
-    libs/ocplib-file/fileOS.cmx libs/ocplib-file/fileChannel.cmi
-libs/ocplib-file/fileChannel.cmi : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-file/fileSig.cmo
-libs/ocplib-file/fileLines.cmo : libs/ocplib-file/fileString.cmi \
-    libs/ocplib-file/fileLines.cmi
-libs/ocplib-file/fileLines.cmx : libs/ocplib-file/fileString.cmx \
-    libs/ocplib-file/fileLines.cmi
-libs/ocplib-file/fileLines.cmi :
-libs/ocplib-file/fileOS.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-file/fileOS.cmi
-libs/ocplib-file/fileOS.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-file/fileOS.cmi
-libs/ocplib-file/fileOS.cmi :
-libs/ocplib-file/fileSig.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-unix/minUnix.cmi
-libs/ocplib-file/fileSig.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-unix/minUnix.cmx
-libs/ocplib-file/fileString.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocpString.cmi libs/ocplib-lang/ocpList.cmi \
-    libs/ocplib-unix/minUnix.cmi libs/ocplib-file/fileChannel.cmi \
-    libs/ocplib-file/fileString.cmi
-libs/ocplib-file/fileString.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocpString.cmx libs/ocplib-lang/ocpList.cmx \
-    libs/ocplib-unix/minUnix.cmx libs/ocplib-file/fileChannel.cmx \
-    libs/ocplib-file/fileString.cmi
-libs/ocplib-file/fileString.cmi : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-file/fileSig.cmo
-libs/ocplib-lang/intMap.cmo : libs/ocplib-lang/intMap.cmi
-libs/ocplib-lang/intMap.cmx : libs/ocplib-lang/intMap.cmi
-libs/ocplib-lang/intMap.cmi :
-libs/ocplib-lang/intSet.cmo : libs/ocplib-lang/intSet.cmi
-libs/ocplib-lang/intSet.cmx : libs/ocplib-lang/intSet.cmi
-libs/ocplib-lang/intSet.cmi :
-libs/ocplib-lang/linearToposort.cmo : libs/ocplib-lang/intMap.cmi \
-    libs/ocplib-lang/linearToposort.cmi
-libs/ocplib-lang/linearToposort.cmx : libs/ocplib-lang/intMap.cmx \
-    libs/ocplib-lang/linearToposort.cmi
-libs/ocplib-lang/linearToposort.cmi :
-libs/ocplib-lang/manpage.cmo : libs/ocplib-lang/manpage.cmi
-libs/ocplib-lang/manpage.cmx : libs/ocplib-lang/manpage.cmi
-libs/ocplib-lang/manpage.cmi :
-libs/ocplib-lang/ocamllexer.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocamllexer.cmi
-libs/ocplib-lang/ocamllexer.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocamllexer.cmi
-libs/ocplib-lang/ocamllexer.cmi :
-libs/ocplib-lang/ocpArray.cmo : libs/ocplib-lang/ocpArray.cmi
-libs/ocplib-lang/ocpArray.cmx : libs/ocplib-lang/ocpArray.cmi
-libs/ocplib-lang/ocpArray.cmi :
-libs/ocplib-lang/ocpDigest.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocpDigest.cmi
-libs/ocplib-lang/ocpDigest.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocpDigest.cmi
-libs/ocplib-lang/ocpDigest.cmi :
-libs/ocplib-lang/ocpGenlex.cmo : libs/ocplib-lang/ocpGenlex.cmi
-libs/ocplib-lang/ocpGenlex.cmx : libs/ocplib-lang/ocpGenlex.cmi
-libs/ocplib-lang/ocpGenlex.cmi :
-libs/ocplib-lang/ocpHashtbl.cmo : libs/ocplib-lang/ocpHashtbl.cmi
-libs/ocplib-lang/ocpHashtbl.cmx : libs/ocplib-lang/ocpHashtbl.cmi
-libs/ocplib-lang/ocpHashtbl.cmi :
-libs/ocplib-lang/ocpLang.cmo : libs/ocplib-lang/ocpString.cmi \
-    libs/ocplib-lang/ocpStream.cmi libs/ocplib-lang/ocpPervasives.cmi \
-    libs/ocplib-lang/ocpList.cmi libs/ocplib-lang/ocpHashtbl.cmi \
-    libs/ocplib-lang/ocpGenlex.cmi libs/ocplib-lang/ocpDigest.cmi \
-    libs/ocplib-lang/ocpLang.cmi
-libs/ocplib-lang/ocpLang.cmx : libs/ocplib-lang/ocpString.cmx \
-    libs/ocplib-lang/ocpStream.cmx libs/ocplib-lang/ocpPervasives.cmx \
-    libs/ocplib-lang/ocpList.cmx libs/ocplib-lang/ocpHashtbl.cmx \
-    libs/ocplib-lang/ocpGenlex.cmx libs/ocplib-lang/ocpDigest.cmx \
-    libs/ocplib-lang/ocpLang.cmi
-libs/ocplib-lang/ocpLang.cmi : libs/ocplib-lang/ocpString.cmi \
-    libs/ocplib-lang/ocpStream.cmi libs/ocplib-lang/ocpPervasives.cmi \
-    libs/ocplib-lang/ocpList.cmi libs/ocplib-lang/ocpHashtbl.cmi \
-    libs/ocplib-lang/ocpGenlex.cmi libs/ocplib-lang/ocpDigest.cmi
-libs/ocplib-lang/ocpList.cmo : libs/ocplib-lang/ocpList.cmi
-libs/ocplib-lang/ocpList.cmx : libs/ocplib-lang/ocpList.cmi
-libs/ocplib-lang/ocpList.cmi :
-libs/ocplib-lang/ocpPervasives.cmo : libs/ocplib-lang/ocpPervasives.cmi
-libs/ocplib-lang/ocpPervasives.cmx : libs/ocplib-lang/ocpPervasives.cmi
-libs/ocplib-lang/ocpPervasives.cmi :
-libs/ocplib-lang/ocpStream.cmo : libs/ocplib-lang/ocpString.cmi \
-    libs/ocplib-lang/ocpStream.cmi
-libs/ocplib-lang/ocpStream.cmx : libs/ocplib-lang/ocpString.cmx \
-    libs/ocplib-lang/ocpStream.cmi
-libs/ocplib-lang/ocpStream.cmi :
-libs/ocplib-lang/ocpString.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocpList.cmi libs/ocplib-lang/ocpString.cmi
-libs/ocplib-lang/ocpString.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocpList.cmx libs/ocplib-lang/ocpString.cmi
-libs/ocplib-lang/ocpString.cmi :
-libs/ocplib-lang/option.cmo : libs/ocplib-lang/option.cmi
-libs/ocplib-lang/option.cmx : libs/ocplib-lang/option.cmi
-libs/ocplib-lang/option.cmi :
-libs/ocplib-lang/reentrantBuffers.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/reentrantBuffers.cmi
-libs/ocplib-lang/reentrantBuffers.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/reentrantBuffers.cmi
-libs/ocplib-lang/reentrantBuffers.cmi : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo
-libs/ocplib-lang/stringMap.cmo : libs/ocplib-lang/stringMap.cmi
-libs/ocplib-lang/stringMap.cmx : libs/ocplib-lang/stringMap.cmi
-libs/ocplib-lang/stringMap.cmi :
-libs/ocplib-lang/stringSet.cmo : libs/ocplib-lang/stringSet.cmi
-libs/ocplib-lang/stringSet.cmx : libs/ocplib-lang/stringSet.cmi
-libs/ocplib-lang/stringSet.cmi :
-libs/ocplib-lang/stringSubst.cmo : libs/ocplib-lang/stringSubst.cmi
-libs/ocplib-lang/stringSubst.cmx : libs/ocplib-lang/stringSubst.cmi
-libs/ocplib-lang/stringSubst.cmi :
-libs/ocplib-lang/stringTemplate.cmo : libs/ocplib-lang/stringSubst.cmi \
-    libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/stringTemplate.cmi
-libs/ocplib-lang/stringTemplate.cmx : libs/ocplib-lang/stringSubst.cmx \
-    libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/stringTemplate.cmi
-libs/ocplib-lang/stringTemplate.cmi :
-libs/ocplib-lang/toposort.cmo : libs/ocplib-lang/toposort.cmi
-libs/ocplib-lang/toposort.cmx : libs/ocplib-lang/toposort.cmi
-libs/ocplib-lang/toposort.cmi :
-libs/ocplib-lang/trie.cmo : libs/ocplib-lang/trie.cmi
-libs/ocplib-lang/trie.cmx : libs/ocplib-lang/trie.cmi
-libs/ocplib-lang/trie.cmi :
+libs/ocplib-file/dir.cmo : libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-unix/minUnix.cmi libs/ocplib-file/file.cmi \
+    libs/ocplib-file/dir.cmi
+libs/ocplib-file/dir.cmx : libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-unix/minUnix.cmx libs/ocplib-file/file.cmx \
+    libs/ocplib-file/dir.cmi
 libs/ocplib-system/date.cmo : libs/ocplib-unix/minUnix.cmi \
     libs/ocplib-system/date.cmi
 libs/ocplib-system/date.cmx : libs/ocplib-unix/minUnix.cmx \
     libs/ocplib-system/date.cmi
-libs/ocplib-system/date.cmi : libs/ocplib-unix/minUnix.cmi
+libs/ocplib-system/ocpUnix.cmo : libs/ocplib-lang/ocpLang.cmi \
+    libs/ocplib-unix/minUnix.cmi libs/ocplib-file/fileString.cmi \
+    libs/ocplib-system/ocpUnix.cmi
+libs/ocplib-system/ocpUnix.cmx : libs/ocplib-lang/ocpLang.cmx \
+    libs/ocplib-unix/minUnix.cmx libs/ocplib-file/fileString.cmx \
+    libs/ocplib-system/ocpUnix.cmi
+libs/ocplib-system/ocpFilename.cmo : libs/ocplib-lang/ocpLang.cmi \
+    libs/ocplib-system/ocpFilename.cmi
+libs/ocplib-system/ocpFilename.cmx : libs/ocplib-lang/ocpLang.cmx \
+    libs/ocplib-system/ocpFilename.cmi
 libs/ocplib-system/debug.cmo : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-lang/option.cmi libs/ocplib-system/date.cmi \
@@ -219,7 +170,6 @@ libs/ocplib-system/debug.cmx : \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
     libs/ocplib-lang/option.cmx libs/ocplib-system/date.cmx \
     libs/ocplib-system/debug.cmi
-libs/ocplib-system/debug.cmi :
 libs/ocplib-system/fileTemplate.cmo : libs/ocplib-lang/stringTemplate.cmi \
     libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
@@ -232,235 +182,216 @@ libs/ocplib-system/fileTemplate.cmx : libs/ocplib-lang/stringTemplate.cmx \
     libs/ocplib-lang/ocpString.cmx libs/ocplib-lang/ocpGenlex.cmx \
     libs/ocplib-file/fileString.cmx libs/ocplib-file/fileLines.cmx \
     libs/ocplib-system/fileTemplate.cmi
-libs/ocplib-system/fileTemplate.cmi :
-libs/ocplib-system/ocpFilename.cmo : libs/ocplib-lang/ocpLang.cmi \
-    libs/ocplib-system/ocpFilename.cmi
-libs/ocplib-system/ocpFilename.cmx : libs/ocplib-lang/ocpLang.cmx \
-    libs/ocplib-system/ocpFilename.cmi
-libs/ocplib-system/ocpFilename.cmi :
-libs/ocplib-system/ocpUnix.cmo : libs/ocplib-lang/ocpLang.cmi \
-    libs/ocplib-unix/minUnix.cmi libs/ocplib-file/fileString.cmi \
-    libs/ocplib-system/ocpUnix.cmi
-libs/ocplib-system/ocpUnix.cmx : libs/ocplib-lang/ocpLang.cmx \
-    libs/ocplib-unix/minUnix.cmx libs/ocplib-file/fileString.cmx \
-    libs/ocplib-system/ocpUnix.cmi
-libs/ocplib-system/ocpUnix.cmi :
-libs/ocplib-unix/minUnix.cmo : \
+libs/ocplib-config/pythonConfig.cmo : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-unix/minUnix.cmi
-libs/ocplib-unix/minUnix.cmx : \
+    libs/ocplib-file/file.cmi libs/ocplib-config/pythonConfig.cmi
+libs/ocplib-config/pythonConfig.cmx : libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-unix/minUnix.cmi
-libs/ocplib-unix/minUnix.cmi :
-libs/ocplib-unix/onlyUnix.cmo : libs/ocplib-unix/minUnix.cmi \
-    libs/ocplib-unix/onlyUnix.cmi
-libs/ocplib-unix/onlyUnix.cmx : libs/ocplib-unix/minUnix.cmx \
-    libs/ocplib-unix/onlyUnix.cmi
-libs/ocplib-unix/onlyUnix.cmi : libs/ocplib-unix/minUnix.cmi
-libs/ocplib-unix/onlyWin32.cmo : libs/ocplib-unix/minUnix.cmi \
-    libs/ocplib-unix/onlyWin32.cmi
-libs/ocplib-unix/onlyWin32.cmx : libs/ocplib-unix/minUnix.cmx \
-    libs/ocplib-unix/onlyWin32.cmi
-libs/ocplib-unix/onlyWin32.cmi : libs/ocplib-unix/minUnix.cmi
-tools/ocp-build/buildActionBuild.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-file/file.cmx libs/ocplib-config/pythonConfig.cmi
+libs/ocplib-config/simpleConfigTypes.cmo : libs/ocplib-file/file.cmi
+libs/ocplib-config/simpleConfigTypes.cmx : libs/ocplib-file/file.cmx
+libs/ocplib-config/simpleConfigOCaml.cmo : \
+    libs/ocplib-config/simpleConfigTypes.cmo libs/ocplib-lang/ocpString.cmi \
+    libs/ocplib-config/simpleConfigOCaml.cmi
+libs/ocplib-config/simpleConfigOCaml.cmx : \
+    libs/ocplib-config/simpleConfigTypes.cmx libs/ocplib-lang/ocpString.cmx \
+    libs/ocplib-config/simpleConfigOCaml.cmi
+libs/ocplib-config/simpleConfig.cmo : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-config/simpleConfig.cmi libs/ocplib-unix/minUnix.cmi \
-    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildVersion.cmo \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/buildUninstall.cmi \
-    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildTerm.cmi \
-    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOCamlInstall.cmi \
-    tools/ocp-build/buildOCamlConfig.cmi tools/ocp-build/buildOCPTypes.cmi \
-    tools/ocp-build/buildOCPInterp.cmi tools/ocp-build/buildOCP.cmi \
-    tools/ocp-build/buildMisc.cmo tools/ocp-build/buildGlobals.cmo \
-    tools/ocp-build/buildEngineTypes.cmi tools/ocp-build/buildEngineRules.cmo \
-    tools/ocp-build/buildEngineDisplay.cmi tools/ocp-build/buildEngine.cmi \
-    tools/ocp-build/buildConfig.cmi tools/ocp-build/buildArgs.cmo \
-    tools/ocp-build/buildActions.cmi tools/ocp-build/buildActionInit.cmi \
-    tools/ocp-build/buildActionBuild.cmi
-tools/ocp-build/buildActionBuild.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-config/simpleConfigTypes.cmo \
+    libs/ocplib-config/simpleConfigOCaml.cmi libs/ocplib-lang/intMap.cmi \
+    libs/ocplib-file/file.cmi libs/ocplib-config/simpleConfig.cmi
+libs/ocplib-config/simpleConfig.cmx : \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-config/simpleConfig.cmx libs/ocplib-unix/minUnix.cmx \
-    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildVersion.cmx \
-    tools/ocp-build/buildValue.cmx tools/ocp-build/buildUninstall.cmx \
-    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildTerm.cmx \
-    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildOCamlInstall.cmx \
-    tools/ocp-build/buildOCamlConfig.cmx tools/ocp-build/buildOCPTypes.cmx \
-    tools/ocp-build/buildOCPInterp.cmx tools/ocp-build/buildOCP.cmx \
-    tools/ocp-build/buildMisc.cmx tools/ocp-build/buildGlobals.cmx \
-    tools/ocp-build/buildEngineTypes.cmx tools/ocp-build/buildEngineRules.cmx \
-    tools/ocp-build/buildEngineDisplay.cmx tools/ocp-build/buildEngine.cmx \
-    tools/ocp-build/buildConfig.cmx tools/ocp-build/buildArgs.cmx \
-    tools/ocp-build/buildActions.cmx tools/ocp-build/buildActionInit.cmx \
-    tools/ocp-build/buildActionBuild.cmi
-tools/ocp-build/buildActionBuild.cmi : \
+    libs/ocplib-config/simpleConfigTypes.cmx \
+    libs/ocplib-config/simpleConfigOCaml.cmx libs/ocplib-lang/intMap.cmx \
+    libs/ocplib-file/file.cmx libs/ocplib-config/simpleConfig.cmi
+tools/ocp-build/logger.cmo :
+tools/ocp-build/logger.cmx :
+tools/ocp-build/buildMisc.cmo : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildOptions.cmi \
-    tools/ocp-build/buildArgs.cmo tools/ocp-build/buildActions.cmi
-tools/ocp-build/buildActionClean.cmo : libs/ocplib-file/file.cmi \
-    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildArgs.cmo \
-    tools/ocp-build/buildActions.cmi
-tools/ocp-build/buildActionClean.cmx : libs/ocplib-file/file.cmx \
-    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildArgs.cmx \
-    tools/ocp-build/buildActions.cmx
-tools/ocp-build/buildActionConfigure.cmo : libs/ocplib-file/file.cmi \
-    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildArgs.cmo
-tools/ocp-build/buildActionConfigure.cmx : libs/ocplib-file/file.cmx \
-    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildArgs.cmx
-tools/ocp-build/buildActionHelp.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/buildOCPInterp.cmi tools/ocp-build/buildMisc.cmo \
-    tools/ocp-build/buildArgs.cmo
-tools/ocp-build/buildActionHelp.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-unix/onlyWin32.cmi libs/ocplib-unix/onlyUnix.cmi \
+    libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
+    libs/ocplib-file/fileString.cmi
+tools/ocp-build/buildMisc.cmx : \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    tools/ocp-build/buildOCPInterp.cmx tools/ocp-build/buildMisc.cmx \
-    tools/ocp-build/buildArgs.cmx
-tools/ocp-build/buildActionInit.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-unix/onlyWin32.cmx libs/ocplib-unix/onlyUnix.cmx \
+    libs/ocplib-lang/ocpString.cmx libs/ocplib-unix/minUnix.cmx \
+    libs/ocplib-file/fileString.cmx
+tools/ocp-build/buildWarnings.cmo : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-config/simpleConfig.cmi libs/ocplib-unix/minUnix.cmi \
-    libs/ocplib-file/file.cmi libs/ocplib-debug/debugVerbosity.cmi \
-    tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildVersion.cmo \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/buildTypes.cmi \
-    tools/ocp-build/buildTerm.cmi tools/ocp-build/buildSubst.cmi \
-    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOasis.cmi \
-    tools/ocp-build/buildOCamlVariables.cmo \
-    tools/ocp-build/buildOCamlRules.cmi tools/ocp-build/buildOCamlMeta.cmi \
-    tools/ocp-build/buildOCamlConfig.cmi tools/ocp-build/buildOCPTypes.cmi \
-    tools/ocp-build/buildOCPTree.cmi tools/ocp-build/buildOCPPrinter.cmi \
-    tools/ocp-build/buildOCPInterp.cmi tools/ocp-build/buildOCP.cmi \
-    tools/ocp-build/buildMtime.cmi tools/ocp-build/buildMisc.cmo \
-    tools/ocp-build/buildGlobals.cmo tools/ocp-build/buildEngineTypes.cmi \
-    tools/ocp-build/buildEngineDisplay.cmi \
-    tools/ocp-build/buildEngineContext.cmi tools/ocp-build/buildArgs.cmo \
-    tools/ocp-build/buildActionsWarnings.cmi tools/ocp-build/buildActions.cmi \
-    tools/ocp-build/buildActionInit.cmi
-tools/ocp-build/buildActionInit.cmx : libs/ocplib-lang/stringMap.cmx \
+    tools/ocp-build/buildWarnings.cmi
+tools/ocp-build/buildWarnings.cmx : \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-config/simpleConfig.cmx libs/ocplib-unix/minUnix.cmx \
-    libs/ocplib-file/file.cmx libs/ocplib-debug/debugVerbosity.cmx \
-    tools/ocp-build/buildWarnings.cmx tools/ocp-build/buildVersion.cmx \
-    tools/ocp-build/buildValue.cmx tools/ocp-build/buildTypes.cmx \
-    tools/ocp-build/buildTerm.cmx tools/ocp-build/buildSubst.cmx \
-    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildOasis.cmx \
-    tools/ocp-build/buildOCamlVariables.cmx \
-    tools/ocp-build/buildOCamlRules.cmx tools/ocp-build/buildOCamlMeta.cmx \
-    tools/ocp-build/buildOCamlConfig.cmx tools/ocp-build/buildOCPTypes.cmx \
-    tools/ocp-build/buildOCPTree.cmx tools/ocp-build/buildOCPPrinter.cmx \
-    tools/ocp-build/buildOCPInterp.cmx tools/ocp-build/buildOCP.cmx \
-    tools/ocp-build/buildMtime.cmx tools/ocp-build/buildMisc.cmx \
-    tools/ocp-build/buildGlobals.cmx tools/ocp-build/buildEngineTypes.cmx \
-    tools/ocp-build/buildEngineDisplay.cmx \
-    tools/ocp-build/buildEngineContext.cmx tools/ocp-build/buildArgs.cmx \
-    tools/ocp-build/buildActionsWarnings.cmx tools/ocp-build/buildActions.cmx \
-    tools/ocp-build/buildActionInit.cmi
-tools/ocp-build/buildActionInit.cmi : \
+    tools/ocp-build/buildWarnings.cmi
+tools/ocp-build/buildMtime.cmo : libs/ocplib-lang/ocpDigest.cmi \
+    libs/ocplib-unix/minUnix.cmi tools/ocp-build/buildMtime.cmi
+tools/ocp-build/buildMtime.cmx : libs/ocplib-lang/ocpDigest.cmx \
+    libs/ocplib-unix/minUnix.cmx tools/ocp-build/buildMtime.cmi
+tools/ocp-build/buildScanner.cmo : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildOCPTypes.cmi \
-    tools/ocp-build/buildOCPInterp.cmi tools/ocp-build/buildArgs.cmo \
-    tools/ocp-build/buildActionsWarnings.cmi tools/ocp-build/buildActions.cmi
-tools/ocp-build/buildActionInstall.cmo : libs/ocplib-lang/stringSet.cmi \
+    libs/ocplib-file/fileString.cmi tools/ocp-build/buildScanner.cmi
+tools/ocp-build/buildScanner.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-file/fileString.cmx tools/ocp-build/buildScanner.cmi
+tools/ocp-build/buildSubst.cmo : libs/ocplib-lang/stringSubst.cmi \
+    libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
+    tools/ocp-build/buildSubst.cmi
+tools/ocp-build/buildSubst.cmx : libs/ocplib-lang/stringSubst.cmx \
+    libs/ocplib-lang/ocpString.cmx libs/ocplib-unix/minUnix.cmx \
+    tools/ocp-build/buildSubst.cmi
+tools/ocp-build/buildFind.cmo : tools/ocp-build/buildFind.cmi
+tools/ocp-build/buildFind.cmx : tools/ocp-build/buildFind.cmi
+tools/ocp-build/buildTerm.cmo : libs/ocplib-lang/ocpString.cmi \
+    libs/ocplib-unix/minUnix.cmi tools/ocp-build/buildMisc.cmo \
+    tools/ocp-build/buildTerm.cmi
+tools/ocp-build/buildTerm.cmx : libs/ocplib-lang/ocpString.cmx \
+    libs/ocplib-unix/minUnix.cmx tools/ocp-build/buildMisc.cmx \
+    tools/ocp-build/buildTerm.cmi
+tools/ocp-build/ocamldot.cmo : tools/ocp-build/ocamldot.cmi
+tools/ocp-build/ocamldot.cmx : tools/ocp-build/ocamldot.cmi
+tools/ocp-build/buildValue.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    tools/ocp-build/buildValue.cmi
+tools/ocp-build/buildValue.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    tools/ocp-build/buildValue.cmi
+tools/ocp-build/versioning.cmo : tools/ocp-build/versioning.cmi
+tools/ocp-build/versioning.cmx : tools/ocp-build/versioning.cmi
+tools/ocp-build/buildOCPTypes.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/linearToposort.cmi libs/ocplib-lang/intMap.cmi \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/buildOCPTypes.cmi
+tools/ocp-build/buildOCPTypes.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/linearToposort.cmx libs/ocplib-lang/intMap.cmx \
+    tools/ocp-build/buildValue.cmx tools/ocp-build/buildOCPTypes.cmi
+tools/ocp-build/lang1/buildOCPTree.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    tools/ocp-build/lang1/buildOCPTree.cmi
+tools/ocp-build/lang1/buildOCPTree.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    tools/ocp-build/lang1/buildOCPTree.cmi
+tools/ocp-build/lang1/buildOCPParser.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    tools/ocp-build/lang1/buildOCPParser.cmi
+tools/ocp-build/lang1/buildOCPParser.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    tools/ocp-build/lang1/buildOCPParser.cmi
+tools/ocp-build/lang1/buildOCPParse.cmo : libs/ocplib-lang/ocamllexer.cmi \
+    tools/ocp-build/buildMisc.cmo tools/ocp-build/lang1/buildOCPParse.cmi
+tools/ocp-build/lang1/buildOCPParse.cmx : libs/ocplib-lang/ocamllexer.cmx \
+    tools/ocp-build/buildMisc.cmx tools/ocp-build/lang1/buildOCPParse.cmi
+tools/ocp-build/lang1/buildOCPPrims.cmo : libs/ocplib-lang/stringSubst.cmi \
     libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/buildUninstall.cmi \
-    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildTerm.cmi \
-    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOCamlInstall.cmi \
-    tools/ocp-build/buildMisc.cmo tools/ocp-build/buildArgs.cmo \
-    tools/ocp-build/buildActions.cmi tools/ocp-build/buildActionBuild.cmi \
-    tools/ocp-build/buildActionInstall.cmi
-tools/ocp-build/buildActionInstall.cmx : libs/ocplib-lang/stringSet.cmx \
+    libs/ocplib-lang/ocpString.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/buildSubst.cmi tools/ocp-build/lang1/buildOCPPrims.cmi
+tools/ocp-build/lang1/buildOCPPrims.cmx : libs/ocplib-lang/stringSubst.cmx \
     libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    tools/ocp-build/buildValue.cmx tools/ocp-build/buildUninstall.cmx \
-    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildTerm.cmx \
-    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildOCamlInstall.cmx \
-    tools/ocp-build/buildMisc.cmx tools/ocp-build/buildArgs.cmx \
-    tools/ocp-build/buildActions.cmx tools/ocp-build/buildActionBuild.cmx \
-    tools/ocp-build/buildActionInstall.cmi
-tools/ocp-build/buildActionInstall.cmi : tools/ocp-build/buildArgs.cmo
-tools/ocp-build/buildActionPrefs.cmo : libs/ocplib-file/file.cmi \
-    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildArgs.cmo
-tools/ocp-build/buildActionPrefs.cmx : libs/ocplib-file/file.cmx \
-    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildArgs.cmx
-tools/ocp-build/buildActionQuery.cmo : tools/ocp-build/buildTypes.cmi \
-    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOCPTypes.cmi \
-    tools/ocp-build/buildMisc.cmo tools/ocp-build/buildArgs.cmo \
-    tools/ocp-build/buildActionsWarnings.cmi tools/ocp-build/buildActions.cmi \
-    tools/ocp-build/buildActionInit.cmi tools/ocp-build/buildActionBuild.cmi
-tools/ocp-build/buildActionQuery.cmx : tools/ocp-build/buildTypes.cmx \
-    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildOCPTypes.cmx \
-    tools/ocp-build/buildMisc.cmx tools/ocp-build/buildArgs.cmx \
-    tools/ocp-build/buildActionsWarnings.cmx tools/ocp-build/buildActions.cmx \
-    tools/ocp-build/buildActionInit.cmx tools/ocp-build/buildActionBuild.cmx
-tools/ocp-build/buildActionTests.cmo : tools/ocp-build/buildTypes.cmi \
-    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOCamlTest.cmi \
-    tools/ocp-build/buildArgs.cmo tools/ocp-build/buildActions.cmi \
-    tools/ocp-build/buildActionBuild.cmi tools/ocp-build/buildActionTests.cmi
-tools/ocp-build/buildActionTests.cmx : tools/ocp-build/buildTypes.cmx \
-    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildOCamlTest.cmx \
-    tools/ocp-build/buildArgs.cmx tools/ocp-build/buildActions.cmx \
-    tools/ocp-build/buildActionBuild.cmx tools/ocp-build/buildActionTests.cmi
-tools/ocp-build/buildActionTests.cmi : tools/ocp-build/buildArgs.cmo
-tools/ocp-build/buildActionUninstall.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-lang/ocpString.cmx tools/ocp-build/buildValue.cmx \
+    tools/ocp-build/buildSubst.cmx tools/ocp-build/lang1/buildOCPPrims.cmi
+tools/ocp-build/lang1/buildOCPInterp.cmo : tools/ocp-build/versioning.cmi \
+    libs/ocplib-lang/stringSubst.cmi libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/buildUninstall.cmi tools/ocp-build/buildGlobals.cmo \
-    tools/ocp-build/buildArgs.cmo
-tools/ocp-build/buildActionUninstall.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-file/fileString.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/buildSubst.cmi tools/ocp-build/lang1/buildOCPInterp.cmi
+tools/ocp-build/lang1/buildOCPInterp.cmx : tools/ocp-build/versioning.cmx \
+    libs/ocplib-lang/stringSubst.cmx libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    tools/ocp-build/buildUninstall.cmx tools/ocp-build/buildGlobals.cmx \
-    tools/ocp-build/buildArgs.cmx
-tools/ocp-build/buildActions.cmo : libs/ocplib-unix/onlyUnix.cmi \
-    libs/ocplib-unix/minUnix.cmi libs/ocplib-file/file.cmi \
-    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildTerm.cmi \
-    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOCamlConfig.cmi \
-    tools/ocp-build/buildGlobals.cmo tools/ocp-build/buildActions.cmi
-tools/ocp-build/buildActions.cmx : libs/ocplib-unix/onlyUnix.cmx \
-    libs/ocplib-unix/minUnix.cmx libs/ocplib-file/file.cmx \
-    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildTerm.cmx \
-    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildOCamlConfig.cmx \
-    tools/ocp-build/buildGlobals.cmx tools/ocp-build/buildActions.cmi
-tools/ocp-build/buildActions.cmi : libs/ocplib-file/file.cmi \
-    tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildOptions.cmi \
-    tools/ocp-build/buildOCamlConfig.cmi
-tools/ocp-build/buildActionsWarnings.cmo : \
+    libs/ocplib-file/fileString.cmx tools/ocp-build/buildValue.cmx \
+    tools/ocp-build/buildSubst.cmx tools/ocp-build/lang1/buildOCPInterp.cmi
+tools/ocp-build/buildOCPPrinter.cmo : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildOCPTypes.cmi \
-    tools/ocp-build/buildOCP.cmi tools/ocp-build/buildActionsWarnings.cmi
-tools/ocp-build/buildActionsWarnings.cmx : \
+    libs/ocplib-lang/intMap.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/buildOCPTypes.cmi tools/ocp-build/buildOCPPrinter.cmi
+tools/ocp-build/buildOCPPrinter.cmx : libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    tools/ocp-build/buildWarnings.cmx tools/ocp-build/buildOCPTypes.cmx \
-    tools/ocp-build/buildOCP.cmx tools/ocp-build/buildActionsWarnings.cmi
-tools/ocp-build/buildActionsWarnings.cmi : tools/ocp-build/buildWarnings.cmi \
-    tools/ocp-build/buildOCPTypes.cmi
-tools/ocp-build/buildArgs.cmo : \
+    libs/ocplib-lang/intMap.cmx tools/ocp-build/buildValue.cmx \
+    tools/ocp-build/buildOCPTypes.cmx tools/ocp-build/buildOCPPrinter.cmi
+tools/ocp-build/buildOCP.cmo : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
-    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildVersion.cmo \
-    tools/ocp-build/buildGlobals.cmo tools/ocp-build/buildEngineTypes.cmi
-tools/ocp-build/buildArgs.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocpString.cmx libs/ocplib-unix/minUnix.cmx \
-    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildVersion.cmx \
-    tools/ocp-build/buildGlobals.cmx tools/ocp-build/buildEngineTypes.cmx
-tools/ocp-build/buildAutogen.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/linearToposort.cmi libs/ocplib-lang/intMap.cmi \
     libs/ocplib-file/fileString.cmi libs/ocplib-file/file.cmi \
-    libs/ocplib-file/dir.cmi tools/ocp-build/buildOCPTypes.cmi \
-    tools/ocp-build/buildAutogen.cmi
-tools/ocp-build/buildAutogen.cmx : libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-file/fileString.cmx libs/ocplib-file/file.cmx \
-    libs/ocplib-file/dir.cmx tools/ocp-build/buildOCPTypes.cmx \
-    tools/ocp-build/buildAutogen.cmi
-tools/ocp-build/buildAutogen.cmi : libs/ocplib-file/file.cmi \
-    tools/ocp-build/buildOCPTypes.cmi
-tools/ocp-build/buildConfig.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
-    libs/ocplib-file/fileString.cmi tools/ocp-build/buildConfig.cmi
-tools/ocp-build/buildConfig.cmx : \
+    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildWarnings.cmi \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/buildSubst.cmi \
+    tools/ocp-build/buildScanner.cmi tools/ocp-build/buildOCPTypes.cmi \
+    tools/ocp-build/buildMisc.cmo tools/ocp-build/buildOCP.cmi
+tools/ocp-build/buildOCP.cmx : libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
     libs/ocplib-lang/ocpString.cmx libs/ocplib-unix/minUnix.cmx \
-    libs/ocplib-file/fileString.cmx tools/ocp-build/buildConfig.cmi
-tools/ocp-build/buildConfig.cmi :
+    libs/ocplib-lang/linearToposort.cmx libs/ocplib-lang/intMap.cmx \
+    libs/ocplib-file/fileString.cmx libs/ocplib-file/file.cmx \
+    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildWarnings.cmx \
+    tools/ocp-build/buildValue.cmx tools/ocp-build/buildSubst.cmx \
+    tools/ocp-build/buildScanner.cmx tools/ocp-build/buildOCPTypes.cmx \
+    tools/ocp-build/buildMisc.cmx tools/ocp-build/buildOCP.cmi
+tools/ocp-build/buildEngineTypes.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/intMap.cmi libs/ocplib-file/file.cmi \
+    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildMtime.cmi \
+    tools/ocp-build/buildEngineTypes.cmi
+tools/ocp-build/buildEngineTypes.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/intMap.cmx libs/ocplib-file/file.cmx \
+    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildMtime.cmx \
+    tools/ocp-build/buildEngineTypes.cmi
+tools/ocp-build/buildEngineGlobals.cmo : libs/ocplib-file/file.cmi \
+    tools/ocp-build/buildEngineTypes.cmi \
+    tools/ocp-build/buildEngineGlobals.cmi
+tools/ocp-build/buildEngineGlobals.cmx : libs/ocplib-file/file.cmx \
+    tools/ocp-build/buildEngineTypes.cmx \
+    tools/ocp-build/buildEngineGlobals.cmi
+tools/ocp-build/buildEngineRules.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/intMap.cmi libs/ocplib-file/file.cmi \
+    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildSubst.cmi \
+    tools/ocp-build/buildEngineTypes.cmi \
+    tools/ocp-build/buildEngineGlobals.cmi
+tools/ocp-build/buildEngineRules.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/intMap.cmx libs/ocplib-file/file.cmx \
+    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildSubst.cmx \
+    tools/ocp-build/buildEngineTypes.cmx \
+    tools/ocp-build/buildEngineGlobals.cmx
+tools/ocp-build/buildEngineContext.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-unix/onlyWin32.cmi libs/ocplib-unix/onlyUnix.cmi \
+    libs/ocplib-lang/ocpString.cmi libs/ocplib-lang/ocpDigest.cmi \
+    libs/ocplib-unix/minUnix.cmi libs/ocplib-lang/intMap.cmi \
+    libs/ocplib-file/file.cmi tools/ocp-build/buildMtime.cmi \
+    tools/ocp-build/buildEngineTypes.cmi \
+    tools/ocp-build/buildEngineGlobals.cmi \
+    tools/ocp-build/buildEngineContext.cmi
+tools/ocp-build/buildEngineContext.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-unix/onlyWin32.cmx libs/ocplib-unix/onlyUnix.cmx \
+    libs/ocplib-lang/ocpString.cmx libs/ocplib-lang/ocpDigest.cmx \
+    libs/ocplib-unix/minUnix.cmx libs/ocplib-lang/intMap.cmx \
+    libs/ocplib-file/file.cmx tools/ocp-build/buildMtime.cmx \
+    tools/ocp-build/buildEngineTypes.cmx \
+    tools/ocp-build/buildEngineGlobals.cmx \
+    tools/ocp-build/buildEngineContext.cmi
+tools/ocp-build/buildEngineDisplay.cmo : libs/ocplib-lang/stringSet.cmi \
+    libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-unix/minUnix.cmi libs/ocplib-lang/intMap.cmi \
+    libs/ocplib-file/fileString.cmi libs/ocplib-file/file.cmi \
+    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildTerm.cmi \
+    tools/ocp-build/buildEngineTypes.cmi tools/ocp-build/buildEngineRules.cmo \
+    tools/ocp-build/buildEngineGlobals.cmi \
+    tools/ocp-build/buildEngineDisplay.cmi
+tools/ocp-build/buildEngineDisplay.cmx : libs/ocplib-lang/stringSet.cmx \
+    libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-unix/minUnix.cmx libs/ocplib-lang/intMap.cmx \
+    libs/ocplib-file/fileString.cmx libs/ocplib-file/file.cmx \
+    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildTerm.cmx \
+    tools/ocp-build/buildEngineTypes.cmx tools/ocp-build/buildEngineRules.cmx \
+    tools/ocp-build/buildEngineGlobals.cmx \
+    tools/ocp-build/buildEngineDisplay.cmi
 tools/ocp-build/buildEngine.cmo : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-lang/ocpDigest.cmi libs/ocplib-unix/minUnix.cmi \
@@ -483,84 +414,34 @@ tools/ocp-build/buildEngine.cmx : \
     tools/ocp-build/buildEngineGlobals.cmx \
     tools/ocp-build/buildEngineDisplay.cmx \
     tools/ocp-build/buildEngineContext.cmx tools/ocp-build/buildEngine.cmi
-tools/ocp-build/buildEngine.cmi : tools/ocp-build/buildEngineTypes.cmi
-tools/ocp-build/buildEngineContext.cmo : libs/ocplib-lang/stringMap.cmi \
+tools/ocp-build/buildObjectInspector.cmo : \
+    tools/ocp-build/buildObjectInspector.cmi
+tools/ocp-build/buildObjectInspector.cmx : \
+    tools/ocp-build/buildObjectInspector.cmi
+tools/ocp-build/buildVersion.cmo :
+tools/ocp-build/buildVersion.cmx :
+tools/ocp-build/buildTypes.cmo : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-unix/onlyWin32.cmi libs/ocplib-unix/onlyUnix.cmi \
-    libs/ocplib-lang/ocpString.cmi libs/ocplib-lang/ocpDigest.cmi \
-    libs/ocplib-unix/minUnix.cmi libs/ocplib-lang/intMap.cmi \
-    libs/ocplib-file/file.cmi tools/ocp-build/buildMtime.cmi \
-    tools/ocp-build/buildEngineTypes.cmi \
-    tools/ocp-build/buildEngineGlobals.cmi \
-    tools/ocp-build/buildEngineContext.cmi
-tools/ocp-build/buildEngineContext.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-lang/linearToposort.cmi libs/ocplib-file/file.cmi \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/buildOCPTypes.cmi \
+    tools/ocp-build/buildEngineTypes.cmi tools/ocp-build/buildTypes.cmi
+tools/ocp-build/buildTypes.cmx : libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-unix/onlyWin32.cmx libs/ocplib-unix/onlyUnix.cmx \
-    libs/ocplib-lang/ocpString.cmx libs/ocplib-lang/ocpDigest.cmx \
-    libs/ocplib-unix/minUnix.cmx libs/ocplib-lang/intMap.cmx \
-    libs/ocplib-file/file.cmx tools/ocp-build/buildMtime.cmx \
-    tools/ocp-build/buildEngineTypes.cmx \
-    tools/ocp-build/buildEngineGlobals.cmx \
-    tools/ocp-build/buildEngineContext.cmi
-tools/ocp-build/buildEngineContext.cmi : \
-    tools/ocp-build/buildEngineTypes.cmi
-tools/ocp-build/buildEngineDisplay.cmo : libs/ocplib-lang/stringSet.cmi \
-    libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-lang/linearToposort.cmx libs/ocplib-file/file.cmx \
+    tools/ocp-build/buildValue.cmx tools/ocp-build/buildOCPTypes.cmx \
+    tools/ocp-build/buildEngineTypes.cmx tools/ocp-build/buildTypes.cmi
+tools/ocp-build/buildOptions.cmo : libs/ocplib-lang/stringSet.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-unix/minUnix.cmi libs/ocplib-lang/intMap.cmi \
-    libs/ocplib-file/fileString.cmi libs/ocplib-file/file.cmi \
-    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildTerm.cmi \
-    tools/ocp-build/buildEngineTypes.cmi tools/ocp-build/buildEngineRules.cmo \
-    tools/ocp-build/buildEngineGlobals.cmi \
-    tools/ocp-build/buildEngineDisplay.cmi
-tools/ocp-build/buildEngineDisplay.cmx : libs/ocplib-lang/stringSet.cmx \
-    libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-config/simpleConfig.cmi libs/ocplib-file/file.cmi \
+    libs/ocplib-file/dir.cmi tools/ocp-build/buildVersion.cmo \
+    tools/ocp-build/buildOCP.cmi tools/ocp-build/buildMisc.cmo \
+    tools/ocp-build/buildOptions.cmi
+tools/ocp-build/buildOptions.cmx : libs/ocplib-lang/stringSet.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-unix/minUnix.cmx libs/ocplib-lang/intMap.cmx \
-    libs/ocplib-file/fileString.cmx libs/ocplib-file/file.cmx \
-    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildTerm.cmx \
-    tools/ocp-build/buildEngineTypes.cmx tools/ocp-build/buildEngineRules.cmx \
-    tools/ocp-build/buildEngineGlobals.cmx \
-    tools/ocp-build/buildEngineDisplay.cmi
-tools/ocp-build/buildEngineDisplay.cmi : \
-    tools/ocp-build/buildEngineTypes.cmi
-tools/ocp-build/buildEngineGlobals.cmo : libs/ocplib-file/file.cmi \
-    tools/ocp-build/buildEngineTypes.cmi \
-    tools/ocp-build/buildEngineGlobals.cmi
-tools/ocp-build/buildEngineGlobals.cmx : libs/ocplib-file/file.cmx \
-    tools/ocp-build/buildEngineTypes.cmx \
-    tools/ocp-build/buildEngineGlobals.cmi
-tools/ocp-build/buildEngineGlobals.cmi : \
-    tools/ocp-build/buildEngineTypes.cmi
-tools/ocp-build/buildEngineRules.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/intMap.cmi libs/ocplib-file/file.cmi \
-    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildSubst.cmi \
-    tools/ocp-build/buildEngineTypes.cmi \
-    tools/ocp-build/buildEngineGlobals.cmi
-tools/ocp-build/buildEngineRules.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/intMap.cmx libs/ocplib-file/file.cmx \
-    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildSubst.cmx \
-    tools/ocp-build/buildEngineTypes.cmx \
-    tools/ocp-build/buildEngineGlobals.cmx
-tools/ocp-build/buildEngineTypes.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/intMap.cmi libs/ocplib-file/file.cmi \
-    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildMtime.cmi \
-    tools/ocp-build/buildEngineTypes.cmi
-tools/ocp-build/buildEngineTypes.cmx : libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/intMap.cmx libs/ocplib-file/file.cmx \
-    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildMtime.cmx \
-    tools/ocp-build/buildEngineTypes.cmi
-tools/ocp-build/buildEngineTypes.cmi : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/intMap.cmi libs/ocplib-file/file.cmi \
-    tools/ocp-build/buildMtime.cmi
-tools/ocp-build/buildFind.cmo : tools/ocp-build/buildFind.cmi
-tools/ocp-build/buildFind.cmx : tools/ocp-build/buildFind.cmi
-tools/ocp-build/buildFind.cmi :
+    libs/ocplib-config/simpleConfig.cmx libs/ocplib-file/file.cmx \
+    libs/ocplib-file/dir.cmx tools/ocp-build/buildVersion.cmx \
+    tools/ocp-build/buildOCP.cmx tools/ocp-build/buildMisc.cmx \
+    tools/ocp-build/buildOptions.cmi
 tools/ocp-build/buildGlobals.cmo : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-lang/ocpDigest.cmi libs/ocplib-file/fileString.cmi \
@@ -577,6 +458,414 @@ tools/ocp-build/buildGlobals.cmx : libs/ocplib-lang/stringMap.cmx \
     tools/ocp-build/buildOCPTypes.cmx tools/ocp-build/buildMisc.cmx \
     tools/ocp-build/buildEngineTypes.cmx tools/ocp-build/buildEngineRules.cmx \
     tools/ocp-build/buildEngineContext.cmx
+tools/ocp-build/buildConfig.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
+    libs/ocplib-file/fileString.cmi tools/ocp-build/buildConfig.cmi
+tools/ocp-build/buildConfig.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/ocpString.cmx libs/ocplib-unix/minUnix.cmx \
+    libs/ocplib-file/fileString.cmx tools/ocp-build/buildConfig.cmi
+tools/ocp-build/buildUninstall.cmo : libs/ocplib-lang/stringSet.cmi \
+    libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
+    libs/ocplib-file/fileLines.cmi tools/ocp-build/buildScanner.cmi \
+    tools/ocp-build/buildUninstall.cmi
+tools/ocp-build/buildUninstall.cmx : libs/ocplib-lang/stringSet.cmx \
+    libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/ocpString.cmx libs/ocplib-unix/minUnix.cmx \
+    libs/ocplib-file/fileLines.cmx tools/ocp-build/buildScanner.cmx \
+    tools/ocp-build/buildUninstall.cmi
+tools/ocp-build/buildAutogen.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-file/fileString.cmi libs/ocplib-file/file.cmi \
+    libs/ocplib-file/dir.cmi tools/ocp-build/buildOCPTypes.cmi \
+    tools/ocp-build/buildAutogen.cmi
+tools/ocp-build/buildAutogen.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-file/fileString.cmx libs/ocplib-file/file.cmx \
+    libs/ocplib-file/dir.cmx tools/ocp-build/buildOCPTypes.cmx \
+    tools/ocp-build/buildAutogen.cmi
+tools/ocp-build/metaTypes.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    tools/ocp-build/metaTypes.cmi
+tools/ocp-build/metaTypes.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    tools/ocp-build/metaTypes.cmi
+tools/ocp-build/metaLexer.cmo : tools/ocp-build/metaLexer.cmi
+tools/ocp-build/metaLexer.cmx : tools/ocp-build/metaLexer.cmi
+tools/ocp-build/metaFile.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    tools/ocp-build/metaTypes.cmi tools/ocp-build/metaFile.cmi
+tools/ocp-build/metaFile.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    tools/ocp-build/metaTypes.cmx tools/ocp-build/metaFile.cmi
+tools/ocp-build/metaParser.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/ocpString.cmi tools/ocp-build/metaTypes.cmi \
+    tools/ocp-build/metaLexer.cmi tools/ocp-build/metaFile.cmi \
+    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/metaParser.cmi
+tools/ocp-build/metaParser.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/ocpString.cmx tools/ocp-build/metaTypes.cmx \
+    tools/ocp-build/metaLexer.cmx tools/ocp-build/metaFile.cmx \
+    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/metaParser.cmi
+tools/ocp-build/metaConfig.cmo : libs/ocplib-lang/ocpString.cmi \
+    tools/ocp-build/buildMisc.cmo tools/ocp-build/metaConfig.cmi
+tools/ocp-build/metaConfig.cmx : libs/ocplib-lang/ocpString.cmx \
+    tools/ocp-build/buildMisc.cmx tools/ocp-build/metaConfig.cmi
+tools/ocp-build/buildOCamlConfig.cmo : libs/ocplib-lang/ocpString.cmi \
+    libs/ocplib-unix/minUnix.cmi tools/ocp-build/metaConfig.cmi \
+    tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/buildSubst.cmi tools/ocp-build/buildOptions.cmi \
+    tools/ocp-build/buildMisc.cmo tools/ocp-build/buildConfig.cmi \
+    tools/ocp-build/buildOCamlConfig.cmi
+tools/ocp-build/buildOCamlConfig.cmx : libs/ocplib-lang/ocpString.cmx \
+    libs/ocplib-unix/minUnix.cmx tools/ocp-build/metaConfig.cmx \
+    tools/ocp-build/buildWarnings.cmx tools/ocp-build/buildValue.cmx \
+    tools/ocp-build/buildSubst.cmx tools/ocp-build/buildOptions.cmx \
+    tools/ocp-build/buildMisc.cmx tools/ocp-build/buildConfig.cmx \
+    tools/ocp-build/buildOCamlConfig.cmi
+tools/ocp-build/buildOCamlTypes.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/intMap.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildEngineTypes.cmi \
+    tools/ocp-build/buildOCamlTypes.cmi
+tools/ocp-build/buildOCamlTypes.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/intMap.cmx tools/ocp-build/buildValue.cmx \
+    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildEngineTypes.cmx \
+    tools/ocp-build/buildOCamlTypes.cmi
+tools/ocp-build/buildOCamlGlobals.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/intMap.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildOptions.cmi \
+    tools/ocp-build/buildOCamlTypes.cmi tools/ocp-build/buildGlobals.cmo
+tools/ocp-build/buildOCamlGlobals.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/intMap.cmx tools/ocp-build/buildValue.cmx \
+    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildOptions.cmx \
+    tools/ocp-build/buildOCamlTypes.cmx tools/ocp-build/buildGlobals.cmx
+tools/ocp-build/buildOCamlMisc.cmo : libs/ocplib-unix/minUnix.cmi \
+    tools/ocp-build/buildEngineTypes.cmi \
+    tools/ocp-build/buildEngineContext.cmi
+tools/ocp-build/buildOCamlMisc.cmx : libs/ocplib-unix/minUnix.cmx \
+    tools/ocp-build/buildEngineTypes.cmx \
+    tools/ocp-build/buildEngineContext.cmx
+tools/ocp-build/buildOCamlVariables.cmo : tools/ocp-build/buildValue.cmi
+tools/ocp-build/buildOCamlVariables.cmx : tools/ocp-build/buildValue.cmx
+tools/ocp-build/buildOCamldep.cmo : libs/ocplib-lang/stringSet.cmi \
+    libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/ocpString.cmi libs/ocplib-debug/debugVerbosity.cmi \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/buildTypes.cmi \
+    tools/ocp-build/buildOCamlVariables.cmo \
+    tools/ocp-build/buildOCamlTypes.cmi tools/ocp-build/buildOCamlGlobals.cmo \
+    tools/ocp-build/buildOCPTypes.cmi tools/ocp-build/buildEngineTypes.cmi \
+    tools/ocp-build/buildOCamldep.cmi
+tools/ocp-build/buildOCamldep.cmx : libs/ocplib-lang/stringSet.cmx \
+    libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/ocpString.cmx libs/ocplib-debug/debugVerbosity.cmx \
+    tools/ocp-build/buildValue.cmx tools/ocp-build/buildTypes.cmx \
+    tools/ocp-build/buildOCamlVariables.cmx \
+    tools/ocp-build/buildOCamlTypes.cmx tools/ocp-build/buildOCamlGlobals.cmx \
+    tools/ocp-build/buildOCPTypes.cmx tools/ocp-build/buildEngineTypes.cmx \
+    tools/ocp-build/buildOCamldep.cmi
+tools/ocp-build/buildOCamlSyntaxes.cmo : libs/ocplib-lang/stringSet.cmi \
+    libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/ocpString.cmi libs/ocplib-debug/debugVerbosity.cmi \
+    tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildOCamlVariables.cmo \
+    tools/ocp-build/buildOCamlTypes.cmi tools/ocp-build/buildOCamlMisc.cmo \
+    tools/ocp-build/buildOCamlGlobals.cmo tools/ocp-build/buildOCP.cmi \
+    tools/ocp-build/buildMisc.cmo tools/ocp-build/buildEngineTypes.cmi \
+    tools/ocp-build/buildEngineRules.cmo \
+    tools/ocp-build/buildOCamlSyntaxes.cmi
+tools/ocp-build/buildOCamlSyntaxes.cmx : libs/ocplib-lang/stringSet.cmx \
+    libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/ocpString.cmx libs/ocplib-debug/debugVerbosity.cmx \
+    tools/ocp-build/buildWarnings.cmx tools/ocp-build/buildValue.cmx \
+    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildOCamlVariables.cmx \
+    tools/ocp-build/buildOCamlTypes.cmx tools/ocp-build/buildOCamlMisc.cmx \
+    tools/ocp-build/buildOCamlGlobals.cmx tools/ocp-build/buildOCP.cmx \
+    tools/ocp-build/buildMisc.cmx tools/ocp-build/buildEngineTypes.cmx \
+    tools/ocp-build/buildEngineRules.cmx \
+    tools/ocp-build/buildOCamlSyntaxes.cmi
+tools/ocp-build/buildOCamlInstall.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-unix/minUnix.cmi tools/ocp-build/metaTypes.cmi \
+    tools/ocp-build/metaFile.cmi libs/ocplib-file/fileString.cmi \
+    libs/ocplib-file/file.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildOptions.cmi \
+    tools/ocp-build/buildOCamlTypes.cmi tools/ocp-build/buildOCamlGlobals.cmo \
+    tools/ocp-build/buildOCamlConfig.cmi tools/ocp-build/buildOCPTypes.cmi \
+    tools/ocp-build/buildOCP.cmi tools/ocp-build/buildMisc.cmo \
+    tools/ocp-build/buildEngineTypes.cmi \
+    tools/ocp-build/buildEngineGlobals.cmi \
+    tools/ocp-build/buildOCamlInstall.cmi
+tools/ocp-build/buildOCamlInstall.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-unix/minUnix.cmx tools/ocp-build/metaTypes.cmx \
+    tools/ocp-build/metaFile.cmx libs/ocplib-file/fileString.cmx \
+    libs/ocplib-file/file.cmx tools/ocp-build/buildValue.cmx \
+    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildOptions.cmx \
+    tools/ocp-build/buildOCamlTypes.cmx tools/ocp-build/buildOCamlGlobals.cmx \
+    tools/ocp-build/buildOCamlConfig.cmx tools/ocp-build/buildOCPTypes.cmx \
+    tools/ocp-build/buildOCP.cmx tools/ocp-build/buildMisc.cmx \
+    tools/ocp-build/buildEngineTypes.cmx \
+    tools/ocp-build/buildEngineGlobals.cmx \
+    tools/ocp-build/buildOCamlInstall.cmi
+tools/ocp-build/buildOCamlRules.cmo : libs/ocplib-lang/stringSubst.cmi \
+    libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
+    libs/ocplib-lang/linearToposort.cmi libs/ocplib-lang/intMap.cmi \
+    libs/ocplib-file/fileString.cmi libs/ocplib-file/file.cmi \
+    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildSubst.cmi \
+    tools/ocp-build/buildOCamldep.cmi tools/ocp-build/buildOCamlVariables.cmo \
+    tools/ocp-build/buildOCamlTypes.cmi \
+    tools/ocp-build/buildOCamlSyntaxes.cmi tools/ocp-build/buildOCamlMisc.cmo \
+    tools/ocp-build/buildOCamlInstall.cmi \
+    tools/ocp-build/buildOCamlGlobals.cmo \
+    tools/ocp-build/buildOCamlConfig.cmi tools/ocp-build/buildOCPTypes.cmi \
+    tools/ocp-build/buildOCP.cmi tools/ocp-build/buildMisc.cmo \
+    tools/ocp-build/buildGlobals.cmo tools/ocp-build/buildEngineTypes.cmi \
+    tools/ocp-build/buildEngineRules.cmo \
+    tools/ocp-build/buildEngineGlobals.cmi \
+    tools/ocp-build/buildEngineContext.cmi \
+    tools/ocp-build/buildOCamlRules.cmi
+tools/ocp-build/buildOCamlRules.cmx : libs/ocplib-lang/stringSubst.cmx \
+    libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/ocpString.cmx libs/ocplib-unix/minUnix.cmx \
+    libs/ocplib-lang/linearToposort.cmx libs/ocplib-lang/intMap.cmx \
+    libs/ocplib-file/fileString.cmx libs/ocplib-file/file.cmx \
+    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildValue.cmx \
+    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildSubst.cmx \
+    tools/ocp-build/buildOCamldep.cmx tools/ocp-build/buildOCamlVariables.cmx \
+    tools/ocp-build/buildOCamlTypes.cmx \
+    tools/ocp-build/buildOCamlSyntaxes.cmx tools/ocp-build/buildOCamlMisc.cmx \
+    tools/ocp-build/buildOCamlInstall.cmx \
+    tools/ocp-build/buildOCamlGlobals.cmx \
+    tools/ocp-build/buildOCamlConfig.cmx tools/ocp-build/buildOCPTypes.cmx \
+    tools/ocp-build/buildOCP.cmx tools/ocp-build/buildMisc.cmx \
+    tools/ocp-build/buildGlobals.cmx tools/ocp-build/buildEngineTypes.cmx \
+    tools/ocp-build/buildEngineRules.cmx \
+    tools/ocp-build/buildEngineGlobals.cmx \
+    tools/ocp-build/buildEngineContext.cmx \
+    tools/ocp-build/buildOCamlRules.cmi
+tools/ocp-build/buildOCamlMeta.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/ocpString.cmi tools/ocp-build/metaTypes.cmi \
+    tools/ocp-build/metaParser.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/buildOCPTypes.cmi tools/ocp-build/buildOCPPrinter.cmi \
+    tools/ocp-build/buildOCP.cmi tools/ocp-build/buildEngineTypes.cmi \
+    tools/ocp-build/buildOCamlMeta.cmi
+tools/ocp-build/buildOCamlMeta.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/ocpString.cmx tools/ocp-build/metaTypes.cmx \
+    tools/ocp-build/metaParser.cmx tools/ocp-build/buildValue.cmx \
+    tools/ocp-build/buildOCPTypes.cmx tools/ocp-build/buildOCPPrinter.cmx \
+    tools/ocp-build/buildOCP.cmx tools/ocp-build/buildEngineTypes.cmx \
+    tools/ocp-build/buildOCamlMeta.cmi
+tools/ocp-build/buildOCamlTest.cmo : libs/ocplib-lang/stringSubst.cmi \
+    libs/ocplib-unix/onlyUnix.cmi libs/ocplib-unix/minUnix.cmi \
+    libs/ocplib-lang/intMap.cmi libs/ocplib-file/fileString.cmi \
+    libs/ocplib-file/file.cmi libs/ocplib-debug/debugVerbosity.cmi \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/buildTypes.cmi \
+    tools/ocp-build/buildSubst.cmi tools/ocp-build/buildOCamlTypes.cmi \
+    tools/ocp-build/buildOCamlGlobals.cmo tools/ocp-build/buildOCPTypes.cmi \
+    tools/ocp-build/buildMisc.cmo tools/ocp-build/buildEngineTypes.cmi \
+    tools/ocp-build/buildConfig.cmi tools/ocp-build/buildOCamlTest.cmi
+tools/ocp-build/buildOCamlTest.cmx : libs/ocplib-lang/stringSubst.cmx \
+    libs/ocplib-unix/onlyUnix.cmx libs/ocplib-unix/minUnix.cmx \
+    libs/ocplib-lang/intMap.cmx libs/ocplib-file/fileString.cmx \
+    libs/ocplib-file/file.cmx libs/ocplib-debug/debugVerbosity.cmx \
+    tools/ocp-build/buildValue.cmx tools/ocp-build/buildTypes.cmx \
+    tools/ocp-build/buildSubst.cmx tools/ocp-build/buildOCamlTypes.cmx \
+    tools/ocp-build/buildOCamlGlobals.cmx tools/ocp-build/buildOCPTypes.cmx \
+    tools/ocp-build/buildMisc.cmx tools/ocp-build/buildEngineTypes.cmx \
+    tools/ocp-build/buildConfig.cmx tools/ocp-build/buildOCamlTest.cmi
+tools/ocp-build/buildOasis.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/ocpString.cmi libs/ocplib-lang/ocpGenlex.cmi \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/buildOCPTypes.cmi \
+    tools/ocp-build/buildOCP.cmi tools/ocp-build/buildOasis.cmi
+tools/ocp-build/buildOasis.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/ocpString.cmx libs/ocplib-lang/ocpGenlex.cmx \
+    tools/ocp-build/buildValue.cmx tools/ocp-build/buildOCPTypes.cmx \
+    tools/ocp-build/buildOCP.cmx tools/ocp-build/buildOasis.cmi
+tools/ocp-build/buildArgs.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
+    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildVersion.cmo \
+    tools/ocp-build/buildGlobals.cmo tools/ocp-build/buildEngineTypes.cmi
+tools/ocp-build/buildArgs.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-lang/ocpString.cmx libs/ocplib-unix/minUnix.cmx \
+    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildVersion.cmx \
+    tools/ocp-build/buildGlobals.cmx tools/ocp-build/buildEngineTypes.cmx
+tools/ocp-build/buildActions.cmo : libs/ocplib-unix/onlyUnix.cmi \
+    libs/ocplib-unix/minUnix.cmi libs/ocplib-file/file.cmi \
+    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildTerm.cmi \
+    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOCamlConfig.cmi \
+    tools/ocp-build/buildGlobals.cmo tools/ocp-build/buildActions.cmi
+tools/ocp-build/buildActions.cmx : libs/ocplib-unix/onlyUnix.cmx \
+    libs/ocplib-unix/minUnix.cmx libs/ocplib-file/file.cmx \
+    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildTerm.cmx \
+    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildOCamlConfig.cmx \
+    tools/ocp-build/buildGlobals.cmx tools/ocp-build/buildActions.cmi
+tools/ocp-build/buildActionsWarnings.cmo : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-file/file.cmi tools/ocp-build/buildWarnings.cmi \
+    tools/ocp-build/buildOCamlSyntaxes.cmi \
+    tools/ocp-build/buildOCamlConfig.cmi tools/ocp-build/buildOCPTypes.cmi \
+    tools/ocp-build/buildOCP.cmi tools/ocp-build/buildActionsWarnings.cmi
+tools/ocp-build/buildActionsWarnings.cmx : \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-file/file.cmx tools/ocp-build/buildWarnings.cmx \
+    tools/ocp-build/buildOCamlSyntaxes.cmx \
+    tools/ocp-build/buildOCamlConfig.cmx tools/ocp-build/buildOCPTypes.cmx \
+    tools/ocp-build/buildOCP.cmx tools/ocp-build/buildActionsWarnings.cmi
+tools/ocp-build/buildActionInit.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-config/simpleConfig.cmi libs/ocplib-unix/minUnix.cmi \
+    libs/ocplib-file/file.cmi libs/ocplib-debug/debugVerbosity.cmi \
+    tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildVersion.cmo \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/buildTypes.cmi \
+    tools/ocp-build/buildTerm.cmi tools/ocp-build/buildSubst.cmi \
+    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOasis.cmi \
+    tools/ocp-build/buildOCamlVariables.cmo \
+    tools/ocp-build/buildOCamlRules.cmi tools/ocp-build/buildOCamlMeta.cmi \
+    tools/ocp-build/buildOCamlConfig.cmi tools/ocp-build/buildOCPTypes.cmi \
+    tools/ocp-build/buildOCPPrinter.cmi tools/ocp-build/buildOCP.cmi \
+    tools/ocp-build/buildMtime.cmi tools/ocp-build/buildMisc.cmo \
+    tools/ocp-build/buildGlobals.cmo tools/ocp-build/buildEngineTypes.cmi \
+    tools/ocp-build/buildEngineDisplay.cmi \
+    tools/ocp-build/buildEngineContext.cmi tools/ocp-build/buildArgs.cmo \
+    tools/ocp-build/buildActionsWarnings.cmi tools/ocp-build/buildActions.cmi \
+    tools/ocp-build/buildActionInit.cmi
+tools/ocp-build/buildActionInit.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-config/simpleConfig.cmx libs/ocplib-unix/minUnix.cmx \
+    libs/ocplib-file/file.cmx libs/ocplib-debug/debugVerbosity.cmx \
+    tools/ocp-build/buildWarnings.cmx tools/ocp-build/buildVersion.cmx \
+    tools/ocp-build/buildValue.cmx tools/ocp-build/buildTypes.cmx \
+    tools/ocp-build/buildTerm.cmx tools/ocp-build/buildSubst.cmx \
+    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildOasis.cmx \
+    tools/ocp-build/buildOCamlVariables.cmx \
+    tools/ocp-build/buildOCamlRules.cmx tools/ocp-build/buildOCamlMeta.cmx \
+    tools/ocp-build/buildOCamlConfig.cmx tools/ocp-build/buildOCPTypes.cmx \
+    tools/ocp-build/buildOCPPrinter.cmx tools/ocp-build/buildOCP.cmx \
+    tools/ocp-build/buildMtime.cmx tools/ocp-build/buildMisc.cmx \
+    tools/ocp-build/buildGlobals.cmx tools/ocp-build/buildEngineTypes.cmx \
+    tools/ocp-build/buildEngineDisplay.cmx \
+    tools/ocp-build/buildEngineContext.cmx tools/ocp-build/buildArgs.cmx \
+    tools/ocp-build/buildActionsWarnings.cmx tools/ocp-build/buildActions.cmx \
+    tools/ocp-build/buildActionInit.cmi
+tools/ocp-build/buildActionPrefs.cmo : libs/ocplib-file/file.cmi \
+    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildArgs.cmo
+tools/ocp-build/buildActionPrefs.cmx : libs/ocplib-file/file.cmx \
+    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildArgs.cmx
+tools/ocp-build/buildActionConfigure.cmo : libs/ocplib-file/file.cmi \
+    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildArgs.cmo
+tools/ocp-build/buildActionConfigure.cmx : libs/ocplib-file/file.cmx \
+    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildArgs.cmx
+tools/ocp-build/buildActionBuild.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-config/simpleConfig.cmi libs/ocplib-unix/minUnix.cmi \
+    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildVersion.cmo \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/buildUninstall.cmi \
+    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildTerm.cmi \
+    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOCamlInstall.cmi \
+    tools/ocp-build/buildOCamlConfig.cmi tools/ocp-build/buildOCPTypes.cmi \
+    tools/ocp-build/buildOCP.cmi tools/ocp-build/buildMisc.cmo \
+    tools/ocp-build/buildGlobals.cmo tools/ocp-build/buildEngineTypes.cmi \
+    tools/ocp-build/buildEngineRules.cmo \
+    tools/ocp-build/buildEngineDisplay.cmi tools/ocp-build/buildEngine.cmi \
+    tools/ocp-build/buildConfig.cmi tools/ocp-build/buildArgs.cmo \
+    tools/ocp-build/buildActions.cmi tools/ocp-build/buildActionInit.cmi \
+    tools/ocp-build/buildActionBuild.cmi
+tools/ocp-build/buildActionBuild.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    libs/ocplib-config/simpleConfig.cmx libs/ocplib-unix/minUnix.cmx \
+    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildVersion.cmx \
+    tools/ocp-build/buildValue.cmx tools/ocp-build/buildUninstall.cmx \
+    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildTerm.cmx \
+    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildOCamlInstall.cmx \
+    tools/ocp-build/buildOCamlConfig.cmx tools/ocp-build/buildOCPTypes.cmx \
+    tools/ocp-build/buildOCP.cmx tools/ocp-build/buildMisc.cmx \
+    tools/ocp-build/buildGlobals.cmx tools/ocp-build/buildEngineTypes.cmx \
+    tools/ocp-build/buildEngineRules.cmx \
+    tools/ocp-build/buildEngineDisplay.cmx tools/ocp-build/buildEngine.cmx \
+    tools/ocp-build/buildConfig.cmx tools/ocp-build/buildArgs.cmx \
+    tools/ocp-build/buildActions.cmx tools/ocp-build/buildActionInit.cmx \
+    tools/ocp-build/buildActionBuild.cmi
+tools/ocp-build/buildActionInstall.cmo : libs/ocplib-lang/stringSet.cmi \
+    libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/buildUninstall.cmi \
+    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildTerm.cmi \
+    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOCamlInstall.cmi \
+    tools/ocp-build/buildMisc.cmo tools/ocp-build/buildArgs.cmo \
+    tools/ocp-build/buildActions.cmi tools/ocp-build/buildActionBuild.cmi \
+    tools/ocp-build/buildActionInstall.cmi
+tools/ocp-build/buildActionInstall.cmx : libs/ocplib-lang/stringSet.cmx \
+    libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    tools/ocp-build/buildValue.cmx tools/ocp-build/buildUninstall.cmx \
+    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildTerm.cmx \
+    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildOCamlInstall.cmx \
+    tools/ocp-build/buildMisc.cmx tools/ocp-build/buildArgs.cmx \
+    tools/ocp-build/buildActions.cmx tools/ocp-build/buildActionBuild.cmx \
+    tools/ocp-build/buildActionInstall.cmi
+tools/ocp-build/buildActionClean.cmo : libs/ocplib-file/file.cmi \
+    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildArgs.cmo \
+    tools/ocp-build/buildActions.cmi
+tools/ocp-build/buildActionClean.cmx : libs/ocplib-file/file.cmx \
+    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildArgs.cmx \
+    tools/ocp-build/buildActions.cmx
+tools/ocp-build/buildActionTests.cmo : tools/ocp-build/buildTypes.cmi \
+    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOCamlTest.cmi \
+    tools/ocp-build/buildArgs.cmo tools/ocp-build/buildActions.cmi \
+    tools/ocp-build/buildActionBuild.cmi tools/ocp-build/buildActionTests.cmi
+tools/ocp-build/buildActionTests.cmx : tools/ocp-build/buildTypes.cmx \
+    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildOCamlTest.cmx \
+    tools/ocp-build/buildArgs.cmx tools/ocp-build/buildActions.cmx \
+    tools/ocp-build/buildActionBuild.cmx tools/ocp-build/buildActionTests.cmi
+tools/ocp-build/buildActionUninstall.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    tools/ocp-build/buildUninstall.cmi tools/ocp-build/buildGlobals.cmo \
+    tools/ocp-build/buildArgs.cmo
+tools/ocp-build/buildActionUninstall.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    tools/ocp-build/buildUninstall.cmx tools/ocp-build/buildGlobals.cmx \
+    tools/ocp-build/buildArgs.cmx
+tools/ocp-build/buildActionQuery.cmo : tools/ocp-build/buildTypes.cmi \
+    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOCPTypes.cmi \
+    tools/ocp-build/buildMisc.cmo tools/ocp-build/buildArgs.cmo \
+    tools/ocp-build/buildActions.cmi tools/ocp-build/buildActionInit.cmi \
+    tools/ocp-build/buildActionBuild.cmi
+tools/ocp-build/buildActionQuery.cmx : tools/ocp-build/buildTypes.cmx \
+    tools/ocp-build/buildOptions.cmx tools/ocp-build/buildOCPTypes.cmx \
+    tools/ocp-build/buildMisc.cmx tools/ocp-build/buildArgs.cmx \
+    tools/ocp-build/buildActions.cmx tools/ocp-build/buildActionInit.cmx \
+    tools/ocp-build/buildActionBuild.cmx
+tools/ocp-build/buildActionHelp.cmo : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    tools/ocp-build/buildOCP.cmi tools/ocp-build/buildMisc.cmo \
+    tools/ocp-build/buildArgs.cmo
+tools/ocp-build/buildActionHelp.cmx : libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    tools/ocp-build/buildOCP.cmx tools/ocp-build/buildMisc.cmx \
+    tools/ocp-build/buildArgs.cmx
 tools/ocp-build/buildMain.cmo : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildMisc.cmo \
@@ -599,445 +888,160 @@ tools/ocp-build/buildMain.cmx : libs/ocplib-lang/stringMap.cmx \
     tools/ocp-build/buildActionInit.cmx tools/ocp-build/buildActionHelp.cmx \
     tools/ocp-build/buildActionConfigure.cmx \
     tools/ocp-build/buildActionClean.cmx tools/ocp-build/buildActionBuild.cmx
-tools/ocp-build/buildMisc.cmo : \
+libs/ocplib-debug/debugVerbosity.cmi :
+libs/ocplib-debug/debugTyperex.cmi :
+libs/ocplib-lang/ocpPervasives.cmi :
+libs/ocplib-lang/ocpList.cmi :
+libs/ocplib-lang/ocpString.cmi :
+libs/ocplib-lang/ocpStream.cmi :
+libs/ocplib-lang/ocpGenlex.cmi :
+libs/ocplib-lang/ocpHashtbl.cmi :
+libs/ocplib-lang/ocpDigest.cmi :
+libs/ocplib-lang/ocpArray.cmi :
+libs/ocplib-lang/option.cmi :
+libs/ocplib-lang/intMap.cmi :
+libs/ocplib-lang/intSet.cmi :
+libs/ocplib-lang/stringMap.cmi :
+libs/ocplib-lang/stringSet.cmi :
+libs/ocplib-lang/toposort.cmi :
+libs/ocplib-lang/linearToposort.cmi :
+libs/ocplib-lang/ocamllexer.cmi :
+libs/ocplib-lang/trie.cmi :
+libs/ocplib-lang/ocpLang.cmi : libs/ocplib-lang/ocpString.cmi \
+    libs/ocplib-lang/ocpStream.cmi libs/ocplib-lang/ocpPervasives.cmi \
+    libs/ocplib-lang/ocpList.cmi libs/ocplib-lang/ocpHashtbl.cmi \
+    libs/ocplib-lang/ocpGenlex.cmi libs/ocplib-lang/ocpDigest.cmi
+libs/ocplib-lang/stringSubst.cmi :
+libs/ocplib-lang/manpage.cmi :
+libs/ocplib-lang/stringTemplate.cmi :
+libs/ocplib-lang/reentrantBuffers.cmi : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo
+libs/ocplib-unix/minUnix.cmi :
+libs/ocplib-unix/onlyUnix.cmi : libs/ocplib-unix/minUnix.cmi
+libs/ocplib-unix/onlyWin32.cmi : libs/ocplib-unix/minUnix.cmi
+libs/ocplib-file/fileOS.cmi :
+libs/ocplib-file/fileChannel.cmi : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-unix/onlyWin32.cmi libs/ocplib-unix/onlyUnix.cmi \
-    libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
-    libs/ocplib-file/fileString.cmi
-tools/ocp-build/buildMisc.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-unix/onlyWin32.cmx libs/ocplib-unix/onlyUnix.cmx \
-    libs/ocplib-lang/ocpString.cmx libs/ocplib-unix/minUnix.cmx \
-    libs/ocplib-file/fileString.cmx
-tools/ocp-build/buildMtime.cmo : libs/ocplib-lang/ocpDigest.cmi \
-    libs/ocplib-unix/minUnix.cmi tools/ocp-build/buildMtime.cmi
-tools/ocp-build/buildMtime.cmx : libs/ocplib-lang/ocpDigest.cmx \
-    libs/ocplib-unix/minUnix.cmx tools/ocp-build/buildMtime.cmi
+    libs/ocplib-file/fileSig.cmo
+libs/ocplib-file/fileString.cmi : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-file/fileSig.cmo
+libs/ocplib-file/fileLines.cmi :
+libs/ocplib-file/file.cmi : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-file/fileSig.cmo
+libs/ocplib-file/dir.cmi : libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-file/file.cmi
+libs/ocplib-system/date.cmi : libs/ocplib-unix/minUnix.cmi
+libs/ocplib-system/ocpUnix.cmi :
+libs/ocplib-system/ocpFilename.cmi :
+libs/ocplib-system/debug.cmi :
+libs/ocplib-system/fileTemplate.cmi :
+libs/ocplib-config/pythonConfig.cmi : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-file/file.cmi
+libs/ocplib-config/simpleConfigOCaml.cmi : \
+    libs/ocplib-config/simpleConfigTypes.cmo libs/ocplib-file/file.cmi
+libs/ocplib-config/simpleConfig.cmi : libs/ocplib-lang/intMap.cmi \
+    libs/ocplib-file/file.cmi
+tools/ocp-build/buildWarnings.cmi :
 tools/ocp-build/buildMtime.cmi :
-tools/ocp-build/buildOCP.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
-    libs/ocplib-lang/linearToposort.cmi libs/ocplib-lang/intMap.cmi \
-    libs/ocplib-file/fileString.cmi libs/ocplib-file/file.cmi \
-    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildWarnings.cmi \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/buildScanner.cmi \
-    tools/ocp-build/buildOCPTypes.cmi tools/ocp-build/buildOCPTree.cmi \
-    tools/ocp-build/buildOCPInterp.cmi tools/ocp-build/buildMisc.cmo \
-    tools/ocp-build/buildOCP.cmi
-tools/ocp-build/buildOCP.cmx : libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocpString.cmx libs/ocplib-unix/minUnix.cmx \
-    libs/ocplib-lang/linearToposort.cmx libs/ocplib-lang/intMap.cmx \
-    libs/ocplib-file/fileString.cmx libs/ocplib-file/file.cmx \
-    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildWarnings.cmx \
-    tools/ocp-build/buildValue.cmx tools/ocp-build/buildScanner.cmx \
-    tools/ocp-build/buildOCPTypes.cmx tools/ocp-build/buildOCPTree.cmx \
-    tools/ocp-build/buildOCPInterp.cmx tools/ocp-build/buildMisc.cmx \
-    tools/ocp-build/buildOCP.cmi
-tools/ocp-build/buildOCP.cmi : libs/ocplib-file/file.cmi \
-    tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildOCPTypes.cmi \
-    tools/ocp-build/buildOCPInterp.cmi
-tools/ocp-build/buildOCPInterp.cmo : tools/ocp-build/versioning.cmi \
-    libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocpString.cmi libs/ocplib-lang/linearToposort.cmi \
-    libs/ocplib-lang/intMap.cmi libs/ocplib-file/fileString.cmi \
-    tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildSubst.cmi tools/ocp-build/buildOCPTypes.cmi \
-    tools/ocp-build/buildOCPTree.cmi tools/ocp-build/buildOCPPrinter.cmi \
-    tools/ocp-build/buildOCPParse.cmi tools/ocp-build/buildMisc.cmo \
-    tools/ocp-build/buildOCPInterp.cmi
-tools/ocp-build/buildOCPInterp.cmx : tools/ocp-build/versioning.cmx \
-    libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocpString.cmx libs/ocplib-lang/linearToposort.cmx \
-    libs/ocplib-lang/intMap.cmx libs/ocplib-file/fileString.cmx \
-    tools/ocp-build/buildWarnings.cmx tools/ocp-build/buildValue.cmx \
-    tools/ocp-build/buildSubst.cmx tools/ocp-build/buildOCPTypes.cmx \
-    tools/ocp-build/buildOCPTree.cmx tools/ocp-build/buildOCPPrinter.cmx \
-    tools/ocp-build/buildOCPParse.cmx tools/ocp-build/buildMisc.cmx \
-    tools/ocp-build/buildOCPInterp.cmi
-tools/ocp-build/buildOCPInterp.cmi : libs/ocplib-lang/stringSubst.cmi \
-    libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildOCPTypes.cmi
-tools/ocp-build/buildOCPParse.cmo : libs/ocplib-lang/ocamllexer.cmi \
-    tools/ocp-build/buildOCPParser.cmi tools/ocp-build/buildMisc.cmo \
-    tools/ocp-build/buildOCPParse.cmi
-tools/ocp-build/buildOCPParse.cmx : libs/ocplib-lang/ocamllexer.cmx \
-    tools/ocp-build/buildOCPParser.cmx tools/ocp-build/buildMisc.cmx \
-    tools/ocp-build/buildOCPParse.cmi
-tools/ocp-build/buildOCPParse.cmi : tools/ocp-build/buildOCPTree.cmi
-tools/ocp-build/buildOCPParser.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/buildOCPTypes.cmi tools/ocp-build/buildOCPTree.cmi \
-    tools/ocp-build/buildOCPParser.cmi
-tools/ocp-build/buildOCPParser.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    tools/ocp-build/buildOCPTypes.cmx tools/ocp-build/buildOCPTree.cmx \
-    tools/ocp-build/buildOCPParser.cmi
-tools/ocp-build/buildOCPParser.cmi : tools/ocp-build/buildOCPTree.cmi
-tools/ocp-build/buildOCPPrinter.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/intMap.cmi tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildOCPTypes.cmi tools/ocp-build/buildOCPPrinter.cmi
-tools/ocp-build/buildOCPPrinter.cmx : libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/intMap.cmx tools/ocp-build/buildValue.cmx \
-    tools/ocp-build/buildOCPTypes.cmx tools/ocp-build/buildOCPPrinter.cmi
-tools/ocp-build/buildOCPPrinter.cmi : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/buildOCPTypes.cmi
-tools/ocp-build/buildOCPTree.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/buildOCPTypes.cmi tools/ocp-build/buildOCPTree.cmi
-tools/ocp-build/buildOCPTree.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    tools/ocp-build/buildOCPTypes.cmx tools/ocp-build/buildOCPTree.cmi
-tools/ocp-build/buildOCPTree.cmi : tools/ocp-build/buildOCPTypes.cmi
-tools/ocp-build/buildOCPTypes.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/linearToposort.cmi libs/ocplib-lang/intMap.cmi \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/buildOCPTypes.cmi
-tools/ocp-build/buildOCPTypes.cmx : libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/linearToposort.cmx libs/ocplib-lang/intMap.cmx \
-    tools/ocp-build/buildValue.cmx tools/ocp-build/buildOCPTypes.cmi
+tools/ocp-build/buildScanner.cmi : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo
+tools/ocp-build/buildSubst.cmi : libs/ocplib-lang/stringSubst.cmi
+tools/ocp-build/buildFind.cmi :
+tools/ocp-build/buildTerm.cmi :
+tools/ocp-build/ocamldot.cmi :
+tools/ocp-build/buildValue.cmi : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo
+tools/ocp-build/versioning.cmi :
 tools/ocp-build/buildOCPTypes.cmi : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-lang/linearToposort.cmi libs/ocplib-lang/intMap.cmi \
     tools/ocp-build/buildValue.cmi
-tools/ocp-build/buildOCamlConfig.cmo : libs/ocplib-lang/ocpString.cmi \
-    libs/ocplib-unix/minUnix.cmi tools/ocp-build/metaConfig.cmi \
-    tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildSubst.cmi tools/ocp-build/buildOptions.cmi \
-    tools/ocp-build/buildMisc.cmo tools/ocp-build/buildConfig.cmi \
-    tools/ocp-build/buildOCamlConfig.cmi
-tools/ocp-build/buildOCamlConfig.cmx : libs/ocplib-lang/ocpString.cmx \
-    libs/ocplib-unix/minUnix.cmx tools/ocp-build/metaConfig.cmx \
-    tools/ocp-build/buildWarnings.cmx tools/ocp-build/buildValue.cmx \
-    tools/ocp-build/buildSubst.cmx tools/ocp-build/buildOptions.cmx \
-    tools/ocp-build/buildMisc.cmx tools/ocp-build/buildConfig.cmx \
-    tools/ocp-build/buildOCamlConfig.cmi
-tools/ocp-build/buildOCamlConfig.cmi : tools/ocp-build/buildWarnings.cmi \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/buildOptions.cmi
-tools/ocp-build/buildOCamlGlobals.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/intMap.cmi tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildOptions.cmi \
-    tools/ocp-build/buildOCamlTypes.cmi tools/ocp-build/buildGlobals.cmo
-tools/ocp-build/buildOCamlGlobals.cmx : libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/intMap.cmx tools/ocp-build/buildValue.cmx \
-    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildOptions.cmx \
-    tools/ocp-build/buildOCamlTypes.cmx tools/ocp-build/buildGlobals.cmx
-tools/ocp-build/buildOCamlInstall.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-unix/minUnix.cmi tools/ocp-build/metaTypes.cmi \
-    tools/ocp-build/metaFile.cmi libs/ocplib-file/fileString.cmi \
-    libs/ocplib-file/file.cmi tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildOptions.cmi \
-    tools/ocp-build/buildOCamlTypes.cmi tools/ocp-build/buildOCamlGlobals.cmo \
-    tools/ocp-build/buildOCamlConfig.cmi tools/ocp-build/buildOCPTypes.cmi \
-    tools/ocp-build/buildOCPTree.cmi tools/ocp-build/buildMisc.cmo \
-    tools/ocp-build/buildEngineTypes.cmi \
-    tools/ocp-build/buildEngineGlobals.cmi \
-    tools/ocp-build/buildOCamlInstall.cmi
-tools/ocp-build/buildOCamlInstall.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-unix/minUnix.cmx tools/ocp-build/metaTypes.cmx \
-    tools/ocp-build/metaFile.cmx libs/ocplib-file/fileString.cmx \
-    libs/ocplib-file/file.cmx tools/ocp-build/buildValue.cmx \
-    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildOptions.cmx \
-    tools/ocp-build/buildOCamlTypes.cmx tools/ocp-build/buildOCamlGlobals.cmx \
-    tools/ocp-build/buildOCamlConfig.cmx tools/ocp-build/buildOCPTypes.cmx \
-    tools/ocp-build/buildOCPTree.cmx tools/ocp-build/buildMisc.cmx \
-    tools/ocp-build/buildEngineTypes.cmx \
-    tools/ocp-build/buildEngineGlobals.cmx \
-    tools/ocp-build/buildOCamlInstall.cmi
-tools/ocp-build/buildOCamlInstall.cmi : tools/ocp-build/buildTypes.cmi \
-    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOCamlConfig.cmi
-tools/ocp-build/buildOCamlMeta.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocpString.cmi tools/ocp-build/metaTypes.cmi \
-    tools/ocp-build/metaParser.cmi tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildOCPTypes.cmi tools/ocp-build/buildOCPPrinter.cmi \
-    tools/ocp-build/buildOCPInterp.cmi tools/ocp-build/buildEngineTypes.cmi \
-    tools/ocp-build/buildOCamlMeta.cmi
-tools/ocp-build/buildOCamlMeta.cmx : libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocpString.cmx tools/ocp-build/metaTypes.cmx \
-    tools/ocp-build/metaParser.cmx tools/ocp-build/buildValue.cmx \
-    tools/ocp-build/buildOCPTypes.cmx tools/ocp-build/buildOCPPrinter.cmx \
-    tools/ocp-build/buildOCPInterp.cmx tools/ocp-build/buildEngineTypes.cmx \
-    tools/ocp-build/buildOCamlMeta.cmi
-tools/ocp-build/buildOCamlMeta.cmi : tools/ocp-build/buildOCPInterp.cmi
-tools/ocp-build/buildOCamlMisc.cmo : libs/ocplib-unix/minUnix.cmi \
-    tools/ocp-build/buildEngineTypes.cmi \
-    tools/ocp-build/buildEngineContext.cmi
-tools/ocp-build/buildOCamlMisc.cmx : libs/ocplib-unix/minUnix.cmx \
-    tools/ocp-build/buildEngineTypes.cmx \
-    tools/ocp-build/buildEngineContext.cmx
-tools/ocp-build/buildOCamlRules.cmo : libs/ocplib-lang/stringSubst.cmi \
+tools/ocp-build/lang1/buildOCPTree.cmi :
+tools/ocp-build/lang1/buildOCPParser.cmi :
+tools/ocp-build/lang1/buildOCPParse.cmi :
+tools/ocp-build/lang1/buildOCPPrims.cmi : libs/ocplib-lang/stringSubst.cmi \
     libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
-    libs/ocplib-lang/linearToposort.cmi libs/ocplib-lang/intMap.cmi \
-    libs/ocplib-file/fileString.cmi libs/ocplib-file/file.cmi \
-    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildSubst.cmi \
-    tools/ocp-build/buildOCamldep.cmi tools/ocp-build/buildOCamlVariables.cmo \
-    tools/ocp-build/buildOCamlTypes.cmi \
-    tools/ocp-build/buildOCamlSyntaxes.cmi tools/ocp-build/buildOCamlMisc.cmo \
-    tools/ocp-build/buildOCamlInstall.cmi \
-    tools/ocp-build/buildOCamlGlobals.cmo \
-    tools/ocp-build/buildOCamlConfig.cmi tools/ocp-build/buildOCPTypes.cmi \
-    tools/ocp-build/buildOCPInterp.cmi tools/ocp-build/buildMisc.cmo \
-    tools/ocp-build/buildGlobals.cmo tools/ocp-build/buildEngineTypes.cmi \
-    tools/ocp-build/buildEngineRules.cmo \
-    tools/ocp-build/buildEngineGlobals.cmi \
-    tools/ocp-build/buildEngineContext.cmi \
-    tools/ocp-build/buildOCamlRules.cmi
-tools/ocp-build/buildOCamlRules.cmx : libs/ocplib-lang/stringSubst.cmx \
-    libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocpString.cmx libs/ocplib-unix/minUnix.cmx \
-    libs/ocplib-lang/linearToposort.cmx libs/ocplib-lang/intMap.cmx \
-    libs/ocplib-file/fileString.cmx libs/ocplib-file/file.cmx \
-    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildValue.cmx \
-    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildSubst.cmx \
-    tools/ocp-build/buildOCamldep.cmx tools/ocp-build/buildOCamlVariables.cmx \
-    tools/ocp-build/buildOCamlTypes.cmx \
-    tools/ocp-build/buildOCamlSyntaxes.cmx tools/ocp-build/buildOCamlMisc.cmx \
-    tools/ocp-build/buildOCamlInstall.cmx \
-    tools/ocp-build/buildOCamlGlobals.cmx \
-    tools/ocp-build/buildOCamlConfig.cmx tools/ocp-build/buildOCPTypes.cmx \
-    tools/ocp-build/buildOCPInterp.cmx tools/ocp-build/buildMisc.cmx \
-    tools/ocp-build/buildGlobals.cmx tools/ocp-build/buildEngineTypes.cmx \
-    tools/ocp-build/buildEngineRules.cmx \
-    tools/ocp-build/buildEngineGlobals.cmx \
-    tools/ocp-build/buildEngineContext.cmx \
-    tools/ocp-build/buildOCamlRules.cmi
-tools/ocp-build/buildOCamlRules.cmi : tools/ocp-build/buildTypes.cmi \
-    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOCamlConfig.cmi \
+    tools/ocp-build/buildValue.cmi
+tools/ocp-build/lang1/buildOCPInterp.cmi : libs/ocplib-lang/stringSubst.cmi \
+    libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    tools/ocp-build/buildValue.cmi
+tools/ocp-build/buildOCPPrinter.cmi : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
     tools/ocp-build/buildOCPTypes.cmi
-tools/ocp-build/buildOCamlSyntaxes.cmo : libs/ocplib-lang/stringSet.cmi \
+tools/ocp-build/buildOCP.cmi : libs/ocplib-lang/stringSubst.cmi \
     libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocpString.cmi libs/ocplib-debug/debugVerbosity.cmi \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/buildTypes.cmi \
-    tools/ocp-build/buildOCamlVariables.cmo \
-    tools/ocp-build/buildOCamlTypes.cmi tools/ocp-build/buildOCamlMisc.cmo \
-    tools/ocp-build/buildOCamlGlobals.cmo tools/ocp-build/buildOCPTree.cmi \
-    tools/ocp-build/buildMisc.cmo tools/ocp-build/buildEngineTypes.cmi \
-    tools/ocp-build/buildEngineRules.cmo \
-    tools/ocp-build/buildOCamlSyntaxes.cmi
-tools/ocp-build/buildOCamlSyntaxes.cmx : libs/ocplib-lang/stringSet.cmx \
-    libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocpString.cmx libs/ocplib-debug/debugVerbosity.cmx \
-    tools/ocp-build/buildValue.cmx tools/ocp-build/buildTypes.cmx \
-    tools/ocp-build/buildOCamlVariables.cmx \
-    tools/ocp-build/buildOCamlTypes.cmx tools/ocp-build/buildOCamlMisc.cmx \
-    tools/ocp-build/buildOCamlGlobals.cmx tools/ocp-build/buildOCPTree.cmx \
-    tools/ocp-build/buildMisc.cmx tools/ocp-build/buildEngineTypes.cmx \
-    tools/ocp-build/buildEngineRules.cmx \
-    tools/ocp-build/buildOCamlSyntaxes.cmi
-tools/ocp-build/buildOCamlSyntaxes.cmi : tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildOCamlTypes.cmi tools/ocp-build/buildEngineTypes.cmi
-tools/ocp-build/buildOCamlTest.cmo : libs/ocplib-lang/stringSubst.cmi \
-    libs/ocplib-unix/onlyUnix.cmi libs/ocplib-unix/minUnix.cmi \
-    libs/ocplib-lang/intMap.cmi libs/ocplib-file/fileString.cmi \
-    libs/ocplib-file/file.cmi libs/ocplib-debug/debugVerbosity.cmi \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/buildTypes.cmi \
-    tools/ocp-build/buildSubst.cmi tools/ocp-build/buildOCamlTypes.cmi \
-    tools/ocp-build/buildOCamlGlobals.cmo tools/ocp-build/buildOCPTypes.cmi \
-    tools/ocp-build/buildMisc.cmo tools/ocp-build/buildEngineTypes.cmi \
-    tools/ocp-build/buildConfig.cmi tools/ocp-build/buildOCamlTest.cmi
-tools/ocp-build/buildOCamlTest.cmx : libs/ocplib-lang/stringSubst.cmx \
-    libs/ocplib-unix/onlyUnix.cmx libs/ocplib-unix/minUnix.cmx \
-    libs/ocplib-lang/intMap.cmx libs/ocplib-file/fileString.cmx \
-    libs/ocplib-file/file.cmx libs/ocplib-debug/debugVerbosity.cmx \
-    tools/ocp-build/buildValue.cmx tools/ocp-build/buildTypes.cmx \
-    tools/ocp-build/buildSubst.cmx tools/ocp-build/buildOCamlTypes.cmx \
-    tools/ocp-build/buildOCamlGlobals.cmx tools/ocp-build/buildOCPTypes.cmx \
-    tools/ocp-build/buildMisc.cmx tools/ocp-build/buildEngineTypes.cmx \
-    tools/ocp-build/buildConfig.cmx tools/ocp-build/buildOCamlTest.cmi
-tools/ocp-build/buildOCamlTest.cmi : tools/ocp-build/buildTypes.cmi \
+    libs/ocplib-file/file.cmi tools/ocp-build/buildWarnings.cmi \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/buildOCPTypes.cmi
+tools/ocp-build/buildEngineTypes.cmi : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/intMap.cmi libs/ocplib-file/file.cmi \
+    tools/ocp-build/buildMtime.cmi
+tools/ocp-build/buildEngineGlobals.cmi : \
     tools/ocp-build/buildEngineTypes.cmi
-tools/ocp-build/buildOCamlTypes.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/intMap.cmi tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildEngineTypes.cmi \
-    tools/ocp-build/buildOCamlTypes.cmi
-tools/ocp-build/buildOCamlTypes.cmx : libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/intMap.cmx tools/ocp-build/buildValue.cmx \
-    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildEngineTypes.cmx \
-    tools/ocp-build/buildOCamlTypes.cmi
-tools/ocp-build/buildOCamlTypes.cmi : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/intMap.cmi tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildEngineTypes.cmi
-tools/ocp-build/buildOCamlVariables.cmo : tools/ocp-build/buildValue.cmi
-tools/ocp-build/buildOCamlVariables.cmx : tools/ocp-build/buildValue.cmx
-tools/ocp-build/buildOCamldep.cmo : libs/ocplib-lang/stringSet.cmi \
-    libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocpString.cmi libs/ocplib-debug/debugVerbosity.cmi \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/buildTypes.cmi \
-    tools/ocp-build/buildOCamlVariables.cmo \
-    tools/ocp-build/buildOCamlTypes.cmi tools/ocp-build/buildOCamlGlobals.cmo \
-    tools/ocp-build/buildOCPTypes.cmi tools/ocp-build/buildEngineTypes.cmi \
-    tools/ocp-build/buildOCamldep.cmi
-tools/ocp-build/buildOCamldep.cmx : libs/ocplib-lang/stringSet.cmx \
-    libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocpString.cmx libs/ocplib-debug/debugVerbosity.cmx \
-    tools/ocp-build/buildValue.cmx tools/ocp-build/buildTypes.cmx \
-    tools/ocp-build/buildOCamlVariables.cmx \
-    tools/ocp-build/buildOCamlTypes.cmx tools/ocp-build/buildOCamlGlobals.cmx \
-    tools/ocp-build/buildOCPTypes.cmx tools/ocp-build/buildEngineTypes.cmx \
-    tools/ocp-build/buildOCamldep.cmi
-tools/ocp-build/buildOCamldep.cmi : tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildOCamlTypes.cmi tools/ocp-build/buildEngineTypes.cmi
-tools/ocp-build/buildOasis.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocpString.cmi libs/ocplib-lang/ocpGenlex.cmi \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/buildOCPTypes.cmi \
-    tools/ocp-build/buildOCPInterp.cmi tools/ocp-build/buildOasis.cmi
-tools/ocp-build/buildOasis.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocpString.cmx libs/ocplib-lang/ocpGenlex.cmx \
-    tools/ocp-build/buildValue.cmx tools/ocp-build/buildOCPTypes.cmx \
-    tools/ocp-build/buildOCPInterp.cmx tools/ocp-build/buildOasis.cmi
-tools/ocp-build/buildOasis.cmi : tools/ocp-build/buildOCPInterp.cmi
-tools/ocp-build/buildObjectInspector.cmo : \
-    tools/ocp-build/buildObjectInspector.cmi
-tools/ocp-build/buildObjectInspector.cmx : \
-    tools/ocp-build/buildObjectInspector.cmi
+tools/ocp-build/buildEngineContext.cmi : \
+    tools/ocp-build/buildEngineTypes.cmi
+tools/ocp-build/buildEngineDisplay.cmi : \
+    tools/ocp-build/buildEngineTypes.cmi
+tools/ocp-build/buildEngine.cmi : tools/ocp-build/buildEngineTypes.cmi
 tools/ocp-build/buildObjectInspector.cmi :
-tools/ocp-build/buildOptions.cmo : libs/ocplib-lang/stringSet.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-config/simpleConfig.cmi libs/ocplib-file/file.cmi \
-    libs/ocplib-file/dir.cmi tools/ocp-build/buildVersion.cmo \
-    tools/ocp-build/buildOCP.cmi tools/ocp-build/buildMisc.cmo \
-    tools/ocp-build/buildOptions.cmi
-tools/ocp-build/buildOptions.cmx : libs/ocplib-lang/stringSet.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-config/simpleConfig.cmx libs/ocplib-file/file.cmx \
-    libs/ocplib-file/dir.cmx tools/ocp-build/buildVersion.cmx \
-    tools/ocp-build/buildOCP.cmx tools/ocp-build/buildMisc.cmx \
-    tools/ocp-build/buildOptions.cmi
-tools/ocp-build/buildOptions.cmi : libs/ocplib-config/simpleConfig.cmi \
-    libs/ocplib-file/file.cmi
-tools/ocp-build/buildScanner.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-file/fileString.cmi tools/ocp-build/buildScanner.cmi
-tools/ocp-build/buildScanner.cmx : libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-file/fileString.cmx tools/ocp-build/buildScanner.cmi
-tools/ocp-build/buildScanner.cmi : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo
-tools/ocp-build/buildSubst.cmo : libs/ocplib-lang/stringSubst.cmi \
-    libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
-    tools/ocp-build/buildSubst.cmi
-tools/ocp-build/buildSubst.cmx : libs/ocplib-lang/stringSubst.cmx \
-    libs/ocplib-lang/ocpString.cmx libs/ocplib-unix/minUnix.cmx \
-    tools/ocp-build/buildSubst.cmi
-tools/ocp-build/buildSubst.cmi : libs/ocplib-lang/stringSubst.cmi
-tools/ocp-build/buildTerm.cmo : libs/ocplib-lang/ocpString.cmi \
-    libs/ocplib-unix/minUnix.cmi tools/ocp-build/buildMisc.cmo \
-    tools/ocp-build/buildTerm.cmi
-tools/ocp-build/buildTerm.cmx : libs/ocplib-lang/ocpString.cmx \
-    libs/ocplib-unix/minUnix.cmx tools/ocp-build/buildMisc.cmx \
-    tools/ocp-build/buildTerm.cmi
-tools/ocp-build/buildTerm.cmi :
-tools/ocp-build/buildTypes.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/linearToposort.cmi libs/ocplib-file/file.cmi \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/buildOCPTypes.cmi \
-    tools/ocp-build/buildEngineTypes.cmi tools/ocp-build/buildTypes.cmi
-tools/ocp-build/buildTypes.cmx : libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/linearToposort.cmx libs/ocplib-file/file.cmx \
-    tools/ocp-build/buildValue.cmx tools/ocp-build/buildOCPTypes.cmx \
-    tools/ocp-build/buildEngineTypes.cmx tools/ocp-build/buildTypes.cmi
 tools/ocp-build/buildTypes.cmi : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-lang/linearToposort.cmi libs/ocplib-file/file.cmi \
     tools/ocp-build/buildValue.cmi tools/ocp-build/buildOCPTypes.cmi \
     tools/ocp-build/buildEngineTypes.cmi
-tools/ocp-build/buildUninstall.cmo : libs/ocplib-lang/stringSet.cmi \
-    libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocpString.cmi libs/ocplib-unix/minUnix.cmi \
-    libs/ocplib-file/fileLines.cmi tools/ocp-build/buildScanner.cmi \
-    tools/ocp-build/buildUninstall.cmi
-tools/ocp-build/buildUninstall.cmx : libs/ocplib-lang/stringSet.cmx \
-    libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocpString.cmx libs/ocplib-unix/minUnix.cmx \
-    libs/ocplib-file/fileLines.cmx tools/ocp-build/buildScanner.cmx \
-    tools/ocp-build/buildUninstall.cmi
+tools/ocp-build/buildOptions.cmi : libs/ocplib-config/simpleConfig.cmi \
+    libs/ocplib-file/file.cmi
+tools/ocp-build/buildConfig.cmi :
 tools/ocp-build/buildUninstall.cmi :
-tools/ocp-build/buildValue.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/buildValue.cmi
-tools/ocp-build/buildValue.cmx : libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    tools/ocp-build/buildValue.cmi
-tools/ocp-build/buildValue.cmi : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo
-tools/ocp-build/buildVersion.cmo :
-tools/ocp-build/buildVersion.cmx :
-tools/ocp-build/buildWarnings.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/buildWarnings.cmi
-tools/ocp-build/buildWarnings.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    tools/ocp-build/buildWarnings.cmi
-tools/ocp-build/buildWarnings.cmi :
-tools/ocp-build/logger.cmo :
-tools/ocp-build/logger.cmx :
-tools/ocp-build/metaConfig.cmo : libs/ocplib-lang/ocpString.cmi \
-    tools/ocp-build/buildMisc.cmo tools/ocp-build/metaConfig.cmi
-tools/ocp-build/metaConfig.cmx : libs/ocplib-lang/ocpString.cmx \
-    tools/ocp-build/buildMisc.cmx tools/ocp-build/metaConfig.cmi
-tools/ocp-build/metaConfig.cmi :
-tools/ocp-build/metaFile.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/metaTypes.cmi tools/ocp-build/metaFile.cmi
-tools/ocp-build/metaFile.cmx : libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    tools/ocp-build/metaTypes.cmx tools/ocp-build/metaFile.cmi
-tools/ocp-build/metaFile.cmi : tools/ocp-build/metaTypes.cmi
-tools/ocp-build/metaLexer.cmo : tools/ocp-build/metaLexer.cmi
-tools/ocp-build/metaLexer.cmx : tools/ocp-build/metaLexer.cmi
-tools/ocp-build/metaLexer.cmi :
-tools/ocp-build/metaParser.cmo : \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/ocpString.cmi tools/ocp-build/metaTypes.cmi \
-    tools/ocp-build/metaLexer.cmi tools/ocp-build/metaFile.cmi \
-    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/metaParser.cmi
-tools/ocp-build/metaParser.cmx : \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/ocpString.cmx tools/ocp-build/metaTypes.cmx \
-    tools/ocp-build/metaLexer.cmx tools/ocp-build/metaFile.cmx \
-    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/metaParser.cmi
-tools/ocp-build/metaParser.cmi : tools/ocp-build/metaTypes.cmi
-tools/ocp-build/metaTypes.cmo : libs/ocplib-lang/stringMap.cmi \
-    libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/metaTypes.cmi
-tools/ocp-build/metaTypes.cmx : libs/ocplib-lang/stringMap.cmx \
-    libs/ocplib-compat/string-compat/stringCompat.cmx \
-    tools/ocp-build/metaTypes.cmi
+tools/ocp-build/buildAutogen.cmi : libs/ocplib-file/file.cmi \
+    tools/ocp-build/buildOCPTypes.cmi
 tools/ocp-build/metaTypes.cmi : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo
-tools/ocp-build/ocamldot.cmo : tools/ocp-build/ocamldot.cmi
-tools/ocp-build/ocamldot.cmx : tools/ocp-build/ocamldot.cmi
-tools/ocp-build/ocamldot.cmi :
-tools/ocp-build/versioning.cmo : tools/ocp-build/versioning.cmi
-tools/ocp-build/versioning.cmx : tools/ocp-build/versioning.cmi
-tools/ocp-build/versioning.cmi :
+tools/ocp-build/metaLexer.cmi :
+tools/ocp-build/metaFile.cmi : tools/ocp-build/metaTypes.cmi
+tools/ocp-build/metaParser.cmi : tools/ocp-build/metaTypes.cmi
+tools/ocp-build/metaConfig.cmi :
+tools/ocp-build/buildOCamlConfig.cmi : tools/ocp-build/buildWarnings.cmi \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/buildOptions.cmi
+tools/ocp-build/buildOCamlTypes.cmi : libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    libs/ocplib-lang/intMap.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildEngineTypes.cmi
+tools/ocp-build/buildOCamldep.cmi : tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/buildOCamlTypes.cmi tools/ocp-build/buildEngineTypes.cmi
+tools/ocp-build/buildOCamlSyntaxes.cmi : tools/ocp-build/buildWarnings.cmi \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/buildOCamlTypes.cmi \
+    tools/ocp-build/buildEngineTypes.cmi
+tools/ocp-build/buildOCamlInstall.cmi : tools/ocp-build/buildTypes.cmi \
+    tools/ocp-build/buildOptions.cmi tools/ocp-build/buildOCamlConfig.cmi
+tools/ocp-build/buildOCamlRules.cmi : tools/ocp-build/buildWarnings.cmi \
+    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildOptions.cmi \
+    tools/ocp-build/buildOCamlSyntaxes.cmi \
+    tools/ocp-build/buildOCamlConfig.cmi tools/ocp-build/buildOCPTypes.cmi
+tools/ocp-build/buildOCamlMeta.cmi : tools/ocp-build/buildOCP.cmi
+tools/ocp-build/buildOCamlTest.cmi : tools/ocp-build/buildTypes.cmi \
+    tools/ocp-build/buildEngineTypes.cmi
+tools/ocp-build/buildOasis.cmi : tools/ocp-build/buildOCP.cmi
+tools/ocp-build/buildActions.cmi : libs/ocplib-file/file.cmi \
+    tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildOptions.cmi \
+    tools/ocp-build/buildOCamlConfig.cmi
+tools/ocp-build/buildActionsWarnings.cmi : libs/ocplib-file/file.cmi \
+    tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildOCamlSyntaxes.cmi \
+    tools/ocp-build/buildOCamlConfig.cmi tools/ocp-build/buildOCP.cmi
+tools/ocp-build/buildActionInit.cmi : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildOCPTypes.cmi \
+    tools/ocp-build/buildOCP.cmi tools/ocp-build/buildArgs.cmo \
+    tools/ocp-build/buildActionsWarnings.cmi tools/ocp-build/buildActions.cmi
+tools/ocp-build/buildActionBuild.cmi : \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildOptions.cmi \
+    tools/ocp-build/buildArgs.cmo tools/ocp-build/buildActions.cmi
+tools/ocp-build/buildActionInstall.cmi : tools/ocp-build/buildArgs.cmo
+tools/ocp-build/buildActionTests.cmi : tools/ocp-build/buildArgs.cmo
