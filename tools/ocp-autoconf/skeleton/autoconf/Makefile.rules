@@ -2,8 +2,8 @@
 autoconf/Makefile.config: autoconf/configure
 	./configure $(CONFIGURE_ARGS)
 
-autoconf/configure: ocp-autoconf.config ocp-autoconf.ac
-	ocp-autoconf || touch autoconf/configure
+#autoconf/configure: ocp-autoconf.config ocp-autoconf.ac
+#	ocp-autoconf || touch autoconf/configure
 
 _obuild:
         ocp-build init
