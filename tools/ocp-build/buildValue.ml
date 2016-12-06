@@ -43,6 +43,15 @@ module Types = struct
   exception Var_not_found of string
   exception NotAPropertyList
 
+  (* The configuration at a package definition site *)
+  type config = {
+    config_env : env;
+    config_dirname : string;
+    config_filename : string;
+    config_filenames : (string * Digest.t option) list;
+    config_files : Digest.t StringMap.t;
+  }
+
 end
 
 open Types
@@ -201,5 +210,67 @@ let new_path_option name v =
   }
     *)
 
-let iter f env =
+let iter_env f env =
   StringMap.iter f env.env
+
+let rec
+    (*
+bprint_plist b indent list =
+  match list with
+    [] -> Printf.bprintf b "%s[]\n" indent
+  | list ->
+    Printf.bprintf b "%s[\n" indent;
+    List.iter (fun (s, env) ->
+      Printf.bprintf b "%s  %S\n" indent s;
+      if env <> BuildValue.empty_env then begin
+        Printf.bprintf b "%s  (\n" indent;
+        bprint_env b (indent ^ "  ") env;
+        Printf.bprintf b "%s  )\n" indent;
+      end
+    ) list;
+    Printf.bprintf b "%s]\n" indent;
+    ()
+
+      and *)
+    bprint_value b indent v =
+  match v with
+  | VString s -> Printf.bprintf b "%S" s
+  | VBool bool -> Printf.bprintf b "%b" bool
+  | VInt int -> Printf.bprintf b "%d" int
+  | VPair (v1, v2) ->
+    bprint_value b indent v1;
+    Printf.bprintf b ", ";
+    bprint_value b indent v2
+  | VObject env ->
+    Printf.bprintf b "{\n";
+    bprint_env b indent env;
+    Printf.bprintf b "}"
+  | VList [] ->
+    Printf.bprintf b "[]"
+  | VList list ->
+    Printf.bprintf b "[\n";
+    List.iter (fun v ->
+      Printf.bprintf b "%s" indent;
+      bprint_value b indent v;
+      Printf.bprintf b "\n") list;
+    Printf.bprintf b "]"
+
+and bprint_env b indent env =
+  iter_env (fun var v ->
+    Printf.bprintf b "%s%s -> " indent var;
+    bprint_value b (indent^"  ") v;
+    Printf.bprintf b "\n"
+  ) env
+
+
+let empty_config = {
+  config_env = empty_env;
+  config_dirname = "";
+  config_filename = "";
+  config_filenames = [];
+  config_files = StringMap.empty;
+}
+
+
+let config_get config name =
+  get [config.config_env] name

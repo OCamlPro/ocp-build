@@ -16,7 +16,7 @@
 open StringCompat
 
 open BuildOCPTree
-open BuildOCPTypes
+(* open BuildOCPTypes *)
   (* TODO: location of the type in ocamlyacc is erroneous, for example here token "main"
    type is located in the .mli/.ml file instead of the .mly file. *)
 
@@ -87,12 +87,12 @@ toplevel_statements:
 ;
 
 package_type:
-  PROGRAM { ProgramPackage }
-| LIBRARY { LibraryPackage }
-| TEST    { TestPackage }
-| OBJECTS { ObjectsPackage }
-| SYNTAX  { SyntaxPackage }
-| RULES   { RulesPackage }
+  PROGRAM { "program" }
+| LIBRARY { "library" }
+| TEST    { "test" }
+| OBJECTS { "objects" }
+| SYNTAX  { "syntax" }
+| RULES   { "rules" }
 ;
 
 toplevel_statement:

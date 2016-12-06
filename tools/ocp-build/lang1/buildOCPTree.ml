@@ -20,7 +20,7 @@
 
 
 open StringCompat
-open BuildOCPTypes (* for package_type *)
+(* open BuildOCPTypes (* for package_type *) *)
 
 type camlpN =
   | Camlp4
@@ -57,7 +57,7 @@ type statement =
     StmtOption of set_option
   | StmtBlock of statement list
   | StmtDefineConfig of expression * set_option list
-  | StmtDefinePackage of package_type * expression * statement list
+  | StmtDefinePackage of string * expression * statement list
   | StmtIfThenElse of condition * statement list * statement list option
   | StmtInclude of expression * statement list * statement list option
 
@@ -66,17 +66,6 @@ let modname_of_fullname fullname =
   let modname = Bytes.of_string modname in
   modname.[0] <- Char.uppercase (Bytes.get modname 0);
   Bytes.to_string modname
-
-let string_of_package_type kind =
-  match kind with
-    ProgramPackage -> "program"
-  | LibraryPackage -> "library"
-  | SyntaxPackage -> "syntax"
-          (*	  | ProjectToplevel -> "toplevel" *)
-  | ObjectsPackage -> "objects"
-  | TestPackage -> "test"
-  | RulesPackage -> "rules"
-
 
 (*
 let rec string_of_condition cond =

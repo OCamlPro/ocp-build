@@ -235,7 +235,7 @@ let get_pp w lib basename options =
           List.iter (fun dep ->
             let l = dep.dep_project in
             Printf.eprintf "  dep: %s %S\n%!"
-              (BuildOCPTree.string_of_package_type l.lib_type) l.lib_name
+              (BuildOCP.string_of_package_type l.lib_type) l.lib_name
           ) pksy.lib_requires;
         end;
 

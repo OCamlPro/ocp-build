@@ -59,19 +59,13 @@ begin library "ocp-build-project"
   install = true
 
   files = [
-
     "buildOCPTypes.ml";
 
-    "buildOCPTree.ml"
-    "buildOCPParser.mly" (pp = []);
-    "buildOCPParse.ml";
-
     "buildOCPPrinter.ml"
-    "buildOCPInterp.ml"
     "buildOCP.ml"
  ]
 
-  requires = [ "ocplib-unix"; "ocp-build-misc" ]
+  requires = [ "ocplib-unix"; "ocp-build-misc" "ocp-build-lang1" ]
 end
 
 begin library "ocp-build-engine"

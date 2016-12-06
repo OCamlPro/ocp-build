@@ -72,9 +72,9 @@ BUILD_MISC= $(OCP_BUILD_SRCDIR)/logger.ml				\
     $(OCP_BUILD_SRCDIR)/versioning.ml
 
 BUILD_PROJECT= $(OCP_BUILD_SRCDIR)/buildOCPTypes.ml	\
-    $(OCP_BUILD_SRCDIR)/buildOCPTree.ml			\
-    $(OCP_BUILD_SRCDIR)/buildOCPParser.ml		\
-    $(OCP_BUILD_SRCDIR)/buildOCPParse.ml		\
+    $(OCP_BUILD_SRCDIR)/lang1/buildOCPTree.ml			\
+    $(OCP_BUILD_SRCDIR)/lang1/buildOCPParser.ml		\
+    $(OCP_BUILD_SRCDIR)/lang1/buildOCPParse.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCPPrinter.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCPInterp.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCP.ml

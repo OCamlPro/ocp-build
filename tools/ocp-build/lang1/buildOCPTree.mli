@@ -19,7 +19,7 @@
 (**************************************************************************)
 
 
-open BuildOCPTypes (* for package_type *)
+(*open BuildOCPTypes (* for package_type *) *)
 
 type camlpN =
   | Camlp4
@@ -56,9 +56,8 @@ type statement =
     StmtOption of set_option
   | StmtBlock of statement list
   | StmtDefineConfig of expression * set_option list
-  | StmtDefinePackage of package_type * expression * statement list
+  | StmtDefinePackage of string * expression * statement list
   | StmtIfThenElse of condition * statement list * statement list option
   | StmtInclude of expression * statement list * statement list option
 
 val modname_of_fullname : string -> string
-val string_of_package_type : BuildOCPTypes.package_type -> string

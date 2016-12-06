@@ -465,23 +465,10 @@ let load_project pj filename =
           VPair (VString s, VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link))
          ) requires)) in
 
-      let pk = BuildOCPInterp.new_package pj name opk.opk_dirname
+      let pk = BuildOCP.new_package pj name opk.opk_dirname
           opk.opk_filename [opk.opk_filename, None (* matters only for non-installed packages *)
                            ] opk.opk_type po in
       pk.package_source_kind <- "oasis";
-
-(*
-      List.iter (fun s ->
-        let ( dep :  'a package_dependency) =
-          BuildOCPInterp.new_package_dep pk s empty_env in
-        dep.dep_link <- true
-      ) opk.opk_build_depends;
-      List.iter (fun s ->
-        let ( dep :  'a package_dependency) =
-          BuildOCPInterp.new_package_dep pk s empty_env in
-        dep.dep_link <- true
-      ) opj.opj_build_depends;
-*)
 
 (* TODO
       let external_options = [] in

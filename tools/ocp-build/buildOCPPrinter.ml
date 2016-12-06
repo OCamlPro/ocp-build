@@ -33,55 +33,6 @@ let string_of_package_type = function
 
 let bprint_string b _indent s = Printf.bprintf b "%S" s
 
-let rec
-    (*
-bprint_plist b indent list =
-  match list with
-    [] -> Printf.bprintf b "%s[]\n" indent
-  | list ->
-    Printf.bprintf b "%s[\n" indent;
-    List.iter (fun (s, env) ->
-      Printf.bprintf b "%s  %S\n" indent s;
-      if env <> BuildValue.empty_env then begin
-        Printf.bprintf b "%s  (\n" indent;
-        bprint_env b (indent ^ "  ") env;
-        Printf.bprintf b "%s  )\n" indent;
-      end
-    ) list;
-    Printf.bprintf b "%s]\n" indent;
-    ()
-
-      and *)
-    bprint_value b indent v =
-  match v with
-  | VString s -> Printf.bprintf b "%S" s
-  | VBool bool -> Printf.bprintf b "%b" bool
-  | VInt int -> Printf.bprintf b "%d" int
-  | VPair (v1, v2) ->
-    bprint_value b indent v1;
-    Printf.bprintf b ", ";
-    bprint_value b indent v2
-  | VObject env ->
-    Printf.bprintf b "{\n";
-    bprint_env b indent env;
-    Printf.bprintf b "}"
-  | VList [] ->
-    Printf.bprintf b "[]"
-  | VList list ->
-    Printf.bprintf b "[\n";
-    List.iter (fun v ->
-      Printf.bprintf b "%s" indent;
-      bprint_value b indent v;
-      Printf.bprintf b "\n") list;
-    Printf.bprintf b "]"
-
-and bprint_env b indent env =
-  BuildValue.iter (fun var v ->
-    Printf.bprintf b "%s%s -> " indent var;
-    bprint_value b (indent^"  ") v;
-    Printf.bprintf b "\n"
-  ) env
-
 let stringMap printer b indent array =
   Printf.bprintf b "{{\n";
   let indent2 = indent ^ "  " in
@@ -133,7 +84,7 @@ let package_dependency printer b indent pd =
   Printf.bprintf b "%s  dep_syntax = %b;\n" indent pd.dep_syntax;
   Printf.bprintf b "%s  dep_optional = %b;\n" indent pd.dep_optional;
   Printf.bprintf b "%s  dep_options = {{\n" indent;
-  bprint_env b indent4 pd.dep_options;
+  BuildValue.bprint_env b indent4 pd.dep_options;
   Printf.bprintf b "  %s}};\n" indent;
   Printf.bprintf b "%s}" indent
 
@@ -150,7 +101,7 @@ let package package_info b indent p =
   Printf.bprintf b "%s  package_name = %S;\n" indent p.package_name;
   Printf.bprintf b "%s  package_dirname = %S;\n" indent p.package_dirname;
   Printf.bprintf b "%s  package_options = {{\n" indent;
-  bprint_env b indent4 p.package_options;
+  BuildValue.bprint_env b indent4 p.package_options;
   Printf.bprintf b "  %s}};\n" indent;
   Printf.bprintf b "%s  package_source_kind = %S;\n" indent p.package_source_kind;
   if p.package_provides <> p.package_name then

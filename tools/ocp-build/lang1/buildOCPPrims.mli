@@ -18,5 +18,17 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+open StringCompat
+open BuildValue.Types
+open BuildOCPTree
 
-val load_META_files : BuildOCP.state -> string -> string -> unit
+module Init(S: sig
+
+    val filesubst : (string * env list) StringSubst.M.subst
+
+  end) : sig
+
+  val primitives : ((env list -> env -> plist) * string list) StringMap.t ref
+  val primitives_help : unit -> string list StringCompat.StringMap.t
+
+end

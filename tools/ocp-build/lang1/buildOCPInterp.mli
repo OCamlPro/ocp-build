@@ -18,5 +18,38 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+open StringCompat
+open BuildValue.Types
+open BuildOCPTree
 
-val load_META_files : BuildOCP.state -> string -> string -> unit
+module Eval(S: sig
+
+    type context
+
+    (* a substitution that can be applied *)
+    val filesubst : (string * env list) StringSubst.M.subst
+
+
+    val define_package :
+      context ->
+      config ->
+      name:string ->
+      kind:string ->
+      unit
+
+    (* [parse_error()] is called in case of syntax error, to
+       decide what to do next (raise an exception, exit or continue). *)
+    val parse_error : unit -> unit
+
+    (* [new_file ctx filename digest] is called for every file that
+       is read *)
+    val new_file : context -> string -> string -> unit
+
+  end) : sig
+
+  val read_ocamlconf : S.context -> config -> string -> config
+
+  (* Used to display language help on command-line *)
+  val primitives_help : unit -> string list StringMap.t
+
+end

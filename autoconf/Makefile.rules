@@ -2,22 +2,22 @@
 autoconf/Makefile.config: autoconf/configure
 	./configure $(CONFIGURE_ARGS)
 
-#autoconf/configure: ocp-autoconf.config ocp-autoconf.ac
-#	ocp-autoconf || touch autoconf/configure
+autoconf/configure: ocp-autoconf.config ocp-autoconf.ac
+	ocp-autoconf || touch autoconf/configure
 
-_obuild:
-        ocp-build init
-
-ocp-build-build: _obuild
+ocp-build-build:
+	ocp-build init
 	ocp-build
 
-ocp-build-install: _obuild
+ocp-build-install:
+	ocp-build init
 	ocp-build install \
 		 -install-bin $(bindir) \
 		 -install-lib $(ocamldir) \
 		 -install-meta $(metadir)
 
-ocp-build-clean: _obuild
+ocp-build-clean:
+	ocp-build init
 	ocp-build clean
 
 ocp-build-distclean:

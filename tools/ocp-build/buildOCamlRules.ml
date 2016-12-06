@@ -2314,7 +2314,7 @@ let string_of_loc (x,y,z) = Printf.sprintf "%s:%d:%s" x y z
 let local_subst (file, env) s =
   let s = subst global_subst s in
   let s = BuildSubst.apply_substituter
-      BuildOCPInterp.filesubst s (file,env) in
+      BuildOCP.filesubst s (file,env) in
   s
 
 let add_rules bc lib target_name target_files =
