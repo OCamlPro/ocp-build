@@ -1,12 +1,14 @@
 
-begin library "ocp-build-lang1"
+begin library "ocp-build-lang-ocp2"
 
     files = [
+        (*
       "buildOCPTree.ml"
       "buildOCPParser.mly" (pp = []);
       "buildOCPParse.ml";
       "buildOCPPrims.ml"
-      "buildOCPInterp.ml"
+*)
+      "buildOCP2Interp.ml"
 
       ]
 

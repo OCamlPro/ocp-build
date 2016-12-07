@@ -20,7 +20,6 @@
 
 open StringCompat
 open BuildValue.Types
-open BuildOCPTree
 
 module Eval(S: sig
 
@@ -45,14 +44,15 @@ module Eval(S: sig
        is read *)
     val new_file : context -> string -> string -> unit
 
-  end) : sig
+  end) = struct
 
 
-  (* [read_ocamlconf ctx filename] returns a function that
-     can evaluate the AST on a config. *)
-  val read_ocamlconf : S.context -> string -> (config -> config)
+  (* [read_ocamlconf filename] returns a function [eval] that
+     can evaluate the AST on [eval ctx config]. *)
+  let read_ocamlconf filename = assert false
+  (* : string -> (S.context -> config -> config) *)
 
   (* Used to display language help on command-line *)
-  val primitives_help : unit -> string list StringMap.t
+  let primitives_help () = StringMap.empty
 
 end

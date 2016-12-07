@@ -73,11 +73,10 @@ let find_config config config_name =
   with Not_found ->
     failwith (Printf.sprintf "Error: configuration %S not found\n" config_name)
 
-let read_config_file ctx filename =
+let read_config_file filename =
   try
     let content = FileString.string_of_file filename in
     let digest = Digest.string content in
-    S.new_file ctx filename digest;
     Some (content, digest)
   with
   | _e ->
@@ -164,9 +163,10 @@ and translate_toplevel_statement ctx config stmt =
       else filename
     in
     let (ast, digest) =
-      match read_config_file ctx filename with
+      match read_config_file filename with
       None -> None, None
       | Some (content, digest) ->
+        S.new_file ctx filename digest;
         Some (BuildOCPParse.read_ocamlconf filename content),
         Some digest
     in
@@ -353,9 +353,10 @@ and translate_expression ctx config envs exp =
       ) list)
     | _ -> VPair (exp, VObject  (translate_options ctx config envs BuildValue.empty_env args))
 
-let read_ocamlconf ctx filename =
+
+let read_ocamlconf filename =
   let (filename, ast, digest) =
-    match read_config_file ctx filename with
+    match read_config_file filename with
       None -> filename, None, None
     | Some (content, digest) ->
       filename,
@@ -366,8 +367,12 @@ let read_ocamlconf ctx filename =
          None),
       Some digest
   in
-  function config ->
-
+  fun ctx config ->
+    begin match digest with
+      | None -> ()
+      | Some digest ->
+        S.new_file ctx filename digest;
+    end;
     let config = { config with
                    config_dirname = Filename.dirname filename;
                    config_filename = filename;

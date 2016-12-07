@@ -266,42 +266,54 @@ tools/ocp-build/buildOCPTypes.cmx : libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
     libs/ocplib-lang/linearToposort.cmx libs/ocplib-lang/intMap.cmx \
     tools/ocp-build/buildValue.cmx tools/ocp-build/buildOCPTypes.cmi
-tools/ocp-build/lang1/buildOCPTree.cmo : \
+tools/ocp-build/lang-ocp/buildOCPTree.cmo : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/lang1/buildOCPTree.cmi
-tools/ocp-build/lang1/buildOCPTree.cmx : \
+    tools/ocp-build/lang-ocp/buildOCPTree.cmi
+tools/ocp-build/lang-ocp/buildOCPTree.cmx : \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    tools/ocp-build/lang1/buildOCPTree.cmi
-tools/ocp-build/lang1/buildOCPParser.cmo : \
+    tools/ocp-build/lang-ocp/buildOCPTree.cmi
+tools/ocp-build/lang-ocp/buildOCPParser.cmo : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/lang1/buildOCPParser.cmi
-tools/ocp-build/lang1/buildOCPParser.cmx : \
+    tools/ocp-build/lang-ocp/buildOCPTree.cmi \
+    tools/ocp-build/lang-ocp/buildOCPParser.cmi
+tools/ocp-build/lang-ocp/buildOCPParser.cmx : \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    tools/ocp-build/lang1/buildOCPParser.cmi
-tools/ocp-build/lang1/buildOCPParse.cmo : libs/ocplib-lang/ocamllexer.cmi \
-    tools/ocp-build/buildMisc.cmo tools/ocp-build/lang1/buildOCPParse.cmi
-tools/ocp-build/lang1/buildOCPParse.cmx : libs/ocplib-lang/ocamllexer.cmx \
-    tools/ocp-build/buildMisc.cmx tools/ocp-build/lang1/buildOCPParse.cmi
-tools/ocp-build/lang1/buildOCPPrims.cmo : libs/ocplib-lang/stringSubst.cmi \
-    libs/ocplib-lang/stringMap.cmi \
+    tools/ocp-build/lang-ocp/buildOCPTree.cmx \
+    tools/ocp-build/lang-ocp/buildOCPParser.cmi
+tools/ocp-build/lang-ocp/buildOCPParse.cmo : libs/ocplib-lang/ocamllexer.cmi \
+    tools/ocp-build/lang-ocp/buildOCPParser.cmi tools/ocp-build/buildMisc.cmo \
+    tools/ocp-build/lang-ocp/buildOCPParse.cmi
+tools/ocp-build/lang-ocp/buildOCPParse.cmx : libs/ocplib-lang/ocamllexer.cmx \
+    tools/ocp-build/lang-ocp/buildOCPParser.cmx tools/ocp-build/buildMisc.cmx \
+    tools/ocp-build/lang-ocp/buildOCPParse.cmi
+tools/ocp-build/lang-ocp/buildOCPPrims.cmo : \
+    libs/ocplib-lang/stringSubst.cmi libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-lang/ocpString.cmi tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildSubst.cmi tools/ocp-build/lang1/buildOCPPrims.cmi
-tools/ocp-build/lang1/buildOCPPrims.cmx : libs/ocplib-lang/stringSubst.cmx \
-    libs/ocplib-lang/stringMap.cmx \
+    tools/ocp-build/buildSubst.cmi tools/ocp-build/lang-ocp/buildOCPTree.cmi \
+    tools/ocp-build/lang-ocp/buildOCPPrims.cmi
+tools/ocp-build/lang-ocp/buildOCPPrims.cmx : \
+    libs/ocplib-lang/stringSubst.cmx libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
     libs/ocplib-lang/ocpString.cmx tools/ocp-build/buildValue.cmx \
-    tools/ocp-build/buildSubst.cmx tools/ocp-build/lang1/buildOCPPrims.cmi
-tools/ocp-build/lang1/buildOCPInterp.cmo : tools/ocp-build/versioning.cmi \
+    tools/ocp-build/buildSubst.cmx tools/ocp-build/lang-ocp/buildOCPTree.cmx \
+    tools/ocp-build/lang-ocp/buildOCPPrims.cmi
+tools/ocp-build/lang-ocp/buildOCPInterp.cmo : tools/ocp-build/versioning.cmi \
     libs/ocplib-lang/stringSubst.cmi libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-file/fileString.cmi tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildSubst.cmi tools/ocp-build/lang1/buildOCPInterp.cmi
-tools/ocp-build/lang1/buildOCPInterp.cmx : tools/ocp-build/versioning.cmx \
+    tools/ocp-build/buildSubst.cmi tools/ocp-build/lang-ocp/buildOCPTree.cmi \
+    tools/ocp-build/lang-ocp/buildOCPPrims.cmi \
+    tools/ocp-build/lang-ocp/buildOCPParse.cmi \
+    tools/ocp-build/lang-ocp/buildOCPInterp.cmi
+tools/ocp-build/lang-ocp/buildOCPInterp.cmx : tools/ocp-build/versioning.cmx \
     libs/ocplib-lang/stringSubst.cmx libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
     libs/ocplib-file/fileString.cmx tools/ocp-build/buildValue.cmx \
-    tools/ocp-build/buildSubst.cmx tools/ocp-build/lang1/buildOCPInterp.cmi
+    tools/ocp-build/buildSubst.cmx tools/ocp-build/lang-ocp/buildOCPTree.cmx \
+    tools/ocp-build/lang-ocp/buildOCPPrims.cmx \
+    tools/ocp-build/lang-ocp/buildOCPParse.cmx \
+    tools/ocp-build/lang-ocp/buildOCPInterp.cmi
 tools/ocp-build/buildOCPPrinter.cmo : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-lang/intMap.cmi tools/ocp-build/buildValue.cmi \
@@ -318,7 +330,8 @@ tools/ocp-build/buildOCP.cmo : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildWarnings.cmi \
     tools/ocp-build/buildValue.cmi tools/ocp-build/buildSubst.cmi \
     tools/ocp-build/buildScanner.cmi tools/ocp-build/buildOCPTypes.cmi \
-    tools/ocp-build/buildMisc.cmo tools/ocp-build/buildOCP.cmi
+    tools/ocp-build/lang-ocp/buildOCPInterp.cmi tools/ocp-build/buildMisc.cmo \
+    tools/ocp-build/buildOCP.cmi
 tools/ocp-build/buildOCP.cmx : libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
     libs/ocplib-lang/ocpString.cmx libs/ocplib-unix/minUnix.cmx \
@@ -327,7 +340,8 @@ tools/ocp-build/buildOCP.cmx : libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildWarnings.cmx \
     tools/ocp-build/buildValue.cmx tools/ocp-build/buildSubst.cmx \
     tools/ocp-build/buildScanner.cmx tools/ocp-build/buildOCPTypes.cmx \
-    tools/ocp-build/buildMisc.cmx tools/ocp-build/buildOCP.cmi
+    tools/ocp-build/lang-ocp/buildOCPInterp.cmx tools/ocp-build/buildMisc.cmx \
+    tools/ocp-build/buildOCP.cmi
 tools/ocp-build/buildEngineTypes.cmo : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-lang/intMap.cmi libs/ocplib-file/file.cmi \
@@ -959,17 +973,19 @@ tools/ocp-build/buildOCPTypes.cmi : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     libs/ocplib-lang/linearToposort.cmi libs/ocplib-lang/intMap.cmi \
     tools/ocp-build/buildValue.cmi
-tools/ocp-build/lang1/buildOCPTree.cmi :
-tools/ocp-build/lang1/buildOCPParser.cmi :
-tools/ocp-build/lang1/buildOCPParse.cmi :
-tools/ocp-build/lang1/buildOCPPrims.cmi : libs/ocplib-lang/stringSubst.cmi \
-    libs/ocplib-lang/stringMap.cmi \
+tools/ocp-build/lang-ocp/buildOCPTree.cmi :
+tools/ocp-build/lang-ocp/buildOCPParser.cmi : \
+    tools/ocp-build/lang-ocp/buildOCPTree.cmi
+tools/ocp-build/lang-ocp/buildOCPParse.cmi : \
+    tools/ocp-build/lang-ocp/buildOCPTree.cmi
+tools/ocp-build/lang-ocp/buildOCPPrims.cmi : \
+    libs/ocplib-lang/stringSubst.cmi libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/buildValue.cmi
-tools/ocp-build/lang1/buildOCPInterp.cmi : libs/ocplib-lang/stringSubst.cmi \
-    libs/ocplib-lang/stringMap.cmi \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/lang-ocp/buildOCPTree.cmi
+tools/ocp-build/lang-ocp/buildOCPInterp.cmi : \
+    libs/ocplib-lang/stringSubst.cmi libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    tools/ocp-build/buildValue.cmi
+    tools/ocp-build/buildValue.cmi tools/ocp-build/lang-ocp/buildOCPTree.cmi
 tools/ocp-build/buildOCPPrinter.cmi : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
     tools/ocp-build/buildOCPTypes.cmi

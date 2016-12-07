@@ -65,7 +65,9 @@ begin library "ocp-build-project"
     "buildOCP.ml"
  ]
 
-  requires = [ "ocplib-unix"; "ocp-build-misc" "ocp-build-lang1" ]
+   requires = [ "ocplib-unix"; "ocp-build-misc"
+                  "ocp-build-lang-ocp"
+                  "ocp-build-lang-ocp2"]
 end
 
 begin library "ocp-build-engine"

@@ -204,7 +204,7 @@ let package_type_of_string kind =
   | "rules" -> RulesPackage
   | _ -> assert false
 
-module Eval = BuildOCPInterp.Eval(struct
+module OCP_arg = struct
 
     type context = state
 
@@ -233,9 +233,12 @@ module Eval = BuildOCPInterp.Eval(struct
         ctx.config_files <-
           StringMap.add filename digest ctx.config_files
 
-  end)
+  end
 
-let primitives_help = Eval.primitives_help
+module EvalOCP1 = BuildOCPInterp.Eval(OCP_arg)
+module EvalOCP2 = BuildOCP2Interp.Eval(OCP_arg)
+
+let primitives_help = EvalOCP1.primitives_help
 
 type warning =
 [ `MissingDirectory of string * string * string
@@ -264,7 +267,7 @@ let print_loaded_ocp_files = ref false
 (* let print_dot_packages = ref (Some "_obuild/packages.dot") *)
 let print_package_deps = ref false
 
-let load_ocp_files global_config packages files =
+let load_ocp_files config packages files =
 
   let nerrors = ref 0 in
   let rec iter parents files =
@@ -281,7 +284,13 @@ let load_ocp_files global_config packages files =
             Printf.eprintf "Reading %s with context from %s\n%!" file filename;
           let config =
             try
-              Eval.read_ocamlconf packages file config
+              if Filename.check_suffix file ".ocp" then
+                EvalOCP1.read_ocamlconf file packages config
+              else
+              if Filename.check_suffix file ".ocp2" then
+                EvalOCP2.read_ocamlconf file packages config
+              else
+                assert false
             with BuildMisc.ParseError ->
               incr nerrors;
               config
@@ -290,7 +299,7 @@ let load_ocp_files global_config packages files =
         else
           iter next_parents files
   in
-  iter [ "", "<root>", global_config ] files;
+  iter [ "", "<root>", config ] files;
   !nerrors
 
 let print_conflict pk pk2 pk3 =
@@ -1225,8 +1234,16 @@ let scan_root root_dir =
         begin
           if Filename.check_suffix filename ".ocp" then
             match (Filename.basename filename).[0] with
-              'a'..'z' | 'A'..'Z' | '0'..'9' ->
-                files := File.of_string filename :: !files
+            | 'a'..'z' | 'A'..'Z' | '0'..'9' ->
+              let file = File.of_string filename in
+              files := file :: !files
+            | _ -> ()
+          else
+          if Filename.check_suffix filename ".ocp2" then
+            match (Filename.basename filename).[0] with
+            | 'a'..'z' | 'A'..'Z' | '0'..'9' ->
+              let file = File.of_string filename in
+              files := file :: !files
             | _ -> ()
         end;
         BuildScanner.ignore_file_or_directory ()
