@@ -50,7 +50,6 @@ module Types : sig
     config_dirname : string;
     config_filename : string;
     config_filenames : (string * Digest.t option) list;
-    config_files : Digest.t StringMap.t;
   }
 
 end

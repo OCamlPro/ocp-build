@@ -73,15 +73,12 @@ let find_config config config_name =
   with Not_found ->
     failwith (Printf.sprintf "Error: configuration %S not found\n" config_name)
 
-let read_config_file ctx config filename =
+let read_config_file ctx filename =
   try
     let content = FileString.string_of_file filename in
     let digest = Digest.string content in
     S.new_file ctx filename digest;
-    let config = { config with
-                   config_files =
-                     StringMap.add filename digest config.config_files } in
-    Some (content, digest, config)
+    Some (content, digest)
   with
   | _e ->
     Printf.eprintf "Error: file %S does not exist.\n%!" filename;
@@ -166,12 +163,12 @@ and translate_toplevel_statement ctx config stmt =
         Filename.concat config.config_dirname filename
       else filename
     in
-    let (ast, digest, config) =
-      match read_config_file ctx config filename with
-      None -> None, None, config
-      | Some (content, digest, config) ->
+    let (ast, digest) =
+      match read_config_file ctx filename with
+      None -> None, None
+      | Some (content, digest) ->
         Some (BuildOCPParse.read_ocamlconf filename content),
-        Some digest, config
+        Some digest
     in
     let old_filename = config.config_filename in
     let config = { config with
@@ -356,35 +353,37 @@ and translate_expression ctx config envs exp =
       ) list)
     | _ -> VPair (exp, VObject  (translate_options ctx config envs BuildValue.empty_env args))
 
-let read_ocamlconf ctx config filename =
-  let ast, digest, config =
-    match read_config_file ctx config filename with
-      None -> None, None, config
-    | Some (content, digest, config) ->
+let read_ocamlconf ctx filename =
+  let (filename, ast, digest) =
+    match read_config_file ctx filename with
+      None -> filename, None, None
+    | Some (content, digest) ->
+      filename,
       (try
-        Some (BuildOCPParse.read_ocamlconf filename content)
-      with BuildOCPParse.ParseError ->
+         Some (BuildOCPParse.read_ocamlconf filename content)
+       with BuildOCPParse.ParseError ->
+         S.parse_error ();
+         None),
+      Some digest
+  in
+  function config ->
+
+    let config = { config with
+                   config_dirname = Filename.dirname filename;
+                   config_filename = filename;
+                   config_filenames = (filename, digest) :: config.config_filenames;
+                 }
+    in
+    match ast with
+    | None -> config
+    | Some ast ->
+      try
+        translate_toplevel_statements ctx config
+          (StmtOption (OptionVariableSet("dirname", ExprString config.config_dirname)) ::  ast)
+      with e ->
+        Printf.eprintf "Error while interpreting file %S:\n%!" filename;
+        Printf.eprintf "\t%s\n%!" (Printexc.to_string e);
         S.parse_error ();
-        None),
-      Some digest,
-      config
-  in
-  let config = { config with
-                 config_dirname = Filename.dirname filename;
-                 config_filename = filename;
-                 config_filenames = (filename, digest) :: config.config_filenames;
-               }
-  in
-  match ast with
-  | None -> config
-  | Some ast ->
-    try
-      translate_toplevel_statements ctx config
-        (StmtOption (OptionVariableSet("dirname", ExprString config.config_dirname)) ::  ast)
-    with e ->
-      Printf.eprintf "Error while interpreting file %S:\n%!" filename;
-      Printf.eprintf "\t%s\n%!" (Printexc.to_string e);
-      S.parse_error ();
-      config
+        config
 
 end

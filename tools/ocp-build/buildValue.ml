@@ -49,7 +49,6 @@ module Types = struct
     config_dirname : string;
     config_filename : string;
     config_filenames : (string * Digest.t option) list;
-    config_files : Digest.t StringMap.t;
   }
 
 end
@@ -268,7 +267,6 @@ let empty_config = {
   config_dirname = "";
   config_filename = "";
   config_filenames = [];
-  config_files = StringMap.empty;
 }
 
 

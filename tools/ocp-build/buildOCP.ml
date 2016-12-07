@@ -281,7 +281,7 @@ let load_ocp_files global_config packages files =
             Printf.eprintf "Reading %s with context from %s\n%!" file filename;
           let config =
             try
-              Eval.read_ocamlconf packages config file
+              Eval.read_ocamlconf packages file config
             with BuildMisc.ParseError ->
               incr nerrors;
               config

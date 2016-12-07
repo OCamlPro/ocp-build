@@ -47,7 +47,10 @@ module Eval(S: sig
 
   end) : sig
 
-  val read_ocamlconf : S.context -> config -> string -> config
+
+  (* [read_ocamlconf ctx filename] returns a function that
+     can evaluate the AST on a config. *)
+  val read_ocamlconf : S.context -> string -> (config -> config)
 
   (* Used to display language help on command-line *)
   val primitives_help : unit -> string list StringMap.t
