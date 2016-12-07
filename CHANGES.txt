@@ -1,6 +1,10 @@
 Change log
 ==========
 
+2016-12-07:
+* New file .ocp-build can be used to set 'skip=true'
+* Ability to read build.ocp2 instead of build.ocp
+
 2016-12-05:
 * Add specific options to define compilers:
   * `ocamlc2cma_cmd`: ocamlc to generate .cma

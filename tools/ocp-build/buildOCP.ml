@@ -1220,36 +1220,82 @@ let verify_packages w packages =
   pj
 
 
+type dot_ocpbuild = {
+  mutable option_skip : bool;
+}
+
+let load_dot_ocpbuild filename c =
+  FileString.iter_lines (fun line ->
+      if line <> "" then
+        if line.[0] <> '#' then
+          let (key,value) = OcpString.cut_at line '=' in
+          match key, value with
+          | "skip", "true" -> c.option_skip <- true
+          | "skip", "false" -> c.option_skip <- false
+          | _ ->
+            Printf.eprintf
+              "Warning: in filename %s, unknown key/value pair:\n"
+              filename;
+            Printf.eprintf "     '%s=%s'\n%!" key value
+    ) filename
+
 let scan_root root_dir =
-  let files = ref [] in
-  BuildScanner.scan_directory
-    (fun _ _ filename ->
-      if Sys.is_directory filename then begin
-        let basename = Filename.basename filename in
-        let initial = basename.[0] in
-        if initial = '.' || initial = '_' ||
-          Sys.file_exists (Filename.concat filename ".ocpstop") then
-          BuildScanner.ignore_file_or_directory ()
-      end else begin
-        begin
-          if Filename.check_suffix filename ".ocp" then
-            match (Filename.basename filename).[0] with
-            | 'a'..'z' | 'A'..'Z' | '0'..'9' ->
-              let file = File.of_string filename in
-              files := file :: !files
-            | _ -> ()
-          else
-          if Filename.check_suffix filename ".ocp2" then
-            match (Filename.basename filename).[0] with
-            | 'a'..'z' | 'A'..'Z' | '0'..'9' ->
-              let file = File.of_string filename in
-              files := file :: !files
-            | _ -> ()
-        end;
-        BuildScanner.ignore_file_or_directory ()
-      end;
-    ) (File.to_string root_dir);
-  List.rev !files
+  let ocp_files = ref [] in
+
+  (* We blacklist build.ocp if build.ocp2 exists. *)
+  let blacklist = ref StringSet.empty in
+
+  let queue = Stack.create () in
+  Stack.push (File.to_string root_dir) queue;
+  while not (Stack.is_empty queue) do
+    try
+      let dirname = Stack.pop queue in
+      let files = Sys.readdir dirname in
+      Array.sort compare files;
+      Array.iter (fun basename ->
+        let filename = Filename.concat dirname basename in
+        if (try Sys.is_directory filename with _ -> false) then begin
+
+          let basename = Filename.basename filename in
+          let initial = basename.[0] in
+          if initial = '.' || initial = '_' ||
+             Sys.file_exists (Filename.concat filename ".ocpstop") then
+            () (* ignore directory *)
+          else begin
+            let c = {
+              option_skip = false;
+            } in
+            let ocp_file = Filename.concat filename ".ocp-build" in
+            if Sys.file_exists ocp_file then load_dot_ocpbuild ocp_file c;
+            if not c.option_skip then begin
+              Stack.push filename queue;
+              if Sys.file_exists (Filename.concat filename "build.ocp2") then
+                blacklist := StringSet.add
+                    (Filename.concat filename "build.ocp") !blacklist
+            end
+          end
+
+        end else
+          let basename = Filename.basename filename in
+          match basename.[0] with
+          | 'a'..'z' | 'A'..'Z' | '0'..'9' ->
+            if not (StringSet.mem filename !blacklist) then begin
+              if Filename.check_suffix filename ".ocp" then
+                let file = File.of_string filename in
+                ocp_files := file :: !ocp_files
+              else
+              if basename = "build.ocp2" then
+                let file = File.of_string filename in
+                ocp_files := file :: !ocp_files
+              else
+                ()
+            end
+          | _ -> ()
+        ) files;
+    with exn ->
+      Printf.eprintf "Exception %s\n%!" (Printexc.to_string exn)
+  done;
+  List.rev !ocp_files
 (* files are reverted, so that the first in breadth are used first
    (this is expected from [load_project] *)
 

@@ -22,7 +22,8 @@ OCPLIB_NAMES=debug lang unix file system config compat subcmd
 
 INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
     $(OCP_BUILD_SRCDIR) \
-    -I $(OCP_BUILD_SRCDIR)/lang-ocp
+    -I $(OCP_BUILD_SRCDIR)/lang-ocp \
+    -I $(OCP_BUILD_SRCDIR)/lang-ocp2
 OCPLIB_LIBS=$(foreach lib, $(OCPLIB_NAMES), ocplib-$(lib))
 
 OCP_BUILD_BOOTER=boot/ocp-build.asm
@@ -78,6 +79,7 @@ BUILD_PROJECT= $(OCP_BUILD_SRCDIR)/buildOCPTypes.ml	\
     $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParse.ml		\
     $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPPrims.ml		\
     $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPInterp.ml		\
+    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Interp.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCPPrinter.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCP.ml
 
