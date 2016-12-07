@@ -18,4 +18,4 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-val load_project : BuildOCPInterp.state -> string -> int
+val load_project : BuildOCP.state -> string -> int

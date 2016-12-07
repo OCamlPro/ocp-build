@@ -229,7 +229,7 @@ let install where what lib installdir =
       let log = !log in
       let log =
         (VERSION, lib.lib.lib_version) ::
-          (TYPE, BuildOCPTree.string_of_package_type lib.lib.lib_type) ::
+          (TYPE, BuildOCP.string_of_package_type lib.lib.lib_type) ::
           log in
       let log = match warning with
           None -> log

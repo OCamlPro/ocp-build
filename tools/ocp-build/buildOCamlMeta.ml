@@ -159,17 +159,10 @@ let load_META_files pj ocamllib top_dirname =
                   VPair (VString s, VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link))
                 ) requires)) in
             let options = BuildValue.set_bool options "generated" true in
-            let pk = BuildOCPInterp.new_package pj fullname dirname
+            let pk = BuildOCP.new_package pj fullname dirname
                 meta_filename [meta_filename, None (* matters only for non-installed packages *)
                               ] kind options in
             pk.package_source_kind <- "meta";
-(*
-          List.iter (fun (s, link) ->
-            let ( dep :  'a package_dependency) =
-              BuildOCPInterp.new_package_dep pk s in
-            dep.dep_link <- link
-          ) requires;
-*)
 
             (* this package has already been generated *)
 
@@ -192,7 +185,7 @@ let load_META_files pj ocamllib top_dirname =
 (* We don't check packages now.
 This will be done later, in BuildOCP.verify_packages
 
-            BuildOCPInterp.check_package pk;
+            BuildOCP.check_package pk;
 *)
             let s = BuildOCPPrinter.string_of_package (fun _ _ _ -> ()) pk in
             if verbose 5 then begin

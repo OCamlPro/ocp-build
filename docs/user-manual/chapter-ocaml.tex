@@ -37,17 +37,12 @@ particularities:
 
 \section{Configuration Files}
 
- {\tt ocp-build} uses two different kind of files to describe a project:
+ {\tt ocp-build} uses a set of files to describe a project:
 \begin{itemize}
 \item Each package (or set of packages) should be described in a file
   with an {\tt .ocp} extension. When {\tt ocp-build} is run with the
   {\tt -scan} option, it scans the directory to find all such
   configuration files, and adds them to the project.
-\item The project should be described in a file {\tt
-  ocp-build.root}. This file should be at the root of the project, and
-  {\tt ocp-build} will try to find it by recursively scanning all the
-  parents directories. If it does not exist, it should be created using
-  the {\tt -init} option.
 \end{itemize}
 
 \section{Compilation Layout}

@@ -260,7 +260,7 @@ let rec do_compile stage p ncores env_state arg_targets pre_w bc package_map =
     end else begin
       Printf.eprintf "Some configuration files were changed. Restarting build\n%!";
       let (bc, package_map) = BuildActionInit.load_initial_project pre_w p
-        (BuildOCPInterp.copy_state env_state) in
+        (BuildOCP.copy_state env_state) in
 
       do_compile (stage+1) p ncores  env_state arg_targets pre_w bc package_map
     end else
@@ -366,7 +366,7 @@ let arg_list =
   "-test", Arg.Set make_test_targets, " Make tests targets";
   "-build", Arg.Set make_build_targets, " Make build targets";
 
-  "-continue-on-ocp-error", Arg.Set BuildOCPInterp.continue_on_ocp_error, " Continue after finding a syntax error in an ocp file";
+  "-continue-on-ocp-error", Arg.Set BuildOCP.continue_on_ocp_error, " Continue after finding a syntax error in an ocp file";
 
   "-init", Arg.Unit (fun () ->
     BuildActionInit.action ();

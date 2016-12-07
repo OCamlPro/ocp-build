@@ -2,23 +2,27 @@
 autoconf/Makefile.config: autoconf/configure
 	./configure $(CONFIGURE_ARGS)
 
-autoconf/configure: ocp-autoconf.config ocp-autoconf.ac
-	ocp-autoconf || touch autoconf/configure
 
-_obuild:
-        ocp-build init
+# We can override this variable to change the binary to use
+# for ocp-build
+ifeq ($(OCP_BUILD),)
+OCP_BUILD:=ocp-build
+endif
+
+_obuild: Makefile
+	$(OCP_BUILD) init
 
 ocp-build-build: _obuild
-	ocp-build
+	$(OCP_BUILD)
 
 ocp-build-install: _obuild
-	ocp-build install \
+	$(OCP_BUILD) install \
 		 -install-bin $(bindir) \
 		 -install-lib $(ocamldir) \
 		 -install-meta $(metadir)
 
 ocp-build-clean: _obuild
-	ocp-build clean
+	$(OCP_BUILD) clean
 
 ocp-build-distclean:
 	rm -rf _obuild

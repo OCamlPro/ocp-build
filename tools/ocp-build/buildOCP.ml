@@ -23,10 +23,219 @@
 
 
 open StringCompat
-open BuildOCPTree
 open BuildOCPTypes
 
 open BuildValue.Types
+
+let continue_on_ocp_error = ref false
+
+type state = {
+  mutable packages : pre_package IntMap.t;
+  mutable npackages : int;
+  mutable config_files : Digest.t StringMap.t;
+}
+
+let initial_state () =
+{ packages = IntMap.empty; npackages = 0; config_files = StringMap.empty; }
+
+let copy_state s =
+  { s with packages = s.packages }
+
+let new_package_info () =
+{
+    package_node = LinearToposort.new_node ();
+    package_validated = false;
+    package_deps_map = StringMap.empty;
+    package_requires = [];
+    package_requires_map = IntMap.empty;
+    package_added = false;
+}
+
+let final_state state =
+  if state.npackages = 0 then [||] else
+    Array.init state.npackages (fun i ->
+      { (IntMap.find i state.packages) with pi = new_package_info () }
+    )
+
+let new_package pj name dirname filename filenames kind options =
+  let package_id = pj.npackages in
+    (* Printf.eprintf "new_package %s_%d\n%!" name package_id; *)
+  pj.npackages <- pj.npackages + 1;
+  let pk = {
+    package_source_kind = "ocp";
+    package_id = package_id;
+    package_auto = None;
+    package_version = "";
+    package_loc = (-1);
+    package_filename = filename;
+    package_filenames = filenames;
+    package_name = name;
+    package_provides = name;
+    package_type = kind;
+    package_dirname = dirname;
+    package_options = options;
+    pi = ();
+  } in
+  pj.packages <- IntMap.add pk.package_id pk pj.packages;
+  pk
+
+let empty_config = BuildValue.empty_config
+let generated_config = {
+  empty_config with
+  config_env = BuildValue.set_bool empty_config.config_env "generated" true;
+}
+
+let new_package_dep pk s env =
+    try
+      StringMap.find s pk.pi.package_deps_map
+    with Not_found ->
+      let dep = {
+        dep_project = s;
+        dep_link = false;
+        dep_syntax = false;
+        dep_optional = false;
+        dep_options = env;
+      }
+      in
+      pk.pi.package_deps_map <- StringMap.add s dep pk.pi.package_deps_map;
+      dep
+
+let add_project_dep pk s options =
+  let dep = new_package_dep pk s options in
+  dep.dep_link <- BuildValue.get_bool_with_default [options] "tolink" true;
+
+  begin
+    try
+      dep.dep_optional <- BuildValue.get_bool [options] "optional"
+    with Var_not_found _ -> ()
+  end;
+(*  Printf.eprintf "add_project_dep for %S = %S with link=%b\n%!"
+    pk.package_name s dep.dep_link; *)
+()
+
+(* We want to check the existence of the dirname of a package as soon
+ as possible, so that we can disable it and enable another one.
+ Actually, this should only be done for .ocpi files, i.e. installed files,
+ for which we should use another loading phase.
+*)
+
+let check_package w pk =
+  let options = pk.package_options in
+
+    if BuildValue.get_bool_with_default [options] "enabled" true &&
+       not ( BuildMisc.exists_as_directory pk.package_dirname ) then begin
+      (* TODO: we should probably do much more than that, i.e. disable also a
+         package when some files are missing. *)
+         BuildWarnings.add w
+           (`MissingDirectory
+               (
+                 pk.package_dirname,
+                 pk.package_name,
+                 pk.package_filename));
+         pk.package_options <- BuildValue.set_bool options "enabled" false;
+    end else begin
+
+      pk.package_version <- BuildValue.get_string_with_default [pk.package_options]
+          "version"  "0.1-alpha";
+      List.iter (fun (s, options) ->
+        add_project_dep pk s options
+      ) (try BuildValue.prop_list (BuildValue.get [pk.package_options] "requires")
+        with Var_not_found _ ->
+        (*    Printf.eprintf "No 'requires' for package %S\n%!" name; *)
+        []
+      )
+    end
+
+
+let define_package pj config
+    ~name
+    ~kind
+  =
+  let dirname =
+    try
+      let list = BuildValue.get_strings [config.config_env] "dirname"  in
+      BuildSubst.subst_global (String.concat Filename.dir_sep list)
+    with Var_not_found _ ->
+      config.config_dirname
+  in
+  let dirname = if dirname = "" then "." else dirname in
+  new_package pj name
+    dirname
+    config.config_filename config.config_filenames kind config.config_env
+
+let subst_basename filename =
+  let basename = Filename.basename filename in
+  try
+    let pos = String.index basename '.' in
+    String.sub basename 0 pos
+  with Not_found -> basename
+
+let filesubst = BuildSubst.create_substituter
+    [
+      "file", (fun (file, (_env : env list) ) -> file);
+      "basefile", (fun (file, _env) -> Filename.basename file);
+      "basename", (fun (file, _env) -> subst_basename file);
+      "dirname", (fun (file, _env) -> Filename.dirname file);
+      "extensions", (fun (file, _env) ->
+        try
+          let pos = String.index file '.' in
+          String.sub file pos (String.length file - pos)
+        with Not_found -> "");
+    ]
+
+let string_of_package_type kind =
+  match kind with
+    ProgramPackage -> "program"
+  | LibraryPackage -> "library"
+  | SyntaxPackage -> "syntax"
+          (*	  | ProjectToplevel -> "toplevel" *)
+  | ObjectsPackage -> "objects"
+  | TestPackage -> "test"
+  | RulesPackage -> "rules"
+
+let package_type_of_string kind =
+  match kind with
+    "program" -> ProgramPackage
+  | "library" -> LibraryPackage
+  | "syntax" -> SyntaxPackage
+          (*	  | ProjectToplevel -> "toplevel" *)
+  | "objects" -> ObjectsPackage
+  | "test" -> TestPackage
+  | "rules" -> RulesPackage
+  | _ -> assert false
+
+module Eval = BuildOCPInterp.Eval(struct
+
+    type context = state
+
+    let filesubst = filesubst
+
+    let parse_error () =
+      if not !continue_on_ocp_error then exit 2
+
+    let define_package ctx config
+        ~name
+        ~kind =
+      let (_ : unit package) = define_package ctx config
+          ~name
+          ~kind:(package_type_of_string kind)
+      in
+      ()
+
+    let new_file ctx filename digest =
+      try
+        let digest2 = StringMap.find filename ctx.config_files in
+        if digest <> digest2 then begin
+          Printf.eprintf "File %S modified during built. Exiting.\n%!" filename;
+          exit 2
+        end
+      with Not_found ->
+        ctx.config_files <-
+          StringMap.add filename digest ctx.config_files
+
+  end)
+
+let primitives_help = Eval.primitives_help
 
 type warning =
 [ `MissingDirectory of string * string * string
@@ -42,37 +251,14 @@ type warning =
 
 let verbose = DebugVerbosity.verbose ["B";"BP"] "BuildOCP"
 
-  (*
-type temp_package = {
-  tpk_pk : final_package;
-  mutable tpk_need_validation : int;
-  mutable tpk_tags : temp_tag list;
-}
-
-and temp_tag = {
-  tag_name : string;
-  tag_package_name : string;
-  tag_tpk : temp_package;
-  mutable tag_validated : bool;
-  mutable tag_missing_deps : int;
-}
-
-type temp_state = {
-  validated : (string * string, temp_tag) Hashtbl.t;
-  missing : (string * string, temp_tag list ref) Hashtbl.t;
-  conflicts :  (final_package * final_package *  final_package) list ref;
-}
-  *)
-
 let print_missing_deps = ref false
 
 let init_packages () =
-  let packages = BuildOCPInterp.initial_state () in
+  let packages = initial_state () in
   packages
 
-let empty_config () = BuildOCPInterp.empty_config (* !BuildValue.options *)
-let generated_config () =
-  BuildOCPInterp.generated_config (* !BuildValue.options *)
+let empty_config () = BuildValue.empty_config
+let generated_config () = generated_config
 
 let print_loaded_ocp_files = ref false
 (* let print_dot_packages = ref (Some "_obuild/packages.dot") *)
@@ -93,17 +279,9 @@ let load_ocp_files global_config packages files =
           let dirname = Filename.dirname file in
           if verbose 5 || !print_loaded_ocp_files then
             Printf.eprintf "Reading %s with context from %s\n%!" file filename;
-          (*
-            begin try
-            let requires = BuildOCPInterp.config_get config "requires" in
-            Printf.eprintf "REQUIRES SET\n%!";
-            with Not_found ->
-            Printf.eprintf "REQUIRES NOT SET\n%!";
-            end;
-          *)
           let config =
             try
-              BuildOCPInterp.read_ocamlconf packages config file
+              Eval.read_ocamlconf packages file config
             with BuildMisc.ParseError ->
               incr nerrors;
               config
@@ -347,11 +525,11 @@ type tpk = {
 }
 
 let verify_packages w packages =
-  let packages = BuildOCPInterp.final_state packages in
+  let packages = final_state packages in
 
   (* Verify that package directories really exist, and add 'requires'
      to pk.package_deps_map *)
-  Array.iter (BuildOCPInterp.check_package w) packages;
+  Array.iter (check_package w) packages;
 
 
   let disabled_packages = ref [] in
@@ -960,24 +1138,48 @@ let verify_packages w packages =
   (* Change the package IDs: the package_requires_map is not correct anymore ! *)
   reset_package_ids "project_sorted" pj.project_sorted;
 
-  Array.iter (fun pk ->
-    pk.pi.package_requires_map <- IntMap.empty
-  ) pj.project_sorted;
-
   (* TODO: The impact of this is that all dependencies are sorted in
      the same order in all packages. This might, however, not be what
      someone wants, because you might want to have a different link
      order than the one globally inferred.  *)
   Array.iter (fun pk ->
-    if requires_keep_order_option.get [pk.package_options]  then
+    if requires_keep_order_option.get [pk.package_options]  then begin
+      (* This option does not work.
+
+      Printf.eprintf "pk=%s\n%!" pk.package_name;
+      List.iter (fun dep ->
+        Printf.eprintf "  pj=%s\n%!" dep.dep_project.package_name;
+        IntMap.iter (fun _ dep ->
+          Printf.eprintf "    pj=%s\n%!" dep.dep_project.package_name
+        ) dep.dep_project.pi.package_requires_map;
+        List.iter (fun name ->
+          Printf.eprintf "     after: %s\n%!" name;
+          try
+            let pj2 = StringMap.find name pk.pi.package_deps_map in
+            Printf.eprintf "pj2 = %s\n%!"
+              pj2.dep_project.package_name;
+            force_add_dep dep pj2
+          with Not_found ->
+            Printf.eprintf "Project %s not found\n%!" name
+        ) (BuildValue.get_strings_with_default
+            [dep.dep_options]  "after"  []);
+      ) pk.pi.package_requires;
+      *)
       let (sorted, cycle, _ ) = PackageLinkSorter.sort pk.pi.package_requires in
       assert (cycle = []);
+      (*
+      Printf.eprintf "pk=%s\n%!" pk.package_name;
+      List.iter (fun dep ->
+        Printf.eprintf "  pj=%s\n%!" dep.dep_project.package_name;
+      ) sorted;
+      *)
       pk.pi.package_requires <- sorted
-    else
+    end else begin
       pk.pi.package_requires <- List.sort (fun dep1 dep2 ->
         compare
           dep1.dep_project.package_id
           dep2.dep_project.package_id) pk.pi.package_requires;
+    end;
 
     if !print_package_deps || verbose 9 then begin
       Printf.eprintf "Package %S[%d]\n" pk.package_name pk.package_id;
@@ -989,6 +1191,11 @@ let verify_packages w packages =
           (if dp.dep_syntax then " (syntax)" else "");
       ) pk.pi.package_requires
     end;
+  ) pj.project_sorted;
+
+  (* Do this after toposort ! *)
+  Array.iter (fun pk ->
+    pk.pi.package_requires_map <- IntMap.empty
   ) pj.project_sorted;
 
   (*  reset_package_ids "project_incomplete" pj.project_incomplete; *)

@@ -43,6 +43,15 @@ module Types : sig
 
   exception Var_not_found of string
   exception NotAPropertyList
+
+  (* The configuration at a package definition site *)
+  type config = {
+    config_env : env;
+    config_dirname : string;
+    config_filename : string;
+    config_filenames : (string * Digest.t option) list;
+  }
+
 end
 
 open Types
@@ -112,4 +121,8 @@ val new_bool_option : string -> bool -> bool source_option
 val new_strings_option : string -> string list -> string list source_option
 val new_string_option : string -> string -> string source_option
 
-val iter : (string -> plist -> unit) -> env -> unit
+val iter_env : (string -> plist -> unit) -> env -> unit
+
+val bprint_env : Buffer.t -> string -> env -> unit
+val empty_config : config
+val config_get : config -> string -> value

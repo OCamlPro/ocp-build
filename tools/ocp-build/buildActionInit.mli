@@ -25,20 +25,20 @@ val arg_list : (string * Arg.spec * string) list
 val load_initial_project :
   BuildActionsWarnings.set ->
   BuildActions.project_info ->
-  BuildOCPInterp.state ->
+  BuildOCP.state ->
   BuildTypes.builder_context *
     (module BuildTypes.Package) StringCompat.StringMap.t
 
 val init_env :
   unit ->
     BuildActionsWarnings.set *
-    BuildActions.project_info * BuildOCPInterp.state *
+    BuildActions.project_info * BuildOCP.state *
     BuildOCPTypes.project
 
 val init_project :
   BuildActionsWarnings.set ->
   BuildActions.project_info ->
-  BuildOCPInterp.state ->
+  BuildOCP.state ->
   BuildTypes.builder_context *
     (module BuildTypes.Package) StringCompat.StringMap.t
 

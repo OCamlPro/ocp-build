@@ -49,8 +49,12 @@ let nocmxdeps_option = BuildValue.new_strings_option "noimpldeps" []
 
 (* these should be fully-qualified files *)
 let ocamlc_deps = BuildValue.new_strings_option "ocamlc_deps" []
+let ocamlc2cma_cmd = BuildValue.new_strings_option "ocamlc2cma_cmd" []
+let ocamlc2byte_cmd = BuildValue.new_strings_option "ocamlc2byte_cmd" []
 let ocamldoc_deps = BuildValue.new_strings_option "ocamldoc_deps" []
 let ocamlopt_deps = BuildValue.new_strings_option "ocamlopt_deps" []
+let ocamlopt2cmxa_cmd = BuildValue.new_strings_option "ocamlopt2cmxa_cmd" []
+let ocamlopt2asm_cmd = BuildValue.new_strings_option "ocamlopt2asm_cmd" []
 let ocamldep_deps = BuildValue.new_strings_option "ocamldep_deps" []
 let ocamllex_deps = BuildValue.new_strings_option "ocamllex_deps" []
 let ocamlyacc_deps = BuildValue.new_strings_option "ocamlyacc_deps" []
@@ -59,7 +63,7 @@ let link_deps = BuildValue.new_strings_option "link_deps" []
 let asmlink_deps = BuildValue.new_strings_option "asmlink_deps" []
 let bytelink_deps = BuildValue.new_strings_option "bytelink_deps" []
 
-
+let is_toplevel = BuildValue.new_bool_option "is_toplevel" false
 
 
 let mklib_option = BuildValue.new_strings_option "mklib" ([] : string list)
@@ -71,13 +75,30 @@ let asmlink_option = BuildValue.new_strings_option "asmlink" ([] : string list)
 let dep_option = BuildValue.new_strings_option "dep" ([] : string list)
 let bytedebug_option = BuildValue.new_bool_option "bytedebug" false
 let asmdebug_option = BuildValue.new_bool_option "asmdebug" false
+let debug_option = BuildValue.new_bool_option "debug" false
 
 let force_link_option = BuildValue.new_bool_option "force_link" false
 
 let rule_sources_option = BuildValue.new_strings_option "rule_sources" []
 let more_deps_option = BuildValue.new_strings_option "more_deps" []
 
+(* a C library that should be associated with the current library.
+   It should have the same basename as the library stubarchive, but
+   can be in a different directory. *)
+let libstubs = BuildValue.new_string_option "libstubs" ""
+
 let linkdeps_option = BuildValue.new_strings_option "linkdeps" []
+
+(* Whether we should generate a .cmxs for the current library. true by
+   default. *)
+let cmxs_plugin = BuildValue.new_bool_option "cmxs_plugin" true
+
+(* The exact order in which ALL libraries should be linked in this
+   executable. Libraries are specified as projects. No dependency
+   should be forgotten, even transitive ones.*)
+let link_order = BuildValue.new_strings_option "link_order" []
+
+let externals_only = BuildValue.new_bool_option "externals_only" false
 
 (* dependencies before preprocessing *)
 let pp_requires_option = BuildValue.new_strings_option "pp_requires" []
@@ -104,20 +125,29 @@ let no_mli_option = BuildValue.new_bool_option "no_mli" false
 
 (* for dependencies *)
 
-(* not implemented *)
+
 let syntax_option = BuildValue.new_strings_option "syntax" ([] : string list)
-let plugin_of_option = BuildValue.new_strings_option "plugin_of" ([] : string list)
 let ppflags_option = BuildValue.new_strings_option "ppflags" ([] : string list)
+let package_option = BuildValue.new_string_option "package" ""
+let subdir_option = BuildValue.new_strings_option "subdir" ([] : string list)
+let cclib_option = BuildValue.new_strings_option "cclib" ([] : string list)
+let packages_option = BuildValue.new_option "packages" (VList [])
+
+
+
+  (* not implemented *)
+
+  (*
+let plugin_of_option = BuildValue.new_strings_option "plugin_of" ([] : string list)
 let pplink_option = BuildValue.new_strings_option "pplink" ([] : string list)
 
-let package_option = BuildValue.new_string_option "package" ""
 
 (*
 let install_interface_option = BuildValue.new_bool_option "install_cmi" true
 *)
 let dirname_option = BuildValue.new_strings_option "dirname" ([] : string list)
-let subdir_option = BuildValue.new_strings_option "subdir" ([] : string list)
-let cclib_option = BuildValue.new_strings_option "cclib" ([] : string list)
+  *)
+  (*
 
 
 let install_option = BuildValue.new_bool_option "install" true
@@ -125,5 +155,5 @@ let install_option = BuildValue.new_bool_option "install" true
 let generated_option = BuildValue.new_bool_option "generated" false
 let installed_option = BuildValue.new_bool_option "installed" false
 
-let packages_option = BuildValue.new_option "packages" (VList [])
 let features_option = BuildValue.new_strings_option "features" ([] : string list)
+  *)

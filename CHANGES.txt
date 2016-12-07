@@ -1,6 +1,15 @@
 Change log
 ==========
 
+2016-12-05:
+* Add specific options to define compilers:
+  * `ocamlc2cma_cmd`: ocamlc to generate .cma
+  * `ocamlc2byte_cmd`: ocamlc to generate bytecode executable
+  * `ocamlopt2cmxa_cmd`: ocamlopt to generate .cmxa
+  * `ocamlopt2asm_cmd`: ocamlopt to generate native executable
+* New option `is_toplevel` for project 'program' to build toplevels
+   using `ocamlmktop`
+
 2016-06-27: Version 1.99.17-beta
 * Fix ocp-pp problems with 4.02.3 docstrings comments
 * Warnings are displayed on `ocp-build init`, and only if changed on

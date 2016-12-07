@@ -99,7 +99,7 @@ let do_print_project_info pj =
   let string_of_package pj =
     Printf.sprintf "   %s (%s,%s)\n     in %s\n"
       pj.package_name
-      (BuildOCPTree.string_of_package_type pj.package_type)
+      (BuildOCP.string_of_package_type pj.package_type)
       pj.package_source_kind
       pj.package_dirname
   in
@@ -505,7 +505,7 @@ let init_project env_w p env_state  =
   chdir_to_project p;
 
   let (bc, package_map) = load_initial_project env_w p
-    (BuildOCPInterp.copy_state env_state) in
+    (BuildOCP.copy_state env_state) in
 
   (bc, package_map)
 

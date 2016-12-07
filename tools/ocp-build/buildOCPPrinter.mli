@@ -25,5 +25,3 @@ val string_of_package :
   'a BuildOCPTypes.package -> string
 val eprint_project : string -> BuildOCPTypes.project -> unit
 val package_info : Buffer.t -> string -> BuildOCPTypes.package_info -> unit
-
-val bprint_env : Buffer.t -> string -> BuildValue.Types.env -> unit
