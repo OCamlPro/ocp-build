@@ -160,6 +160,8 @@ all: build-ocps
 	@echo Libraries will be installed in ${ocamldir}
 	@echo META files will be installed in ${metadir}
 
+_obuild: Makefile
+
 build-ocps: $(OCP_BUILD_BOOTER) _obuild
 	$(OCP_BUILD_BOOTER)
 
@@ -277,6 +279,8 @@ publish-opam:
 
 include .depend
 
+# for Makefile.rules to use our bootstrap ocp-build
+OCP_BUILD:=$(OCP_BUILD_BOOTER)
 include autoconf/Makefile.rules
 
 .SUFFIXES: .ml .mll .mli .mly .c .o .cmo .cmi .cmx
