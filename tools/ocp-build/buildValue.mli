@@ -27,9 +27,11 @@ module Types : sig
   | VList of value list
   | VObject of env
   | VString of string
-  | VPair of value * value
+  | VTuple of value list
   | VBool of bool
   | VInt of int
+  | VFunction of (value list -> value)
+  | VPrim of string
 
 (* Just for compatibility: a plist is morally a
    VList of VPair (VString * VObject) *)
@@ -126,3 +128,4 @@ val iter_env : (string -> plist -> unit) -> env -> unit
 val bprint_env : Buffer.t -> string -> env -> unit
 val empty_config : config
 val config_get : config -> string -> value
+val config_set : config -> string -> value -> config

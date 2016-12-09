@@ -22,37 +22,18 @@ open StringCompat
 open BuildValue.Types
 open BuildOCP2Tree
 
-module Eval(S: sig
+module Init(S: sig
 
     type context
 
-    (* a substitution that can be applied *)
     val filesubst : (string * env list) StringSubst.M.subst
 
-
-    val define_package :
-      context ->
-      config ->
-      name:string ->
-      kind:string ->
-      unit
-
-    (* [parse_error()] is called in case of syntax error, to
-       decide what to do next (raise an exception, exit or continue). *)
-    val parse_error : unit -> unit
-
-    (* [new_file ctx filename digest] is called for every file that
-       is read *)
-    val new_file : context -> string -> string -> unit
-
   end) : sig
+  val primitives :
+    (
+      (S.context -> config -> value list -> value) *
+      string list
+    ) StringMap.t ref
+  val primitives_help : unit -> string list StringCompat.StringMap.t
 
-
-  (* [read_ocamlconf filename] returns a function [eval] that
-     can evaluate the AST on [eval ctx config]. *)
-  val read_ocamlconf : string -> (S.context -> config -> config)
-
-  (* Used to display language help on command-line *)
-  val primitives_help : unit -> string list StringMap.t
-
-end
+  end

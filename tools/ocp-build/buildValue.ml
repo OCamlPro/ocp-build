@@ -27,12 +27,14 @@ module Types = struct
   | VList of value list
   | VObject of env
   | VString of string
-  | VPair of value * value
+  | VTuple of value list
   | VBool of bool
   | VInt of int
+  | VFunction of (value list -> value)
+  | VPrim of string
 
 (* Just for compatibility: a plist is morally a
-   VList of VPair (VString * VObject) *)
+   VList of VTuple (VString * VObject) *)
   type plist = value
   type prop_list = (string * env) list
 
@@ -88,7 +90,7 @@ let prop_list v =
     List.map (fun v ->
       match v with
       | VString s -> s, empty_env
-      | VPair (VString s, VObject env) -> s, env
+      | VTuple [VString s; VObject env] -> s, env
       | _ -> raise NotAPropertyList
     ) list
   | _ ->
@@ -97,7 +99,7 @@ let prop_list v =
 let value list =
   VList (List.map (fun (s,env) ->
     if env == empty_env then VString s else
-      VPair (VString s, VObject env)
+      VTuple [VString s; VObject env]
   ) list)
 
 let plist_of_bool b = VBool b
@@ -236,10 +238,12 @@ bprint_plist b indent list =
   | VString s -> Printf.bprintf b "%S" s
   | VBool bool -> Printf.bprintf b "%b" bool
   | VInt int -> Printf.bprintf b "%d" int
-  | VPair (v1, v2) ->
+  | VTuple [] -> assert false
+  | VTuple (v1 :: list) ->
     bprint_value b indent v1;
-    Printf.bprintf b ", ";
-    bprint_value b indent v2
+    List.iter (fun v2 ->
+        Printf.bprintf b ", ";
+        bprint_value b indent v2) list
   | VObject env ->
     Printf.bprintf b "{\n";
     bprint_env b indent env;
@@ -253,6 +257,8 @@ bprint_plist b indent list =
       bprint_value b indent v;
       Printf.bprintf b "\n") list;
     Printf.bprintf b "]"
+  | VFunction _ -> Printf.bprintf b "function(...){...}"
+  | VPrim s -> Printf.bprintf b "primitive(%S)" s
 
 and bprint_env b indent env =
   iter_env (fun var v ->
@@ -272,3 +278,5 @@ let empty_config = {
 
 let config_get config name =
   get [config.config_env] name
+let config_set config name v =
+  { config with config_env = set config.config_env name v }

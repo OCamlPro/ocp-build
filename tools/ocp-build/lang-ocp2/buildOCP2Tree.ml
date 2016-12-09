@@ -18,41 +18,41 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+
 open StringCompat
-open BuildValue.Types
-open BuildOCP2Tree
 
-module Eval(S: sig
+type location = {
+  loc_begin : Lexing.position;
+  loc_end : Lexing.position;
+}
 
-    type context
+type statement = {
+  stmt_expr : statement_expr;
+  stmt_loc : location;
+}
 
-    (* a substitution that can be applied *)
-    val filesubst : (string * env list) StringSubst.M.subst
+and statement_expr =
+  | StmtSeq of statement * statement
+  | StmtEmpty
+  | StmtInclude of string * statement option
+  | StmtAssign of expression * expression
+  | StmtExpr of expression
+  | StmtIfthenelse of expression * statement * statement option
+  | StmtReturn of expression option
+  | StmtBlock of statement
+  | StmtImport of expression
 
+and expression = {
+  exp_expr : expression_expr;
+  exp_loc : location;
+}
 
-    val define_package :
-      context ->
-      config ->
-      name:string ->
-      kind:string ->
-      unit
-
-    (* [parse_error()] is called in case of syntax error, to
-       decide what to do next (raise an exception, exit or continue). *)
-    val parse_error : unit -> unit
-
-    (* [new_file ctx filename digest] is called for every file that
-       is read *)
-    val new_file : context -> string -> string -> unit
-
-  end) : sig
-
-
-  (* [read_ocamlconf filename] returns a function [eval] that
-     can evaluate the AST on [eval ctx config]. *)
-  val read_ocamlconf : string -> (S.context -> config -> config)
-
-  (* Used to display language help on command-line *)
-  val primitives_help : unit -> string list StringMap.t
-
-end
+and expression_expr =
+  | ExprIdent of string
+  | ExprField of expression * string
+  | ExprCall of expression * expression list
+  | ExprFunction of string list * statement
+  | ExprRecord of (string * expression) list
+  | ExprList of expression list
+  | ExprTuple of expression list
+  | ExprValue of BuildValue.Types.value

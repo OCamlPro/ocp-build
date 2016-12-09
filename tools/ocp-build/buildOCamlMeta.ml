@@ -156,7 +156,8 @@ let load_META_files pj ocamllib top_dirname =
                 "requires" (VList (List.map (fun (s, link) ->
                   let link =
                     if Filename.check_suffix s ".syntax" then false else link in
-                  VPair (VString s, VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link))
+                  VTuple [VString s;
+                          VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link)]
                 ) requires)) in
             let options = BuildValue.set_bool options "generated" true in
             let pk = BuildOCP.new_package pj fullname dirname

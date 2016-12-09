@@ -462,7 +462,8 @@ let load_project pj filename =
         (VList (List.map (fun s ->
           let link =
             if Filename.check_suffix s ".syntax" then false else true in
-          VPair (VString s, VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link))
+          VTuple [VString s;
+                  VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link)]
          ) requires)) in
 
       let pk = BuildOCP.new_package pj name opk.opk_dirname

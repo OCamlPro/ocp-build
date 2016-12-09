@@ -20,7 +20,7 @@
 
 open StringCompat
 open BuildValue.Types
-open BuildOCPTree
+open BuildOCP2Tree
 
 module Init(S: sig
 
@@ -28,7 +28,10 @@ module Init(S: sig
 
   end) = struct
 
-let primitives = ref StringMap.empty
+  let primitives = ref StringMap.empty
+
+  (*
+
 let add_primitive s help ( f : env list -> env -> plist) =
   let f envs env =
     try
@@ -173,8 +176,8 @@ let _ =
 
     let (packmodname, pack_env) =
       match to_module with
-      | VList [ VTuple [VString packmodname; VObject pack_env] ]
-      | VTuple [VString packmodname; VObject pack_env]  ->
+      | VList [ VPair (VString packmodname, VObject pack_env) ]
+      | VPair (VString packmodname, VObject pack_env)  ->
         packmodname, pack_env
       | VString packmodname -> packmodname, BuildValue.empty_env
       | _ -> failwith
@@ -283,6 +286,8 @@ let _ =
     incr uniq_counter;
     VString (Printf.sprintf ".id_%d" !uniq_counter));
   ()
+
+*)
 
 let primitives_help () =
   StringMap.map (fun (_,h) -> h) !primitives

@@ -311,7 +311,9 @@ and translate_option ctx config envs env op =
 
 and translate_string_expression ctx config envs exp =
   match translate_expression ctx config envs exp with
-    VString s | VList [VString s] | VList [VPair (VString s,_)] -> s
+    VString s |
+    VList [VString s] |
+    VList [VTuple [VString s; _]] -> s
   | _ -> failwith "Single string expected"
 
 and translate_expression ctx config envs exp =
@@ -341,18 +343,17 @@ and translate_expression ctx config envs exp =
   | ExprApply (exp, args) ->
     let exp = translate_expression ctx config envs exp in
     match exp with
-    | VPair (s, VObject env) ->
-      VPair (s, VObject (translate_options ctx config envs env args))
+    | VTuple [s; VObject env] ->
+      VTuple [s; VObject (translate_options ctx config envs env args)]
     | VList list ->
       VList (List.map (fun exp ->
         match exp with
-        | VPair (s, VObject env) ->
-          VPair (s, VObject (translate_options ctx config envs env args))
+        | VTuple [s; VObject env] ->
+          VTuple [s; VObject (translate_options ctx config envs env args)]
         | _ ->
-          VPair (exp, VObject (translate_options ctx config envs BuildValue.empty_env args))
+          VTuple [exp; VObject (translate_options ctx config envs BuildValue.empty_env args)]
       ) list)
-    | _ -> VPair (exp, VObject  (translate_options ctx config envs BuildValue.empty_env args))
-
+    | _ -> VTuple [exp; VObject  (translate_options ctx config envs BuildValue.empty_env args)]
 
 let read_ocamlconf filename =
   let (filename, ast, digest) =
