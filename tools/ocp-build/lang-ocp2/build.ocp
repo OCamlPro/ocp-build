@@ -9,7 +9,11 @@ begin library "ocp-build-lang-ocp2"
       "buildOCP2Interp.ml"
 
       ]
-
-
     requires = [ "ocplib-compat" "ocplib-lang" "ocp-build-misc" ]
+end
+
+
+begin program "ocp2-eval"
+   files = [ "eval.ml" ]
+   requires = [ "ocp-build-lang-ocp2" ]
 end

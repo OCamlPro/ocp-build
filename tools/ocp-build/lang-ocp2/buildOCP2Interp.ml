@@ -55,115 +55,72 @@ let read_config_file filename =
 
 (* Before this line is exactly the same as in BuildOCPInterp.ml *)
 
+let message_loc kind loc =
+  Printf.kprintf (fun s ->
+      Printf.eprintf "File %s, line %d:\n"
+        loc.loc_begin.Lexing.pos_fname
+        loc.loc_begin.Lexing.pos_lnum;
+      Printf.eprintf "%s: %s\n%!" kind s;
+      exit 2)
 
+let error loc = message_loc "Error" loc
+let warning loc = message_loc "Warning" loc
 
+exception Return of BuildValue.Types.value
 
-(*
-(* In version 1, [ a [ b c ] d ] is equivalent to [a b c d]. [vlist_concat]
-   merges inner lists into the current list. *)
-let vlist_concat list =
-  VList (List.concat (List.map (fun v ->
-    match v with
-      VList list -> list
-    | _ -> [v]
-  ) list))
-
-type prim = env list -> env -> plist
-
-let meta_options = [
-  "o",     [ "dep"; "bytecomp"; "bytelink"; "asmcomp"; "asmlink" ];
-  "oc",    [ "bytecomp"; "bytelink"; "asmcomp"; "asmlink" ];
-  "byte",  [  "bytecomp"; "bytelink"; ];
-  "asm",   [  "asmcomp"; "asmlink"; ];
-  "comp",  [  "bytecomp"; "asmcomp"; ];
-  "link",  [  "bytelink"; "asmlink"; ];
-  "debugflag", [ "debugflag"; "asmdebug"; "bytedebug"; ];
-]
-
-let configs = ref StringMap.empty
-
-let define_config config config_name options =
-  configs := StringMap.add config_name options !configs;
-  config
-
-let find_config config config_name =
-  try
-    StringMap.find config_name !configs
-  with Not_found ->
-    failwith (Printf.sprintf "Error: configuration %S not found\n" config_name)
-
-
-
-let primitives = Primitives.primitives
-
-let compare_string s1 s2 =
-  Versioning.compare
-    (Versioning.version_of_string s1)  (Versioning.version_of_string s2)
-
-let rec compare_expression e1 e2 =
-  match e1, e2 with
-  | VString s1, VString s2
-  | VString s1, VList [ VString s2 ]
-  | VList [VString s1], VString s2
-    -> compare_string s1 s2
-  | VList [], VList [] -> 0
-  | VList [], VList _ -> -1
-  | VList _, VList [] -> 1
-  | VList (h1::t1), VList (h2::t2) ->
-    (match compare_expression h1 h2 with
-     | 0 -> compare_expression (VList t1) (VList t2)
-     | v -> v)
-  | VInt n1, VInt n2 -> compare n1 n2
-  | _ ->
-    Printf.eprintf "Error: values cannot be compared as versions\n%!";
-    failwith "BuildOCP2Interp.compare_versions"
-
-
-let rec translate_toplevel_statements ctx config list =
-  match list with
-    [] -> config
-  | stmt :: list ->
-    let config = translate_toplevel_statement ctx config stmt in
-    translate_toplevel_statements ctx config list
-
-and translate_toplevel_statement ctx config stmt =
-  match stmt with
-  | StmtDefineConfig (config_name, options) ->
-    let config_name = translate_string_expression ctx config [config.config_env] config_name in
-    define_config config config_name options
-  (*  (fun old_options -> translate_options old_options options); *)
-  | StmtDefinePackage (package_type, library_name, simple_statements) ->
-    let library_name = translate_string_expression ctx config [config.config_env] library_name in
-    begin
-      try
-        let config = translate_statements ctx config simple_statements in
-        S.define_package ctx config
-          ~name:library_name
-          ~kind:package_type
-      with e ->
-        Printf.eprintf "Error while interpreting package %S:\n%!" library_name;
-        raise e
-    end;
-    config
-  | StmtBlock statements ->
-    ignore (translate_toplevel_statements ctx config statements : config);
-    config
-  | StmtIfThenElse (cond, ifthen, ifelse) -> begin
-      if translate_condition ctx config [config.config_env] cond then
-        translate_toplevel_statements ctx config ifthen
-      else
-        match ifelse with
-          None -> config
-        | Some ifelse ->
-          translate_toplevel_statements ctx config ifelse
+let rec eval_statement ctx config stmt =
+  let loc = stmt.stmt_loc in
+  match stmt.stmt_expr with
+  | StmtSeq (s1, s2) ->
+    let config = eval_statement ctx config s1 in
+    eval_statement ctx config s2
+  | StmtEmpty -> config
+  | StmtAssign (lhs, expr) ->
+    let v = eval_expression ctx config expr in
+    begin match lhs.exp_expr with
+      | ExprIdent s ->
+        BuildValue.config_set config s v
+      | ExprField( exp, field) ->
+          assign_field config exp [field, loc] v
+      | _ ->
+        error loc "set_field generic not implemented"
     end
-  | StmtInclude (filename, ifthen, ifelse) ->
-    let filename = translate_string_expression ctx config [config.config_env] filename in
-    if Filename.check_suffix filename ".ocp" then begin
-      Printf.eprintf "Warning, file %S, 'include %S', file argument should not\n"
-        config.config_filename filename;
-      Printf.eprintf "  have a .ocp extension, as it will be loaded independantly\n%!";
-    end;
+
+  | StmtReturn s_opt ->
+    let v = match s_opt with
+      | None -> VObject BuildValue.empty_env
+      | Some v -> eval_expression ctx config v
+    in
+    raise (Return v)
+
+  | StmtExpr exp ->
+    let (_ : value) = eval_expression ctx config exp in
+    config
+
+  | StmtBlock stmt ->
+      let (_ : config) = eval_statement ctx config stmt in
+      config
+
+  | StmtImport expr ->
+    begin
+      match eval_expression ctx config expr with
+      | VObject env ->
+        StringMap.fold (fun name v config ->
+            BuildValue.config_set config name v
+          ) env.env config
+      | _ ->
+        error loc "Import of not an object"
+      end
+
+  | StmtInclude (file, ifelse) ->
+    let file = eval_expression ctx config file in
+    let filename =
+      match file with
+      | VString file -> file
+      | _ -> (error loc "string expected" : unit); exit 2
+    in
+    if Filename.check_suffix filename ".ocp2" then
+      warning loc "avoid extension .ocp2 for file %S" filename;
     let filename = BuildSubst.subst_global filename in
     let filename = if Filename.is_relative filename then
         Filename.concat config.config_dirname filename
@@ -178,243 +135,92 @@ and translate_toplevel_statement ctx config stmt =
         Some digest
     in
     let old_filename = config.config_filename in
-    let config = { config with
-                   config_filenames = (filename, digest) :: config.config_filenames;
-                 }
+    let config = {
+      config with
+      config_filenames = (filename, digest) :: config.config_filenames;
+    }
     in
     begin
-      match ast, ifelse with
-      | Some ast, _ ->
-        let config = translate_toplevel_statements ctx { config with config_filename = filename } ast in
-        translate_toplevel_statements ctx { config with config_filename = old_filename } ifthen
-      | None, None -> config
-      | None, Some ifelse ->
-        translate_toplevel_statements ctx config ifelse
+      match ast with
+      | Some ast ->
+        let config = eval_statement ctx
+            { config with config_filename = filename } ast in
+        { config with config_filename = old_filename }
+      | None ->
+        eval_statement ctx config ifelse
     end
 
-  | _ -> translate_simple_statement ctx config stmt
+  | StmtIfthenelse (cond, ifthen, ifelse) ->
+    match eval_expression ctx config cond with
+    | VBool true ->
+      eval_statement ctx config ifthen
+    | VBool false ->
+      eval_statement ctx config ifelse
+    | _ -> error loc "boolean expected"
 
-and translate_statements ctx config list =
-  match list with
-    [] -> config
-  | stmt :: list ->
-    let config = translate_statement ctx config stmt in
-    translate_statements ctx config list
+and assign_field config e fields v =
+  let loc = e.exp_loc in
+    match e.exp_expr with
+      | ExprIdent ident ->
+        let env = BuildValue.config_get config ident in
+        begin
+          match env with
+          | VObject env ->
+            BuildValue.config_set config ident
+              (assign_field_rec env fields v)
+          | _ -> error loc "object expected for assignment"
+        end
+      | ExprField (e, field) ->
+        assign_field config e ( (field, loc) :: fields) v
+      | _ ->
+        assert false
 
-and translate_statement ctx config stmt =
-  match stmt with
-  | StmtIfThenElse (cond, ifthen, ifelse) -> begin
-      if translate_condition ctx config [config.config_env] cond then
-        translate_statements ctx config ifthen
-      else
-        match ifelse with
-          None -> config
-        | Some ifelse ->
-          translate_statements ctx config ifelse
-    end
-  | _ -> translate_simple_statement ctx config stmt
-
-and translate_simple_statement ctx config stmt =
-  match stmt with
-  | StmtOption option ->
-    { config with config_env =
-                    translate_option ctx config
-                      [] config.config_env option }
-  (*    | StmtSyntax (syntax_name, camlpN, extensions) -> config *)
-  | StmtIfThenElse _
-  | StmtBlock _
-  | StmtInclude _
-  | StmtDefinePackage _
-  | StmtDefineConfig _ -> assert false
-
-
-and translate_condition ctx config envs cond =
-  match cond with
-  | IsEqual (exp1, exp2) ->
-    let exp1 = translate_expression ctx config envs exp1 in
-    let exp2 = translate_expression ctx config envs exp2 in
-    exp1 = exp2 ||
-    begin match exp1, exp2 with
-    | VString s1, VList [VString s2]
-    | VList [VString s1], VString s2 -> s1 = s2
-    | _ -> false
-    end
-
-  | IsNonFalse exp ->
-    let exp = try
-      translate_expression ctx config envs exp
-    with _ -> VBool false
-    in
-    BuildValue.bool_of_plist exp
-
-  | Greater (e1,e2) ->
-    let e1 = translate_expression ctx config envs e1 in
-    let e2 = translate_expression ctx config envs e2 in
-    compare_expression e1 e2 = 1
-  | GreaterEqual (e1,e2) ->
-    let e1 = translate_expression ctx config envs e1 in
-    let e2 = translate_expression ctx config envs e2 in
-    compare_expression e1 e2 >= 0
-
-  | NotCondition cond -> not (translate_condition ctx config envs cond)
-  | AndConditions (cond1, cond2) ->
-    (translate_condition ctx config envs cond1)
-    && (translate_condition ctx config envs cond2)
-  | OrConditions (cond1, cond2) ->
-    (translate_condition ctx config envs cond1)
-    || (translate_condition ctx config envs cond2)
-
-and translate_options ctx config envs env list =
-  match list with
-    [] -> env
-  | option :: list ->
-    let env = translate_option ctx config envs env option in
-    translate_options ctx config envs env list
-
-and translate_option ctx config envs env op =
-  match op with
-  | OptionConfigUse config_name ->
-    let config_name = translate_string_expression ctx config (env :: envs) config_name in
-    translate_options ctx config envs env (find_config config config_name)
-
-  | OptionVariableSet (name, exp) ->
-
-    (* TODO: global options *)
-    let (exp : value) = translate_expression ctx config (env :: envs) exp in
-    let vars = try
-      List.assoc name meta_options
-    with Not_found -> [ name ]
-    in
-    List.fold_left (fun env name -> BuildValue.set env name exp) env vars
-
-  | OptionVariableAppend (name, exp) ->
-    (* TODO: global options *)
-
-    let exp2 = translate_expression ctx config (env :: envs) exp in
-
-    let vars = try
-      List.assoc name meta_options
-    with Not_found -> [ name ]
-    in
-    List.fold_left (fun env name ->
-      let exp1 = try BuildValue.get (env ::envs) name
-      with Var_not_found _ ->
-        failwith (Printf.sprintf "Variable %S is undefined (in +=)\n%!" name)
-      in
-      BuildValue.set env name (vlist_concat [exp1; exp2])
-    ) env vars
-
-  | OptionIfThenElse (cond, ifthen, ifelse) ->
-    begin
-      if translate_condition ctx config (env :: envs) cond then
-        translate_option ctx config envs env ifthen
-      else
-        match ifelse with
-          None -> env
-        | Some ifelse ->
-          translate_option ctx config envs env ifelse
-    end
-  | OptionBlock list -> translate_options ctx config envs env list
-
-and translate_string_expression ctx config envs exp =
-  match translate_expression ctx config envs exp with
-    VString s | VList [VString s] | VList [VPair (VString s,_)] -> s
-  | _ -> failwith "Single string expected"
-
-and translate_expression ctx config envs exp =
-(*  Printf.eprintf "translate_expression\n%!"; *)
-  match exp with
-
-  | ExprBool bool -> VBool bool
-  | ExprString s -> VString s
-
-  | ExprPrimitive (s, args) ->
-    let (f, _) = try StringMap.find s !primitives with
-        Not_found ->
-        failwith (Printf.sprintf "Could not find primitive %S\n%!" s)
-    in
-    f envs (translate_options ctx config envs BuildValue.empty_env args)
-
-  | ExprVariable name ->
-    let exp = try BuildValue.get envs name
-    with Var_not_found _ ->
-      failwith (Printf.sprintf "Variable %S is undefined\n%!" name)
-    in
-    exp
-
-  | ExprList list ->
-    vlist_concat (List.map (translate_expression ctx config envs) list)
-
-  | ExprApply (exp, args) ->
-    let exp = translate_expression ctx config envs exp in
-    match exp with
-    | VPair (s, VObject env) ->
-      VPair (s, VObject (translate_options ctx config envs env args))
-    | VList list ->
-      VList (List.map (fun exp ->
-        match exp with
-        | VPair (s, VObject env) ->
-          VPair (s, VObject (translate_options ctx config envs env args))
-        | _ ->
-          VPair (exp, VObject (translate_options ctx config envs BuildValue.empty_env args))
-      ) list)
-    | _ -> VPair (exp, VObject  (translate_options ctx config envs BuildValue.empty_env args))
-
-*)
-
-exception Return of BuildValue.Types.value
-
-let rec eval_statement ctx config stmt =
-  match stmt.stmt_expr with
-  | StmtSeq (s1, s2) ->
-    let config = eval_statement ctx config s1 in
-    eval_statement ctx config s2
-  | StmtEmpty -> config
-  | StmtAssign (lhs, expr) ->
-    let v = eval_expression ctx config expr in
-    begin match lhs.exp_expr with
-      | ExprIdent s ->
-        BuildValue.config_set config s v
-      | _ -> assert false
-    end
-  | StmtIfthenelse (_, _, _) -> assert false
-  | StmtReturn s_opt ->
-    let v = match s_opt with
-      | None -> VObject BuildValue.empty_env
-      | Some v -> eval_expression ctx config v
-    in
-    raise (Return v)
-  | StmtExpr exp ->
-    let (_ : value) = eval_expression ctx config exp in
-    config
-
-  | StmtInclude (_file, _else) -> assert false
-  | StmtBlock _ -> assert false
-  | StmtImport _ -> assert false
-
-(*
-and eval_assign ctx config lhs v =
-  match lhs with
-  | Assign ->
-    begin
-    { config with
-      config_env = BuildValue.config_set config name v }
-    end
-  | AssignPlus -> assert false
-*)
+and assign_field_rec env fields v =
+    match fields with
+    | [] -> assert false
+    | [ field, loc ] ->
+      VObject (BuildValue.set env field v)
+    | (field, loc) :: fields ->
+      let v = BuildValue.get_local [env] field in
+      match v with
+      | VObject env ->
+        VObject (BuildValue.set env field
+                   (assign_field_rec env fields v))
+      | _ ->
+        error loc "object expected for assignment"
 
 and eval_expression ctx config exp =
+  let loc = exp.exp_loc in
   match exp.exp_expr with
   | ExprValue v -> v
+
   | ExprIdent ident ->
-    BuildValue.config_get config ident
+    begin try
+        BuildValue.config_get config ident
+      with Var_not_found _ ->
+        if StringMap.mem ident !Primitives.primitives then
+          VPrim ident
+        else
+          error loc "no variable %S" ident
+
+    end
+
   | ExprField (v, field) ->
     let v = eval_expression ctx config v in
     begin
       match v with
       | VObject env ->
-        BuildValue.get_local [env] field
-      | _ -> assert false
+        begin try
+            BuildValue.get_local [env] field
+          with Var_not_found _ ->
+            (*
+            if StringMap.mem field !Primitives.primitives then
+              VPrim field
+            else *)
+              error loc "no field %S" field
+        end
+      | _ ->
+        error loc "object expected"
     end
 
   | ExprCall (f, args) ->
@@ -429,11 +235,12 @@ and eval_expression ctx config exp =
             try
               StringMap.find name !Primitives.primitives
             with Not_found ->
-              assert false
+              error loc "primitive %S not available" name
           in
           f ctx config args
         end
-      | _ -> assert false
+      | _ ->
+        error loc "function or primitive expected"
     end
 
   | ExprFunction (arg_names, body) ->
@@ -482,11 +289,12 @@ let read_ocamlconf filename =
       | Some digest ->
         S.new_file ctx filename digest;
     end;
-    let config = { config with
-                   config_dirname = Filename.dirname filename;
-                   config_filename = filename;
-                   config_filenames = (filename, digest) :: config.config_filenames;
-                 }
+    let config = {
+      config with
+      config_dirname = Filename.dirname filename;
+      config_filename = filename;
+      config_filenames = (filename, digest) :: config.config_filenames;
+    }
     in
     match ast with
     | None -> config

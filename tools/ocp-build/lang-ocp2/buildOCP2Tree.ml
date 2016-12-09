@@ -34,10 +34,10 @@ type statement = {
 and statement_expr =
   | StmtSeq of statement * statement
   | StmtEmpty
-  | StmtInclude of string * statement option
+  | StmtInclude of expression * statement
   | StmtAssign of expression * expression
   | StmtExpr of expression
-  | StmtIfthenelse of expression * statement * statement option
+  | StmtIfthenelse of expression * statement * statement
   | StmtReturn of expression option
   | StmtBlock of statement
   | StmtImport of expression

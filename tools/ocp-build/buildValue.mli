@@ -126,6 +126,8 @@ val new_string_option : string -> string -> string source_option
 val iter_env : (string -> plist -> unit) -> env -> unit
 
 val bprint_env : Buffer.t -> string -> env -> unit
+val bprint_value : Buffer.t -> string -> value -> unit
+
 val empty_config : config
 val config_get : config -> string -> value
 val config_set : config -> string -> value -> config

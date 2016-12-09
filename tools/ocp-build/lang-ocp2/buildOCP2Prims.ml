@@ -24,24 +24,26 @@ open BuildOCP2Tree
 
 module Init(S: sig
 
+    type context
+
     val filesubst : (string * env list) StringSubst.M.subst
 
   end) = struct
 
   let primitives = ref StringMap.empty
 
+  let add_primitive s help
+      ( f : S.context -> config -> value list -> value) =
+    let f ctx config args =
+      try
+        f ctx config args
+      with e ->
+        Printf.eprintf "Warning: exception raised while running primitive %S\n%!" s;
+        raise e
+    in
+    primitives := StringMap.add s (f, help) !primitives
+
   (*
-
-let add_primitive s help ( f : env list -> env -> plist) =
-  let f envs env =
-    try
-      f (env :: envs) env
-    with e ->
-      Printf.eprintf "Warning: exception raised while running primitive %S\n%!" s;
-      raise e
-  in
-  primitives := StringMap.add s (f, help) !primitives
-
 let add_function s help f =
   let f _ env =
     try
@@ -51,12 +53,14 @@ let add_function s help f =
       raise e
   in
   primitives := StringMap.add s (f, help) !primitives
+*)
 
 let eprint_env indent env =
   let b = Buffer.create 1000 in
   BuildValue.bprint_env b indent env;
   Printf.eprintf "%s%!" (Buffer.contents b)
 
+(*
 let filesubst = S.filesubst
 
 let _ =
@@ -154,16 +158,23 @@ let _ =
       BuildValue.plist_of_bool bool
     );
 
+*)
 
-  add_function "disp" [
-    "Display its environment ENV"
+let _ =
+  add_primitive "print" [
+    "Display its arguments"
   ]
-    (fun _envs env ->
-      Printf.printf "disp:\n%!";
-      eprint_env "" env;
+    (fun ctx config args ->
+       let b = Buffer.create 111 in
+       List.iter (fun arg ->
+           BuildValue.bprint_value b "" arg;
+         ) args;
+       Printf.eprintf "%s\n%!" (Buffer.contents b);
       BuildValue.value []
     );
+;;
 
+  (*
   add_function "exit" []
     (fun envs _env ->
       let code = BuildValue.get_local_string_with_default envs "code" "0" in

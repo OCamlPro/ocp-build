@@ -15,7 +15,8 @@
 
 (* Precedence of operators is the same as in Javascript !! *)
 
-open StringCompat
+  open StringCompat
+  open BuildValue.Types
 open BuildOCP2Tree
 
 let symb_loc () = {
@@ -108,12 +109,13 @@ statements:
 
 statement:
 | statement_no_semi SEMI               { $1 }
-| INCLUDE STRING SEMI                  { mkstmt( StmtInclude ($2, None) ) }
-| INCLUDE STRING ELSE statement        { mkstmt( StmtInclude ($2, Some $4) ) }
+| INCLUDE expr SEMI                  { mkstmt( StmtInclude ($2,
+                                                              mkstmt StmtEmpty) ) }
+| INCLUDE expr ELSE statement        { mkstmt( StmtInclude ($2, $4) ) }
 | IF LPAREN expr RPAREN statement_no_if ELSE statement
-                            { mkstmt( StmtIfthenelse($3, $5, Some $7)) }
+                            { mkstmt( StmtIfthenelse($3, $5, $7)) }
 | IF LPAREN expr RPAREN statement_no_if_semi
-                            { mkstmt( StmtIfthenelse($3, $5, None) ) }
+                            { mkstmt( StmtIfthenelse($3, $5, mkstmt StmtEmpty) ) }
 ;
 
 statement_no_if:

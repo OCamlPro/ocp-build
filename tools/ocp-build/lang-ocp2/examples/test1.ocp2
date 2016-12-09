@@ -1,0 +1,3 @@
+
+ocaml = { x = 1; };
+print(ocaml);
