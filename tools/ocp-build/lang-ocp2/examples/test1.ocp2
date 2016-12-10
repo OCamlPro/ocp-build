@@ -1,3 +1,9 @@
 
 ocaml = { x = 1; };
 print(ocaml);
+
+printer = function(arg1){ print(arg1); };
+
+ocaml.y = 2;
+
+printer(ocaml);

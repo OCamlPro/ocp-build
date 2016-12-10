@@ -73,13 +73,21 @@ BUILD_MISC= $(OCP_BUILD_SRCDIR)/logger.ml				\
     $(OCP_BUILD_SRCDIR)/ocamldot.ml $(OCP_BUILD_SRCDIR)/buildValue.ml   \
     $(OCP_BUILD_SRCDIR)/versioning.ml
 
-BUILD_PROJECT= $(OCP_BUILD_SRCDIR)/buildOCPTypes.ml	\
+BUILD_PROJECT= \
+    $(OCP_BUILD_SRCDIR)/buildOCPTypes.ml	\
+    \
     $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPTree.ml			\
     $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.ml		\
     $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParse.ml		\
     $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPPrims.ml		\
     $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPInterp.ml		\
+    \
+    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Tree.ml			\
+    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parser.ml		\
+    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parse.ml		\
+    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Prims.ml		\
     $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Interp.ml		\
+    \
     $(OCP_BUILD_SRCDIR)/buildOCPPrinter.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCP.ml
 
