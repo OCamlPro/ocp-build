@@ -1222,6 +1222,7 @@ let verify_packages w packages =
 
 type dot_ocpbuild = {
   mutable option_skip : bool;
+  mutable option_maxversion : int;
 }
 
 let load_dot_ocpbuild filename c =
@@ -1232,6 +1233,8 @@ let load_dot_ocpbuild filename c =
           match key, value with
           | "skip", "true" -> c.option_skip <- true
           | "skip", "false" -> c.option_skip <- false
+          | "maxversion", "1" -> c.option_maxversion <- 1;
+          | "maxversion", "2" -> c.option_maxversion <- 2;
           | _ ->
             Printf.eprintf
               "Warning: in filename %s, unknown key/value pair:\n"
@@ -1264,14 +1267,20 @@ let scan_root root_dir =
           else begin
             let c = {
               option_skip = false;
+              option_maxversion = 2;
             } in
             let ocp_file = Filename.concat filename ".ocp-build" in
             if Sys.file_exists ocp_file then load_dot_ocpbuild ocp_file c;
             if not c.option_skip then begin
               Stack.push filename queue;
-              if Sys.file_exists (Filename.concat filename "build.ocp2") then
-                blacklist := StringSet.add
-                    (Filename.concat filename "build.ocp") !blacklist
+              let ocp2_file = Filename.concat filename "build.ocp2" in
+              if c.option_maxversion = 1 then begin
+                blacklist := StringSet.add ocp2_file !blacklist
+              end else begin
+                if Sys.file_exists ocp2_file then
+                  blacklist := StringSet.add
+                      (Filename.concat filename "build.ocp") !blacklist
+              end
             end
           end
 

@@ -96,6 +96,9 @@ let mkinfix op exp = mkexp (ExprCall(mkexp (ExprIdent op), exp))
 %token TRY
 %token CATCH
 
+%token FOR
+%token IN
+
 %token <string> IDENT
 
 %start main
@@ -138,15 +141,21 @@ statement_no_if_semi:
 | statement_block           { $1 }
 ;
 
-statement_block:
+statement_block_no_try:
 | LBRACE statements RBRACE  { $2 }
 | BEGIN statements END      { mkstmt( StmtBlock $2 ) }
-| TRY statement_block catch catches
+| FOR IDENT IN expr statement_block_no_try
+                            { mkstmt (StmtFor($2,$4,$5)) }
+;
+
+statement_block:
+| statement_block_no_try           { $1 }
+| TRY statement_block_no_try catch catches
                      { mkstmt (StmtTry($2, $3 :: $4) ) }
 ;
 
 catch:
-| CATCH LPAREN STRING COMMA IDENT RPAREN statement_block
+| CATCH LPAREN STRING COMMA IDENT RPAREN statement_block_no_try
     { ($3, ($5,$7) ) }
 ;
 
@@ -161,8 +170,8 @@ statement_no_semi:
   let v = $3 in
   let v = match $2 with
     | "=" -> v
-    | "+=" -> mkinfix "add" [lhs; v]
-    | "-=" -> mkinfix "sub" [lhs; v]
+    | "+=" -> mkinfix prim_add_name [lhs; v]
+    | "-=" -> mkinfix prim_sub_name [lhs; v]
     | _ -> assert false
   in
   mkstmt( StmtAssign(lhs,v) ) }
@@ -180,7 +189,10 @@ assignment_op:
 
 lhs_expr:
 | IDENT                    { mkexp ( ExprIdent $1 ) }
-| lhs_expr DOT IDENT       { mkexp ( ExprField($1, $3) ) }
+| lhs_expr DOT IDENT
+    { mkexp ( ExprField($1, mkexp (ExprValue (VString $3))) ) }
+| lhs_expr LBRACKET tupled_expr RBRACKET
+        { mkexp (ExprField($1, $3)) }
 ;
 
 expr:
@@ -199,27 +211,27 @@ tupled_expr:
 
 logicalOR_expr:
 | logicalAND_expr { $1 }
-| logicalOR_expr BARBAR logicalAND_expr { mkinfix "||" [$1;$3] }
+| logicalOR_expr BARBAR logicalAND_expr { mkinfix prim_or_name [$1;$3] }
 ;
 
 logicalAND_expr:
 | bitwiseOR_expr { $1 }
-| logicalAND_expr AMPERAMPER bitwiseOR_expr { mkinfix "&&" [$1;$3] }
+| logicalAND_expr AMPERAMPER bitwiseOR_expr { mkinfix prim_and_name [$1;$3] }
 ;
 
 bitwiseOR_expr:
 | bitwiseXOR_expr { $1 }
-| bitwiseOR_expr OR bitwiseXOR_expr { mkinfix "|" [$1;$3] }
+| bitwiseOR_expr OR bitwiseXOR_expr { mkinfix prim_or_name [$1;$3] }
     ;
 
 bitwiseXOR_expr:
 | bitwiseAND_expr { $1 }
-| bitwiseXOR_expr XOR bitwiseAND_expr { mkinfix "^" [$1;$3] }
+| bitwiseXOR_expr XOR bitwiseAND_expr { mkinfix prim_xor_name [$1;$3] }
  ;
 
 bitwiseAND_expr:
 | equality_expr { $1 }
-| bitwiseAND_expr AMPER equality_expr { mkinfix "&" [$1;$3] }
+| bitwiseAND_expr AMPER equality_expr { mkinfix prim_and_name [$1;$3] }
     ;
 
 equality_expr:
@@ -276,10 +288,12 @@ simple_expr:
 simpler_expr:
 | LPAREN expr RPAREN        { $2 }
 | simple_expr LPAREN expr_args RPAREN     { mkexp ( ExprCall($1,$3) ) }
-| simpler_expr DOT IDENT { mkexp (ExprField ($1, $3)) }
+| simpler_expr DOT IDENT
+    { mkexp (ExprField ($1, mkexp (ExprValue (VString $3)))) }
 | FUNCTION LPAREN ident_args RPAREN LBRACE statements RBRACE
     { mkexp( ExprFunction($3,$6) ) }
-
+| TRUE                      { mkexp (ExprValue (VBool true)) }
+| FALSE                     { mkexp (ExprValue (VBool false)) }
 | STRING                    { mkexp (ExprValue (VString $1)) }
 | INT                       { mkexp (ExprValue (VInt $1)) }
 | LBRACKET expr_semi_exprs_maybe_empty RBRACKET { mkexp (ExprList $2) }
@@ -315,37 +329,38 @@ ident_args:
 | IDENT comma_idents          { $1 :: $2 }
 ;
 unary_op:
-  | PLUS        { "identity" }
-  | MINUS       { "neg" }
-  | BANG       { "not" }
+  | PLUS        { prim_identity_name }
+  | MINUS       { prim_not_name }
+  | BANG       { prim_not_name }
 ;
 
 multiplicative_op:
-  | STAR        { "mul" }
-  | DIVIDE      { "div" }
-  | PERCENT     { "mod" }
+  | STAR        { prim_mul_name }
+  | DIVIDE      { prim_div_name }
+  | PERCENT     { prim_mod_name }
 ;
 
 additive_op:
-  | PLUS        { "add" }
-  | MINUS       { "sub" }
+  | PLUS        { prim_add_name }
+  | MINUS       { prim_sub_name }
 ;
 
 shift_op:
-  | LESSLESS              { "lsl" }
-  | GREATERGREATER        { "lsr" }
+  | LESSLESS              { prim_lsl_name }
+  | GREATERGREATER        { prim_lsr_name }
 ;
 
 relational_op:
-  | LESS                  { "lessthan"  (* "<" *) }
-  | GREATER               { "greaterthan" (* ">" *) }
-  | LESSEQUAL             { "lessequal" (* "<=" *) }
-  | GREATEREQUAL          { "greaterequal" (* ">=" *) }
+  | LESS                  { prim_lessthan_name  (* "<" *) }
+  | GREATER               { prim_greaterthan_name (* ">" *) }
+  | LESSEQUAL             { prim_lessequal_name (* "<=" *) }
+  | GREATEREQUAL          { prim_greaterequal_name (* ">=" *) }
 ;
 equality_op:
-  | EQUALEQUAL            { "eq" (* "==" *) }
-  | BANGEQUAL             { "notequal" (* "<>" *) }
-  | LESSGREATER             { "notequal" (* "<>" *) }
+  | EQUALEQUAL            { prim_equal_name (* "==" *) }
+  | EQUAL            { prim_equal_name (* "==" *) }
+  | BANGEQUAL             { prim_notequal_name (* "<>" *) }
+  | LESSGREATER             { prim_notequal_name (* "<>" *) }
 ;
 
 

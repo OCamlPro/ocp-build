@@ -57,8 +57,6 @@ let read_config_file filename =
 
 exception OCPReturn of BuildValue.Types.value
 
-let ocp2_raise loc name v =  raise (OCPExn (loc, name, v))
-
 let rec eval_statement ctx config stmt =
   let loc = stmt.stmt_loc in
   match stmt.stmt_expr with
@@ -72,9 +70,10 @@ let rec eval_statement ctx config stmt =
       | ExprIdent s ->
         BuildValue.config_set config s v
       | ExprField( exp, field) ->
-        assign_field config exp [field, loc] v
+        let field = eval_field ctx config field in
+        assign_field ctx config exp [field, loc] v
       | _ ->
-        ocp2_raise loc "not-implemented" (VString "set-field generic")
+        ocp2_raise loc "not-implemented" (VString "%set-field generic")
     end
 
   | StmtReturn s_opt ->
@@ -100,7 +99,7 @@ let rec eval_statement ctx config stmt =
             BuildValue.config_set config name v
           ) env.env config
       | v ->
-        raise_type_error loc "import" 1 "object" v
+        raise_type_error loc "%import" 1 "object" v
     end
 
   | StmtInclude (file, ifelse) ->
@@ -109,7 +108,7 @@ let rec eval_statement ctx config stmt =
       match file with
       | VString file -> file
       | v ->
-        raise_type_error loc "include" 1 "string" v
+        raise_type_error loc "%include" 1 "string" v
     in
     if Filename.check_suffix filename ".ocp2" then
       warning loc "avoid extension .ocp2 for file %S" filename;
@@ -150,7 +149,7 @@ let rec eval_statement ctx config stmt =
       | VBool false ->
         eval_statement ctx config ifelse
       | v ->
-        raise_type_error loc "if" 1  "bool" v
+        raise_type_error loc "%if" 1  "bool" v
     end
 
   | StmtTry (body, handlers) ->
@@ -168,10 +167,37 @@ let rec eval_statement ctx config stmt =
         raise e
     end
 
-and assign_field config e fields v =
+  | StmtFor (ident, range, body) ->
+    let range = eval_expression ctx config range in
+    begin
+      match range with
+      | VList list -> for_list ctx config ident list body
+      | VTuple [VInt n1; VInt n2] ->
+        for_int ctx config ident n1 n2 1 body
+      | VTuple [VInt n1; VInt step; VInt n2] ->
+        for_int ctx config ident n1 n2 step body
+      | _ -> raise_type_error loc "%for" 1 "range" range
+      end
+
+and for_list ctx config ident list body =
+  match list with
+  | [] -> config
+  | v :: list ->
+    let config = BuildValue.config_set config ident v in
+    let config = eval_statement ctx config body in
+    for_list ctx config ident list body
+
+and for_int ctx config ident v1 v2 step body =
+  if v1 <= v2 then
+    let config = BuildValue.config_set config ident (VInt v1) in
+    let config = eval_statement ctx config body in
+    for_int ctx config ident (v1+step) v2 step body
+  else config
+
+and assign_field ctx config e fields v =
   let loc = e.exp_loc in
   match e.exp_expr with
-  | ExprIdent ident ->
+  | ExprIdent ident | ExprValue (VString ident) ->
     let env = try
         BuildValue.config_get config ident
       with Var_not_found _ -> VObject BuildValue.empty_env
@@ -180,31 +206,44 @@ and assign_field config e fields v =
       match env with
       | VObject env ->
         BuildValue.config_set config ident
-          (assign_field_rec env fields v)
+          (assign_field_rec loc env fields v)
       | _ ->
-        raise_type_error loc "set-field" 1  "object" env
+        raise_type_error loc "%set-field" 1  "object" env
     end
   | ExprField (e, field) ->
-    assign_field config e ( (field, loc) :: fields) v
+    let field = eval_field ctx config field in
+    assign_field ctx config e ( (field, loc) :: fields) v
   | _ ->
     assert false
 
-and assign_field_rec env fields v =
+and assign_field_rec loc env fields v =
   match fields with
   | [] -> assert false
   | [ field, loc ] ->
     VObject (BuildValue.set env field v)
   | (field, loc) :: fields ->
-    let v = try
+    let v2 = try
         BuildValue.get_local [env] field
       with Var_not_found _ -> VObject BuildValue.empty_env
     in
-    match v with
-    | VObject env ->
-      VObject (BuildValue.set env field
-                 (assign_field_rec env fields v))
-    | _ ->
-      raise_type_error loc "set-field-rec" (List.length fields) "object" v
+    begin
+      match v2 with
+      | VObject env2 ->
+        VObject (BuildValue.set env field
+                   (assign_field_rec loc env2 fields v))
+      | _ ->
+        raise_type_error loc "%set-field-rec" (List.length fields) "object" v
+    end
+
+and eval_field ctx config exp =
+  let field = eval_expression ctx config exp in
+  match field with
+  | VString s -> s
+  | VInt n -> string_of_int n
+  | VBool true -> "true"
+  | VBool false -> "false"
+  | _ ->
+    raise_type_error exp.exp_loc "%field" 1  "string" field
 
 and eval_expression ctx config exp =
   let loc = exp.exp_loc in
@@ -223,9 +262,10 @@ and eval_expression ctx config exp =
 
   | ExprField (v, field) ->
     let v = eval_expression ctx config v in
+    let field = eval_field ctx config field in
     begin
-      match v with
-      | VObject env ->
+      match v, field with
+      | VObject env, field ->
         begin try
             BuildValue.get_local [env] field
           with Var_not_found _ ->
@@ -236,7 +276,7 @@ and eval_expression ctx config exp =
             raise (OCPExn (loc, "unknown-field", VString field))
         end
       | _ ->
-        raise_type_error loc "get-field" 1 "object" v
+        raise_type_error loc "%get-field(object,index)" 1 "object" v
     end
 
   | ExprCall (f, args) ->
@@ -244,7 +284,7 @@ and eval_expression ctx config exp =
     let args = List.map (eval_expression ctx config) args in
     begin
       match f with
-      | VFunction f -> f args
+      | VFunction f -> f loc args
       | VPrim name ->
         begin
           let (f, _) =
@@ -256,11 +296,14 @@ and eval_expression ctx config exp =
           f loc ctx config args
         end
       | _ ->
-        raise_type_error loc "apply" 1 "function" f
+        raise_type_error loc "%apply" 1 "function" f
     end
 
   | ExprFunction (arg_names, body) ->
-    let f arg_values =
+    let arity = List.length arg_names in
+    let f loc arg_values =
+      if arity <> List.length arg_values then
+        BuildOCP2Prims.raise_bad_arity loc "function" arity arg_values;
       let config = List.fold_left2 (fun config name v ->
           BuildValue.config_set config name v
         ) config arg_names arg_values in
@@ -336,7 +379,19 @@ let read_ocamlconf filename =
         let config = BuildValue.config_set config "dirname"
             (VString config.config_dirname) in
         eval_statement ctx config ast
-      with e ->
+      with
+      | OCPExn (loc, name, arg) ->
+        Printf.eprintf "File %S, line %d:\n"
+          loc.loc_begin.Lexing.pos_fname
+          loc.loc_begin.Lexing.pos_lnum;
+        Printf.eprintf "Error: fatal exception %S:\n%!" name;
+        let b = Buffer.create 111 in
+        BuildValue.bprint_value b "  " arg;
+        Printf.eprintf "   with arg %s\n%!" (Buffer.contents b);
+        S.parse_error ();
+        config
+
+      | e ->
         Printf.eprintf "Error while interpreting file %S:\n%!" filename;
         Printf.eprintf "\t%s\n%!" (Printexc.to_string e);
         S.parse_error ();

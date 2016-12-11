@@ -1,0 +1,15 @@
+
+
+new_package("ocp-build-lang-ocp", "library",
+  {
+    files = [
+      "buildOCPTree.ml";
+      "buildOCPParser.mly", { pp = [] };
+      "buildOCPParse.ml";
+      "buildOCPPrims.ml";
+      "buildOCPInterp.ml";
+      ];
+
+    requires = [ "ocplib-compat"; "ocplib-lang"; "ocp-build-misc" ];
+  });
+  

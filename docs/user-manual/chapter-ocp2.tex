@@ -1,0 +1,167 @@
+
+
+The OCP2 language is the new language used by ocp-build for package
+descriptions.
+
+\section{Statements and Expressions}
+
+In the OCP2 language, there are two kinds of constructs:
+\begin{itemize}
+\item \emph{Statements} are constructs that can modify the current
+  environment. For example, the statement \verb+x=1;+ will define a
+  variable \verb-x- with value \verb-1- in the current environment;
+\item \emph{Expressions} are constructs that simply compute a value,
+  in the current environment, but without the ability to modify it.
+\end{itemize}
+
+\section{Values}
+
+In the OCP2 language, values can take the following types:
+\begin{itemize}
+\item \emph{Integers} are standard OCaml integers;
+\item \emph{Booleans} are either \verb+true+ or \verb+false+;
+\item \emph{Strings} are standard OCaml strings;
+\item \emph{Lists} are standard OCaml lists;
+\item \emph{Tuples} are standard OCaml tuples;
+\item \emph{Objects} are maps from field names to values, such as
+  \verb+{ x=1; y="foo" }+.
+\end{itemize}
+
+Such values are the simplest expressions available in the
+language.
+
+Values are not mutable. For example, the following program prints
+\verb+{ y = 1 }+:
+\begin{verbatim}
+x.y = 1;
+z = x;
+z.y = 2;
+print(x);
+\end{verbatim}
+
+\section{Blocks of statements}
+
+In the OCP2 language, there are two kinds of blocks of statements:
+\begin{itemize}
+\item Blocks between braces, such as \verb+{ x=1; y=f(x); }+, do not
+  create a new environment. Instead, they are executed in the current
+  environment, and return a new environment with all modifications
+  applied;
+\item Blocks between the \verb+begin+ and \verb+end+ keywords do not
+  modify the current environment. Instead, they are executed in a copy
+  of the current environment, that is discarded at the end of the
+  block.
+\end{itemize}
+
+For example, in the following example, the program prints \verb+2,1+:
+\begin{verbatim}
+x = 1; y = 1;
+{ x = 2; }
+begin y=2; end
+print(x,",",y);
+\end{verbatim}
+
+\section{Functions and Lexical Scope}
+
+In the OCP2 language, functions are created as closures: variables
+in the body of a function are interpreted within the environment
+at their creation site, not at their execution site.
+
+For example, in the following example, the program prints \verb+1+:
+\begin{verbatim}
+x = 1;
+f = function(){ return x; };
+x = 2;
+print(f());
+\end{verbatim}
+
+The value returned by a function is specified by a {\tt return} statement.
+
+\section{Control Flow}
+
+The following control-flow constructs are available:
+
+\subsection{The {\tt if} statement}
+
+The \verb+if+ statement allows the program to check a boolean
+condition.  Here is a basic example:
+
+\begin{verbatim}
+if( x = 1 ){
+   print("x equals one");
+} else {
+   print("x does not equal one");
+}
+\end{verbatim}
+
+The \verb+else+ part is optional.
+
+\subsection{The {\tt for...in} statement}
+
+The \verb+for+ statement allows the program to iterate on a range of values.
+
+Here are some examples:
+\begin{verbatim}
+list = [ 1;2;3;4 ];
+for v in list { print(v); }
+for v in (1,4) { print(v); }
+
+list = [ 1;3;5;7 ];
+for v in list { print(v); }
+for v in (1,2,7) { print(v); }
+\end{verbatim}
+
+Note that the variable of the \verb+for+ will escape the last
+execution of the body.
+
+\subsection{The {\tt try...catch} statement}
+
+The \verb+try+ statement allows the program to catch an exception:
+
+\begin{verbatim}
+try {  print(x); } (* x not defined *)
+catch("unknown-variable",arg){
+  print("Unknown variable: ", arg);
+}
+
+try {  x = {};  print(x.y); (* x.y not defined *) }
+catch("hello",arg){ print("never here"); }
+catch("unknown-field",arg){ print("Unknown field: ", arg); }
+\end{verbatim}
+
+An exception is always a tuple containing a string identifier and an
+argument, so each {\tt catch} will only catch exceptions with the same
+string identifier, and bind the exception argument to the provided
+variable name in the body (and that variable will escape the handler).
+
+\section{Using OCP2 to describe packages}
+
+\ocpbuild{} will search {\tt build.ocp2} files in your
+directories. For backward compatibility, it will also search for files
+with the {\tt .ocp} extension (and parse them with its former
+language). If both a {\tt build.ocp2} and {\tt build.ocp} files are
+present, \ocpbuild{} will only execute one of them: it will choose the
+{\tt build.ocp2} file by default, unless a {\tt .ocp-build} file is
+present with the line {\tt maxversion=1}.
+
+By convention, options for projects should be stored in an object
+called {\tt ocaml}.
+
+A typical package description will thus look like:
+
+\begin{verbatim}
+begin
+  ocaml.files = [
+    "foo.ml";
+    "bar.ml", { inline = 10 };
+  ];
+  ocaml.requires = [ "ocplib-compat"; "ocplib-lang" ];
+  new_package("my-lib", "library", ocaml);
+end
+
+begin
+   ocaml.files = [ "main.ml" ];
+   ocaml.requires = [ "my-lib" ];
+   new_package( "my-program", "program", ocaml);
+end
+\end{verbatim}

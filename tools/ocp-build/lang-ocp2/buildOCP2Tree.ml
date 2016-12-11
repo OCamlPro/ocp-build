@@ -18,13 +18,8 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-
+open BuildValue.Types
 open StringCompat
-
-type location = {
-  loc_begin : Lexing.position;
-  loc_end : Lexing.position;
-}
 
 exception OCPExn of location * string * BuildValue.Types.value
 
@@ -44,6 +39,7 @@ and statement_expr =
   | StmtBlock of statement
   | StmtImport of expression
   | StmtTry of statement * (string * (string * statement)) list
+  | StmtFor of string * expression * statement
 
 and expression = {
   exp_expr : expression_expr;
@@ -52,7 +48,7 @@ and expression = {
 
 and expression_expr =
   | ExprIdent of string
-  | ExprField of expression * string
+  | ExprField of expression * expression
   | ExprCall of expression * expression list
   | ExprFunction of string list * statement
   | ExprRecord of (string * expression) list
@@ -60,3 +56,27 @@ and expression_expr =
   | ExprTuple of expression list
   | ExprValue of BuildValue.Types.value
   | ExprTry of expression * (string * (string * expression)) list
+
+(* Primitives directly emitted by the parser for operators *)
+
+let prim_not_name = "not" (* not and neg *)
+let prim_or_name = "or"
+let prim_and_name = "and"
+let prim_xor_name = "xor"
+
+let prim_identity_name = "identity"
+
+let prim_add_name = "add"
+let prim_sub_name = "sub"
+let prim_mul_name = "mul"
+let prim_div_name = "div"
+let prim_mod_name = "mod"
+
+let prim_lsl_name = "lsl"
+let prim_lsr_name = "lsr"
+let prim_lessthan_name = "lessthan"
+let prim_greaterthan_name = "greaterthan"
+let prim_lessequal_name = "lessequal"
+let prim_greaterequal_name = "greaterequal"
+let prim_equal_name = "equal"
+let prim_notequal_name = "notequal"

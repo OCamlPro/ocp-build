@@ -22,12 +22,20 @@ open StringCompat
 open BuildValue.Types
 open BuildOCP2Tree
 
-val fatal_error : BuildOCP2Tree.location -> ('a, unit, string, 'b) format4 -> 'a
-val warning : BuildOCP2Tree.location -> ('a, unit, string, unit) format4 -> 'a
+val fatal_error : BuildValue.Types.location ->
+  ('a, unit, string, 'b) format4 -> 'a
+val warning : location -> ('a, unit, string, unit) format4 -> 'a
 
 val raise_type_error :
-  BuildOCP2Tree.location ->
+  location ->
   string -> int -> string -> BuildValue.Types.value -> 'a
+
+val raise_bad_arity :
+  location ->
+  string -> int -> BuildValue.Types.value list -> 'a
+
+val ocp2_raise :
+  location -> string -> BuildValue.Types.value -> 'a
 
 module Init(S: sig
 

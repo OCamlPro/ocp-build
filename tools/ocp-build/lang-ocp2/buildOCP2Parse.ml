@@ -38,7 +38,7 @@ let lexer = Ocamllexer.make_lexer
       "begin"; "end"; "function"; "return";
       "true"; "false"; "if"; "then"; "else";
       "include"; "import";
-      "try"; "catch";
+      "try"; "catch"; "for"; "in";
     ]
 
 exception ParseError
@@ -99,6 +99,9 @@ let read_ocamlconf filename content =
 
       | Kwd "try" -> TRY
       | Kwd "catch" -> CATCH
+
+      | Kwd "for" -> FOR
+      | Kwd "in" -> IN
 
 
       | Ident s -> IDENT s

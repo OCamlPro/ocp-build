@@ -22,6 +22,13 @@
 open StringCompat
 
 module Types = struct
+
+
+  type location = {
+    loc_begin : Lexing.position;
+    loc_end : Lexing.position;
+  }
+
   type env = { env : value StringMap.t }
   and value =
   | VList of value list
@@ -30,7 +37,7 @@ module Types = struct
   | VTuple of value list
   | VBool of bool
   | VInt of int
-  | VFunction of (value list -> value)
+  | VFunction of (location -> value list -> value)
   | VPrim of string
 
 (* Just for compatibility: a plist is morally a
