@@ -22,16 +22,30 @@ open StringCompat
 open BuildValue.Types
 open BuildOCP2Tree
 
+val fatal_error : BuildOCP2Tree.location -> ('a, unit, string, 'b) format4 -> 'a
+val warning : BuildOCP2Tree.location -> ('a, unit, string, unit) format4 -> 'a
+
+val raise_type_error :
+  BuildOCP2Tree.location ->
+  string -> int -> string -> BuildValue.Types.value -> 'a
+
 module Init(S: sig
 
     type context
+
+    val define_package :
+      context ->
+      config ->
+      name:string ->
+      kind:string ->
+      unit
 
     val filesubst : (string * env list) StringSubst.M.subst
 
   end) : sig
   val primitives :
     (
-      (S.context -> config -> value list -> value) *
+      (location -> S.context -> config -> value list -> value) *
       string list
     ) StringMap.t ref
   val primitives_help : unit -> string list StringCompat.StringMap.t

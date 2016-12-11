@@ -19,10 +19,12 @@
   open BuildValue.Types
 open BuildOCP2Tree
 
-let symb_loc () = {
-  loc_begin = Parsing.symbol_start_pos ();
-  loc_end = Parsing.symbol_end_pos ();
-}
+let symb_loc () =
+  let l = {
+    loc_begin = Parsing.symbol_start_pos ();
+    loc_end = Parsing.symbol_end_pos ();
+  } in
+  l
 
 (* Add locations ! *)
 let mkstmt stmt_expr = { stmt_expr; stmt_loc = symb_loc (); }
@@ -91,6 +93,9 @@ let mkinfix op exp = mkexp (ExprCall(mkexp (ExprIdent op), exp))
 %token INCLUDE
 %token IMPORT
 
+%token TRY
+%token CATCH
+
 %token <string> IDENT
 
 %start main
@@ -103,19 +108,24 @@ main:
 ;
 
 statements:
-| statement statements { mkstmt( StmtSeq($1, $2) ) }
-|                      { mkstmt( StmtEmpty ) }
+| statement_semi statements { mkstmt( StmtSeq($1, $2) ) }
+|                           { mkstmt( StmtEmpty ) }
+;
+
+statement_semi:
+| statement                         { $1 }
+| statement_block                   { $1 }
 ;
 
 statement:
 | statement_no_semi SEMI               { $1 }
 | INCLUDE expr SEMI                  { mkstmt( StmtInclude ($2,
                                                               mkstmt StmtEmpty) ) }
-| INCLUDE expr ELSE statement        { mkstmt( StmtInclude ($2, $4) ) }
-| IF LPAREN expr RPAREN statement_no_if ELSE statement
-                            { mkstmt( StmtIfthenelse($3, $5, $7)) }
+| INCLUDE expr ELSE statement_semi    { mkstmt( StmtInclude ($2, $4) ) }
+| IF LPAREN expr RPAREN statement_no_if ELSE statement_semi
+                     { mkstmt( StmtIfthenelse($3, $5, $7)) }
 | IF LPAREN expr RPAREN statement_no_if_semi
-                            { mkstmt( StmtIfthenelse($3, $5, mkstmt StmtEmpty) ) }
+                     { mkstmt( StmtIfthenelse($3, $5, mkstmt StmtEmpty) ) }
 ;
 
 statement_no_if:
@@ -131,6 +141,18 @@ statement_no_if_semi:
 statement_block:
 | LBRACE statements RBRACE  { $2 }
 | BEGIN statements END      { mkstmt( StmtBlock $2 ) }
+| TRY statement_block catch catches
+                     { mkstmt (StmtTry($2, $3 :: $4) ) }
+;
+
+catch:
+| CATCH LPAREN STRING COMMA IDENT RPAREN statement_block
+    { ($3, ($5,$7) ) }
+;
+
+catches:
+|   {  []  }
+| catch catches { $1 :: $2 }
 ;
 
 statement_no_semi:

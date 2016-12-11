@@ -7,3 +7,76 @@ printer = function(arg1){ print(arg1); };
 ocaml.y = 2;
 
 printer(ocaml);
+
+
+x = 1;
+begin
+  x = 2;
+  printer(x);
+end
+printer(x);
+
+{
+  x = 3;
+  printer(x);
+}
+printer(x);
+
+try {
+  printer(x);
+} catch("any", exn){
+   printer(exn);
+}
+
+try {
+  raise("toto", "tutu");
+}
+catch("toto", exn){
+   print(1, exn);
+}
+catch("hello", exn){
+   print(2, exn);
+}
+catch("toto", exn){
+   print(3, exn);
+}
+
+try {
+  raise("hello", "tutu");
+}
+catch("toto", exn){
+   print(1, exn);
+}
+catch("hello", exn){
+   print(2, exn);
+}
+catch("toto", exn){
+   print(3, exn);
+}
+
+package("1", "library", ocaml);
+
+ocaml = {};
+begin
+  ocaml.files = [
+    "buildOCP2Tree.ml";
+    "buildOCP2Parser.mly";  (* (pp = []); *)
+    "buildOCP2Parse.ml";
+    "buildOCP2Prims.ml";
+    "buildOCP2Interp.ml"
+  ];
+  ocaml.requires = [ "ocplib-compat"; "ocplib-lang"; "ocp-build-misc" ];
+
+
+
+  package("ocp-build-lang-ocp2", "library", ocaml);
+
+
+
+end
+
+begin
+   ocaml.files = [ "eval.ml" ];
+   ocaml.requires = [ "ocp-build-lang-ocp2" ];
+   package( "ocp2-eval", "program", ocaml);
+end

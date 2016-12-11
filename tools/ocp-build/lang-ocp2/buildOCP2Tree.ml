@@ -26,6 +26,8 @@ type location = {
   loc_end : Lexing.position;
 }
 
+exception OCPExn of location * string * BuildValue.Types.value
+
 type statement = {
   stmt_expr : statement_expr;
   stmt_loc : location;
@@ -41,6 +43,7 @@ and statement_expr =
   | StmtReturn of expression option
   | StmtBlock of statement
   | StmtImport of expression
+  | StmtTry of statement * (string * (string * statement)) list
 
 and expression = {
   exp_expr : expression_expr;
@@ -56,3 +59,4 @@ and expression_expr =
   | ExprList of expression list
   | ExprTuple of expression list
   | ExprValue of BuildValue.Types.value
+  | ExprTry of expression * (string * (string * expression)) list

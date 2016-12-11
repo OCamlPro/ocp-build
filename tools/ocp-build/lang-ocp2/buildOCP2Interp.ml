@@ -21,6 +21,7 @@
 open StringCompat
 open BuildValue.Types
 open BuildOCP2Tree
+open BuildOCP2Prims
 
 module Eval(S: sig
 
@@ -42,7 +43,6 @@ module Eval(S: sig
 module Primitives = BuildOCP2Prims.Init(S)
 let primitives_help = Primitives.primitives_help
 
-
 let read_config_file filename =
   try
     let content = FileString.string_of_file filename in
@@ -55,18 +55,9 @@ let read_config_file filename =
 
 (* Before this line is exactly the same as in BuildOCPInterp.ml *)
 
-let message_loc kind loc =
-  Printf.kprintf (fun s ->
-      Printf.eprintf "File %s, line %d:\n"
-        loc.loc_begin.Lexing.pos_fname
-        loc.loc_begin.Lexing.pos_lnum;
-      Printf.eprintf "%s: %s\n%!" kind s;
-      exit 2)
+exception OCPReturn of BuildValue.Types.value
 
-let error loc = message_loc "Error" loc
-let warning loc = message_loc "Warning" loc
-
-exception Return of BuildValue.Types.value
+let ocp2_raise loc name v =  raise (OCPExn (loc, name, v))
 
 let rec eval_statement ctx config stmt =
   let loc = stmt.stmt_loc in
@@ -81,9 +72,9 @@ let rec eval_statement ctx config stmt =
       | ExprIdent s ->
         BuildValue.config_set config s v
       | ExprField( exp, field) ->
-          assign_field config exp [field, loc] v
+        assign_field config exp [field, loc] v
       | _ ->
-        error loc "set_field generic not implemented"
+        ocp2_raise loc "not-implemented" (VString "set-field generic")
     end
 
   | StmtReturn s_opt ->
@@ -91,15 +82,15 @@ let rec eval_statement ctx config stmt =
       | None -> VObject BuildValue.empty_env
       | Some v -> eval_expression ctx config v
     in
-    raise (Return v)
+    raise (OCPReturn v)
 
   | StmtExpr exp ->
     let (_ : value) = eval_expression ctx config exp in
     config
 
   | StmtBlock stmt ->
-      let (_ : config) = eval_statement ctx config stmt in
-      config
+    let (_ : config) = eval_statement ctx config stmt in
+    config
 
   | StmtImport expr ->
     begin
@@ -108,16 +99,17 @@ let rec eval_statement ctx config stmt =
         StringMap.fold (fun name v config ->
             BuildValue.config_set config name v
           ) env.env config
-      | _ ->
-        error loc "Import of not an object"
-      end
+      | v ->
+        raise_type_error loc "import" 1 "object" v
+    end
 
   | StmtInclude (file, ifelse) ->
     let file = eval_expression ctx config file in
     let filename =
       match file with
       | VString file -> file
-      | _ -> (error loc "string expected" : unit); exit 2
+      | v ->
+        raise_type_error loc "include" 1 "string" v
     in
     if Filename.check_suffix filename ".ocp2" then
       warning loc "avoid extension .ocp2 for file %S" filename;
@@ -128,7 +120,7 @@ let rec eval_statement ctx config stmt =
     in
     let (ast, digest) =
       match read_config_file filename with
-      None -> None, None
+        None -> None, None
       | Some (content, digest) ->
         S.new_file ctx filename digest;
         Some (BuildOCP2Parse.read_ocamlconf filename content),
@@ -151,43 +143,68 @@ let rec eval_statement ctx config stmt =
     end
 
   | StmtIfthenelse (cond, ifthen, ifelse) ->
-    match eval_expression ctx config cond with
-    | VBool true ->
-      eval_statement ctx config ifthen
-    | VBool false ->
-      eval_statement ctx config ifelse
-    | _ -> error loc "boolean expected"
+    begin
+      match eval_expression ctx config cond with
+      | VBool true ->
+        eval_statement ctx config ifthen
+      | VBool false ->
+        eval_statement ctx config ifelse
+      | v ->
+        raise_type_error loc "if" 1  "bool" v
+    end
+
+  | StmtTry (body, handlers) ->
+    begin
+      try
+        eval_statement ctx config body
+      with OCPExn (loc, name, v) as e ->
+      try
+        let (ident, handler) = List.assoc name handlers in
+        let config =
+          BuildValue.config_set config ident v
+        in
+        eval_statement ctx config handler
+      with Not_found ->
+        raise e
+    end
 
 and assign_field config e fields v =
   let loc = e.exp_loc in
-    match e.exp_expr with
-      | ExprIdent ident ->
-        let env = BuildValue.config_get config ident in
-        begin
-          match env with
-          | VObject env ->
-            BuildValue.config_set config ident
-              (assign_field_rec env fields v)
-          | _ -> error loc "object expected for assignment"
-        end
-      | ExprField (e, field) ->
-        assign_field config e ( (field, loc) :: fields) v
+  match e.exp_expr with
+  | ExprIdent ident ->
+    let env = try
+        BuildValue.config_get config ident
+      with Var_not_found _ -> VObject BuildValue.empty_env
+    in
+    begin
+      match env with
+      | VObject env ->
+        BuildValue.config_set config ident
+          (assign_field_rec env fields v)
       | _ ->
-        assert false
+        raise_type_error loc "set-field" 1  "object" env
+    end
+  | ExprField (e, field) ->
+    assign_field config e ( (field, loc) :: fields) v
+  | _ ->
+    assert false
 
 and assign_field_rec env fields v =
-    match fields with
-    | [] -> assert false
-    | [ field, loc ] ->
-      VObject (BuildValue.set env field v)
-    | (field, loc) :: fields ->
-      let v = BuildValue.get_local [env] field in
-      match v with
-      | VObject env ->
-        VObject (BuildValue.set env field
-                   (assign_field_rec env fields v))
-      | _ ->
-        error loc "object expected for assignment"
+  match fields with
+  | [] -> assert false
+  | [ field, loc ] ->
+    VObject (BuildValue.set env field v)
+  | (field, loc) :: fields ->
+    let v = try
+        BuildValue.get_local [env] field
+      with Var_not_found _ -> VObject BuildValue.empty_env
+    in
+    match v with
+    | VObject env ->
+      VObject (BuildValue.set env field
+                 (assign_field_rec env fields v))
+    | _ ->
+      raise_type_error loc "set-field-rec" (List.length fields) "object" v
 
 and eval_expression ctx config exp =
   let loc = exp.exp_loc in
@@ -201,8 +218,7 @@ and eval_expression ctx config exp =
         if StringMap.mem ident !Primitives.primitives then
           VPrim ident
         else
-          error loc "no variable %S" ident
-
+          raise (OCPExn (loc, "unknown-variable", VString ident))
     end
 
   | ExprField (v, field) ->
@@ -217,10 +233,10 @@ and eval_expression ctx config exp =
             if StringMap.mem field !Primitives.primitives then
               VPrim field
             else *)
-              error loc "no field %S" field
+            raise (OCPExn (loc, "unknown-field", VString field))
         end
       | _ ->
-        error loc "object expected"
+        raise_type_error loc "get-field" 1 "object" v
     end
 
   | ExprCall (f, args) ->
@@ -235,12 +251,12 @@ and eval_expression ctx config exp =
             try
               StringMap.find name !Primitives.primitives
             with Not_found ->
-              error loc "primitive %S not available" name
+              fatal_error loc "primitive %S not available" name
           in
-          f ctx config args
+          f loc ctx config args
         end
       | _ ->
-        error loc "function or primitive expected"
+        raise_type_error loc "apply" 1 "function" f
     end
 
   | ExprFunction (arg_names, body) ->
@@ -251,7 +267,7 @@ and eval_expression ctx config exp =
       try
         let (_ : config) = eval_statement ctx config body in
         VObject BuildValue.empty_env
-      with Return v -> v
+      with OCPReturn v -> v
     in
     VFunction f
 
@@ -267,6 +283,23 @@ and eval_expression ctx config exp =
 
   | ExprTuple vs ->
     VTuple (List.map (eval_expression ctx config) vs)
+
+
+  | ExprTry (body, handlers) ->
+    begin
+      try
+        eval_expression ctx config body
+      with OCPExn (loc, name, v) as e ->
+      try
+        let (ident, handler) = List.assoc name handlers in
+        let config =
+          BuildValue.config_set config ident v
+        in
+        eval_expression ctx config handler
+      with Not_found ->
+        raise e
+    end
+
 
 (* after this line is exactly the same as in BuildOCPInterp.ml *)
 

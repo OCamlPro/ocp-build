@@ -22,9 +22,61 @@ open StringCompat
 open BuildValue.Types
 open BuildOCP2Tree
 
+let fatal_error loc =
+  Printf.kprintf (fun s ->
+      Printf.eprintf "File %s, line %d:\n"
+        loc.loc_begin.Lexing.pos_fname
+        loc.loc_begin.Lexing.pos_lnum;
+      Printf.eprintf "Error: %s\n%!" s;
+      exit 2)
+
+let warning loc =
+  Printf.kprintf (fun s ->
+      Printf.eprintf "File %s, line %d:\n"
+        loc.loc_begin.Lexing.pos_fname
+        loc.loc_begin.Lexing.pos_lnum;
+      Printf.eprintf "Warning: %s\n%!" s
+    )
+
+
+let raise_type_error loc prim_name arg_num type_expected value_received =
+  raise (OCPExn (loc, "type-error",
+                 VTuple [VString prim_name;
+                         VInt arg_num;
+                         VString type_expected;
+                         value_received]))
+
+let raise_bad_arity loc prim_name nargs_expected args =
+  raise (OCPExn (loc, "bad-arity",
+                 VTuple [VString prim_name;
+                         VInt nargs_expected;
+                         VTuple args]))
+
+let prim_print loc ctx config args =
+  let b = Buffer.create 111 in
+  List.iter (fun arg ->
+      BuildValue.bprint_value b "" arg;
+    ) args;
+  Printf.eprintf "%s\n%!" (Buffer.contents b);
+  BuildValue.value []
+
+let prim_raise loc ctx config args =
+  match args with
+  | [VString name; v] ->
+    raise (OCPExn (loc, name, v))
+  | _ ->
+    raise_bad_arity loc "raise(string,any)" 2 args
+
 module Init(S: sig
 
     type context
+
+    val define_package :
+      context ->
+      config ->
+      name:string ->
+      kind:string ->
+      unit
 
     val filesubst : (string * env list) StringSubst.M.subst
 
@@ -33,27 +85,18 @@ module Init(S: sig
   let primitives = ref StringMap.empty
 
   let add_primitive s help
-      ( f : S.context -> config -> value list -> value) =
-    let f ctx config args =
+      ( f : location -> S.context -> config -> value list -> value)
+    =
+    let f loc ctx config args =
       try
-        f ctx config args
-      with e ->
-        Printf.eprintf "Warning: exception raised while running primitive %S\n%!" s;
+        f loc ctx config args
+      with
+      | OCPExn _ as e -> raise e
+      | e ->
+        warning loc "exception raised by primitive %S" s;
         raise e
     in
     primitives := StringMap.add s (f, help) !primitives
-
-  (*
-let add_function s help f =
-  let f _ env =
-    try
-      f [ env ] env
-    with e ->
-      Printf.eprintf "Warning: exception raised while running primitive %S\n%!" s;
-      raise e
-  in
-  primitives := StringMap.add s (f, help) !primitives
-*)
 
 let eprint_env indent env =
   let b = Buffer.create 1000 in
@@ -159,20 +202,32 @@ let _ =
     );
 
 *)
+    (*
+          if arity >= 0 &&
+             List.length args <> arity then
+            error loc "%s has arity %d" name arity;
+*)
+
+let varargs = -1
 
 let _ =
-  add_primitive "print" [
-    "Display its arguments"
+  add_primitive "print" [ "Display its arguments: print(args)"  ] prim_print;
+
+  add_primitive "raise" [
+    "Raise an exception with its argument: raise(\"exn\", arg);"
+  ] prim_raise;
+
+  add_primitive "new_package" [
+    "Create a new package: new_package(name, kind, ocaml)"
   ]
-    (fun ctx config args ->
-       let b = Buffer.create 111 in
-       List.iter (fun arg ->
-           BuildValue.bprint_value b "" arg;
-         ) args;
-       Printf.eprintf "%s\n%!" (Buffer.contents b);
-      BuildValue.value []
-    );
-;;
+    (fun loc ctx config args ->
+       match args with
+       | [VString name; VString kind; VObject config_env] ->
+         S.define_package ctx { config  with config_env } ~name ~kind;
+         VList []
+       | _ ->
+         raise_bad_arity loc "new_package(string,string,object)" 3 args
+    )
 
   (*
   add_function "exit" []

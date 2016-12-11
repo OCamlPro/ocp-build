@@ -115,7 +115,7 @@ let comment_start_pos = ref [];;
 
 }
 
-let blank = [' ' '\010' '\013' '\009' '\012']
+let blank = [' ' '\013' '\009' '\012']
 let firstidentchar = ['a'-'z' '\223'-'\246' '\248'-'\255' '_' 'A'-'Z' '\192'-'\214' '\216'-'\222']
 let identchar =
   ['A'-'Z' 'a'-'z' '_' '\192'-'\214' '\216'-'\246' '\248'-'\255' '\'' '0'-'9']
@@ -132,7 +132,13 @@ let float_literal =
   ['0'-'9']+ ('.' ['0'-'9']* )? (['e' 'E'] ['+' '-']? ['0'-'9']+)?
 
 rule token = parse
-    blank +
+  | '\n' {
+      lexbuf.Lexing.lex_curr_p <- {
+        lexbuf.Lexing.lex_curr_p with
+        Lexing.pos_lnum = lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum + 1 };
+      token lexbuf
+    }
+  | blank +
       { token lexbuf }
   | firstidentchar identchar*  { Some (find_keyword lexbuf) }
   | decimal_literal | hex_literal | oct_literal | bin_literal
