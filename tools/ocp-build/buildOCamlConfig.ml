@@ -385,7 +385,7 @@ let native_support = BuildValue.new_bool_option "native_support" true
 let byte_support = BuildValue.new_bool_option "byte_support" false
 
 
-let ocaml_config_version = BuildValue.new_strings_option "ocaml_version" []
+let ocaml_config_version = BuildValue.new_string_option "ocaml_version" "0"
 let ocaml_major_version = BuildValue.new_strings_option "ocaml_major_version" [ ]
 let ocaml_minor_version = BuildValue.new_strings_option "ocaml_minor_version" [ "00" ]
 let ocaml_point_version = BuildValue.new_strings_option "ocaml_point_version" [ "0" ]
@@ -430,7 +430,7 @@ let set_global_config cout =
       ocaml_config_found.set true;
       ocaml_config_ext_lib.set cfg.ocaml_ext_lib;
       ocaml_config_ext_obj.set cfg.ocaml_ext_obj;
-      ocaml_config_version.set [cfg.ocaml_version];
+      ocaml_config_version.set cfg.ocaml_version;
       ocaml_major_version.set [ cfg.ocaml_version_major ];
       ocaml_minor_version.set [ cfg.ocaml_version_minor ];
       ocaml_point_version.set [ cfg.ocaml_version_point ];

@@ -297,6 +297,7 @@ simpler_expr:
 | STRING                    { mkexp (ExprValue (VString $1)) }
 | INT                       { mkexp (ExprValue (VInt $1)) }
 | LBRACKET expr_semi_exprs_maybe_empty RBRACKET { mkexp (ExprList $2) }
+| DOT                       { mkexp  ExprEnv }
 ;
 
 expr_semi_exprs_maybe_empty:

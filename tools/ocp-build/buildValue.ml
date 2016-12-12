@@ -64,6 +64,69 @@ end
 
 open Types
 
+
+
+let iter_env f env =
+  StringMap.iter f env.env
+
+let rec
+    (*
+bprint_plist b indent list =
+  match list with
+    [] -> Printf.bprintf b "%s[]\n" indent
+  | list ->
+    Printf.bprintf b "%s[\n" indent;
+    List.iter (fun (s, env) ->
+      Printf.bprintf b "%s  %S\n" indent s;
+      if env <> BuildValue.empty_env then begin
+        Printf.bprintf b "%s  (\n" indent;
+        bprint_env b (indent ^ "  ") env;
+        Printf.bprintf b "%s  )\n" indent;
+      end
+    ) list;
+    Printf.bprintf b "%s]\n" indent;
+    ()
+
+      and *)
+    bprint_value b indent v =
+  match v with
+  | VString s -> Printf.bprintf b "%S" s
+  | VBool bool -> Printf.bprintf b "%b" bool
+  | VInt int -> Printf.bprintf b "%d" int
+  | VTuple [] -> assert false
+  | VTuple (v1 :: list) ->
+    bprint_value b indent v1;
+    List.iter (fun v2 ->
+        Printf.bprintf b ", ";
+        bprint_value b indent v2) list
+  | VObject env ->
+    Printf.bprintf b "{\n";
+    bprint_env b (indent^"  ") env;
+    Printf.bprintf b "}"
+  | VList [] ->
+    Printf.bprintf b "[]"
+  | VList list ->
+    Printf.bprintf b "[\n";
+    List.iter (fun v ->
+      Printf.bprintf b "%s" indent;
+      bprint_value b indent v;
+      Printf.bprintf b "\n") list;
+    Printf.bprintf b "]"
+  | VFunction _ -> Printf.bprintf b "function(...){...}"
+  | VPrim s -> Printf.bprintf b "primitive(%S)" s
+
+and bprint_env b indent env =
+  iter_env (fun var v ->
+    Printf.bprintf b "%s%s -> " indent var;
+    bprint_value b (indent^"  ") v;
+    Printf.bprintf b "\n"
+  ) env
+
+let string_of_value v =
+  let b = Buffer.create 1000 in
+  bprint_value b "" v;
+  Buffer.contents b
+
 let empty_env = { env = StringMap.empty }
 let global_env = ref StringMap.empty
 let set_global name v =
@@ -98,9 +161,14 @@ let prop_list v =
       match v with
       | VString s -> s, empty_env
       | VTuple [VString s; VObject env] -> s, env
-      | _ -> raise NotAPropertyList
+      | _ ->
+        Printf.eprintf "Not a property list element: %s\n%!"
+          (string_of_value v);
+        raise NotAPropertyList
     ) list
   | _ ->
+    Printf.eprintf "Not a property list: %s\n%!"
+      (string_of_value v);
     raise NotAPropertyList
 
 let value list =
@@ -217,63 +285,6 @@ let new_path_option name v =
     set = (fun v -> set_global name (plist_of_path v));
   }
     *)
-
-let iter_env f env =
-  StringMap.iter f env.env
-
-let rec
-    (*
-bprint_plist b indent list =
-  match list with
-    [] -> Printf.bprintf b "%s[]\n" indent
-  | list ->
-    Printf.bprintf b "%s[\n" indent;
-    List.iter (fun (s, env) ->
-      Printf.bprintf b "%s  %S\n" indent s;
-      if env <> BuildValue.empty_env then begin
-        Printf.bprintf b "%s  (\n" indent;
-        bprint_env b (indent ^ "  ") env;
-        Printf.bprintf b "%s  )\n" indent;
-      end
-    ) list;
-    Printf.bprintf b "%s]\n" indent;
-    ()
-
-      and *)
-    bprint_value b indent v =
-  match v with
-  | VString s -> Printf.bprintf b "%S" s
-  | VBool bool -> Printf.bprintf b "%b" bool
-  | VInt int -> Printf.bprintf b "%d" int
-  | VTuple [] -> assert false
-  | VTuple (v1 :: list) ->
-    bprint_value b indent v1;
-    List.iter (fun v2 ->
-        Printf.bprintf b ", ";
-        bprint_value b indent v2) list
-  | VObject env ->
-    Printf.bprintf b "{\n";
-    bprint_env b indent env;
-    Printf.bprintf b "}"
-  | VList [] ->
-    Printf.bprintf b "[]"
-  | VList list ->
-    Printf.bprintf b "[\n";
-    List.iter (fun v ->
-      Printf.bprintf b "%s" indent;
-      bprint_value b indent v;
-      Printf.bprintf b "\n") list;
-    Printf.bprintf b "]"
-  | VFunction _ -> Printf.bprintf b "function(...){...}"
-  | VPrim s -> Printf.bprintf b "primitive(%S)" s
-
-and bprint_env b indent env =
-  iter_env (fun var v ->
-    Printf.bprintf b "%s%s -> " indent var;
-    bprint_value b (indent^"  ") v;
-    Printf.bprintf b "\n"
-  ) env
-
 
 let empty_config = {
   config_env = empty_env;

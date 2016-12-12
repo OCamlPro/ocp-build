@@ -10,6 +10,7 @@ begin program "ocp-autoconf";
         "skeleton/ocp-autoconf.ac";
         "skeleton/Makefile";
         "skeleton/build.ocp";
+        "skeleton/build.ocp2";
         "skeleton/.gitignore";
         "skeleton/LICENSE";
         "skeleton/push-opam.sh";
@@ -22,7 +23,8 @@ begin program "ocp-autoconf";
         "skeleton/autoconf/Makefile.rules";
         "skeleton/autoconf/.gitignore";
 
-        "skeleton/autoconf/config.trailer";
+        "skeleton/autoconf/config.ocpgen.trailer";
+        "skeleton/autoconf/config.ocp2gen.trailer";
         "skeleton/autoconf/configure.ocaml";
         "skeleton/autoconf/configure.trailer";
 

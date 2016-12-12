@@ -4474,7 +4474,7 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
 
 
 
-ac_config_files="$ac_config_files Makefile.config config.ocpgen ocaml-config.h"
+ac_config_files="$ac_config_files Makefile.config config.ocpgen config.ocp2gen ocaml-config.h"
 
 cat >confcache <<\_ACEOF
 # This file is a shell script that caches the results of configure
@@ -5184,6 +5184,7 @@ do
   case $ac_config_target in
     "Makefile.config") CONFIG_FILES="$CONFIG_FILES Makefile.config" ;;
     "config.ocpgen") CONFIG_FILES="$CONFIG_FILES config.ocpgen" ;;
+    "config.ocp2gen") CONFIG_FILES="$CONFIG_FILES config.ocp2gen" ;;
     "ocaml-config.h") CONFIG_FILES="$CONFIG_FILES ocaml-config.h" ;;
 
   *) as_fn_error $? "invalid argument: \`$ac_config_target'" "$LINENO" 5;;

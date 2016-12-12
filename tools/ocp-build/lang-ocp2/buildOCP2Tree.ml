@@ -56,6 +56,7 @@ and expression_expr =
   | ExprTuple of expression list
   | ExprValue of BuildValue.Types.value
   | ExprTry of expression * (string * (string * expression)) list
+  | ExprEnv
 
 (* Primitives directly emitted by the parser for operators *)
 

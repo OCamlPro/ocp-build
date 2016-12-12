@@ -262,10 +262,10 @@ and eval_expression ctx config exp =
 
   | ExprField (v, field) ->
     let v = eval_expression ctx config v in
-    let field = eval_field ctx config field in
     begin
-      match v, field with
-      | VObject env, field ->
+      match v with
+      | VObject env ->
+        let field = eval_field ctx config field in
         begin try
             BuildValue.get_local [env] field
           with Var_not_found _ ->
@@ -275,9 +275,26 @@ and eval_expression ctx config exp =
             else *)
             raise (OCPExn (loc, "unknown-field", VString field))
         end
+      | VList list ->
+        let field = eval_expression ctx config field in
+        begin
+          match field with
+          | VInt n ->
+            (try
+               List.nth list n
+             with _ ->
+               ocp2_raise loc "invalid-list-access"
+                 (VTuple [field;v])
+            )
+          | _ ->
+            raise_type_error loc "%get-field(list,int)" 1 "object" v
+        end
+
       | _ ->
-        raise_type_error loc "%get-field(object,index)" 1 "object" v
+        raise_type_error loc "%get-field(object|list,index)" 1 "object" v
     end
+
+  | ExprEnv -> VObject config.config_env
 
   | ExprCall (f, args) ->
     let f = eval_expression ctx config f in

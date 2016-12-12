@@ -47,7 +47,7 @@ val libdirs : (string * string) list ref
    TODO: Maybe we could even attach
   these values to a particular compiler, and cache them so that we
    can load them each time that compiler is used.. *)
-val ocaml_config_version : string list source_option
+val ocaml_config_version : string source_option
 val ocaml_config_system : string list source_option
 val ocaml_config_architecture :  string list source_option
 val ocaml_config_ext_obj :  string source_option

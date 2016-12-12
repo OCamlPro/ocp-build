@@ -169,7 +169,7 @@ let ocaml_version_greater_than version options =
   ocaml_version >= version
 
 let add_bin_annot_argument cmd options =
-  if ocaml_version_greater_than [ "4" ] options &&
+  if ocaml_version_greater_than "4" options &&
      BuildValue.get_bool_with_default options binannot_attr true
   then
     add_command_args cmd [S "-bin-annot" ]

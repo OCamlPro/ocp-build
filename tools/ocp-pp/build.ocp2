@@ -1,0 +1,70 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                              OCamlPro TypeRex                          *)
+(*                                                                        *)
+(*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
+(*   This file is distributed under the terms of the GPL v3.0             *)
+(*      (GNU Public Licence version 3.0).                                 *)
+(*                                                                        *)
+(*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
+(*                                                                        *)
+(*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       *)
+(*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES       *)
+(*  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND              *)
+(*  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS   *)
+(*  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN    *)
+(*  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN     *)
+(*  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE      *)
+(*  SOFTWARE.                                                             *)
+(**************************************************************************)
+
+if(ocaml_version = "4.01.0+ocp1" || ocaml_version = "4.02.1+ocp1"){
+  ocaml.enabled = false;
+}
+
+begin
+  ocaml.version = package_version;
+  ocaml.files = [];
+  if( ocaml_version < "4.02" ){
+    ocaml.files += packer( "Ocpp_version", [
+
+      "compat/4.00.0/config.ml";
+      "compat/4.00.0/terminfo.ml";
+      "compat/4.00.0/misc.ml";
+      "compat/4.00.0/warnings.ml";
+      "compat/4.00.0/location.ml";
+      "compat/4.00.0/syntaxerr.ml";
+      "compat/4.00.0/longident.ml";
+
+      "compat/4.00.0/stringCompat.ml";
+      "compat/4.00.0/parser.ml";
+      "compat/4.00.0/lexer.mll", { pp = [] };
+      "compat/4.00.0/compat.ml";
+    ]);
+  } else {
+    if( ocaml_version < "4.02.3" ) {
+      ocaml.files += [ "compat/4.02.0/ocpp_version.ml" ];
+    } else {
+      if( ocaml_version < "4.03" ) {
+        ocaml.files += [ "compat/4.02.3/ocpp_version.ml" ];
+      } else {
+        if( ocaml_version < "4.04" ){
+          ocaml.files += [ "compat/4.03.0/ocpp_version.ml" ];
+        } else {
+          ocaml.files += [ "compat/4.04.0/ocpp_version.ml" ];
+        }
+      }
+     }
+     ocaml.requires = [  "compiler-libs.common" ];
+  }
+
+  ocaml.files += [
+    "versioning.ml";
+    "ocpp_parser.mly", { pp = [] };
+    "ocpp_types.ml";
+    "ocpp.ml";
+    "main.ml";
+  ];
+
+  new_package( "ocp-pp", "program", ocaml);
+end

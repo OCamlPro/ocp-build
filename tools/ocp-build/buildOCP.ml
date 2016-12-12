@@ -1249,57 +1249,60 @@ let scan_root root_dir =
   let blacklist = ref StringSet.empty in
 
   let queue = Stack.create () in
-  Stack.push (File.to_string root_dir) queue;
+
+  let push_dir filename =
+    let c = {
+      option_skip = false;
+      option_maxversion = 2;
+    } in
+    let ocp_file = Filename.concat filename ".ocp-build" in
+    if Sys.file_exists ocp_file then load_dot_ocpbuild ocp_file c;
+    if not c.option_skip then begin
+      Stack.push filename queue;
+      let ocp2_file = Filename.concat filename "build.ocp2" in
+      if c.option_maxversion = 1 then begin
+        blacklist := StringSet.add ocp2_file !blacklist
+      end else begin
+        if Sys.file_exists ocp2_file then
+          blacklist := StringSet.add
+              (Filename.concat filename "build.ocp") !blacklist
+      end
+    end
+  in
+
+  push_dir (File.to_string root_dir);
   while not (Stack.is_empty queue) do
     try
       let dirname = Stack.pop queue in
       let files = Sys.readdir dirname in
       Array.sort compare files;
       Array.iter (fun basename ->
-        let filename = Filename.concat dirname basename in
-        if (try Sys.is_directory filename with _ -> false) then begin
+          let filename = Filename.concat dirname basename in
+          if (try Sys.is_directory filename with _ -> false) then begin
 
-          let basename = Filename.basename filename in
-          let initial = basename.[0] in
-          if initial = '.' || initial = '_' ||
-             Sys.file_exists (Filename.concat filename ".ocpstop") then
-            () (* ignore directory *)
-          else begin
-            let c = {
-              option_skip = false;
-              option_maxversion = 2;
-            } in
-            let ocp_file = Filename.concat filename ".ocp-build" in
-            if Sys.file_exists ocp_file then load_dot_ocpbuild ocp_file c;
-            if not c.option_skip then begin
-              Stack.push filename queue;
-              let ocp2_file = Filename.concat filename "build.ocp2" in
-              if c.option_maxversion = 1 then begin
-                blacklist := StringSet.add ocp2_file !blacklist
-              end else begin
-                if Sys.file_exists ocp2_file then
-                  blacklist := StringSet.add
-                      (Filename.concat filename "build.ocp") !blacklist
+            let basename = Filename.basename filename in
+            let initial = basename.[0] in
+            if initial = '.' || initial = '_' ||
+               Sys.file_exists (Filename.concat filename ".ocpstop") then
+              () (* ignore directory *)
+            else
+              push_dir filename
+          end else
+            let basename = Filename.basename filename in
+            match basename.[0] with
+            | 'a'..'z' | 'A'..'Z' | '0'..'9' ->
+              if not (StringSet.mem filename !blacklist) then begin
+                if Filename.check_suffix filename ".ocp" then
+                  let file = File.of_string filename in
+                  ocp_files := file :: !ocp_files
+                else
+                if basename = "build.ocp2" then
+                  let file = File.of_string filename in
+                  ocp_files := file :: !ocp_files
+                else
+                  ()
               end
-            end
-          end
-
-        end else
-          let basename = Filename.basename filename in
-          match basename.[0] with
-          | 'a'..'z' | 'A'..'Z' | '0'..'9' ->
-            if not (StringSet.mem filename !blacklist) then begin
-              if Filename.check_suffix filename ".ocp" then
-                let file = File.of_string filename in
-                ocp_files := file :: !ocp_files
-              else
-              if basename = "build.ocp2" then
-                let file = File.of_string filename in
-                ocp_files := file :: !ocp_files
-              else
-                ()
-            end
-          | _ -> ()
+            | _ -> ()
         ) files;
     with exn ->
       Printf.eprintf "Exception %s\n%!" (Printexc.to_string exn)

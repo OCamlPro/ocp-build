@@ -18,6 +18,34 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+ocaml.exists = true;
+ocaml.bytelink = [];
+ocaml.asmlink = [];
+
+set_default = function(env, name, default){
+    try {
+      env[name];
+    }
+    catch("unknown-field", arg){
+        env[name] = default;
+    }
+    return env;
+  };
+
+ocaml_link = function(ocaml,flags){
+  ocaml = set_default(ocaml, "link", []);
+  ocaml = set_default(ocaml, "bytelink", []);
+  ocaml = set_default(ocaml, "asmlink", []);
+  ocaml.link += flags;
+  ocaml.bytelink += flags;
+  ocaml.asmlink += flags;
+  return ocaml;
+};
+
+OCaml.link = ocaml_link;
+
+ocaml = OCaml.link(ocaml, [ "-g" ]);
+
 ocaml_library = function(name,env){
 (*    print("   declare library ", name, env); *)
     new_package(name, "library", env);

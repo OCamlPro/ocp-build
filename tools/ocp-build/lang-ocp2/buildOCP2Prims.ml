@@ -254,6 +254,12 @@ let _ =
       match args with
       | [ VInt n1; VInt n2 ] -> VInt (n1 + n2)
       | [ VList l1; VList l2 ] -> VList (l1 @ l2)
+      | [ VString s1; VString s2 ] -> VString (s1 ^ s2)
+      | [ VString s; v ] -> VString (s ^ (BuildValue.string_of_value v))
+      | [ VObject env1; VObject env2 ] ->
+        VObject (StringMap.fold (fun s v env ->
+            BuildValue.set env s v
+          ) env2.env env1)
       | _ -> raise_bad_arity loc "add(any,any)" 2 args
     );
 
@@ -359,7 +365,7 @@ let _ =
          raise_bad_arity loc "new_package(string,string,object)" 3 args
     );
 
-  add_primitive "pack" [
+  add_primitive "packer" [
     "pack(string[,pack_env], list-of-strings)"
   ] (fun loc ctx config args ->
       let packmodname, pack_env, files =

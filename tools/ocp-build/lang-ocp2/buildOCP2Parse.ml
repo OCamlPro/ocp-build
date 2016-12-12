@@ -39,6 +39,7 @@ let lexer = Ocamllexer.make_lexer
       "true"; "false"; "if"; "then"; "else";
       "include"; "import";
       "try"; "catch"; "for"; "in";
+      "+"; "-"; "*"; "/";
     ]
 
 exception ParseError
@@ -82,6 +83,12 @@ let read_ocamlconf filename content =
       | Kwd "==" -> EQUALEQUAL
       | Kwd "&&" -> AMPERAMPER
       | Kwd "||" -> BARBAR
+
+      | Kwd "+" -> PLUS
+      | Kwd "-" -> MINUS
+      | Kwd "*" -> STAR
+      | Kwd "/" -> DIVIDE
+      | Kwd "%" -> PERCENT
 
       | Kwd "begin" -> BEGIN
       | Kwd "end" -> END
