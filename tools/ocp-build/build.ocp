@@ -23,6 +23,15 @@ authors = [ "Fabrice LE FESSANT <fabrice.le_fessant@ocamlpro.com>" ]
 license = [ "GPLv3" ]
 version = package_version
 
+ocaml = {
+  bytecomp = [];
+  bytelink = [];
+  asmcomp = [];
+  asmlink = [];
+} + ocaml;
+
+ocaml.debug = true;
+
 (* Only install the ocp-build, so set install=true in it *)
 install = false
 

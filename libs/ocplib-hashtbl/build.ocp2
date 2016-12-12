@@ -1,0 +1,5 @@
+begin
+  ocaml.version = autoconf.package_version;
+  ocaml.files = [ "fastHashtbl.ml" ];
+  new_package("ocplib-hashtbl", "library", ocaml);
+end

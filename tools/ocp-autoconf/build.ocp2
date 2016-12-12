@@ -1,0 +1,47 @@
+
+begin
+
+  ocaml.version = autoconf.package_version;
+  ocaml.files = [
+    "autoconfVersion.ml", { ocp2ml = true };
+    "autoconfFiles.ml", {file2string = [
+
+        "skeleton/configure";
+        "skeleton/ocp-autoconf.ac";
+        "skeleton/Makefile";
+        "skeleton/build.ocp";
+        "skeleton/build.ocp2";
+        "skeleton/.gitignore";
+        "skeleton/LICENSE";
+        "skeleton/push-opam.sh";
+        "skeleton/.travis.yml";
+        "skeleton/.travis-install.sh";
+        "skeleton/.travis-ci.sh";
+
+        "skeleton/autoconf/m4/ax_compare_version.m4";
+        "skeleton/autoconf/m4/ocaml.m4";
+        "skeleton/autoconf/Makefile.rules";
+        "skeleton/autoconf/.gitignore";
+
+        "skeleton/autoconf/config.ocpgen.trailer";
+        "skeleton/autoconf/config.ocp2gen.header";
+        "skeleton/autoconf/config.ocp2gen.trailer";
+        "skeleton/autoconf/configure.ocaml";
+        "skeleton/autoconf/configure.trailer";
+      ] };
+    "autoconfArgs.ml";
+    "autoconfFS.ml";
+    "autoconfCommon.ml";
+    "autoconfGlobalConfig.ml";
+    "autoconfProjectConfig.ml";
+    "autoconfAutoconf.ml";
+    "autoconfOpam.ml";
+    "autoconfMain.ml";
+  ];
+  ocaml.requires = [
+    "ocplib-file";
+    "ocplib-config";
+  ] + string_compat;
+
+   new_package("ocp-autoconf","program", ocaml);
+end

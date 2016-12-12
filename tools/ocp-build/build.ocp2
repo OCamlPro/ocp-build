@@ -59,7 +59,7 @@ ocaml.copyright = "OCamlPro/INRIA 2011-2013";
 ocaml.authors = "Fabrice LE FESSANT <fabrice.le_fessant@ocamlpro.com>";
 ocaml.license = "GPLv3";
 try {
-  ocaml.version = package_version;
+  ocaml.version = autoconf.package_version;
 } catch("unknown-variable",arg) {
   print("package_version not defined\n");
   ocaml.version = "1.0";

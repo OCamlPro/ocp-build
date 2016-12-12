@@ -23,7 +23,7 @@ if(ocaml_version = "4.01.0+ocp1" || ocaml_version = "4.02.1+ocp1"){
 }
 
 begin
-  ocaml.version = package_version;
+  ocaml.version = autoconf.package_version;
   ocaml.files = [];
   if( ocaml_version < "4.02" ){
     ocaml.files += packer( "Ocpp_version", [

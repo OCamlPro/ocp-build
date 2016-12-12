@@ -19,18 +19,38 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-begin library "ocplib-unix"
-  version = package_version
-  files = [
-    "minUnix.ml" "minUnix_c.c"
-    "onlyUnix.ml" "onlyUnix_c.c"
-    "onlyWin32.ml" "onlyWin32_c.c"
-  ]
-  if system = "win64" then {
-    requires = [ "unix" ]
-    link = [ "-cclib"; "user32.lib"; ]
-  } else {
-(* We require "Unix", but do not use it directly !!! *)
-    requires = [ "unix" string_compat ]
+ocaml.version = autoconf.package_version;
+
+try { generated; } catch("unknown-variable", arg){ generated = false; }
+
+ocaml = { pp_requires = [] } + ocaml;
+
+if( ocaml_version = "4.01.0+ocp1" || ocaml_version = "4.02.1+ocp1" )
+  begin
+    ocaml.files = [];
+    ocaml.requires = [];
+    new_package( "ocplib-compat", "library", ocaml);
+  end
+else {
+  if( generated ) begin
+        new_package("ocp-pp","program",{
+            generated = true;
+            files = [];
+            requires = [] });
+      end
+
+  begin
+    ocaml.files = [ "stringCompat.ml" ];
+    ocaml.pp = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
+    ocaml.requires = [ "ocp-pp" ];
+    ocaml.pp_requires += [ "ocp-pp:byte" ];
+    ocaml.pp_deps = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
+    new_package( "ocplib-compat", "library", ocaml);
+  end
+
+  begin
+      ocaml.is_toplevel = true;
+      ocaml.requires = [ "ocplib-compat" ];
+      new_package( "ocplib-compat-top", "program", ocaml);
+  end
 }
-end

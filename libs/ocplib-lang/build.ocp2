@@ -19,18 +19,40 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-begin library "ocplib-unix"
-  version = package_version
-  files = [
-    "minUnix.ml" "minUnix_c.c"
-    "onlyUnix.ml" "onlyUnix_c.c"
-    "onlyWin32.ml" "onlyWin32_c.c"
-  ]
-  if system = "win64" then {
-    requires = [ "unix" ]
-    link = [ "-cclib"; "user32.lib"; ]
-  } else {
-(* We require "Unix", but do not use it directly !!! *)
-    requires = [ "unix" string_compat ]
-}
+
+
+
+begin
+  ocaml.version = autoconf.package_version;
+
+  ocaml.files = [
+    "ocpPervasives.ml";
+    "ocpList.ml";
+    "ocpString.ml";
+    "ocpStream.ml";
+    "ocpGenlex.ml";
+    "ocpHashtbl.ml";
+    "ocpDigest.ml";
+    "ocpArray.ml";
+    "option.ml";
+    "intMap.ml";
+    "intSet.ml";
+    "stringMap.ml";
+    "stringSet.ml";
+    "toposort.ml";
+    "linearToposort.ml";
+    "ocamllexer.mll", { pp = [] };
+    "trie.ml";
+    "ocpLang.ml";
+    "stringSubst.ml";
+    "manpage.ml";
+    "stringTemplate.ml";
+    "reentrantBuffers.ml";
+  ];
+
+  ocaml.requires = [ "ocplib-debug" ] +  string_compat ;
+
+  new_package( "ocplib-lang", "library", ocaml);
 end
+
+install = false;

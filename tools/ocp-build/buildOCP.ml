@@ -202,7 +202,9 @@ let package_type_of_string kind =
   | "objects" -> ObjectsPackage
   | "test" -> TestPackage
   | "rules" -> RulesPackage
-  | _ -> assert false
+  | _ ->
+    Printf.eprintf "Error: inexistent kind %S for package\n%!" kind;
+    assert false
 
 module OCP_arg = struct
 

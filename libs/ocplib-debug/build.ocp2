@@ -19,18 +19,10 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-begin library "ocplib-unix"
-  version = package_version
-  files = [
-    "minUnix.ml" "minUnix_c.c"
-    "onlyUnix.ml" "onlyUnix_c.c"
-    "onlyWin32.ml" "onlyWin32_c.c"
-  ]
-  if system = "win64" then {
-    requires = [ "unix" ]
-    link = [ "-cclib"; "user32.lib"; ]
-  } else {
-(* We require "Unix", but do not use it directly !!! *)
-    requires = [ "unix" string_compat ]
-}
+
+
+begin   
+  ocaml.version = autoconf.package_version;
+  ocaml.files = [ "debugVerbosity.ml"; "debugTyperex.ml" ];
+  new_package( "ocplib-debug", "library", ocaml);
 end

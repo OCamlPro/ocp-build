@@ -19,18 +19,23 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-begin library "ocplib-unix"
-  version = package_version
-  files = [
-    "minUnix.ml" "minUnix_c.c"
-    "onlyUnix.ml" "onlyUnix_c.c"
-    "onlyWin32.ml" "onlyWin32_c.c"
-  ]
-  if system = "win64" then {
-    requires = [ "unix" ]
-    link = [ "-cclib"; "user32.lib"; ]
+system = system[0];
+
+begin
+  ocaml.version = autoconf.package_version;
+  ocaml.files = [
+    "minUnix.ml"; "minUnix_c.c";
+    "onlyUnix.ml"; "onlyUnix_c.c";
+    "onlyWin32.ml"; "onlyWin32_c.c";
+  ];
+
+  if( system = "win64" ) {
+    ocaml.requires = [ "unix" ];
+    ocaml.link = [ "-cclib"; "user32.lib"; ];
   } else {
 (* We require "Unix", but do not use it directly !!! *)
-    requires = [ "unix" string_compat ]
-}
+    ocaml.requires = [ "unix" ] + string_compat;
+  }
+
+   new_package( "ocplib-unix", "library", ocaml);
 end
