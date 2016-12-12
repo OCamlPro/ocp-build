@@ -24,6 +24,7 @@ begin program "ocp-autoconf";
         "skeleton/autoconf/.gitignore";
 
         "skeleton/autoconf/config.ocpgen.trailer";
+        "skeleton/autoconf/config.ocp2gen.header";
         "skeleton/autoconf/config.ocp2gen.trailer";
         "skeleton/autoconf/configure.ocaml";
         "skeleton/autoconf/configure.trailer";

@@ -389,19 +389,25 @@ let () =
        AutoconfFS.close_file oc;
 
        let oc = AutoconfFS.create_file "autoconf/config.ocp2gen.in" in
+
+       AutoconfFS.output_string oc
+         (AutoconfCommon.find_content
+            "skeleton/autoconf/config.ocp2gen.header");
+
        List.iter (function
            | (_var, None)-> ()
            | (var, Some name) ->
-             AutoconfFS.fprintf oc "%s=\"@%s@\";\n" name var;
+             AutoconfFS.fprintf oc "  %s=\"@%s@\";\n" name var;
          ) config_vars;
 
        List.iter (fun var ->
-           AutoconfFS.fprintf oc "%s = @%s@;\n" (String.lowercase var) var
+           AutoconfFS.fprintf oc "  %s = @%s@;\n" (String.lowercase var) var
          ) bool_vars;
 
-       AutoconfFS.fprintf oc "autoconf_dir = \"@PACKAGE_NAME@-autoconf-dir\";\n";
-       AutoconfFS.output_string oc (AutoconfCommon.find_content
-                                      "skeleton/autoconf/config.ocp2gen.trailer");
+       AutoconfFS.fprintf oc "  autoconf_dir = \"@PACKAGE_NAME@-autoconf-dir\";\n";
+       AutoconfFS.output_string oc
+         (AutoconfCommon.find_content
+            "skeleton/autoconf/config.ocp2gen.trailer");
        AutoconfFS.close_file oc;
 
 

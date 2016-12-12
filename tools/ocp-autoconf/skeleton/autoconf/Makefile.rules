@@ -33,6 +33,7 @@ ocp-lint-distclean:
 ocp-autoconf-distclean:
 	rm -f autoconf/Makefile.config
 	rm -f autoconf/config.ocpgen
+	rm -f autoconf/config.ocp2gen
 	rm -f autoconf/config.status
 	rm -f autoconf/config.log
 	rm -f autoconf/ocaml-config.h

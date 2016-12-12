@@ -1,4 +1,7 @@
 
+}; (* end of "autoconf = {" *)
+
+ocaml.exists = true;
 ocaml = { comp = [] } + ocaml;
 
 if( ocaml_use_bin_annot && ocaml_version >= "4.00" ) {
