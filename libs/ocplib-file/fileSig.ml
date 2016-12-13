@@ -118,6 +118,7 @@ Operations on filenames
   val concat : t -> t -> t
   val is_absolute : t -> bool
   val is_relative : t -> bool
+  val is_implicit : t -> bool
 
   val add_suffix : t -> string -> t
   val check_suffix : t -> string -> bool
