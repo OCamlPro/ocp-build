@@ -129,6 +129,9 @@ statement:
                      { mkstmt( StmtIfthenelse($3, $5, $7)) }
 | IF LPAREN expr RPAREN statement_no_if_semi
                      { mkstmt( StmtIfthenelse($3, $5, mkstmt StmtEmpty) ) }
+| FUNCTION lhs_expr LPAREN ident_args RPAREN LBRACE statements RBRACE
+                         { mkstmt (StmtAssign ($2,
+                                               mkexp( ExprFunction($4,$7) ))) }
 ;
 
 statement_no_if:

@@ -21,7 +21,13 @@
 
 ocaml.version = autoconf.package_version;
 
-try { generated; } catch("unknown-variable", arg){ generated = false; }
+function set_default(env, varname, default){
+    try { return env[varname]; }
+    catch("unknown-field", arg){ return default; }
+}
+
+generated = set_default(., "generated", false);
+(* try { generated; } catch("unknown-variable", arg){ generated = false; } *)
 
 ocaml = { pp_requires = [] } + ocaml;
 

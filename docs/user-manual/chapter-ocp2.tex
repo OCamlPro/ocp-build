@@ -70,12 +70,22 @@ at their creation site, not at their execution site.
 For example, in the following example, the program prints \verb+1+:
 \begin{verbatim}
 x = 1;
-f = function(){ return x; };
+function f(){ return x; }
 x = 2;
 print(f());
 \end{verbatim}
 
 The value returned by a function is specified by a {\tt return} statement.
+
+Functions are first order values, i.e. they can be defined by expressions,
+and manipulated as any other value:
+\begin{verbatim}
+function incr(x){ return x+1; }
+apply = function(f, arg){ return f(arg); };
+print(apply(incr, 3));
+\end{verbatim}
+
+
 
 \section{Control Flow}
 
@@ -133,6 +143,11 @@ An exception is always a tuple containing a string identifier and an
 argument, so each {\tt catch} will only catch exceptions with the same
 string identifier, and bind the exception argument to the provided
 variable name in the body (and that variable will escape the handler).
+
+The {\tt raise} primitive can raise a user-defined exception in user code:
+\begin{verbatim}
+raise("my-exception", "Message or any other value");
+\end{verbatim}
 
 \section{Using OCP2 to describe packages}
 
