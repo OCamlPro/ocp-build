@@ -40,7 +40,8 @@ let load_META_files pj ocamllib top_dirname =
       Printf.eprintf "filename=%S\n%!" filename;
     *)
     try
-      let meta = MetaParser.parse_file meta_filename in
+      let p = MetaParser.parse_file meta_filename in
+      let meta = MetaFile.meta_of_package p in
       if verbose 4 then
         Printf.eprintf "Loaded %S\n%!" meta_filename;
 

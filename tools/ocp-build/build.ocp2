@@ -143,10 +143,10 @@ end
 
 begin
   ocaml.files = [ "metaTypes.ml";
-                "metaLexer.mll", { pp =[] };
-                "metaFile.ml";
-                "metaParser.ml";
-              "metaConfig.ml";
+                  "metaLexer.mll", { pp =[] };
+                  "metaParser.ml"; (* load to raw version of META file *)
+                  "metaConfig.ml"; (* detect ocamlfind search path *)
+                  "metaFile.ml";   (* for interpreted version of META file *)
           ];
   ocaml.requires = [ "ocp-build-misc" ];
   ocaml_library( "ocplib-ocamlfind", ocaml);

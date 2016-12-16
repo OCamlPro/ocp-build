@@ -19,4 +19,7 @@
 (**************************************************************************)
 
 
-val load_config : unit -> string list
+(* [load_config ()] calls "ocamlfind" to load its search path.
+   [load_config ~ocamlfind ()] can be used to specify a specific
+   ocamlfind executable. *)
+val load_config : ?ocamlfind:string list -> unit -> string list

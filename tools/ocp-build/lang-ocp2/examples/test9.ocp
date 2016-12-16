@@ -1,3 +1,0 @@
-incr = function(x){ return x+1; };
-function apply(f, arg){ return f(arg); }
-print(apply(incr, 3));
