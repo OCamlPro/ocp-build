@@ -38,7 +38,7 @@ let scan_directory f directory =
         let filename = Filename.concat dirname basename in
         if (try
               f dirname basename filename;
-              true
+              Sys.is_directory filename
           with
           | IgnoreDirectory -> false
           | _ -> true) then

@@ -1,15 +1,16 @@
 
-begin program "ocp-autoconf";
+begin
 
-  version = package_version
-  files = [
-    "autoconfVersion.ml" (ocp2ml);
-    "autoconfFiles.ml" (file2string = [
+  ocaml.version = autoconf.package_version;
+  ocaml.files = [
+    "autoconfVersion.ml", { ocp2ml = true };
+    "autoconfFiles.ml", {file2string = [
 
         "skeleton/configure";
         "skeleton/ocp-autoconf.ac";
         "skeleton/Makefile";
         "skeleton/build.ocp";
+        "skeleton/build.ocp2";
         "skeleton/.gitignore";
         "skeleton/LICENSE";
         "skeleton/push-opam.sh";
@@ -22,11 +23,12 @@ begin program "ocp-autoconf";
         "skeleton/autoconf/Makefile.rules";
         "skeleton/autoconf/.gitignore";
 
-        "skeleton/autoconf/config.trailer";
+        "skeleton/autoconf/config.ocpgen.trailer";
+        "skeleton/autoconf/config.ocp2gen.header";
+        "skeleton/autoconf/config.ocp2gen.trailer";
         "skeleton/autoconf/configure.ocaml";
         "skeleton/autoconf/configure.trailer";
-
-      ]);
+      ] };
     "autoconfArgs.ml";
     "autoconfFS.ml";
     "autoconfCommon.ml";
@@ -36,10 +38,10 @@ begin program "ocp-autoconf";
     "autoconfOpam.ml";
     "autoconfMain.ml";
   ];
-  requires = [
+  ocaml.requires = [
     "ocplib-file";
     "ocplib-config";
-    string_compat
-  ];
+  ] + string_compat;
 
+   new_package("ocp-autoconf","program", ocaml);
 end

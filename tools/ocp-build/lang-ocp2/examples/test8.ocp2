@@ -1,0 +1,8 @@
+
+x = { a = 1; a = 2 };
+y = x + { a = 3; a = 4 };
+print(x);
+print(y);
+
+z = .;
+print(z);

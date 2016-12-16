@@ -40,7 +40,8 @@ let load_META_files pj ocamllib top_dirname =
       Printf.eprintf "filename=%S\n%!" filename;
     *)
     try
-      let meta = MetaParser.parse_file meta_filename in
+      let p = MetaParser.parse_file meta_filename in
+      let meta = MetaFile.meta_of_package p in
       if verbose 4 then
         Printf.eprintf "Loaded %S\n%!" meta_filename;
 
@@ -156,7 +157,8 @@ let load_META_files pj ocamllib top_dirname =
                 "requires" (VList (List.map (fun (s, link) ->
                   let link =
                     if Filename.check_suffix s ".syntax" then false else link in
-                  VPair (VString s, VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link))
+                  VTuple [VString s;
+                          VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link)]
                 ) requires)) in
             let options = BuildValue.set_bool options "generated" true in
             let pk = BuildOCP.new_package pj fullname dirname

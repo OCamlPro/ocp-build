@@ -72,3 +72,17 @@ and 'a var = {
   metavar_preds : (string * bool) list;
   mutable metavar_value : 'a;
 }
+
+type precondition = string * bool
+
+type variable = {
+  var_name : string;
+  mutable var_assigns : (precondition list * string) list;
+  mutable var_additions : (precondition list * string) list;
+}
+
+type meta_package = {
+  p_parent : meta_package option;
+  mutable p_packages : (string * meta_package) list;
+  mutable p_variables : variable StringMap.t;
+}

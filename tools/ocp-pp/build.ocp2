@@ -18,41 +18,53 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-open StringCompat
-open BuildValue.Types
-open BuildOCPTree
+if(ocaml_version = "4.01.0+ocp1" || ocaml_version = "4.02.1+ocp1"){
+  ocaml.enabled = false;
+}
 
-module Eval(S: sig
+begin
+  ocaml.version = autoconf.package_version;
+  ocaml.files = [];
+  if( ocaml_version < "4.02" ){
+    ocaml.files += packer( "Ocpp_version", [
 
-    type context
+      "compat/4.00.0/config.ml";
+      "compat/4.00.0/terminfo.ml";
+      "compat/4.00.0/misc.ml";
+      "compat/4.00.0/warnings.ml";
+      "compat/4.00.0/location.ml";
+      "compat/4.00.0/syntaxerr.ml";
+      "compat/4.00.0/longident.ml";
 
-    (* a substitution that can be applied *)
-    val filesubst : (string * env list) StringSubst.M.subst
+      "compat/4.00.0/stringCompat.ml";
+      "compat/4.00.0/parser.ml";
+      "compat/4.00.0/lexer.mll", { pp = [] };
+      "compat/4.00.0/compat.ml";
+    ]);
+  } else {
+    if( ocaml_version < "4.02.3" ) {
+      ocaml.files += [ "compat/4.02.0/ocpp_version.ml" ];
+    } else {
+      if( ocaml_version < "4.03" ) {
+        ocaml.files += [ "compat/4.02.3/ocpp_version.ml" ];
+      } else {
+        if( ocaml_version < "4.04" ){
+          ocaml.files += [ "compat/4.03.0/ocpp_version.ml" ];
+        } else {
+          ocaml.files += [ "compat/4.04.0/ocpp_version.ml" ];
+        }
+      }
+     }
+     ocaml.requires = [  "compiler-libs.common" ];
+  }
 
+  ocaml.files += [
+    "versioning.ml";
+    "ocpp_parser.mly", { pp = [] };
+    "ocpp_types.ml";
+    "ocpp.ml";
+    "main.ml";
+  ];
 
-    val define_package :
-      context ->
-      config ->
-      name:string ->
-      kind:string ->
-      unit
-
-    (* [parse_error()] is called in case of syntax error, to
-       decide what to do next (raise an exception, exit or continue). *)
-    val parse_error : unit -> unit
-
-    (* [new_file ctx filename digest] is called for every file that
-       is read *)
-    val new_file : context -> string -> string -> unit
-
-  end) : sig
-
-
-  (* [read_ocamlconf ctx filename] returns a function that
-     can evaluate the AST on a config. *)
-  val read_ocamlconf : S.context -> string -> (config -> config)
-
-  (* Used to display language help on command-line *)
-  val primitives_help : unit -> string list StringMap.t
-
+  new_package( "ocp-pp", "program", ocaml);
 end

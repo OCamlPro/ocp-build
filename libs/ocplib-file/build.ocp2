@@ -19,7 +19,37 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+(* assert 'ocaml' exists *)
+ocaml.exists = true;
 
-begin library "no-unix"
-  files = [ "unix.ml" ]
+(* assert fields 'asmcomp' and 'bytecomp' exists and correctly typed *)
+ocaml = { asmcomp = []; bytecomp = [] } + ocaml;
+begin
+  ocaml.version = autoconf.package_version;
+  ocaml.files = [
+    "fileSig.ml";
+
+    "fileOS.ml";
+    "fileChannel.ml";
+
+    "fileString.ml";
+    (*    "dirString.ml"; *)
+
+    "fileLabels.mli";
+    "fileLabels.ml", { asmcomp = ocaml.asmcomp + [ "-nolabels" ];
+                       bytecomp = ocaml.bytecomp + [ "-nolabels" ];
+                     };
+    "fileLines.ml";
+
+    "file.ml";
+    "dir.ml";
+
+    "dirPath.ml";
+   ];
+
+  ocaml.requires = [
+    "ocplib-lang";
+    "ocplib-unix";
+  ];
+   new_package("ocplib-file", "library", ocaml);
 end

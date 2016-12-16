@@ -493,7 +493,7 @@ let init_env () =
         List.iter (fun suffix ->
           BuildSubst.add_to_global_subst (pk.package_name ^ suffix) dirname)
           [ "_SRC_DIR"; "_DST_DIR"; "_FULL_SRC_DIR"; "_FULL_DST_DIR" ];
-        VPair (VString pk.package_name, VObject pk.package_options)
+        VTuple [VString pk.package_name; VObject pk.package_options]
       ) env_pj.project_sorted)));
 
   BuildActionsWarnings.print_env_warnings p.project_dir w;

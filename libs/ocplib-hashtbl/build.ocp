@@ -1,4 +1,0 @@
-begin library "ocplib-hashtbl"
-  version = package_version
-  files = [ "fastHashtbl.ml" ]
-end

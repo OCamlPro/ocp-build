@@ -1,0 +1,266 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                              OCamlPro TypeRex                          *)
+(*                                                                        *)
+(*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
+(*   This file is distributed under the terms of the GPL v3.0             *)
+(*      (GNU Public Licence version 3.0).                                 *)
+(*                                                                        *)
+(*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
+(*                                                                        *)
+(*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       *)
+(*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES       *)
+(*  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND              *)
+(*  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS   *)
+(*  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN    *)
+(*  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN     *)
+(*  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE      *)
+(*  SOFTWARE.                                                             *)
+(**************************************************************************)
+
+ocaml.exists = true;
+ocaml.bytelink = [];
+ocaml.asmlink = [];
+
+set_default = function(env, name, default){
+    try {
+      env[name];
+    }
+    catch("unknown-field", arg){
+        env[name] = default;
+    }
+    return env;
+  };
+
+ocaml_link = function(ocaml,flags){
+  ocaml = set_default(ocaml, "link", []);
+  ocaml = set_default(ocaml, "bytelink", []);
+  ocaml = set_default(ocaml, "asmlink", []);
+  ocaml.link += flags;
+  ocaml.bytelink += flags;
+  ocaml.asmlink += flags;
+  return ocaml;
+};
+
+OCaml.link = ocaml_link;
+
+ocaml = OCaml.link(ocaml, [ "-g" ]);
+
+ocaml_library = function(name,env){
+(*    print("   declare library ", name, env); *)
+    new_package(name, "library", env);
+};
+ocaml_program = function(name,env){
+(*    print("   declare program ", name, env); *)
+    new_package(name, "program", env);
+  };
+
+ocaml.copyright = "OCamlPro/INRIA 2011-2013";
+ocaml.authors = "Fabrice LE FESSANT <fabrice.le_fessant@ocamlpro.com>";
+ocaml.license = "GPLv3";
+try {
+  ocaml.version = autoconf.package_version;
+} catch("unknown-variable",arg) {
+  print("package_version not defined\n");
+  ocaml.version = "1.0";
+}
+
+(* Only install the ocp-build, so set install=true in it *)
+ocaml.install = false;
+
+begin
+  ocaml.install = true;
+  ocaml.files = [
+    "logger.ml";
+    "ocamldot.ml";
+    "versioning.ml";
+
+    "buildMisc.ml";
+    "buildMtime.ml";   (* How modification times are computed *)
+
+    "buildScanner.ml"; (* Scan directories looking for files with particular properties *)
+    "buildSubst.ml";
+    "buildFind.ml";
+    "buildTerm.ml";
+    "buildValue.ml";
+    "buildWarnings.ml";
+  ];
+
+  ocaml.requires =  [ "ocplib-lang"; "ocplib-unix"; "ocplib-system" ];
+  ocaml_library("ocp-build-misc", ocaml);
+end
+
+begin
+  ocaml.install = true;
+
+  ocaml.files = [
+    "buildOCPTypes.ml";
+    "buildOCPPrinter.ml";
+    "buildOCP.ml";
+  ];
+
+  ocaml.requires = [
+    "ocplib-unix"; "ocp-build-misc";
+    "ocp-build-lang-ocp";
+    "ocp-build-lang-ocp2";
+  ];
+
+   ocaml_library("ocp-build-project", ocaml);
+end
+
+begin
+  ocaml.files = [
+
+  "buildEngineTypes.ml";      (* All interesting types for the build engine *)
+  "buildEngineGlobals.ml";    (* Global tables and misc functions *)
+  "buildEngineRules.ml";      (* Functions to create compilation rules *)
+  "buildEngineContext.ml";    (* Initialisation of the build Engine *)
+  "buildEngineDisplay.ml";
+  "buildEngine.ml";           (* The generic parallel build engine *)
+  ];
+
+   ocaml.requires =  [ "ocp-build-misc"; "ocplib-unix" ];
+
+   ocaml_library( "ocp-build-engine", ocaml);
+end
+
+begin
+
+  ocaml.files = [
+    "buildVersion.ml", {ocp2ml=true; env_strings = [ "datadir" ] };
+    "buildTypes.ml";            (* All interesting types *)
+    "buildOptions.ml";
+    "buildGlobals.ml";          (* All global variables and tables *)
+    "buildConfig.ml";           (* Values stored in the configuration file. *)
+    "buildUninstall.ml";
+  ];
+
+  ocaml.requires = [ "ocplib-unix"; "ocp-build-engine"; "ocp-build-project";
+    "ocp-build-misc"; "ocplib-config" ];
+
+  ocaml_library( "ocp-build-lib", ocaml);
+end
+
+begin
+  ocaml.files = [ "metaTypes.ml";
+                  "metaLexer.mll", { pp =[] };
+                  "metaParser.ml"; (* load to raw version of META file *)
+                  "metaConfig.ml"; (* detect ocamlfind search path *)
+                  "metaFile.ml";   (* for interpreted version of META file *)
+          ];
+  ocaml.requires = [ "ocp-build-misc" ];
+  ocaml_library( "ocplib-ocamlfind", ocaml);
+end
+
+
+begin
+   ocaml.files = [ "metaMain.ml" ];
+   ocaml.requires = [ "ocplib-ocamlfind"];
+   ocaml_program ("test-meta", ocaml);
+end
+
+
+(*
+This plugin defines the rules to build OCaml packages.
+BuildOCamlRules.create is directly called from BuildMain, so it
+is not yet an optional plugin, but it should at some point (TODO).
+*)
+begin
+  ocaml.files = [
+    "buildOCamlConfig.ml";
+    "buildOCamlTypes.ml";
+    "buildOCamlGlobals.ml";
+    "buildOCamlMisc.ml";
+    "buildOCamlVariables.ml";
+    "buildOCamldep.ml";         (* Load dependencies from a file generated
+                                     by ocamldep *)
+    "buildOCamlSyntaxes.ml";    (* For preprocessing of OCaml files *)
+    "buildOCamlInstall.ml";
+    "buildOCamlRules.ml";       (* Initialisation of the build Engine *)
+    "buildOCamlMeta.ml";
+    "buildOCamlTest.ml";
+
+    (*    "buildOCFGen.ml"; *)
+    "buildAutogen.ml";           (* Generate .ocp from directory content *)
+
+  ];
+  ocaml.requires = [ "ocp-build-lib"; "ocplib-ocamlfind" ];
+  ocaml_library("ocp-build-ocaml-plugin", ocaml);
+ end
+
+begin
+  ocaml.files = [ "buildOasis.ml" ];
+  ocaml.requires = [ "ocp-build-project" ];
+  ocaml_library("ocp-build-oasis", ocaml);
+end
+
+begin
+    (*  asmlink += [ "-cclib" "-v" ] *)
+  ocaml.lib_files = [
+    "../../boot/ocaml.ocp";
+    "../../boot/camlp4.ocp";
+  ];
+  ocaml.install = true;
+  ocaml.files = [
+    "buildArgs.ml";
+    "buildActions.ml";          (* Main possible actions *)
+    "buildActionsWarnings.ml";          (* Main possible actions *)
+    "buildActionInit.ml";
+    "buildActionPrefs.ml";
+    "buildActionConfigure.ml";
+    "buildActionBuild.ml";
+    "buildActionInstall.ml";
+    "buildActionClean.ml";
+    "buildActionTests.ml";
+    "buildActionUninstall.ml";
+    "buildActionQuery.ml";
+    "buildActionHelp.ml";
+    "buildMain.ml" (* Driver of program *)
+  ];
+
+  ocaml.requires = [ "ocp-build-lib";
+                     "ocp-build-ocaml-plugin";
+                     "ocp-build-oasis" ];
+  ocaml_program( "ocp-build", ocaml);
+end
+
+
+begin
+  ocaml.files = [ "projectMain.ml"  ];
+  ocaml.requires = [ "ocp-build-project" ];
+  ocaml_program( "ocp-project", ocaml);
+end
+
+begin
+  ocaml.files = [];
+  ocaml.requires = [ "ocp-build" ];
+
+  ocaml.test_dir = [ "%{tests}%/%{test}%" ];
+  ocaml.test_args = [ "-init"; "-scan" ];
+  ocaml.test_benchmark = true;
+  ocaml.tests = [ "cycle", { test_exit = 2 } (* should raise error 2 *) ];
+  new_package("ocp-build.test", "test", ocaml);
+end
+
+
+
+
+
+
+begin
+
+  ocaml.files = [
+    "buildObjectInspector.ml";    (* Functions to explore object files *)
+  ];
+
+  ocaml.requires = [ "ocp-build-misc" ];
+  ocaml_library( "ocp-build-ocaml", ocaml);
+end
+
+begin
+
+  ocaml.files = [ (* "buildOCamlEnv.ml" *) ];
+  ocaml.requires = [ "ocp-build-ocaml"; "ocp-build-misc" ];
+
+  ocaml_program("ocp-build-infer-env", ocaml);
+end

@@ -1,0 +1,7 @@
+list = [ 1;2;3;4 ];
+for v in list { print(v); }
+for v in (1,4) { print(v); }
+
+list = [ 1;3;5;7 ];
+for v in list { print(v); }
+for v in (1,2,7) { print(v); }

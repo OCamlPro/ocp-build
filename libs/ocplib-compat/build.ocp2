@@ -19,35 +19,44 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+ocaml.version = autoconf.package_version;
 
+function set_default(env, varname, default){
+    try { return env[varname]; }
+    catch("unknown-field", arg){ return default; }
+}
 
-begin library "ocplib-file"
-  version = package_version
+generated = set_default(., "generated", false);
+(* try { generated; } catch("unknown-variable", arg){ generated = false; } *)
 
-  files = [
+ocaml = { pp_requires = [] } + ocaml;
 
-    "fileSig.ml";
+if( ocaml_version = "4.01.0+ocp1" || ocaml_version = "4.02.1+ocp1" )
+  begin
+    ocaml.files = [];
+    ocaml.requires = [];
+    new_package( "ocplib-compat", "library", ocaml);
+  end
+else {
+  if( generated ) begin
+        new_package("ocp-pp","program",{
+            generated = true;
+            files = [];
+            requires = [] });
+      end
 
-    "fileOS.ml";
-    "fileChannel.ml";
+  begin
+    ocaml.files = [ "stringCompat.ml" ];
+    ocaml.pp = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
+    ocaml.requires = [ "ocp-pp" ];
+    ocaml.pp_requires += [ "ocp-pp:byte" ];
+    ocaml.pp_deps = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
+    new_package( "ocplib-compat", "library", ocaml);
+  end
 
-    "fileString.ml";
-    (*    "dirString.ml"; *)
-
-    "fileLabels.mli";
-    "fileLabels.ml" (comp += [ "-nolabels" ]);
-
-    "fileLines.ml";
-
-    "file.ml";
-    "dir.ml";
-
-    "dirPath.ml";
-   ]
-
-  requires = [
-    "ocplib-lang";
-    "ocplib-unix";
-  ]
-
-end
+  begin
+      ocaml.is_toplevel = true;
+      ocaml.requires = [ "ocplib-compat" ];
+      new_package( "ocplib-compat-top", "program", ocaml);
+  end
+}

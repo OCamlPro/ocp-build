@@ -21,21 +21,23 @@
 
 
 
-begin library "ocplib-config"
+begin
+  ocaml.version = autoconf.package_version;
 
-  version = package_version
-
-  files = [
-        "pythonConfig.ml"; (* Python config files *)
-
-          "simpleConfigTypes.ml" (* internal types *)
-          "simpleConfigOCaml.ml" (* OCaml-like syntax  *)
-          "simpleConfig.ml" (* config files *)
-   ]
+  ocaml.files = [
+    "date.ml";
+    "ocpUnix.ml";
+    "ocpFilename.ml";
+    "debug.ml";
+    "fileTemplate.ml"
+   ];
 
 
-  requires = [
+  ocaml.requires = [
+    "ocplib-lang";
+    "ocplib-unix";
     "ocplib-file";
-  ]
+  ];
 
+  new_package("ocplib-system", "library", ocaml);
 end

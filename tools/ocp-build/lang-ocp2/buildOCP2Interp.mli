@@ -3,9 +3,8 @@
 (*                              OCamlPro TypeRex                          *)
 (*                                                                        *)
 (*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
-(*   This file is distributed under the terms of the LGPL v2.1 with       *)
-(*   the special exception on linking described in the file LICENSE.      *)
-(*      (GNU Lesser General Public Licence version 2.1)                   *)
+(*   This file is distributed under the terms of the GPL v3.0             *)
+(*      (GNU Public Licence version 3.0).                                 *)
 (*                                                                        *)
 (*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
 (*                                                                        *)
@@ -19,31 +18,41 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-version = package_version
+open StringCompat
+open BuildValue.Types
+open BuildOCP2Tree
 
-if ocaml_version = "4.01.0+ocp1" || ocaml_version = "4.02.1+ocp1" then {
+module Eval(S: sig
 
-  begin library "ocplib-compat";
-    files = [];
-    requires = [];
-  end;;
+    type context
 
-} else {
+    (* a substitution that can be applied *)
+    val filesubst : (string * env list) StringSubst.M.subst
 
-  if generated then {
-    begin program "ocp-pp" end
-  }
 
-  begin library "ocplib-compat";
-    files = [ "stringCompat.ml" ];
-    pp = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
-    requires = [ "ocp-pp" ];
-    pp_requires += [ "ocp-pp:byte" ];
-    pp_deps = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
-  end
+    val define_package :
+      context ->
+      config ->
+      name:string ->
+      kind:string ->
+      unit
 
-  begin program "ocplib-compat-top"
-      is_toplevel = true
-      requires= [ "ocplib-compat" ]
-  end
-}
+    (* [parse_error()] is called in case of syntax error, to
+       decide what to do next (raise an exception, exit or continue). *)
+    val parse_error : unit -> unit
+
+    (* [new_file ctx filename digest] is called for every file that
+       is read *)
+    val new_file : context -> string -> string -> unit
+
+  end) : sig
+
+
+  (* [read_ocamlconf filename] returns a function [eval] that
+     can evaluate the AST on [eval ctx config]. *)
+  val read_ocamlconf : string -> (S.context -> config -> config)
+
+  (* Used to display language help on command-line *)
+  val primitives_help : unit -> string list StringMap.t
+
+end

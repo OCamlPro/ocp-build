@@ -27,27 +27,14 @@ open MetaLexer
 let verbose = DebugVerbosity.verbose ["B"] "MetaParser"
 
 let string_of_token = function
-STRING s -> Printf.sprintf "STRING %S" s
+  | STRING s -> Printf.sprintf "STRING %S" s
   | IDENT  s -> Printf.sprintf "IDENT %S" s
   | LPAREN -> "LPAREN"
-| RPAREN -> "RPAREN"
-| EQUAL -> "EQUAL"
-| PLUSEQUAL -> "PLUSEQUAL"
-| MINUS -> "MINUS"
-| EOF -> "EOF"
-
-let split_simplify s =
-  let bs = Bytes.of_string s in
-  for i = 0 to String.length s - 1 do
-    match s.[i] with
-    | ','
-    | '\t'
-    | '\n'
-      -> bs.[i] <- ' '
-    | _ -> ()
-  done;
-  let s = Bytes.to_string bs in
-  OcpString.split_simplify s ' '
+  | RPAREN -> "RPAREN"
+  | EQUAL -> "EQUAL"
+  | PLUSEQUAL -> "PLUSEQUAL"
+  | MINUS -> "MINUS"
+  | EOF -> "EOF"
 
 let rec tokens_of_file verbose filename =
   try
@@ -57,7 +44,7 @@ let rec tokens_of_file verbose filename =
   let rec iter lexbuf =
     let token = MetaLexer.token lexbuf in
     if verbose then
-      Printf.fprintf stderr "[%s]\n%!" (string_of_token token);
+      Printf.eprintf "[%s]\n%!" (string_of_token token);
     match token with
     | EQUAL
     | STRING  _
@@ -76,7 +63,7 @@ let rec tokens_of_file verbose filename =
   iter lexbuf;
     with MetaLexer.Error ->
       let loc = Lexing.lexeme_start lexbuf in
-      Printf.fprintf stderr "Syntax error at pos %d\n%!"
+      Printf.eprintf "Syntax error at pos %d\n%!"
         loc;
       if not verbose then
         ignore (tokens_of_file true filename : MetaLexer.token list)
@@ -86,125 +73,125 @@ let rec tokens_of_file verbose filename =
   close_in ic;
   List.rev !tokens
   with e ->
-    Printf.fprintf stderr "Exception %S while parsing %S\n%!" (Printexc.to_string e) filename;
+    Printf.eprintf "Exception %S while parsing %S\n%!" (Printexc.to_string e) filename;
     raise e
+
+let new_meta_package p_parent =
+  {
+    p_parent;
+    p_packages = [];
+    p_variables = StringMap.empty;
+  }
+
+
+let close_package p =
+  StringMap.iter (fun _name v ->
+      if v.var_assigns <> [] then
+        v.var_assigns <- List.rev v.var_assigns;
+      if v.var_additions <> [] then
+        v.var_additions <- List.rev v.var_additions;
+    ) p.p_variables;
+  ()
 
 let parse_file filename =
   let tokens = tokens_of_file false filename in
 
-  let rec iter meta path tokens =
+  let rec iter p path tokens =
     match tokens with
       [] ->
-        begin
-          match path with
-            [] -> meta
-          | (name, _) :: _ ->
-            failwith (
-              Printf.sprintf "missing right parenthesis for package %s" name)
-        end
-    | IDENT name :: EQUAL :: STRING str :: tokens ->
-(*      Printf.fprintf stderr "IDENT[%s]\n%!" name; *)
       begin
-        match name with
-          "version" -> meta.meta_version <- Some str
-        | "description" -> meta.meta_description <- Some str
-        | "exists_if" -> meta.meta_exists_if <- split_simplify str
-        | "directory" -> meta.meta_directory <- Some str
-        | "preprocessor" -> meta.meta_preprocessor <- Some str
-        | "name" -> meta.meta_name <- Some str
-        | "linkopts" -> meta.meta_linkopts <- Some str
+        match path with
+          [] ->
+          close_package p
+        | (name, _) :: _ ->
+          failwith (
+            Printf.sprintf "missing right parenthesis for package %s" name)
+      end
 
-        | "requires" ->
-          MetaFile.add_requires meta [] (split_simplify str)
-        | "archive" ->
-          MetaFile.add_archive meta [] (split_simplify str)
-        | _ ->
-          if verbose 4 then
-            Printf.fprintf stderr "MetaParser.parse_file: discarding %S\n%!"
-              name
-      end;
-      iter meta path tokens
+    | IDENT name :: EQUAL :: STRING str :: tokens ->
+      (*      Printf.eprintf "IDENT[%s]\n%!" name; *)
+      let v = get_variable p name in
+      v.var_assigns <- ([], str) :: v.var_assigns;
+      iter p path tokens
 
     | IDENT name :: PLUSEQUAL :: STRING str :: tokens ->
-      begin
-        match name with
-          "requires" ->
-          MetaFile.add_requires meta [] (split_simplify str)
-        | "archive" ->
-          MetaFile.add_archive meta [] (split_simplify str)
-        | _ ->
-          if verbose 4 then
-            Printf.fprintf stderr "MetaParser.parse_file: discarding %S\n%!"
-              name
-      end;
-      iter meta path tokens
+      let v = get_variable p name in
+      v.var_additions <- ([], str) :: v.var_additions;
+      iter p path tokens
 
     | IDENT name :: LPAREN :: tokens ->
-(*      Printf.fprintf stderr "IDENT()[%s]\n%!" name; *)
-      iter_precond meta path name [] tokens
+      (*      Printf.eprintf "IDENT()[%s]\n%!" name; *)
+      iter_precond p path name [] tokens
 
     | IDENT "package" :: STRING package_name :: LPAREN :: tokens ->
-      let new_meta = MetaFile.empty () in
-      meta.meta_package <- (package_name, new_meta) :: meta.meta_package;
-      iter new_meta ( (package_name,meta) :: path) tokens
+      let new_p = new_meta_package (Some p) in
+      p.p_packages <- (package_name, new_p) :: p.p_packages;
+      iter new_p ( (package_name,p) :: path) tokens
 
     | RPAREN :: tokens ->
       begin
         match path with
-        | (_name, old_meta) :: path ->
-          iter old_meta path tokens
+        | (_name, old_p) :: path ->
+          close_package p;
+          iter old_p path tokens
         | [] -> failwith "Right parenthesis without matching left"
       end
-
     | _ ->
       print_remaining "iter" tokens
 
   and print_remaining msg tokens =
-    Printf.fprintf stderr "%s: Don't know what to do with:\n%!" msg;
+    Printf.eprintf "%s: Don't know what to do with:\n%!" msg;
     begin try
-            let num = ref 0 in
-            List.iter (fun token ->
-              if !num = 3 then begin
-                Printf.eprintf "   ...\n%!";
-                raise Exit
-              end;
-              Printf.fprintf stderr "  %s\n%!" (string_of_token token);
-              incr num;
-            ) tokens;
+        let num = ref 0 in
+        List.iter (fun token ->
+            if !num = 3 then begin
+              Printf.eprintf "   ...\n%!";
+              raise Exit
+            end;
+            Printf.eprintf "  %s\n%!" (string_of_token token);
+            incr num;
+          ) tokens;
       with Exit -> ()
     end;
     failwith "Unexpected tokens"
 
-  and iter_precond meta path name preconds tokens =
+  and iter_precond (p : meta_package) path name preconds tokens =
     match tokens with
     | RPAREN ::EQUAL :: STRING str :: tokens ->
-      begin
-        match name with
-        | "requires" ->
-          MetaFile.add_requires meta (List.rev preconds)
-            (OcpString.split_simplify str ' ')
-        | "archive" ->
-          MetaFile.add_archive meta (List.rev preconds)
-            (OcpString.split_simplify str ' ')
-       | _ ->
-         if verbose 4 then
-          Printf.fprintf stderr "MetaParser.parse_file: discarding %S\n%!"
-            name
+      let v = get_variable p name in
+      v.var_assigns <- (preconds, str) :: v.var_assigns;
+      iter p path tokens
 
-      end;
-      iter meta path tokens
-    | RPAREN ::PLUSEQUAL :: STRING _str :: tokens ->
-      iter meta path tokens
+    | RPAREN ::PLUSEQUAL :: STRING str :: tokens ->
+      let v = get_variable p name in
+      v.var_additions <- (preconds, str) :: v.var_additions;
+      iter p path tokens
+
     | IDENT ident :: tokens ->
-      iter_precond meta path name ((ident, true) :: preconds) tokens
+      iter_precond p path name ((ident, true) :: preconds) tokens
+
     | MINUS :: IDENT ident :: tokens ->
-      iter_precond meta path name ((ident, false) :: preconds) tokens
+      iter_precond p path name ((ident, false) :: preconds) tokens
+
     | _ ->
       print_remaining "iter_precond" tokens
 
+  and get_variable p var_name =
+    try
+      StringMap.find var_name p.p_variables
+    with Not_found ->
+      let v = {
+        var_name;
+        var_additions = [];
+        var_assigns = [];
+      } in
+      p.p_variables <- StringMap.add var_name v p.p_variables;
+      v
+
   in
-  let meta = MetaFile.empty () in
-  iter meta [] tokens
+  let p = new_meta_package None in
+  iter p [] tokens;
+  p
 
 let name_of_META filename =
   let basename = Filename.basename filename in

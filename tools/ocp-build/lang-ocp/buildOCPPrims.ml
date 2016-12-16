@@ -173,8 +173,8 @@ let _ =
 
     let (packmodname, pack_env) =
       match to_module with
-      | VList [ VPair (VString packmodname, VObject pack_env) ]
-      | VPair (VString packmodname, VObject pack_env)  ->
+      | VList [ VTuple [VString packmodname; VObject pack_env] ]
+      | VTuple [VString packmodname; VObject pack_env]  ->
         packmodname, pack_env
       | VString packmodname -> packmodname, BuildValue.empty_env
       | _ -> failwith

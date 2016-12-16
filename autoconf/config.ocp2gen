@@ -1,0 +1,57 @@
+autoconf = {
+  conf_ocamlyacc="ocamlyacc";
+  conf_ocamllex="ocamllex.opt";
+  rootdir="/home/lefessan/GIT/ocp-public/typerex-build";
+  prefix="/home/lefessan/.opam/4.02.0";
+  exec_prefix="${prefix}";
+  bindir="${exec_prefix}/bin";
+  libdir="${exec_prefix}/lib";
+  datarootdir="${prefix}/share";
+  mandir="${datarootdir}/man";
+  datadir="${datarootdir}";
+  ocamldir="${libdir}/ocaml";
+  metadir="/home/lefessan/.opam/4.02.0/lib";
+  package_name="typerex-build";
+  package_version="1.99.18-beta";
+  opam_repo="/home/lefessan/WindowsSharedFolder/opam-repository-with-archives";
+  opam_repo_official_remote="ocaml";
+  opam_repo_fork_remote="origin";
+  download_url_prefix="http://github.com/OCamlPro/typerex-build/archive/";
+  conf_ocamlversion="4.02.0";
+  conf_ocamlc="ocamlc.opt";
+  conf_ocamlopt="ocamlopt.opt";
+  conf_ocamldep="ocamldep.opt";
+  conf_ocamlmktop="ocamlmktop";
+  conf_ocamlmklib="ocamlmklib";
+  conf_ocamldoc="ocamldoc";
+  conf_ocamllib="/home/lefessan/.opam/4.02.0/lib/ocaml";
+  conf_ocamlbin="/home/lefessan/.opam/4.02.0/bin";
+  conf_has_bytes="4.02.0";
+  ocaml_use_binannot = true;
+  autoconf_dir = "typerex-build-autoconf-dir";
+
+}; (* end of "autoconf = {" *)
+
+ocaml.exists = true;
+ocaml = { bytecomp = []; asmcomp = [] } + ocaml;
+
+if( autoconf.ocaml_use_binannot && ocaml_version >= "4.00" ) {
+  ocaml.bytecomp += [ "-bin-annot" ];
+  ocaml.asmcomp += [ "-bin-annot" ];
+}
+
+autoconf_cflags = [ "-I"; "autoconf" ];
+
+if( ocaml_version = "4.01.0+ocp1" || ocaml_version = "4.02.1+ocp1" ) {
+  string_compat = [];
+  ocp_pp = [];
+} else {
+  string_compat = [ "ocplib-compat" ];
+  ocp_pp = [ "ocp-pp" ];
+}
+
+if( ocaml_version < "4.01" ){
+  compiler_libs_compat = [  "compiler-libs.compat" ];
+} else {
+  compiler_libs_compat = [];
+}

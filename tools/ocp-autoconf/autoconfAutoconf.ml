@@ -29,6 +29,7 @@ let () =
            AutoconfCommon.save_file (Filename.concat "skeleton" file)))
     [
     "build.ocp";
+    "build.ocp2";
     "Makefile";
     ".gitignore";
     "LICENSE";
@@ -348,7 +349,10 @@ let () =
 
        AutoconfFS.fprintf oc "AC_CONFIG_FILES(%s)\n"
          (String.concat " "
-            ("Makefile.config" :: "config.ocpgen" :: "ocaml-config.h" ::
+            ("Makefile.config" ::
+             "config.ocpgen" ::
+             "config.ocp2gen" ::
+             "ocaml-config.h" ::
              !!extra_config_files));
 
        AutoconfFS.output_string oc
@@ -367,6 +371,7 @@ let () =
 
        AutoconfFS.close_file oc;
 
+
        let oc = AutoconfFS.create_file "autoconf/config.ocpgen.in" in
        List.iter (function
            | (_var, None)-> ()
@@ -380,7 +385,29 @@ let () =
 
        AutoconfFS.fprintf oc "autoconf_dir = \"@PACKAGE_NAME@-autoconf-dir\"\n";
        AutoconfFS.output_string oc (AutoconfCommon.find_content
-                                      "skeleton/autoconf/config.trailer");
+                                      "skeleton/autoconf/config.ocpgen.trailer");
+       AutoconfFS.close_file oc;
+
+       let oc = AutoconfFS.create_file "autoconf/config.ocp2gen.in" in
+
+       AutoconfFS.output_string oc
+         (AutoconfCommon.find_content
+            "skeleton/autoconf/config.ocp2gen.header");
+
+       List.iter (function
+           | (_var, None)-> ()
+           | (var, Some name) ->
+             AutoconfFS.fprintf oc "  %s=\"@%s@\";\n" name var;
+         ) config_vars;
+
+       List.iter (fun var ->
+           AutoconfFS.fprintf oc "  %s = @%s@;\n" (String.lowercase var) var
+         ) bool_vars;
+
+       AutoconfFS.fprintf oc "  autoconf_dir = \"@PACKAGE_NAME@-autoconf-dir\";\n";
+       AutoconfFS.output_string oc
+         (AutoconfCommon.find_content
+            "skeleton/autoconf/config.ocp2gen.trailer");
        AutoconfFS.close_file oc;
 
 
@@ -411,6 +438,7 @@ let () =
       "ocp-autoconf.config";
       "LICENSE";
       "build.ocp";
+      "build.ocp2";
       "Makefile";
       "autoconf";
       "autoconf/config.ocpgen.in";

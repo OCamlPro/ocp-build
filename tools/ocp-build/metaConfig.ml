@@ -43,31 +43,30 @@
 (* TODO: We could also try to find "findlib/findlib.conf", in case
    ocamlfind is not installed. We could even generate it ! *)
 
-let load_config () =
-try
+let load_config ?(ocamlfind=["ocamlfind"]) () =
+  try
     match
-      BuildMisc.get_stdout_lines
-[ "ocamlfind" ] [ "printconf" ]
-with `EXN e -> raise e
-    | `OUTPUT (_status, lines) ->
-    let search_path = ref [] in
-    let rec iter lines =
-      match lines with
-        "Search path:" :: lines ->
-          iter_path lines
-      | [] -> ()
-      | _ :: lines -> iter lines
+      BuildMisc.get_stdout_lines ocamlfind [ "printconf" ]
+    with `EXN e -> raise e
+       | `OUTPUT (_status, lines) ->
+         let search_path = ref [] in
+         let rec iter lines =
+           match lines with
+             "Search path:" :: lines ->
+             iter_path lines
+           | [] -> ()
+           | _ :: lines -> iter lines
 
-    and iter_path lines =
-      match lines with
-      | path :: lines when OcpString.starts_with path "    " ->
-        search_path := String.sub path 4 (String.length path - 4) :: !search_path;
-        iter_path lines
-      | _ -> iter lines
+         and iter_path lines =
+           match lines with
+           | path :: lines when OcpString.starts_with path "    " ->
+             search_path := String.sub path 4 (String.length path - 4) :: !search_path;
+             iter_path lines
+           | _ -> iter lines
 
-    in
-    iter lines;
-    List.rev !search_path
+         in
+         iter lines;
+         List.rev !search_path
   with e ->
     Printf.eprintf "MetaConfig: exception %S\n%!" (Printexc.to_string e);
     []

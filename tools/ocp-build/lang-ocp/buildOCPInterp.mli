@@ -3,9 +3,8 @@
 (*                              OCamlPro TypeRex                          *)
 (*                                                                        *)
 (*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
-(*   This file is distributed under the terms of the LGPL v2.1 with       *)
-(*   the special exception on linking described in the file LICENSE.      *)
-(*      (GNU Lesser General Public Licence version 2.1)                   *)
+(*   This file is distributed under the terms of the GPL v3.0             *)
+(*      (GNU Public Licence version 3.0).                                 *)
 (*                                                                        *)
 (*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
 (*                                                                        *)
@@ -19,37 +18,41 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+open StringCompat
+open BuildValue.Types
+open BuildOCPTree
+
+module Eval(S: sig
+
+    type context
+
+    (* a substitution that can be applied *)
+    val filesubst : (string * env list) StringSubst.M.subst
 
 
+    val define_package :
+      context ->
+      config ->
+      name:string ->
+      kind:string ->
+      unit
 
-begin library "ocplib-lang"
-  version = package_version
+    (* [parse_error()] is called in case of syntax error, to
+       decide what to do next (raise an exception, exit or continue). *)
+    val parse_error : unit -> unit
 
-  files = [
-    "ocpPervasives.ml"
-    "ocpList.ml"
-    "ocpString.ml"
-    "ocpStream.ml"
-    "ocpGenlex.ml"
-    "ocpHashtbl.ml"
-    "ocpDigest.ml"
-    "ocpArray.ml";
-    "option.ml"
-    "intMap.ml"
-    "intSet.ml"
-    "stringMap.ml"
-    "stringSet.ml"
-    "toposort.ml"
-    "linearToposort.ml"
-    "ocamllexer.mll" (pp = [])
-    "trie.ml"
-    "ocpLang.ml"
-    "stringSubst.ml"
-    "manpage.ml"
-    "stringTemplate.ml"
-    "reentrantBuffers.ml";
-  ]
-  requires = [ "ocplib-debug" string_compat ]
+    (* [new_file ctx filename digest] is called for every file that
+       is read *)
+    val new_file : context -> string -> string -> unit
+
+  end) : sig
+
+
+  (* [read_ocamlconf filename] returns a function [eval] that
+     can evaluate the AST on [eval ctx config]. *)
+  val read_ocamlconf : string -> (S.context -> config -> config)
+
+  (* Used to display language help on command-line *)
+  val primitives_help : unit -> string list StringMap.t
+
 end
-
-install = false

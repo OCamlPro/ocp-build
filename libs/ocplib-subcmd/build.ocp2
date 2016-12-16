@@ -21,8 +21,8 @@
 
 
 
-begin library "ocplib-debug"
-   version = package_version
-
-  files = [ "debugVerbosity.ml" "debugTyperex.ml" ]
+begin
+  ocaml.version = autoconf.package_version;
+  ocaml.files = [ "subcommands.ml" ];
+  new_package("ocplib-subcmd", "library", ocaml);
 end

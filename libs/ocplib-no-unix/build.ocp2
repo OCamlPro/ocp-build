@@ -20,23 +20,7 @@
 (**************************************************************************)
 
 
-
-begin library "ocplib-system"
-  version = package_version
-
-  files = [
-    "date.ml";
-    "ocpUnix.ml";
-    "ocpFilename.ml";
-    "debug.ml";
-    "fileTemplate.ml"
-   ]
-
-
-  requires = [
-    "ocplib-lang";
-    "ocplib-unix";
-    "ocplib-file";
-  ]
-
+begin
+  ocaml.files = [ "unix.ml" ];
+  new_package("no-unix", "library", ocaml);
 end

@@ -22,7 +22,8 @@ OCPLIB_NAMES=debug lang unix file system config compat subcmd
 
 INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
     $(OCP_BUILD_SRCDIR) \
-    -I $(OCP_BUILD_SRCDIR)/lang1
+    -I $(OCP_BUILD_SRCDIR)/lang-ocp \
+    -I $(OCP_BUILD_SRCDIR)/lang-ocp2
 OCPLIB_LIBS=$(foreach lib, $(OCPLIB_NAMES), ocplib-$(lib))
 
 OCP_BUILD_BOOTER=boot/ocp-build.asm
@@ -72,12 +73,21 @@ BUILD_MISC= $(OCP_BUILD_SRCDIR)/logger.ml				\
     $(OCP_BUILD_SRCDIR)/ocamldot.ml $(OCP_BUILD_SRCDIR)/buildValue.ml   \
     $(OCP_BUILD_SRCDIR)/versioning.ml
 
-BUILD_PROJECT= $(OCP_BUILD_SRCDIR)/buildOCPTypes.ml	\
-    $(OCP_BUILD_SRCDIR)/lang1/buildOCPTree.ml			\
-    $(OCP_BUILD_SRCDIR)/lang1/buildOCPParser.ml		\
-    $(OCP_BUILD_SRCDIR)/lang1/buildOCPParse.ml		\
-    $(OCP_BUILD_SRCDIR)/lang1/buildOCPPrims.ml		\
-    $(OCP_BUILD_SRCDIR)/lang1/buildOCPInterp.ml		\
+BUILD_PROJECT= \
+    $(OCP_BUILD_SRCDIR)/buildOCPTypes.ml	\
+    \
+    $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPTree.ml			\
+    $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.ml		\
+    $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParse.ml		\
+    $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPPrims.ml		\
+    $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPInterp.ml		\
+    \
+    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Tree.ml			\
+    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parser.ml		\
+    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parse.ml		\
+    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Prims.ml		\
+    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Interp.ml		\
+    \
     $(OCP_BUILD_SRCDIR)/buildOCPPrinter.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCP.ml
 
@@ -139,7 +149,7 @@ OCP_BUILD_MLS= $(STRING_COMPAT) $(OCPLIB_DEBUG) $(OCPLIB_LANG)		\
 OCP_BUILD_MLLS= \
    $(lang_SRCDIR)/ocamllexer.mll $(OCP_BUILD_SRCDIR)/metaLexer.mll 
 
-OCP_BUILD_MLYS= $(OCP_BUILD_SRCDIR)/lang1/buildOCPParser.mly
+OCP_BUILD_MLYS= $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.mly
 
 OCP_BUILD_CS= $(unix_SRCDIR)/minUnix_c.c			\
  $(unix_SRCDIR)/onlyWin32_c.c $(unix_SRCDIR)/onlyUnix_c.c
@@ -193,8 +203,11 @@ distclean: clean ocp-distclean
 $(OCP_BUILD_SRCDIR)/buildVersion.ml: Makefile $(MAKE_CONFIG)
 	echo "let version=\"$(PACKAGE_VERSION)\"" > $(OCP_BUILD_SRCDIR)/buildVersion.ml
 
-$(OCP_BUILD_SRCDIR)/lang1/buildOCPParser.cmi: $(OCP_BUILD_SRCDIR)/lang1/buildOCPParser.mli
-	$(OCAMLC) -c -o $(OCP_BUILD_SRCDIR)/lang1/buildOCPParser.cmi $(INCLUDES) $(OCP_BUILD_SRCDIR)/lang1/buildOCPParser.mli
+$(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.cmi: $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.mli
+	$(OCAMLC) -c -o $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.cmi $(INCLUDES) $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.mli
+
+$(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parser.cmi: $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parser.mli
+	$(OCAMLC) -c -o $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parser.cmi $(INCLUDES) $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parser.mli
 
 doc:
 	cd docs/user-manual; $(MAKE)

@@ -1,0 +1,17 @@
+
+try {  print(x); } (* x not defined *)
+catch("unknown-variable",arg){
+  print("Unknown variable: ", arg);
+}
+
+try {
+  x = {};
+  print(x.y); (* x.y not defined *)
+}
+catch("hello",arg){
+  print("never here");
+}
+catch("unknown-field",arg){
+  print("Unknown field: ", arg);
+}
+print(arg);

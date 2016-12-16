@@ -22,14 +22,21 @@ open StringCompat
 
 module Types : sig
 
+  type location = {
+    loc_begin : Lexing.position;
+    loc_end : Lexing.position;
+  }
+
   type env = { env : value StringMap.t }
   and value =
   | VList of value list
   | VObject of env
   | VString of string
-  | VPair of value * value
+  | VTuple of value list
   | VBool of bool
   | VInt of int
+  | VFunction of (location -> value list -> value)
+  | VPrim of string
 
 (* Just for compatibility: a plist is morally a
    VList of VPair (VString * VObject) *)
@@ -55,6 +62,8 @@ module Types : sig
 end
 
 open Types
+
+val string_of_value : value -> string
 
 val prop_list : value -> prop_list
 val value : prop_list -> value
@@ -124,5 +133,8 @@ val new_string_option : string -> string -> string source_option
 val iter_env : (string -> plist -> unit) -> env -> unit
 
 val bprint_env : Buffer.t -> string -> env -> unit
+val bprint_value : Buffer.t -> string -> value -> unit
+
 val empty_config : config
 val config_get : config -> string -> value
+val config_set : config -> string -> value -> config
