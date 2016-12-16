@@ -46,6 +46,7 @@ let extensions file = extensions_of_basename (Filename.basename file)
 
 let is_absolute file = not (Filename.is_relative file)
 let is_relative = Filename.is_relative
+let is_implicit = Filename.is_implicit
 let concat = Filename.concat
 let add_basename = Filename.concat
 let add_basenames = List.fold_left Filename.concat
