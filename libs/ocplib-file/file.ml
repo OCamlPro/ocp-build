@@ -50,88 +50,143 @@ open StringCompat
 
 *)
 
+(*
+  [file_dir] points to the parent directory, unless when it points back to
+   the file itself, which happens for:
+  * the File.t is a root directory, with [file_basename] equals "/" or "\\"
+  * the File.t is the current directory, with [file_basename] equals "."
+  * the File.t is the parent directory, with [file_basename] equals ".."
+  * the File.t is implicit
+*)
 
-  type t = {
-    file_basename : string;
-    file_dir : t;
-    file_string : string;
-    (* The system filename, i.e. with system-specific separators *)
-    file_partition : string;
-  }
+type t = {
+  file_basename : string;
+  file_dir : t;
+  file_string : string;
+  (* The system filename, i.e. with system-specific separators *)
+  file_partition : string;
+}
 
+let root_basename = FileOS.dir_separator_string
+let curdir_basename = "."
+let pardir_basename = ".."
 
-  let basename t = t.file_basename
+let basename t = t.file_basename
 
+let rec is_absolute t =
+  if t.file_dir != t then
+    is_absolute t.file_dir
+  else
+    t.file_basename = root_basename
 
-  let rec is_absolute t =
+let is_relative t = not (is_absolute t)
+let is_implicit t =
+  if t.file_dir == t then
+    match t.file_basename with
+    | "/" | "\\" -> false
+    | _ -> true
+  else
+    let rec iter t =
     if t.file_dir != t then
-      is_absolute t.file_dir
+      iter t.file_dir
     else
-      t.file_basename = ""
-
-  let is_relative t = not (is_absolute t)
-
-
-  let to_string t = t.file_string
-
-  let dirname t =
-    if t.file_dir == t then
       match t.file_basename with
-        "" | "." -> t
-      | _ ->
-        let rec root = {
-          file_dir = root;
-          file_basename = ".";
-          file_partition = t.file_partition;
-          file_string = ".";
-        } in
-        root
-    else t.file_dir
+      | "." | ".." | "/" | "\\" -> false
+      | _ -> true
+  in
+  iter t.file_dir
 
+let to_root_dir t =
+  let rec root = {
+    file_dir = root;
+    file_basename = root_basename;
+    file_partition = t.file_partition;
+    file_string = t.file_partition ^ root_basename;
+  } in
+  root
 
+let to_empty_dir t =
+  let rec root = {
+    file_dir = root;
+    file_basename = "";
+    file_partition = t.file_partition;
+    file_string = t.file_partition;
+  } in
+  root
 
+let to_current_dir t =
+  let rec root = {
+    file_dir = root;
+    file_basename = ".";
+    file_partition = t.file_partition;
+    file_string = t.file_partition ^ ".";
+  } in
+  root
 
+let to_parent_dir t =
+  let rec root = {
+    file_dir = root;
+    file_basename = "..";
+    file_partition = t.file_partition;
+    file_string = t.file_partition ^ "..";
+  } in
+  root
 
+let rec to_string_raw t =
+  if t.file_dir == t then
+    Printf.sprintf "[%s]" t.file_basename
+  else
+    Printf.sprintf "%s::%s" (to_string_raw t.file_dir) t.file_basename
+
+let to_string t = t.file_string  (* ^ "=" ^ to_string_raw t *)
+let dirname t =
+  if t.file_dir == t then
+    match t.file_basename with
+    | "/" | "\\" | "." -> t
+    | _ -> to_current_dir t
+  else t.file_dir
 
 let add_basename_string dir basename =
-  if dir.file_string = FileOS.dir_separator_string then
-    FileOS.dir_separator_string ^ basename
-  else
+  match dir.file_basename with
+  | "" | "/" | "\\" ->
+    dir.file_basename ^ basename
+  | _ ->
     dir.file_string ^ FileOS.dir_separator_string ^ basename
 
+let add_basename_simple dir basename =
+  {
+    file_basename =  basename;
+    file_dir = dir;
+    file_partition = dir.file_partition;
+    file_string = add_basename_string dir basename;
+  }
+
 let add_basename dir basename =
-  if dir.file_basename = "." then
-    let rec base_dir = {
-      file_basename =  basename;
-      file_dir = base_dir;
-      file_partition = dir.file_partition;
-      file_string = basename;
-    } in
-    base_dir
-  else
-    if basename = ".." && (dir.file_basename <> "..") then dir.file_dir else
-      {
-        file_basename =  basename;
-        file_dir = dir;
-        file_partition = dir.file_partition;
-        file_string = add_basename_string dir basename;
-      }
+  match dir.file_basename, basename with
+  | "..", ".." -> add_basename_simple dir basename
+  | (""|"." | ".."), ".." -> to_parent_dir dir
+  | ("/" | "\\"), ".." -> dir
+  | _, ".." ->
+    if dir.file_dir == dir then to_empty_dir dir else dir.file_dir
+  | _, ("."|"/"|"\\"|"") -> dir
+  | _ -> add_basename_simple dir basename
 
 let rec add_basenames dir list =
   match list with
     [] -> dir
-  | "" :: tail ->
-    add_basenames dir tail
-  | basename :: tail ->
-    add_basenames (add_basename dir basename) tail
+  | ("" | ".") :: tail -> add_basenames dir tail
+  | basename :: tail -> add_basenames (add_basename dir basename) tail
 
 
 let concat t1 t2 =
-  if t2.file_partition <> "" && t1.file_partition <> t2.file_partition then
+  (*
+  if t1.file_partition <> "" &&
+     t2.file_partition <> "" &&
+     t1.file_partition <> t2.file_partition then
     failwith "Filename2.concat: filenames have different partitions";
   if is_absolute t2 then
     failwith "Filename2.concat: second filename is absolute";
-
+*)
   let rec iter dir t =
     let dir =
       if t.file_dir != t then
@@ -140,10 +195,6 @@ let concat t1 t2 =
     add_basename dir t.file_basename
   in
   iter t1 t2
-
-
-
-
 
 let check_suffix file suffix =
   Filename.check_suffix file.file_basename suffix
@@ -201,17 +252,25 @@ let rec make dir path =
     } in
     make t tail
 
+type kind =
+  | Absolute
+  | Current
+  | Parent
+  | Relative
+
 let of_path part path =
-  let absolute = match path with
-      "" :: _ :: _ -> true
-    | _ -> false
+  let kind = match path with
+    | "" :: _ :: _ -> Absolute
+    | "." :: _ -> Current
+    | ".." :: _ -> Parent
+    | _ -> Relative
   in
   let path = normalize_path path in
-  let path = if absolute then remove_leading_dotdots path else path in
+  let path = if kind = Absolute  then remove_leading_dotdots path else path in
 
-  if absolute then
+  if kind = Absolute then
     let rec root = {
-      file_basename = "";
+      file_basename = FileOS.dir_separator_string;
       file_dir = root;
       file_string = part ^ FileOS.dir_separator_string;
       file_partition = part;
@@ -220,13 +279,19 @@ let of_path part path =
   else
     match path with
       [] ->
-        let rec current_dir = {
-          file_basename = ".";
-          file_dir = current_dir;
-          file_string = part ^ ".";
-          file_partition = part;
-        } in
-        current_dir
+      begin
+        match kind with
+        | Current | Relative ->
+          let basename = if kind = Current then "." else "" in
+          let rec current_dir = {
+            file_basename = basename;
+            file_dir = current_dir;
+            file_string = part ^ basename;
+            file_partition = part;
+          } in
+          current_dir
+        | _ -> assert false
+        end
     | dir :: tail ->
       let rec base_dir = {
         file_basename = dir;
@@ -252,6 +317,110 @@ let of_win32_string s =
 let of_string s =
   if FileOS.win32 then of_win32_string s else of_unix_string s
 
+
+
+
+
+(*
+let () =
+  let root_dir = of_unix_string "/" in
+  let current_dir = of_unix_string "." in
+  let parent_dir = of_unix_string ".." in
+  let empty_dir = of_unix_string "" in
+  let relative_dir = add_basename current_dir "foo" in
+  let parrel_dir = add_basename parent_dir "foo" in
+  let absolute_dir = add_basename root_dir "foo" in
+  let implicit_dir = of_unix_string "foo" in
+  let relative_dir2 = add_basenames current_dir ["foo"; "bar"] in
+  let parrel_dir2 = add_basenames parent_dir ["foo"; "bar" ] in
+  let absolute_dir2 = add_basenames root_dir ["foo"; "bar"] in
+  let implicit_dir2 = add_basename (of_unix_string "foo") "bar" in
+  let parrel_dir3 = add_basenames parent_dir [".."; "foo"; "bar" ] in
+
+  let oc = open_out "file.result" in
+
+  let test_to_string d =
+    Printf.fprintf oc "[%s]\n%!" (to_string d)
+  in
+  let test_is_absolute d =
+    Printf.fprintf oc "is_absolute(%s) = %b\n%!"
+      (to_string d) (is_absolute d)
+  in
+  let test_is_relative d =
+    Printf.fprintf oc "is_relative(%s) = %b\n%!"
+      (to_string d) (is_relative d)
+  in
+  let test_is_implicit d =
+    Printf.fprintf oc "is_implicit(%s) = %b\n%!"
+      (to_string d) (is_implicit d)
+  in
+  let test_concat d1 d2 =
+    Printf.fprintf oc "concat [%s] [%s] = %!"
+      (to_string d1) (to_string d2);
+      try
+        let f = concat d1 d2 in
+        Printf.fprintf oc "[%s]\n%!" (to_string f)
+      with exn ->
+        Printf.fprintf oc "%s\n%!" (Printexc.to_string exn);
+  in
+  let dirs = [ root_dir;
+               current_dir;
+               parent_dir;
+               empty_dir;
+               relative_dir;
+               absolute_dir;
+               implicit_dir;
+               parrel_dir;
+               relative_dir2;
+               absolute_dir2;
+               implicit_dir2;
+               parrel_dir2;
+               parrel_dir3;
+             ] in
+  List.iter test_to_string dirs;
+  List.iter test_is_absolute dirs;
+  List.iter test_is_relative dirs;
+  List.iter test_is_implicit dirs;
+  List.iter (fun d1 ->
+      List.iter (test_concat d1) dirs) dirs;
+
+  close_out oc;
+
+  assert (to_string root_dir = "/");
+  assert (to_string current_dir = ".");
+  assert (to_string parent_dir = "..");
+  assert (to_string relative_dir = "./foo");
+  assert (to_string absolute_dir = "/foo");
+  assert (to_string implicit_dir = "foo");
+  assert (to_string empty_dir = "");
+  assert (to_string relative_dir2 = "./foo/bar");
+  assert (to_string absolute_dir2 = "/foo/bar");
+  assert (to_string implicit_dir2 = "foo/bar");
+
+  assert (is_absolute root_dir);
+  assert (not (is_absolute current_dir));
+  assert (not (is_absolute parent_dir));
+  assert (not (is_absolute relative_dir));
+  assert (is_absolute absolute_dir);
+  assert (not (is_absolute empty_dir));
+  assert (not (is_absolute implicit_dir));
+
+  assert (not (is_relative root_dir));
+  assert (is_relative current_dir);
+  assert (is_relative parent_dir);
+  assert (is_relative relative_dir);
+  assert (not (is_relative absolute_dir));
+  assert (is_relative empty_dir); (* different from Filename.is_relative "" *)
+  assert (is_relative implicit_dir);
+  ()
+*)
+
+(**********************************************************************)
+(*                                                                    *)
+(*                      OPERATIONS ON FILES                           *)
+(*                                                                    *)
+(*                                                                    *)
+(**********************************************************************)
 
 
 
@@ -363,41 +532,3 @@ module Op = struct
   let (//) = add_basename
 
 end
-
-
-
-let () =
-  let root_dir = of_unix_string "/" in
-  let current_dir = of_unix_string "." in
-  let parent_dir = of_unix_string ".." in
-  let relative_dir = add_basename current_dir "foo" in
-  let absolute_dir = add_basename root_dir "foo" in
-  let empty_dir = of_unix_string "" in
-  let implicit_dir = of_unix_string "foo" in
-
-
-  assert (to_string root_dir = "/");
-  assert (to_string current_dir = ".");
-  assert (to_string parent_dir = "..");
-  assert (to_string relative_dir = "foo");
-  assert (to_string absolute_dir = "/foo");
-  assert (to_string empty_dir = ".");
-  assert (to_string implicit_dir = "foo");
-
-  assert (is_absolute root_dir);
-  assert (not (is_absolute current_dir));
-  assert (not (is_absolute parent_dir));
-  assert (not (is_absolute relative_dir));
-  assert (is_absolute absolute_dir);
-  assert (not (is_absolute empty_dir));
-  assert (not (is_absolute implicit_dir));
-
-  assert (not (is_relative root_dir));
-  assert (is_relative current_dir);
-  assert (is_relative parent_dir);
-  assert (is_relative relative_dir);
-  assert (not (is_relative absolute_dir));
-  assert (is_relative empty_dir); (* different from Filename.is_relative "" *)
-  assert (is_relative implicit_dir);
-
-  ()
