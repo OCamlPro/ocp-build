@@ -103,4 +103,6 @@ headers-??.txt
 #*
 /archi?.txt
 /autoconf/config.ocpgen
+/autoconf/config.ocp2gen
 /_olint
+*.old

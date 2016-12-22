@@ -18,6 +18,13 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+(* Inherit user configuration, typically set by a file build.ocp2 in
+the top directory containing:
+
+config["ocp-build"].enabled = false;
+*)
+ocaml += getconf("ocp-build");
+
 ocaml.exists = true;
 ocaml.bytelink = [];
 ocaml.asmlink = [];
@@ -45,15 +52,6 @@ ocaml_link = function(ocaml,flags){
 OCaml.link = ocaml_link;
 
 ocaml = OCaml.link(ocaml, [ "-g" ]);
-
-ocaml_library = function(name,env){
-(*    print("   declare library ", name, env); *)
-    new_package(name, "library", env);
-};
-ocaml_program = function(name,env){
-(*    print("   declare program ", name, env); *)
-    new_package(name, "program", env);
-  };
 
 ocaml.copyright = "OCamlPro/INRIA 2011-2013";
 ocaml.authors = "Fabrice LE FESSANT <fabrice.le_fessant@ocamlpro.com>";
@@ -87,7 +85,7 @@ begin
   ];
 
   ocaml.requires =  [ "ocplib-lang"; "ocplib-unix"; "ocplib-system" ];
-  ocaml_library("ocp-build-misc", ocaml);
+  OCaml.library("ocp-build-misc", ocaml);
 end
 
 begin
@@ -105,7 +103,7 @@ begin
     "ocp-build-lang-ocp2";
   ];
 
-   ocaml_library("ocp-build-project", ocaml);
+   OCaml.library("ocp-build-project", ocaml);
 end
 
 begin
@@ -121,7 +119,7 @@ begin
 
    ocaml.requires =  [ "ocp-build-misc"; "ocplib-unix" ];
 
-   ocaml_library( "ocp-build-engine", ocaml);
+   OCaml.library( "ocp-build-engine", ocaml);
 end
 
 begin
@@ -138,7 +136,7 @@ begin
   ocaml.requires = [ "ocplib-unix"; "ocp-build-engine"; "ocp-build-project";
     "ocp-build-misc"; "ocplib-config" ];
 
-  ocaml_library( "ocp-build-lib", ocaml);
+  OCaml.library( "ocp-build-lib", ocaml);
 end
 
 begin
@@ -149,14 +147,14 @@ begin
                   "metaFile.ml";   (* for interpreted version of META file *)
           ];
   ocaml.requires = [ "ocp-build-misc" ];
-  ocaml_library( "ocplib-ocamlfind", ocaml);
+  OCaml.library( "ocplib-ocamlfind", ocaml);
 end
 
 
 begin
    ocaml.files = [ "metaMain.ml" ];
    ocaml.requires = [ "ocplib-ocamlfind"];
-   ocaml_program ("test-meta", ocaml);
+   OCaml.program ("test-meta", ocaml);
 end
 
 
@@ -176,6 +174,7 @@ begin
                                      by ocamldep *)
     "buildOCamlSyntaxes.ml";    (* For preprocessing of OCaml files *)
     "buildOCamlInstall.ml";
+    "buildOCamlPackage.ml";
     "buildOCamlRules.ml";       (* Initialisation of the build Engine *)
     "buildOCamlMeta.ml";
     "buildOCamlTest.ml";
@@ -185,13 +184,13 @@ begin
 
   ];
   ocaml.requires = [ "ocp-build-lib"; "ocplib-ocamlfind" ];
-  ocaml_library("ocp-build-ocaml-plugin", ocaml);
+  OCaml.library("ocp-build-ocaml-plugin", ocaml);
  end
 
 begin
   ocaml.files = [ "buildOasis.ml" ];
   ocaml.requires = [ "ocp-build-project" ];
-  ocaml_library("ocp-build-oasis", ocaml);
+  OCaml.library("ocp-build-oasis", ocaml);
 end
 
 begin
@@ -221,14 +220,14 @@ begin
   ocaml.requires = [ "ocp-build-lib";
                      "ocp-build-ocaml-plugin";
                      "ocp-build-oasis" ];
-  ocaml_program( "ocp-build", ocaml);
+  OCaml.program( "ocp-build", ocaml);
 end
 
 
 begin
   ocaml.files = [ "projectMain.ml"  ];
   ocaml.requires = [ "ocp-build-project" ];
-  ocaml_program( "ocp-project", ocaml);
+  OCaml.program( "ocp-project", ocaml);
 end
 
 begin
@@ -239,7 +238,7 @@ begin
   ocaml.test_args = [ "-init"; "-scan" ];
   ocaml.test_benchmark = true;
   ocaml.tests = [ "cycle", { test_exit = 2 } (* should raise error 2 *) ];
-  new_package("ocp-build.test", "test", ocaml);
+  OCaml.new_package("ocp-build.test", "test", ocaml);
 end
 
 
@@ -254,7 +253,7 @@ begin
   ];
 
   ocaml.requires = [ "ocp-build-misc" ];
-  ocaml_library( "ocp-build-ocaml", ocaml);
+  OCaml.library( "ocp-build-ocaml", ocaml);
 end
 
 begin
@@ -262,5 +261,5 @@ begin
   ocaml.files = [ (* "buildOCamlEnv.ml" *) ];
   ocaml.requires = [ "ocp-build-ocaml"; "ocp-build-misc" ];
 
-  ocaml_program("ocp-build-infer-env", ocaml);
+  OCaml.program("ocp-build-infer-env", ocaml);
 end

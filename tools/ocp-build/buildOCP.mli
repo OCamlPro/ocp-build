@@ -81,6 +81,27 @@ val find_obuild : (string -> unit) -> string -> unit
 val empty_config : unit -> config
 val generated_config : unit -> config
 
+val add_ocaml_package :
+           (state ->
+            BuildValue.Types.config ->
+            string -> BuildOCPTypes.package_type -> unit)
+           ref
+val package_type_of_string : string -> BuildOCPTypes.package_type
+val define_package :
+  state ->
+  BuildValue.Types.config ->
+  name:string ->
+  kind:BuildOCPTypes.package_type -> unit BuildOCPTypes.package
+
+val add_primitive : (* only for OCP2 *)
+  string ->
+  string list ->
+  (BuildValue.Types.location ->
+   state ->
+   BuildValue.Types.config ->
+   BuildValue.Types.value list -> BuildValue.Types.value) ->
+  unit
+
 val print_conflict :
   'a BuildOCPTypes.package ->
   'b BuildOCPTypes.package ->

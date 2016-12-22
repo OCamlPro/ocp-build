@@ -133,6 +133,25 @@ let subdir_option = BuildValue.new_strings_option "subdir" ([] : string list)
 let cclib_option = BuildValue.new_strings_option "cclib" ([] : string list)
 let packages_option = BuildValue.new_option "packages" (VList [])
 
+let config_option =
+  BuildValue.new_option "config" (VObject BuildValue.empty_env)
+
+let ocamlmod_option =
+  BuildValue.new_option "OCaml" (VObject BuildValue.empty_env)
+let ocamlmod_add name v =
+  match BuildValue.get_global "OCaml" with
+  | VObject env ->
+    BuildValue.set_global "OCaml" (VObject (BuildValue.set env name v))
+  | _ -> assert false
+
+let ocaml_option =
+  BuildValue.new_option "ocaml" (VObject BuildValue.empty_env)
+let ocaml_add name v =
+  match BuildValue.get_global "OCaml" with
+  | VObject env ->
+    BuildValue.set_global "OCaml" (VObject (BuildValue.set env name v))
+  | _ -> assert false
+
 
 
   (* not implemented *)

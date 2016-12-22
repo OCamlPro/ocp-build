@@ -43,6 +43,8 @@ module Eval(S: sig
 module Primitives = BuildOCP2Prims.Init(S)
 let primitives_help = Primitives.primitives_help
 
+let add_primitive = Primitives.add_primitive
+
 let read_config_file filename =
   try
     let content = FileString.string_of_file filename in

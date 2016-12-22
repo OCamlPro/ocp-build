@@ -144,14 +144,16 @@ let rec get_local envs name =
     with Not_found ->
       get_local envs name
 
-let get envs name =
-  try get_local envs name
-  with Var_not_found _ ->
-    try
+let get_global name =
+      try
       StringMap.find name !global_env
     with Not_found ->
 (*      Printf.eprintf "get_global %S failed\n%!" name; *)
       raise (Var_not_found name)
+
+let get envs name =
+  try get_local envs name
+  with Var_not_found _ -> get_global name
 
 let prop_list v =
   match v with
@@ -298,3 +300,5 @@ let config_get config name =
   get [config.config_env] name
 let config_set config name v =
   { config with config_env = set config.config_env name v }
+
+let unit = VObject empty_env
