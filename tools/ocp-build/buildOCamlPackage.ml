@@ -78,7 +78,7 @@ let _ =
 
 (* This [getconf] primitive should probably be moved to BuildOCP,
 as it is not specific to OCaml, isn't it ? *)
-let () =
+let init () =
   BuildOCP.add_primitive "getconf"
     [ "getconf(name) returns the configuration associated with name" ]
     (fun loc state config args ->
@@ -97,3 +97,5 @@ let () =
         BuildOCP2Prims.raise_bad_arity loc
           "getconf(name)" 1 args
     )
+
+let () = init ()
