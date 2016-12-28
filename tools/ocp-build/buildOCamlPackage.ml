@@ -34,6 +34,7 @@ let add_primitive name prim_help prim =
 
 
 let add_ocaml_package loc state config name kind =
+  Printf.eprintf "BuildOCamlPackage.add_ocaml_package %S\n%!" name;
   let (pk : unit BuildOCPTypes.package) =
     BuildOCP.define_package loc state config ~name ~kind
   in
@@ -315,6 +316,7 @@ let update_deps pj =
 
 let verify_packages w state =
 
+  Printf.eprintf "BuildOCamlPackage.verify_packages\n%!";
   let package_id = ref 0 in
   let packages = ref [] in
 
@@ -1076,5 +1078,6 @@ let verify_packages w state =
 ()
 
 let () =
+  Printf.eprintf "BuildOCamlPackage._init()\n%!";
   BuildOCP.plugin_verifiers := verify_packages :: !BuildOCP.plugin_verifiers;
   ()

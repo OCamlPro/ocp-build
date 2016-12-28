@@ -106,7 +106,7 @@ BUILD_LIB= $(OCP_BUILD_SRCDIR)/buildVersion.ml	\
     $(OCP_BUILD_SRCDIR)/buildGlobals.ml		\
     $(OCP_BUILD_SRCDIR)/buildConfig.ml		\
     $(OCP_BUILD_SRCDIR)/buildUninstall.ml		\
-    $(OCP_BUILD_SRCDIR)/buildAutogen.ml
+    $(OCP_BUILD_SRCDIR)/buildOCamlAutogen.ml
 
 BUILD_OCAMLFIND= $(OCP_BUILD_SRCDIR)/metaTypes.ml			\
     $(OCP_BUILD_SRCDIR)/metaLexer.ml $(OCP_BUILD_SRCDIR)/metaFile.ml	\

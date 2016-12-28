@@ -23,7 +23,7 @@ the top directory containing:
 
 config["ocp-build"].enabled = false;
 *)
-ocaml += getconf("ocp-build");
+ocaml += getconf("ocp-build"); 
 
 ocaml.exists = true;
 ocaml.bytelink = [];
@@ -180,8 +180,8 @@ begin
     "buildOCamlTest.ml";
 
     (*    "buildOCFGen.ml"; *)
-    "buildAutogen.ml";           (* Generate .ocp from directory content *)
-
+    "buildOCamlAutogen.ml";           (* Generate .ocp from directory content *)
+(*    "buildOCamlMain.ml"; *)
   ];
   ocaml.requires = [ "ocp-build-lib"; "ocplib-ocamlfind" ];
   OCaml.library("ocp-build-ocaml-plugin", ocaml);

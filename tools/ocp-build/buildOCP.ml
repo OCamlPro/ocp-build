@@ -1159,14 +1159,25 @@ let verify_packages w state =
   let disabled_packages = ref [] in
 
   IntMap.iter (fun _ pk ->
-    if pk.package_disabled then
+    if pk.package_disabled then begin
+      Printf.eprintf "BuildOCP: %S disabled\n%!" pk.package_name;
       disabled_packages := pk :: !disabled_packages
-    else
+    end
+    else begin
+      Printf.eprintf "BuildOCP: %S sorted \n%!" pk.package_name;
       sorted_packages := pk :: !sorted_packages
+        end
   ) state.packages;
 
+  let (sorted_packages, cycle, non_sorted) =
+    PackageSorter.sort !sorted_packages in
+
+  List.iteri (fun i pk ->
+    Printf.eprintf "sorted: %d -> %S\n%!" pk.package_name
+  ) sorted_packages;
+
   let pj = {
-    project_sorted = Array.of_list !sorted_packages;
+    project_sorted = Array.of_list sorted_packages;
     project_disabled = Array.of_list !disabled_packages;
     (*
     project_missing = !missing_packages;
