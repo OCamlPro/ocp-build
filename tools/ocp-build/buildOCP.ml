@@ -35,12 +35,23 @@ type state = {
   mutable config_files : Digest.t StringMap.t;
 }
 
+exception MissingDirectory of string * string * string
+exception PackageConflict of
+    BuildOCPTypes.pre_package * BuildOCPTypes.pre_package *
+      BuildOCPTypes.pre_package
+exception BadInstalledPackage of string * string
+exception MissingDependency of string * string * string
+exception KindMismatch of string * string * string * string
+exception IncompletePackage of BuildOCPTypes.pre_package
+exception MissingPackage of string * BuildOCPTypes.pre_package list
+
 let initial_state () =
 { packages = IntMap.empty; npackages = 0; config_files = StringMap.empty; }
 
 let copy_state s =
   { s with packages = s.packages }
 
+    (*
 let new_package_info () =
 {
     package_node = LinearToposort.new_node ();
@@ -50,23 +61,29 @@ let new_package_info () =
     package_requires_map = IntMap.empty;
     package_added = false;
 }
+    *)
 
 let final_state state =
   if state.npackages = 0 then [||] else
     Array.init state.npackages (fun i ->
-      { (IntMap.find i state.packages) with pi = new_package_info () }
+      { (IntMap.find i state.packages) with
+        (*        pi = new_package_info (); *)
+        package_requires_list = [];
+      }
     )
 
-let new_package pj name dirname filename filenames kind options =
-  let package_id = pj.npackages in
+let get_packages state = state.packages
+
+let new_package package_loc state name dirname filename filenames kind options =
+  let package_id = state.npackages in
     (* Printf.eprintf "new_package %s_%d\n%!" name package_id; *)
-  pj.npackages <- pj.npackages + 1;
-  let pk = {
+  state.npackages <- state.npackages + 1;
+  let rec pk = {
     package_source_kind = "ocp";
     package_id = package_id;
     package_auto = None;
     package_version = "";
-    package_loc = (-1);
+    package_loc;
     package_filename = filename;
     package_filenames = filenames;
     package_name = name;
@@ -74,9 +91,13 @@ let new_package pj name dirname filename filenames kind options =
     package_type = kind;
     package_dirname = dirname;
     package_options = options;
-    pi = ();
+    package_plugin = Not_found;
+    package_disabled = false;
+    package_requires_list = [];
+    package_pk = pk;
+    package_node = LinearToposort.new_node ();
   } in
-  pj.packages <- IntMap.add pk.package_id pk pj.packages;
+  state.packages <- IntMap.add pk.package_id pk state.packages;
   pk
 
 let empty_config = BuildValue.empty_config
@@ -85,6 +106,7 @@ let generated_config = {
   config_env = BuildValue.set_bool empty_config.config_env "generated" true;
 }
 
+  (*
 let new_package_dep pk s env =
     try
       StringMap.find s pk.pi.package_deps_map
@@ -112,6 +134,7 @@ let add_project_dep pk s options =
 (*  Printf.eprintf "add_project_dep for %S = %S with link=%b\n%!"
     pk.package_name s dep.dep_link; *)
 ()
+  *)
 
 (* We want to check the existence of the dirname of a package as soon
  as possible, so that we can disable it and enable another one.
@@ -119,6 +142,7 @@ let add_project_dep pk s options =
  for which we should use another loading phase.
 *)
 
+  (*
 let check_package w pk =
   let options = pk.package_options in
 
@@ -127,7 +151,7 @@ let check_package w pk =
       (* TODO: we should probably do much more than that, i.e. disable also a
          package when some files are missing. *)
          BuildWarnings.add w
-           (`MissingDirectory
+           (MissingDirectory
                (
                  pk.package_dirname,
                  pk.package_name,
@@ -145,9 +169,9 @@ let check_package w pk =
         []
       )
     end
+  *)
 
-
-let define_package pj config
+let define_package loc pj config
     ~name
     ~kind
   =
@@ -159,7 +183,7 @@ let define_package pj config
       config.config_dirname
   in
   let dirname = if dirname = "" then "." else dirname in
-  new_package pj name
+  new_package loc pj name
     dirname
     config.config_filename config.config_filenames kind config.config_env
 
@@ -206,7 +230,8 @@ let package_type_of_string kind =
     Printf.eprintf "Error: inexistent kind %S for package\n%!" kind;
     assert false
 
-let add_ocaml_package = ref (fun _loc _state _config _args -> ())
+let add_ocaml_package =
+  ref (fun _loc _state _config _name _kind -> assert false)
 
 module OCP_arg = struct
 
@@ -217,8 +242,11 @@ module OCP_arg = struct
     let parse_error () =
       if not !continue_on_ocp_error then exit 2
 
-    let define_package ctx config ~name ~kind =
-      !add_ocaml_package ctx config name (package_type_of_string kind)
+    let define_package loc ctx config ~name ~kind =
+      let ( _ : unit package) =
+        !add_ocaml_package loc ctx config name (package_type_of_string kind)
+      in
+      ()
 
     let new_file ctx filename digest =
       try
@@ -238,18 +266,6 @@ module EvalOCP2 = BuildOCP2Interp.Eval(OCP_arg)
 
 let add_primitive = EvalOCP2.add_primitive
 let primitives_help = EvalOCP1.primitives_help
-
-type warning =
-[ `MissingDirectory of string * string * string
-| `PackageConflict of
-    BuildOCPTypes.final_package * BuildOCPTypes.final_package *
-      BuildOCPTypes.final_package
-| `BadInstalledPackage of string * string
-| `MissingDependency of string * string * string
-| `KindMismatch of string * string * string * string
-| `IncompletePackage of BuildOCPTypes.final_package
-| `MissingPackage of string * BuildOCPTypes.final_package list
-]
 
 let verbose = DebugVerbosity.verbose ["B";"BP"] "BuildOCP"
 
@@ -357,7 +373,7 @@ let normalized_dir dir =
 let is_enabled options =
   BuildValue.get_bool_with_default options "enabled" true
 
-
+(*
 module PackageLinkSorter = LinearToposort.Make(struct
   type t = final_package  package_dependency
   let node pd = pd.dep_project.pi.package_node
@@ -367,7 +383,18 @@ module PackageLinkSorter = LinearToposort.Make(struct
   let name pd = pd.dep_project.package_name
   let debug = ref false
 end)
+*)
 
+module PackageSorter = LinearToposort.Make(struct
+  type t = pre_package
+  let node pd = pd.package_node
+  let iter_edges f pk =
+    List.iter (fun pk2 -> f pk2) pk.package_requires_list
+  let name pk = pk.package_name
+  let debug = ref false
+end)
+
+  (*
 let print_deps msg pk =
   Printf.eprintf "%s: Project %s depends on:\n%!" msg pk.package_name;
   List.iter (fun dep ->
@@ -378,7 +405,7 @@ let print_deps msg pk =
       (if dep.dep_link then "(link)" else "")
       (if dep.dep_syntax then "(syntax)" else "")
       (if dep.dep_optional then "(optional)" else "")
-  ) pk.pi.package_requires
+  ) pk.package_requires
 
 
 let new_dep pk pk2 options =
@@ -399,6 +426,7 @@ let new_dep pk pk2 options =
     (*    Printf.eprintf "New dep %s <- %s\n%!"
           pk2.package_name pk.package_name; *)
     dep
+  *)
 
 (*
   Do a closure of all dependencies for this project. Called only on
@@ -409,6 +437,7 @@ let new_dep pk pk2 options =
   - we don't need more than that.
 *)
 
+  (*
 let update_deps pj =
 
   if !print_package_deps || verbose 5 then
@@ -509,6 +538,7 @@ let update_deps pj =
     print_deps "AFTER update_deps SORT" pj;
   ()
 
+  *)
 
 let reset_package_ids _debug array =
   for i = 0 to Array.length array - 1 do
@@ -519,22 +549,18 @@ let reset_package_ids _debug array =
 
 let requires_keep_order_option = BuildValue.new_bool_option "requires_keep_order" false
 
-type tpk = {
-  tpk_id : int;
-  tpk_name : string;
-  tpk_pk : final_package;
-  tpk_names : string list;
-  tpk_tags : string list;
-  tpk_raw_requires : string package_dependency StringMap.t;
-  mutable tpk_enabled : bool;
-  mutable tpk_keys : (string * string) list;
-  mutable tpk_requires : tpk IntMap.t;
-  mutable tpk_required_by : tpk IntMap.t;
-}
+let plugin_verifiers = ref ([] : (BuildWarnings.set -> state -> unit) list)
 
-let verify_packages w packages =
-  let packages = final_state packages in
+let verify_packages w state =
 
+  List.iter (fun f ->
+    f w state
+
+  ) !plugin_verifiers;
+
+  let packages = final_state state in
+
+  (*
   (* Verify that package directories really exist, and add 'requires'
      to pk.package_deps_map *)
   Array.iter (check_package w) packages;
@@ -1127,8 +1153,20 @@ let verify_packages w packages =
 
   (*  let npackages = Array.length packages in *)
 
+  *)
+
+  let sorted_packages = ref [] in
+  let disabled_packages = ref [] in
+
+  IntMap.iter (fun _ pk ->
+    if pk.package_disabled then
+      disabled_packages := pk :: !disabled_packages
+    else
+      sorted_packages := pk :: !sorted_packages
+  ) state.packages;
+
   let pj = {
-    project_sorted = Array.of_list sorted_packages;
+    project_sorted = Array.of_list !sorted_packages;
     project_disabled = Array.of_list !disabled_packages;
     (*
     project_missing = !missing_packages;
@@ -1146,6 +1184,7 @@ let verify_packages w packages =
   (* Change the package IDs: the package_requires_map is not correct anymore ! *)
   reset_package_ids "project_sorted" pj.project_sorted;
 
+  (*
   (* TODO: The impact of this is that all dependencies are sorted in
      the same order in all packages. This might, however, not be what
      someone wants, because you might want to have a different link
@@ -1205,9 +1244,11 @@ let verify_packages w packages =
   Array.iter (fun pk ->
     pk.pi.package_requires_map <- IntMap.empty
   ) pj.project_sorted;
-
+  *)
   (*  reset_package_ids "project_incomplete" pj.project_incomplete; *)
+
   reset_package_ids "project_disabled" pj.project_disabled;
+
   (*
     begin match !print_dot_packages with
     None -> ()

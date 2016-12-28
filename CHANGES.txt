@@ -1,6 +1,11 @@
 Change log
 ==========
 
+2016-12-24:
+* Use exceptions for warnings, while waiting for extensible types to be
+ available in all supported OCaml versions
+* Move dependency analysis to the OCaml plugin
+
 2016-12-18:
 * New raw interpretation of META files
 

@@ -500,16 +500,6 @@ let init_env () =
 
   (w, p, env_state, env_pj)
 
-let init_project env_w p env_state  =
-
-  chdir_to_project p;
-
-  let (bc, package_map) = load_initial_project env_w p
-    (BuildOCP.copy_state env_state) in
-
-  (bc, package_map)
-
-
 let action () =
   BuildActionsWarnings.set_default_is_always ();
 
@@ -527,7 +517,12 @@ let action () =
     BuildMisc.safe_mkdir BuildOptions.project_build_dirname
   end;
   let (w, p, env_state, env_pj) = init_env () in
-  ignore (init_project w p env_state )
+
+  chdir_to_project p;
+
+  let (_bc, _package_map) = load_initial_project w p
+    (BuildOCP.copy_state env_state) in
+  ()
 
 let arg_list = [
   "-I", Arg.String (fun dir ->

@@ -64,10 +64,8 @@ open BuildOCamlTypes
 open BuildOCamlVariables
 open BuildOCamlMisc
 
-type warning = [
-| `SyntaxDepDeclaredAsNotSyntax of string * string * string
-| `SyntaxDepNotDeclared of string * string * string
-]
+exception SyntaxDepDeclaredAsNotSyntax of string * string * string
+exception SyntaxDepNotDeclared of string * string * string
 
 let verbose = DebugVerbosity.verbose ["B"] "BuildOCamlSyntaxes"
 
@@ -136,10 +134,11 @@ let get_tool_require w tool_name lib s =
   in
   let declared = ref false in
   List.iter (fun dep ->
-    if dep.dep_project == pk then begin
+    let olib = dep.dep_project in
+    if olib == lib then begin
       if not dep.dep_syntax then begin
         BuildWarnings.add w
-          (`SyntaxDepDeclaredAsNotSyntax (lib.lib.lib_name, tool_name, pk_name))
+          (SyntaxDepDeclaredAsNotSyntax (lib.lib.lib_name, tool_name, pk_name))
 (*        print_warnings [
         Printf.sprintf "package %S" lib.lib.lib_name;
           Printf.sprintf "%s_requires: dependency %S not declared as syntax" tool_name pk_name ] *)
@@ -147,12 +146,12 @@ let get_tool_require w tool_name lib s =
 
       declared := true
     end
-  ) lib.lib.lib_requires;
+  ) lib.lib_requires;
   if not !declared then begin
     BuildWarnings.add w
-      (`SyntaxDepNotDeclared (lib.lib.lib_name, tool_name, pk_name));
+      (SyntaxDepNotDeclared (lib.lib.lib_name, tool_name, pk_name));
   end;
-  match BuildOCamlGlobals.ocaml_package pk with
+  match BuildOCamlGlobals.get_by_id pk with
   | None ->
     Printf.eprintf "Warning: expected %S to be an OCaml package\n%!"
       pk.lib_name;
@@ -210,38 +209,41 @@ let get_pp w lib basename options =
               "   Syntax %S could not be found among existing packages\n%!" s;
             clean_exit 2
         in
+        match BuildOCamlGlobals.get_by_id pksy with
+        | None -> assert false
+        | Some pksy ->
         let found = ref false in
         List.iter (fun dep ->
           if dep.dep_syntax && dep.dep_project == pksy then
             found := true
-        ) lib.lib.lib_requires;
+        ) lib.lib_requires;
         if not !found then begin
           Printf.eprintf "Error with package %S, file %S:\n"
             lib.lib.lib_name basename;
           Printf.eprintf
-            "   Syntax %S was not in 'requires' of package.\n%!" pksy.lib_name;
+            "   Syntax %S was not in 'requires' of package.\n%!" pksy.lib.lib_name;
         end;
         pksy
       ) syntaxes in
     let (pp, lib_requires) =
       match syntaxes with
       | [] -> assert false
-      | [ { lib_type = ProgramPackage } as pp ] -> (pp, [])
+      | [ { lib = {lib_type = ProgramPackage} } as pp ] -> (pp, [])
       | [ pksy ] ->
 
         if verbose 3 then begin
           Printf.eprintf "Package %S, file %S, syntax %S:\n"
-            lib.lib.lib_name basename pksy.lib_name;
+            lib.lib.lib_name basename pksy.lib.lib_name;
           List.iter (fun dep ->
-            let l = dep.dep_project in
+            let olib = dep.dep_project in
             Printf.eprintf "  dep: %s %S\n%!"
-              (BuildOCP.string_of_package_type l.lib_type) l.lib_name
+              (BuildOCP.string_of_package_type olib.lib.lib_type) olib.lib.lib_name
           ) pksy.lib_requires;
         end;
 
         let preprocessor = ref [] in
         List.iter (fun dep ->
-          match dep.dep_project.lib_type with
+          match dep.dep_project.lib.lib_type with
             ProgramPackage ->
             preprocessor := dep.dep_project :: !preprocessor
           | TestPackage -> assert false
@@ -271,7 +273,7 @@ let get_pp w lib basename options =
 
       | [s1;s2] ->
         begin
-          match s1, s1.lib_type, s2, s2.lib_type with
+          match s1, s1.lib.lib_type, s2, s2.lib.lib_type with
           | _, ProgramPackage, _pksy, ProgramPackage ->
             Printf.eprintf "Error with package %S, filw %S:\n"
               lib.lib.lib_name basename;
@@ -299,12 +301,12 @@ let get_pp w lib basename options =
     let pp_option = ref [] in
     let pp_requires = ref [] in
 
-    if pp.lib_installed then
-      pp_option := [ pp.lib_name ]
+    if pp.lib.lib_installed then
+      pp_option := [ pp.lib.lib_name ]
     else begin
-      pp_requires := [ find_dst_file lib.lib.lib_dst_dir (pp.lib_name ^ ".byte") ];
+      pp_requires := [ find_dst_file lib.lib.lib_dst_dir (pp.lib.lib_name ^ ".byte") ];
       pp_option := [
-        Printf.sprintf "%%{%s_DST_DIR}%%/%s.byte" pp.lib_name pp.lib_name
+        Printf.sprintf "%%{%s_DST_DIR}%%/%s.byte" pp.lib.lib_name pp.lib.lib_name
       ];
     end;
 
@@ -312,25 +314,22 @@ let get_pp w lib basename options =
     (* remove libraries that are already included in the preprocessor *)
     List.iter (fun dep ->
       if dep.dep_link then
-        already_linked_map := StringSet.add dep.dep_project.lib_name
+        already_linked_map := StringSet.add dep.dep_project.lib.lib_name
             !already_linked_map
     ) pp.lib_requires;
 
     List.iter (fun dep ->
-      let p = dep.dep_project in
-      match BuildOCamlGlobals.ocaml_package p with
-      | None -> ()
-      | Some plib ->
-        if p != pp
+      let plib = dep.dep_project in
+        if plib != pp
         && dep.dep_link
-      && not (StringSet.mem p.lib_name !already_linked_map)
-        && (plib.lib_sources <> [] || p.lib_installed)
+      && not (StringSet.mem plib.lib.lib_name !already_linked_map)
+        && (plib.lib_sources <> [] || plib.lib.lib_installed)
       then begin
         pp_requires := (execution_dependencies plib "byte") @ !pp_requires;
-        if not p.lib_meta then
+        if not plib.lib.lib_meta then
           pp_args := !pp_args @
-                     [ S "-I"; BD p.lib_dst_dir ] @
-                     (match p.lib_type with
+                     [ S "-I"; BD plib.lib.lib_dst_dir ] @
+                     (match plib.lib.lib_type with
                       | ProgramPackage -> assert false
                       | TestPackage -> assert false
                       | ObjectsPackage ->

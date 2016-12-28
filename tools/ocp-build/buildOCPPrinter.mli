@@ -24,4 +24,6 @@ val string_of_package :
   (StringCompat.Buffer.t -> string -> 'a -> unit) ->
   'a BuildOCPTypes.package -> string
 val eprint_project : string -> BuildOCPTypes.project -> unit
+(*
 val package_info : Buffer.t -> string -> BuildOCPTypes.package_info -> unit
+*)

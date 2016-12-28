@@ -466,7 +466,8 @@ let load_project pj filename =
                   VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link)]
          ) requires)) in
 
-      let pk = BuildOCP.new_package pj name opk.opk_dirname
+      let pk = BuildOCP.new_package (BuildValue.noloc opk.opk_filename)
+        pj name opk.opk_dirname
           opk.opk_filename [opk.opk_filename, None (* matters only for non-installed packages *)
                            ] opk.opk_type po in
       pk.package_source_kind <- "oasis";

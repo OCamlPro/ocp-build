@@ -95,15 +95,17 @@ let serial_workqueue = Queue.create ()
 
 
 let find_binaries b cwd lib =
-  let has_asm = BuildValue.get_bool_with_default [lib.lib_options] "asm" true in
-  let has_byte = BuildValue.get_bool_with_default [lib.lib_options] "byte" true in
+  let has_asm =
+    BuildValue.get_bool_with_default [lib.lib.lib_options] "asm" true in
+  let has_byte = BuildValue.get_bool_with_default
+    [lib.lib.lib_options] "byte" true in
   let get_binary ext =
     let binary_basename =
-      lib.lib_name ^ ext
+      lib.lib.lib_name ^ ext
     in
     let binary =
       File.to_string (File.add_basenames b.build_dir
-          [lib.lib_name; binary_basename])
+          [lib.lib.lib_name; binary_basename])
     in
     Filename.concat cwd binary
   in
@@ -118,7 +120,7 @@ let find_binaries b cwd lib =
     []
 
 let test_package b stats lib only_benchmarks =
-  match BuildOCamlGlobals.ocaml_package lib with
+  match BuildOCamlGlobals.get_by_id lib with
   | None -> ()
   | Some lib ->
   let cwd = MinUnix.getcwd () in
@@ -127,18 +129,18 @@ let test_package b stats lib only_benchmarks =
     | TestPackage, _ ->
       let binaries =
         if lib.lib_sources = [] then
-          let program = ref None in
+          let program = ref (None : ocaml_package option) in
           List.iter (fun dep ->
             let pro = dep.dep_project in
-            match pro.lib_type, !program with
+            match pro.lib.lib_type, !program with
             | ProgramPackage, Some pro1 ->
               Printf.eprintf "Error: test %S depends on two programs %S and %S\n%!"
-                lib.lib.lib_name pro1.lib_name pro.lib_name;
+                lib.lib.lib_name pro1.lib.lib_name pro.lib.lib_name;
               BuildMisc.clean_exit 2
             | ProgramPackage, None ->
               program := Some pro
             | _ -> () (* TODO: raise an error ? *)
-          ) lib.lib.lib_requires;
+          ) lib.lib_requires;
           begin
             match !program with
               None ->
@@ -154,7 +156,7 @@ let test_package b stats lib only_benchmarks =
             | Some pro -> find_binaries b cwd pro
           end
         else
-          find_binaries b cwd lib.lib
+          find_binaries b cwd lib
       in
       let tests =
         match lib.lib_tests with
@@ -164,7 +166,7 @@ let test_package b stats lib only_benchmarks =
       binaries, tests
 
     | ProgramPackage, tests ->
-      find_binaries b cwd lib.lib, tests
+      find_binaries b cwd lib, tests
     | (ObjectsPackage
       | LibraryPackage
       | SyntaxPackage

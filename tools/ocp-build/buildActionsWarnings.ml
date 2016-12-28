@@ -21,15 +21,6 @@
 open StringCompat
 open BuildOCPTypes
 
-type warning =
-[
-  BuildOCP.warning
-| BuildOCamlConfig.warning
-| BuildOCamlSyntaxes.warning
-]
-
-type set = warning BuildWarnings.set
-
 type print_warnings =
 | PrintWarningsAlways
 | PrintWarningsIfChanged
@@ -73,40 +64,41 @@ let arg_list = [
 
 ]
 
-let print_warning (w : warning) =
+let print_warning (w : exn) =
   match w with
-  | `MissingDirectory (dirname, name, filename) ->
+  | BuildOCP.MissingDirectory (dirname, name, filename) ->
     Printf.eprintf
       "Warning: directory %S for package does not exist: \
             \   Package %S in %S disabled.\n%!"
       dirname name filename
-  | `MissingTool tool ->
+  | BuildOCamlConfig.MissingTool tool ->
     Printf.eprintf "Warning: Could not find OCaml %s tool.\n" tool
-  | `PackageConflict (pk1, pk2, pk3) ->
+  | BuildOCP.PackageConflict (pk1, pk2, pk3) ->
     BuildOCP.print_conflict pk1 pk2 pk3
-  | `BadInstalledPackage (name1, name2) ->
+  | BuildOCP.BadInstalledPackage (name1, name2) ->
     Printf.eprintf
       "Warning: installed package %s depends on source package %s\n%!"
       name1 name2
-  | `MissingDependency (kind, name, dep) ->
+  | BuildOCP.MissingDependency (kind, name, dep) ->
       Printf.eprintf "Warning: missing dependency, %s %S requires %S\n%!"
         kind name dep
-  | `KindMismatch (kind, name, kind2, name2) ->
+  | BuildOCP.KindMismatch (kind, name, kind2, name2) ->
     Printf.eprintf
       "Warning: %s %S depends on %S, that only exists in %s\n%!"
       kind name name2 kind2
-  | `SyntaxDepDeclaredAsNotSyntax (lib_name, tool_name, pk_name) ->
+  | BuildOCamlSyntaxes.SyntaxDepDeclaredAsNotSyntax (lib_name, tool_name, pk_name) ->
     Printf.eprintf "Warning: in package %S, %s_requires: dependency %S not declared as syntax" lib_name tool_name pk_name
-  | `SyntaxDepNotDeclared (lib_name, tool_name, pk_name) ->
+  | BuildOCamlSyntaxes.SyntaxDepNotDeclared (lib_name, tool_name, pk_name) ->
     Printf.fprintf stderr "Warning: in package %s, %s_requires dependency %S not declared\n%!"
       lib_name tool_name pk_name
-  | `IncompletePackage pk ->
+  | BuildOCP.IncompletePackage pk ->
     Printf.eprintf "Warning: package %S disabled\n" pk.package_name
-  | `MissingPackage (name, pks) ->
+  | BuildOCP.MissingPackage (name, pks) ->
     Printf.eprintf "Warning: missing package %S, needed by\n" name;
     List.iter (fun pk ->
       Printf.eprintf "  * %S\n%!" pk.package_name) pks
-
+  | _ ->
+    Printf.eprintf "Warning: %s\n%!" (Printexc.to_string w)
 
 let print_warnings project_dir arg_print_warnings warnings_kind w =
   let warnings_filename =
@@ -131,7 +123,7 @@ let print_warnings project_dir arg_print_warnings warnings_kind w =
             let ic = open_in_bin warnings_filename in
             let (version : int) = input_value ic in
             if version <> warnings_version then raise Exit;
-            let (w : 'a BuildWarnings.set) = input_value ic in
+            let (w : BuildWarnings.set) = input_value ic in
             close_in ic;
             w
           with _ ->

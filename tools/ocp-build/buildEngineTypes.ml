@@ -52,6 +52,7 @@ type file_kind =
 module DigestMap = Map.Make(struct
   type t = Digest.t let compare = compare
 end)
+
 type loc = string * int * string
 
 type only_if_changed = bool

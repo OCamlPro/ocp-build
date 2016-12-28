@@ -32,6 +32,4 @@ type project_info = {
   cout : BuildOCamlConfig.TYPES.config_output;
 }
 
-
-val load_project :
-  [> `MissingTool of string ] BuildWarnings.set -> project_info
+val load_project : BuildWarnings.set -> project_info

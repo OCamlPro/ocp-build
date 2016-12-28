@@ -24,7 +24,7 @@ val plugin : (module BuildTypes.Plugin)
 (* From the [validated_projects] table, fill the other
    tables *)
 val create :
-  [> BuildOCamlSyntaxes.warning ] BuildWarnings.set ->
+  BuildWarnings.set ->
   BuildOptions.config_input ->
   BuildOCamlConfig.TYPES.config_output ->
   BuildTypes.builder_context ->

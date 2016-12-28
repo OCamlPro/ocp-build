@@ -29,8 +29,18 @@
 open BuildEngineTypes
 
 open BuildEngineContext
+open BuildTypes
+open BuildOCamlTypes
 
-
+(*
+let iter_requires f olib =
+  List.iter (fun dep ->
+    let opk = dep.dep_project in
+    match opk.opk_lib with
+    | None -> assert false
+    | Some olib -> f olib dep
+  ) olib.lib_opk.opk_requires
+*)
 
 let byte_exe =
   match MinUnix.os_type with

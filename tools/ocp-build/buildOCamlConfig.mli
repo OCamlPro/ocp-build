@@ -98,11 +98,9 @@ val arg_list : unit -> (string * Arg.spec * string) list
 val load_global_config : File.t -> unit
 *)
 
-type warning = [
-| `MissingTool of string
-]
+exception MissingTool of string
 
 val check_config :
-  [> warning ] BuildWarnings.set ->
+  BuildWarnings.set ->
   BuildOptions.config_input -> config_output
 val set_global_config : config_output -> unit

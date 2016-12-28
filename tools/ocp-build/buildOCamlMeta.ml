@@ -161,9 +161,18 @@ let load_META_files pj ocamllib top_dirname =
                           VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link)]
                 ) requires)) in
             let options = BuildValue.set_bool options "generated" true in
-            let pk = BuildOCP.new_package pj fullname dirname
-                meta_filename [meta_filename, None (* matters only for non-installed packages *)
-                              ] kind options in
+            let pk = BuildOCamlPackage.add_ocaml_package
+              (BuildValue.noloc fullname)
+              pj
+              {
+                config_dirname = dirname;
+                config_filename = meta_filename;
+                 (* matters only for non-installed packages *)
+                config_filenames = [meta_filename, None];
+                config_env = options }
+              fullname
+              kind
+            in
             pk.package_source_kind <- "meta";
 
             (* this package has already been generated *)

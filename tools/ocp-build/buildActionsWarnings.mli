@@ -20,20 +20,11 @@
 
 val arg_list : (string * Arg.spec * string) list
 
-type warning =
-[
-| BuildOCP.warning
-| BuildOCamlConfig.warning
-| BuildOCamlSyntaxes.warning
-]
-
-type set = warning BuildWarnings.set
-
 val set_default_is_always : unit -> unit
 
 (* [print_env_warnings set] prints warnings from [set],
    using [filename] as a reminder of former warnings, and update
    [filename] consequently. [kind] is a simple string to characterize
    these warnings, typically "env" or "project" *)
-val print_env_warnings : File.t -> set -> unit
-val print_pj_warnings : File.t -> set -> unit
+val print_env_warnings : File.t -> BuildWarnings.set -> unit
+val print_pj_warnings : File.t -> BuildWarnings.set -> unit

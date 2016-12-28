@@ -103,7 +103,7 @@ let do_list_packages pj =
       )
       pk.package_dirname;
     Printf.printf "    ";
-    List.iter (fun dep ->
+(*    List.iter (fun dep ->
       Printf.printf "%s %s "
         dep.dep_project.package_name
         (match dep.dep_link, dep.dep_syntax with
@@ -111,7 +111,7 @@ let do_list_packages pj =
          | false, false -> "(none)"
          | false, true -> "(syntax)"
          | true, true -> "(link+syntax)")
-    ) pk.pi.package_requires;
+      ) pk.package_requires_list; *)
     Printf.printf "\n";
   ) (List.sort (fun pk1 pk2 -> compare pk1.package_name pk2.package_name)
       (Array.to_list pj.project_sorted));

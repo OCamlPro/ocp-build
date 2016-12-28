@@ -218,7 +218,7 @@ let save_uninstall_log uninstall_file log =
 
 
 let install where what lib installdir =
-  match BuildOCamlGlobals.ocaml_package lib with
+  match BuildOCamlGlobals.get_by_id lib with
   | None -> ()
   | Some lib ->
     Printf.eprintf "Installing %S in %S\n%!" lib.lib.lib_name installdir;
@@ -255,9 +255,10 @@ let install where what lib installdir =
       meta.meta_description <- Some
         (BuildValue.get_string_with_default [lib.lib.lib_options] "description" lib.lib.lib_name);
       List.iter (fun dep ->
+        let olib = dep.dep_project in
         if dep.dep_link then
-          MetaFile.add_requires meta [] [dep.dep_project.lib_name]
-      ) lib.lib.lib_requires;
+          MetaFile.add_requires meta [] [olib.lib.lib_name]
+      ) lib.lib_requires;
 
       let install_file file kind =
         let dst_file =

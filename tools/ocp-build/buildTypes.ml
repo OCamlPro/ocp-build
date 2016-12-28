@@ -68,7 +68,7 @@ type package_info = {
 
   lib_node : LinearToposort.node;
 
-  mutable lib_requires : package_info BuildOCPTypes.package_dependency list;
+  (*  mutable lib_requires : package_info list; *)
   mutable lib_added : bool;
   lib_src_dir : BuildEngineTypes.build_directory;
   lib_dst_dir : BuildEngineTypes.build_directory;

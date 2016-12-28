@@ -31,6 +31,7 @@ module Eval(S: sig
 
 
     val define_package :
+      location ->
       context ->
       config ->
       name:string ->

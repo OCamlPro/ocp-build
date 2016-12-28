@@ -31,9 +31,7 @@ open BuildValue.Types
 open BuildConfig
 open BuildOptions
 
-type warning = [
-| `MissingTool of string
-]
+exception MissingTool of string
 
 module TYPES = struct
 
@@ -300,7 +298,7 @@ let check_config w cin =
       [ "ocamldoc" ] in
   begin match ocamldoc with
     None ->
-      BuildWarnings.add w (`MissingTool "ocamldoc");
+      BuildWarnings.add w (MissingTool "ocamldoc");
       cout.cout_ocamldoc <- Some [ "no-ocamldoc-detected" ]
     | Some ocamldoc ->
       cout.cout_ocamldoc <- Some [ocamldoc];

@@ -109,8 +109,8 @@ let package package_info b indent p =
 
   if p.package_version <> "[distributed with Ocaml]" then
     Printf.bprintf b "%s  package_version = %S;\n" indent p.package_version;
-  if p.package_loc <> -1 then
-    Printf.bprintf b "%s  package_loc = %d;\n" indent p.package_loc;
+  Printf.bprintf b "%s  package_loc = %s;\n" indent
+    (BuildValue.string_of_location p.package_loc);
   Printf.bprintf b "%s  package_filename = %S;\n" indent p.package_filename;
   begin match p.package_auto with
     | None -> ()
@@ -128,13 +128,14 @@ let package package_info b indent p =
   ) b indent p.package_filenames;
   Printf.bprintf b ";\n";
   Printf.bprintf b "%s  package_id = %d;\n" indent p.package_id;
-  package_info b indent p.pi;
+  (*  package_info b indent p.pi; *)
 (*
   mutable package_requires : package package_dependency list;
   mutable package_requires_map : package package_dependency IntMap.t;
 *)
   Printf.bprintf b "%s}\n" indent
 
+    (*
 let package_info b indent pi =
   let indent2 = indent ^ "  " in
   Printf.bprintf b "%s  package_validated = %b;\n" indent pi.package_validated;
@@ -150,8 +151,9 @@ let package_info b indent pi =
   intMap (package_dependency package_uid) b indent2 pi.package_requires_map;
   Printf.bprintf b ";\n";
   ()
+    *)
 
-let final_package = package package_info
+let final_package = package ()
 
 let string_x_package_list b indent (s, plist) =
   Printf.bprintf b "%s%S, " indent s;

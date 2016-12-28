@@ -89,7 +89,7 @@ end
 (* TODO: [mut_dir] does not work for source files beginning with ".."
    and for source files in other packages (package = "toto")
 *)
-let ocaml_dep dep = BuildOCamlGlobals.ocaml_package dep.dep_project
+let ocaml_dep dep = BuildOCamlGlobals.get_by_id dep.dep_project
 
 let ocamlc_command options ocamlc_specific ocamlc_generic =
   let ocamlc_command = ocamlc_specific.get options in
@@ -190,21 +190,19 @@ let c_includes lib =
      We should search directories in the
      reverse order of the topological order. *)
   List.iter (fun dep ->
-    match ocaml_dep dep with
-    | None -> ()
-    | Some lib ->
-      match lib.lib.lib_type with
-      | ProgramPackage (* | ProjectToplevel *) -> ()
-      | TestPackage -> assert false
-      | LibraryPackage
-      | ObjectsPackage ->
-        if dep.dep_link || externals_only.get [dep.dep_options]
-        then begin
-          add_include_dir lib.lib.lib_src_dir;
-        end
-      | SyntaxPackage -> ()
-      | RulesPackage -> ()
-  ) (List.rev lib.lib.lib_requires);
+    let lib = dep.dep_project in
+    match lib.lib.lib_type with
+    | ProgramPackage (* | ProjectToplevel *) -> ()
+    | TestPackage -> assert false
+    | LibraryPackage
+    | ObjectsPackage ->
+      if dep.dep_link || externals_only.get [dep.dep_options]
+      then begin
+        add_include_dir lib.lib.lib_src_dir;
+      end
+    | SyntaxPackage -> ()
+    | RulesPackage -> ()
+  ) (List.rev lib.lib_requires);
   !includes
 
 let command_includes lib pack_for =
@@ -229,9 +227,7 @@ let command_includes lib pack_for =
            We should search directories in the
       reverse order of the topological order. *)
    List.iter (fun dep ->
-     match ocaml_dep dep with
-    | None -> ()
-    | Some lib ->
+     let lib = dep.dep_project in
           match lib.lib.lib_type with
           | ProgramPackage (* | ProjectToplevel *) -> ()
           | TestPackage -> assert false
@@ -244,7 +240,7 @@ let command_includes lib pack_for =
           | SyntaxPackage -> ()
           | RulesPackage ->
        add_include_dir lib.lib.lib_src_dir
-   ) (List.rev lib.lib.lib_requires);
+   ) (List.rev lib.lib_requires);
 
         (* we put the source dir last in case there are some remaining objects files there, since
       we don't do any hygienic cleaning before. We don't do it because we want to be able to
@@ -350,11 +346,9 @@ let add_c2o_rule b lib seq src_file target_file options =
   (* Why do we add bytecomp_deps before generating a .o from a .c ? *)
   List.iter (fun dep ->
     if dep.dep_link then
-      match ocaml_dep dep  with
-      | None -> ()
-      | Some lib ->
+      let lib = dep.dep_project in
         add_rule_sources r lib.lib_bytecomp_deps
-  ) lib.lib.lib_requires;
+  ) lib.lib_requires;
   add_rule_temporary r temp_file
 
 let add_mll2ml_rule lib src_file target_file options =
@@ -737,11 +731,10 @@ let get_link_order lib =
     let tolink =
       List.fold_right (fun pd links ->
         if pd.dep_link then
-          match ocaml_dep pd with
-          | None -> links
-          | Some lib2 -> lib2 :: links
+          let lib2 = pd.dep_project in
+          lib2 :: links
         else links)
-      lib.lib.lib_requires []
+      lib.lib_requires []
     in
     let tolink =
       let link_order = link_order.get [lib.lib.lib_options] in
@@ -830,12 +823,10 @@ let add_cmos2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
     add_rule_sources r o_files;
     List.iter (fun pd ->
       if pd.dep_link then
-        match ocaml_dep pd with
-        | None -> ()
-        | Some lib ->
+        let lib = pd.dep_project in
           add_rule_sources r lib.lib_clink_deps;
           add_rule_sources r lib.lib_bytelink_deps;
-    ) lib.lib.lib_requires
+    ) lib.lib_requires
 
 
 let add_cmxs2asm_rule lib ptmp linkflags cclib cmx_files cmxo_files o_files opt_file =
@@ -894,12 +885,10 @@ let add_cmxs2asm_rule lib ptmp linkflags cclib cmx_files cmxo_files o_files opt_
     add_rule_sources r o_files;
     List.iter (fun pd ->
       if pd.dep_link then
-        match ocaml_dep pd with
-        | None -> ()
-        | Some lib2 ->
+        let lib2 = pd.dep_project in
           add_rule_sources r lib2.lib_clink_deps;
           add_rule_sources r lib2.lib_asmlink_deps;
-    ) lib.lib.lib_requires
+    ) lib.lib_requires
 
 
 let add_os2a_rule lib o_files a_file =
@@ -1013,7 +1002,7 @@ let get_copy_objects_from lib envs =
   | Some name ->
     let bc = lib.lib.lib_builder_context in
     try
-      BuildOCamlGlobals.ocaml_package (StringMap.find name bc.packages_by_name)
+      BuildOCamlGlobals.get_by_id (StringMap.find name bc.packages_by_name)
     with Not_found ->
       Printf.eprintf "Error: in package %S, copy_objects_from %S, no such package\n%!" lib.lib.lib_name name;
       clean_exit 2
@@ -1053,11 +1042,9 @@ let ml2odoc lib ptmp kernel_name envs before_cmd pack_for force temp_ml_file ml_
     add_rule_sources r seq_order;
     List.iter (fun pd ->
       if pd.dep_link then
-        match ocaml_dep pd with
-        | None -> ()
-        | Some lib ->
+        let lib = pd.dep_project in
           add_rule_sources r lib.lib_bytecomp_deps
-    ) lib.lib.lib_requires
+    ) lib.lib_requires
 
 let mli2odoc lib ptmp kernel_name envs pack_for force mli_file seq_order =
   if needs_odoc lib then
@@ -1081,11 +1068,9 @@ let mli2odoc lib ptmp kernel_name envs pack_for force mli_file seq_order =
     add_rule_sources r seq_order;
     List.iter (fun pd ->
       if pd.dep_link then
-        match ocaml_dep pd with
-        | None -> ()
-        | Some lib ->
+        let lib = pd.dep_project in
         add_rule_sources r lib.lib_bytecomp_deps
-    ) lib.lib.lib_requires
+    ) lib.lib_requires
 
 
 let add_mli_source w b lib ptmp mli_file options =
@@ -1199,11 +1184,9 @@ let add_mli_source w b lib ptmp mli_file options =
       move_compilation_garbage r copy_dir mli_file.file_dir.dir_file kernel_name lib;
       List.iter (fun pd ->
         if pd.dep_link then
-          match ocaml_dep pd with
-          | None -> ()
-          | Some lib ->
+          let lib = pd.dep_project in
             add_rule_sources r lib.lib_bytecomp_deps
-      ) lib.lib.lib_requires;
+      ) lib.lib_requires;
       add_rule_source r mli_file;
       add_rule_sources r seq_order;
 
@@ -1447,11 +1430,9 @@ let create_ml_file_if_needed b lib mut_dir options ml_file =
 
     Printf.bprintf b "let requires = [\n";
     List.iter (fun dep ->
-      match ocaml_dep dep with
-      | None -> ()
-      | Some lib ->
+      let lib = dep.dep_project in
         Printf.bprintf b "   %S, %S;\n" lib.lib.lib_name lib.lib.lib_version;
-    ) lib.lib.lib_requires;
+    ) lib.lib_requires;
     Printf.bprintf b "  ]\n";
 
     let ml_content = Buffer.contents b in
@@ -1846,11 +1827,9 @@ let add_ml_source w b lib ptmp ml_file options =
           add_rule_sources r seq_order;
           List.iter (fun pd ->
             if pd.dep_link then
-              match ocaml_dep pd with
-              | None -> ()
-              | Some lib ->
+              let lib = pd.dep_project in
                 add_rule_sources r lib.lib_bytecomp_deps
-          ) lib.lib.lib_requires;
+          ) lib.lib_requires;
           add_rule_targets r gen_cmi;
           match needs_cmi with
             None -> Some cmo_file
@@ -1911,11 +1890,9 @@ let add_ml_source w b lib ptmp ml_file options =
 
           List.iter (fun pd ->
             if pd.dep_link then
-              match ocaml_dep pd with
-              | None -> ()
-              | Some lib ->
+              let lib = pd.dep_project in
                 add_rule_sources r lib.lib_asmcomp_deps
-          ) lib.lib.lib_requires;
+          ) lib.lib_requires;
           add_rule_sources r seq_order;
           add_rule_targets r (o_file :: gen_cmi);
           move_compilation_garbage r copy_dir (BuildEngineRules.rule_temp_dir r) kernel_name lib;
@@ -2051,7 +2028,7 @@ let rec process_source w b lib ptmp src_dir (basename, options) =
         Printf.eprintf "\n%!";
         clean_exit 2
     in
-    begin match BuildOCamlGlobals.ocaml_package obj_lib with
+    begin match BuildOCamlGlobals.get_by_id obj_lib with
     | None -> ()
     | Some obj_lib ->
       ptmp.cmo_files := (List.rev obj_lib.lib_cmo_objects) @ !(ptmp.cmo_files);
@@ -2069,7 +2046,7 @@ let rec process_source w b lib ptmp src_dir (basename, options) =
           lib.lib.lib_name kernel_name;
         clean_exit 2
     in
-    begin match BuildOCamlGlobals.ocaml_package obj_lib with
+    begin match BuildOCamlGlobals.get_by_id obj_lib with
     | None -> ()
     | Some obj_lib ->
       let src_dir = obj_lib.lib.lib_src_dir in
@@ -2562,9 +2539,7 @@ let add_program w b lib =
     let map = ref StringMap.empty in
     List.iter (fun dep ->
       if dep.dep_link then
-        match ocaml_dep dep with
-        | None -> ()
-        | Some lib1 ->
+        let lib1 = dep.dep_project in
           match lib1.lib.lib_type with
           | TestPackage -> assert false
           | ProgramPackage
@@ -2591,7 +2566,7 @@ let add_program w b lib =
           | SyntaxPackage ->
           (* Nothing to do ? *)
             ()
-    ) lib.lib.lib_requires
+    ) lib.lib_requires
   end;
 
   let cclib =  cclib_option.get lib_options in
@@ -2650,7 +2625,8 @@ let fix_windows_directory s =
   in
   iter len
 
-let add_package bc pk =
+let add_package bc opk =
+  let pk = opk.opk_package in
   let b = bc.build_context in
   let package_name = pk.BuildOCPTypes.package_name in
   let package_dirname = pk.BuildOCPTypes.package_dirname in
@@ -2707,7 +2683,7 @@ let add_package bc pk =
 
     let lib = BuildGlobals.new_library bc pk
       package_dirname src_dir dst_dir mut_dir in
-    let lib = BuildOCamlGlobals.create_package lib in
+    let lib = BuildOCamlGlobals.create_package lib opk in
     (* TOOD: we should do that in one pass before *)
     BuildSubst.add_to_global_subst
       (Printf.sprintf "%s_SRC_DIR" package_name) src_dir.dir_fullname;
@@ -2739,7 +2715,12 @@ let create w cin cout bc state =
 (*  BuildOCPPrinter.eprint_project "BuildOCamlRules.create" ptmp; *)
   let b = bc.build_context in
   let libs =
-    Array.map (add_package bc) state.BuildOCPTypes.project_sorted
+    Array.map (fun pk ->
+      match pk.BuildOCPTypes.package_plugin with
+      | BuildOCamlPackage.OCamlPackage opk ->
+        add_package bc opk
+      | _ -> assert false
+    ) state.BuildOCPTypes.project_sorted
   in
   Array.iter (fun lib ->
     try
@@ -2754,7 +2735,12 @@ let create w cin cout bc state =
           let deps = linkdeps_option.get [lib.lib.lib_options] in
           List.iter (fun name ->
             try
-              linkdeps := (StringMap.find name bc.packages_by_name) :: !linkdeps
+              match BuildOCamlGlobals.get_by_id
+                (StringMap.find name bc.packages_by_name)
+              with
+              | Some lib ->
+                linkdeps := lib :: !linkdeps
+              | None -> raise Not_found
             with Not_found ->
               Printf.eprintf
                 "Error in %S: %S in 'linkdeps' is not in 'requires'\n%!"
@@ -2765,7 +2751,7 @@ let create w cin cout bc state =
           List.iter (fun pd ->
             if pd.dep_link then
               linkdeps := pd.dep_project :: !linkdeps
-          ) lib.lib.lib_requires;
+          ) lib.lib_requires;
       end;
       lib.lib_linkdeps <- List.rev !linkdeps;
 
@@ -2791,7 +2777,7 @@ let create w cin cout bc state =
   if !BuildOCamlGlobals.list_byte_targets_arg then begin
     Printf.eprintf "Bytecode targets:\n";
     StringMap.iter (fun _ lib ->
-      match BuildOCamlGlobals.ocaml_package lib with
+      match BuildOCamlGlobals.get_by_id lib with
       | None -> ()
       | Some lib ->
       if lib.lib_byte_targets <> [] then begin
@@ -2805,7 +2791,7 @@ let create w cin cout bc state =
   if !BuildOCamlGlobals.list_asm_targets_arg then begin
     Printf.eprintf "Native targets:\n";
     StringMap.iter (fun _ lib ->
-      match BuildOCamlGlobals.ocaml_package lib with
+      match BuildOCamlGlobals.get_by_id lib with
       | None -> ()
       | Some lib ->
       if lib.lib_asm_targets <> [] then begin
@@ -2832,8 +2818,8 @@ let create w cin cout bc state =
           let depends = ref [] in
           List.iter (fun dep ->
             if dep.dep_link || dep.dep_syntax then
-              depends := dep.dep_project :: !depends
-          ) lib.lib.lib_requires;
+              depends := dep.dep_project.lib :: !depends
+          ) lib.lib_requires;
           !depends
         in
         { targets; depends }
@@ -2843,8 +2829,8 @@ let create w cin cout bc state =
           let depends = ref [] in
           List.iter (fun dep ->
             if dep.dep_link || dep.dep_syntax then
-              depends := dep.dep_project :: !depends
-          ) lib.lib.lib_requires;
+              depends := dep.dep_project.lib :: !depends
+          ) lib.lib_requires;
           !depends
         in
         { targets; depends }
@@ -2854,8 +2840,8 @@ let create w cin cout bc state =
           let depends = ref [] in
           List.iter (fun dep ->
             if dep.dep_link || dep.dep_syntax then
-              depends := dep.dep_project :: !depends
-          ) lib.lib.lib_requires;
+              depends := dep.dep_project.lib :: !depends
+          ) lib.lib_requires;
           !depends
         in
         { targets; depends }
@@ -2865,8 +2851,8 @@ let create w cin cout bc state =
           let depends = ref [] in
           List.iter (fun dep ->
             if dep.dep_link || dep.dep_syntax then
-              depends := dep.dep_project :: !depends
-          ) lib.lib.lib_requires;
+              depends := dep.dep_project.lib :: !depends
+          ) lib.lib_requires;
           !depends
         in
         { targets; depends }

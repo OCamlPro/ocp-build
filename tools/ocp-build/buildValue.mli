@@ -141,3 +141,5 @@ val config_get : config -> string -> value
 val config_set : config -> string -> value -> config
 
 val unit : value
+val noloc : string -> location
+val string_of_location : location -> string

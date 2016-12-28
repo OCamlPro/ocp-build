@@ -25,8 +25,8 @@ we create another field, equal will still not change.
 
 open StringCompat
 
-type 'a set = {
-  mutable warnings : 'a list;
+type set = {
+  mutable warnings : exn list;
   mutable count : int; (* length of [warnings] field *)
   mutable sorted : bool;
 }

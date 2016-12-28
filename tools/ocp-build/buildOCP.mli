@@ -25,17 +25,17 @@ open StringCompat
 open BuildOCPTypes
 open BuildValue.Types
 
-type warning =
-[ `MissingDirectory of string * string * string
-| `PackageConflict of
-    BuildOCPTypes.final_package * BuildOCPTypes.final_package *
-      BuildOCPTypes.final_package
-| `BadInstalledPackage of string * string
-| `MissingDependency of string * string * string
-| `KindMismatch of string * string * string * string
-| `IncompletePackage of BuildOCPTypes.final_package
-| `MissingPackage of string * BuildOCPTypes.final_package list
-]
+
+exception MissingDirectory of string * string * string
+exception PackageConflict of
+    BuildOCPTypes.pre_package * BuildOCPTypes.pre_package *
+      BuildOCPTypes.pre_package
+exception BadInstalledPackage of string * string
+exception MissingDependency of string * string * string
+exception KindMismatch of string * string * string * string
+exception IncompletePackage of BuildOCPTypes.pre_package
+exception MissingPackage of string * BuildOCPTypes.pre_package list
+
 
 
 type state
@@ -50,9 +50,12 @@ val load_ocp_files :
   state -> File.t list -> int
 
 val verify_packages :
-  [> warning ] BuildWarnings.set ->
+  BuildWarnings.set ->
   state ->
   BuildOCPTypes.project
+
+val get_packages : state -> BuildOCPTypes.pre_package IntMap.t
+val plugin_verifiers : (BuildWarnings.set -> state -> unit) list ref
 
 (* val load_project : File.t list -> project * int *)
 
@@ -82,12 +85,13 @@ val empty_config : unit -> config
 val generated_config : unit -> config
 
 val add_ocaml_package :
-           (state ->
+           (location -> state ->
             BuildValue.Types.config ->
-            string -> BuildOCPTypes.package_type -> unit)
+            string -> BuildOCPTypes.package_type -> unit BuildOCPTypes.package)
            ref
 val package_type_of_string : string -> BuildOCPTypes.package_type
 val define_package :
+  location ->
   state ->
   BuildValue.Types.config ->
   name:string ->
@@ -119,6 +123,7 @@ val final_state : state -> final_package array
 val filesubst : (string * env list) StringSubst.M.subst
 
 val new_package :
+  location ->
   state ->
   string (* name *) ->
   string (* dirname *) ->

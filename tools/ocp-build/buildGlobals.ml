@@ -104,7 +104,9 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
   let envs = [ pk.package_options ] in
 
   let lib_name = pk.package_name in
-  let lib_loc = (pk.package_filename, pk.package_loc, pk.package_name) in
+  let lib_loc = (pk.package_filename,
+                 pk.package_loc.BuildValue.Types.loc_begin.Lexing.pos_lnum,
+                 pk.package_name) in
   let lib_installed = BuildValue.is_already_installed envs in
   let lib_install =
     not lib_installed &&
@@ -129,7 +131,6 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
       [file_ready]
   in
 
-
   let lib =
     {
       lib_builder_context = bc;
@@ -150,22 +151,23 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
       lib_type = pk.package_type ;
       lib_tag = "";
       lib_filename = pk.package_filename;
-      lib_node = pk.pi.package_node;
-      lib_requires = List.map (fun dep ->
+      lib_node = pk.package_node;
+      (*      lib_plugin = pk.package_plugin;
+      lib_requires = List.map (fun pd ->
         let pd = try
                  (* Printf.eprintf "Adding dep %d to %S (link = %b)\n%!"
              dep.dep_project.package_id pk.package_name dep.dep_link; *)
-                   Hashtbl.find bc.all_projects dep.dep_project.package_id
+                   Hashtbl.find bc.all_projects pd.package_id
           with Not_found ->
             Printf.eprintf "Unknown dependency %d (%s) of package %S\n%!"
-              dep.dep_project.package_id
-              dep.dep_project.package_name
+              pd.package_id
+              pd.package_name
               pk.package_name;
             BuildMisc.clean_exit 2
         in
-        { dep with dep_project = pd }
-      ) pk.pi.package_requires;
-      lib_added = pk.pi.package_added;
+        pd
+              ) pk.package_requires_list; *)
+      lib_added = not pk.package_disabled;
 
       lib_src_dir = src_dir;
       lib_dst_dir = dst_dir;
