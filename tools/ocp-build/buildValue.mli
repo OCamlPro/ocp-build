@@ -71,6 +71,7 @@ val value : prop_list -> value
 val empty_env : env
 
 val set_global : string -> plist -> unit
+val get_global : string -> plist
 
 val bool_of_plist : plist -> bool
 val plist_of_bool : bool -> plist
@@ -138,3 +139,5 @@ val bprint_value : Buffer.t -> string -> value -> unit
 val empty_config : config
 val config_get : config -> string -> value
 val config_set : config -> string -> value -> config
+
+val unit : value

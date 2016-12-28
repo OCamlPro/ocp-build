@@ -206,6 +206,8 @@ let package_type_of_string kind =
     Printf.eprintf "Error: inexistent kind %S for package\n%!" kind;
     assert false
 
+let add_ocaml_package = ref (fun _loc _state _config _args -> ())
+
 module OCP_arg = struct
 
     type context = state
@@ -215,14 +217,8 @@ module OCP_arg = struct
     let parse_error () =
       if not !continue_on_ocp_error then exit 2
 
-    let define_package ctx config
-        ~name
-        ~kind =
-      let (_ : unit package) = define_package ctx config
-          ~name
-          ~kind:(package_type_of_string kind)
-      in
-      ()
+    let define_package ctx config ~name ~kind =
+      !add_ocaml_package ctx config name (package_type_of_string kind)
 
     let new_file ctx filename digest =
       try
@@ -240,6 +236,7 @@ module OCP_arg = struct
 module EvalOCP1 = BuildOCPInterp.Eval(OCP_arg)
 module EvalOCP2 = BuildOCP2Interp.Eval(OCP_arg)
 
+let add_primitive = EvalOCP2.add_primitive
 let primitives_help = EvalOCP1.primitives_help
 
 type warning =

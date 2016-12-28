@@ -1,6 +1,9 @@
 Change log
 ==========
 
+2016-12-18:
+* New raw interpretation of META files
+
 2016-12-07:
 * New file .ocp-build can be used to set 'skip=true'
 * Ability to read build.ocp2 instead of build.ocp

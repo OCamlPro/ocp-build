@@ -56,6 +56,13 @@ module Init(S: sig
       (location -> S.context -> config -> value list -> value) *
       string list
     ) StringMap.t ref
+  val add_primitive :
+           string -> string list ->
+           (BuildValue.Types.location ->
+            S.context ->
+            BuildValue.Types.config ->
+            BuildValue.Types.value list -> BuildValue.Types.value) ->
+           unit
   val primitives_help : unit -> string list StringCompat.StringMap.t
 
   end

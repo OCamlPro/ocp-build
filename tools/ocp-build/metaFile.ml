@@ -193,7 +193,8 @@ let rec meta_of_package p =
   meta
 
 
-(*
+(* This is the kind of things that we are supposed to support, as
+ocamlfind does:
 
 The variable "ppx" is a command that is added to the compiler
 invocation via the -ppx option (available since OCaml-4.01). If the
@@ -253,5 +254,74 @@ exists_if = "ppx_expect.cma"
 # "predicate(custom_ppx)" when using ppx_driver
 ppx(-ppx_driver,-custom_ppx) = "./ppx"
 
+
+*)
+
+let variable_of_package p var_name preds =
+  try
+    let v = StringMap.find var_name p.p_variables in
+    let rec iter_assigns (npreds,value) assigns =
+      match assigns with
+        [] -> value
+      | (preconds, new_value) :: assigns ->
+        let preconds = List.fold_left (fun count (precond, is_true) ->
+          if StringSet.mem precond preds = is_true then count+1 else count
+        ) 0 preconds in
+        if preconds > npreds then [new_value] else value
+    in
+    let rec iter_additions value additions =
+      match additions with
+        [] -> value
+      | (preconds, new_value) :: assigns ->
+        let preconds = List.fold_left (fun preconds (precond, is_true) ->
+          preconds && StringSet.mem precond preds = is_true
+        ) true preconds in
+        if preconds then value @ [new_value] else value
+    in
+    let result = iter_assigns (0,[]) v.var_assigns in
+    let result = iter_additions result v.var_additions in
+    result
+  with Not_found -> []
+
+
+let string_of_preconds preconds =
+  String.concat ","
+    (List.map (fun (precond, is_true) ->
+      if is_true then precond else "-"^precond
+     ) preconds)
+
+let fprintf_ops oc indent op var_name ops =
+  List.iter (fun (preconds, str) ->
+    match preconds with
+    | [] ->
+      Printf.fprintf oc "%s%s %s %S\n" indent var_name op str
+    | _ ->
+      Printf.fprintf oc "%s%s(%s) %s %S\n" indent var_name
+        (string_of_preconds preconds) op
+        str
+  ) ops
+
+let file_of_package filename p =
+  let oc = open_out filename in
+  let rec fprintf_package oc indent meta =
+    StringMap.iter (fun var_name { var_assigns; var_additions } ->
+      fprintf_ops oc indent "=" var_name var_assigns;
+      fprintf_ops oc indent "+=" var_name var_additions
+    ) p.p_variables;
+    List.iter (fun (name, sub_p) ->
+      Printf.fprintf oc "%spackage %S (\n" indent name;
+      fprintf_package oc (indent ^ "  ") sub_p;
+      Printf.fprintf oc "%s)\n" indent;
+    ) p.p_packages
+  in
+  fprintf_package oc "" p;
+  close_out oc
+
+(* How -syntax works in ocamlfind ?
+
+If [-syntax SYNTAX] is specified, then packages are interpreted
+with the additional predicates "syntax" and SYNTAX. The additional
+variable "preprocessor" is also computed (with the additional predicate
+"preprocessor") to give an option "-pp" to ocaml.
 
 *)

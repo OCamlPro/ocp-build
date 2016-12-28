@@ -121,6 +121,7 @@ BUILD_OCAML= $(OCP_BUILD_SRCDIR)/buildOCamlConfig.ml	\
     $(OCP_BUILD_SRCDIR)/buildOCamldep.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCamlSyntaxes.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCamlInstall.ml		\
+    $(OCP_BUILD_SRCDIR)/buildOCamlPackage.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCamlRules.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCamlMeta.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCamlTest.ml		\

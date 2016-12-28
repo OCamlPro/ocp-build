@@ -21,34 +21,8 @@
 
 open StringCompat
 
-(* open BuildBase *)
-(* open Stdlib2 *)
-
-(*
-      1 IDENT[license]
-      1 IDENT[descriptions]
-      2 IDENT[predicates]
-      3 IDENT[plugin_name]
-      3 IDENT[plugin_synopsis]
-      3 IDENT[plugin_system]
-      5 IDENT[type_of_threads]
-      6 IDENT[preprocessor]
-     16 IDENT[linkopts]
-     27 IDENT[name]
-     49 IDENT[browse_interfaces]
-     75 IDENT[directory]
-    180 IDENT[exists_if]
-    457 IDENT[requires]
-    464 IDENT[version]
-    474 IDENT[description]
-*)
-
-(*
-     18 IDENT[error]
-     40 IDENT[requires]
-   1313 IDENT[archive]
-*)
-
+(* Simplified/partial pre-interpreted version of META files, as used
+   by ocp-build 1.X: *)
 type meta = {
   mutable meta_version : string option;
   mutable meta_description : string option;
@@ -73,6 +47,8 @@ and 'a var = {
   mutable metavar_value : 'a;
 }
 
+(* Raw-version of META files: *)
+
 type precondition = string * bool
 
 type variable = {
@@ -86,3 +62,28 @@ type meta_package = {
   mutable p_packages : (string * meta_package) list;
   mutable p_variables : variable StringMap.t;
 }
+
+
+
+(* Some stats:
+      1 IDENT[license]
+      1 IDENT[descriptions]
+      2 IDENT[predicates]
+      3 IDENT[plugin_name]
+      3 IDENT[plugin_synopsis]
+      3 IDENT[plugin_system]
+      5 IDENT[type_of_threads]
+      6 IDENT[preprocessor]
+     16 IDENT[linkopts]
+     27 IDENT[name]
+     49 IDENT[browse_interfaces]
+     75 IDENT[directory]
+    180 IDENT[exists_if]
+    457 IDENT[requires]
+    464 IDENT[version]
+    474 IDENT[description]
+
+     18 IDENT[error]
+     40 IDENT[requires]
+   1313 IDENT[archive]
+*)

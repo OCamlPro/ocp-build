@@ -54,5 +54,13 @@ module Eval(S: sig
 
   (* Used to display language help on command-line *)
   val primitives_help : unit -> string list StringMap.t
+ val add_primitive :
+           string ->
+           string list ->
+           (BuildValue.Types.location ->
+            S.context ->
+            BuildValue.Types.config ->
+            BuildValue.Types.value list -> BuildValue.Types.value) ->
+           unit
 
 end
