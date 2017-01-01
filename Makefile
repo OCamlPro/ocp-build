@@ -23,7 +23,11 @@ OCPLIB_NAMES=debug lang unix file system config compat subcmd
 INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
     $(OCP_BUILD_SRCDIR) \
     -I $(OCP_BUILD_SRCDIR)/lang-ocp \
-    -I $(OCP_BUILD_SRCDIR)/lang-ocp2
+    -I $(OCP_BUILD_SRCDIR)/lang-ocp2 \
+    -I $(OCP_BUILD_SRCDIR)/engine \
+    -I $(OCP_BUILD_SRCDIR)/actions \
+    -I $(OCP_BUILD_SRCDIR)/ocaml
+
 OCPLIB_LIBS=$(foreach lib, $(OCPLIB_NAMES), ocplib-$(lib))
 
 OCP_BUILD_BOOTER=boot/ocp-build.asm
@@ -91,55 +95,55 @@ BUILD_PROJECT= \
     $(OCP_BUILD_SRCDIR)/buildOCPPrinter.ml		\
     $(OCP_BUILD_SRCDIR)/buildOCP.ml
 
-BUILD_ENGINE= $(OCP_BUILD_SRCDIR)/buildEngineTypes.ml	\
-    $(OCP_BUILD_SRCDIR)/buildEngineGlobals.ml		\
-    $(OCP_BUILD_SRCDIR)/buildEngineRules.ml		\
-    $(OCP_BUILD_SRCDIR)/buildEngineContext.ml		\
-    $(OCP_BUILD_SRCDIR)/buildEngineDisplay.ml		\
-    $(OCP_BUILD_SRCDIR)/buildEngine.ml
+BUILD_ENGINE= $(OCP_BUILD_SRCDIR)/engine/buildEngineTypes.ml	\
+    $(OCP_BUILD_SRCDIR)/engine/buildEngineGlobals.ml		\
+    $(OCP_BUILD_SRCDIR)/engine/buildEngineRules.ml		\
+    $(OCP_BUILD_SRCDIR)/engine/buildEngineContext.ml		\
+    $(OCP_BUILD_SRCDIR)/engine/buildEngineDisplay.ml		\
+    $(OCP_BUILD_SRCDIR)/engine/buildEngine.ml
 
-BUILD_OCAML_OBJS= $(OCP_BUILD_SRCDIR)/buildObjectInspector.ml
+BUILD_OCAML_OBJS= $(OCP_BUILD_SRCDIR)/ocaml/buildObjectInspector.ml
 
 BUILD_LIB= $(OCP_BUILD_SRCDIR)/buildVersion.ml	\
     $(OCP_BUILD_SRCDIR)/buildTypes.ml		\
     $(OCP_BUILD_SRCDIR)/buildOptions.ml		\
     $(OCP_BUILD_SRCDIR)/buildGlobals.ml		\
     $(OCP_BUILD_SRCDIR)/buildConfig.ml		\
-    $(OCP_BUILD_SRCDIR)/buildUninstall.ml		\
-    $(OCP_BUILD_SRCDIR)/buildOCamlAutogen.ml
+    $(OCP_BUILD_SRCDIR)/buildUninstall.ml		
 
-BUILD_OCAMLFIND= $(OCP_BUILD_SRCDIR)/metaTypes.ml			\
-    $(OCP_BUILD_SRCDIR)/metaLexer.ml $(OCP_BUILD_SRCDIR)/metaFile.ml	\
-    $(OCP_BUILD_SRCDIR)/metaParser.ml					\
-    $(OCP_BUILD_SRCDIR)/metaConfig.ml
+BUILD_OCAMLFIND= $(OCP_BUILD_SRCDIR)/ocaml/metaTypes.ml			\
+    $(OCP_BUILD_SRCDIR)/ocaml/metaLexer.ml					\
+    $(OCP_BUILD_SRCDIR)/ocaml/metaFile.ml					\
+    $(OCP_BUILD_SRCDIR)/ocaml/metaParser.ml					\
+    $(OCP_BUILD_SRCDIR)/ocaml/metaConfig.ml
 
-BUILD_OCAML= $(OCP_BUILD_SRCDIR)/buildOCamlConfig.ml	\
-    $(OCP_BUILD_SRCDIR)/buildOCamlTypes.ml		\
-    $(OCP_BUILD_SRCDIR)/buildOCamlGlobals.ml		\
-    $(OCP_BUILD_SRCDIR)/buildOCamlMisc.ml		\
-    $(OCP_BUILD_SRCDIR)/buildOCamlVariables.ml		\
-    $(OCP_BUILD_SRCDIR)/buildOCamldep.ml		\
-    $(OCP_BUILD_SRCDIR)/buildOCamlSyntaxes.ml		\
-    $(OCP_BUILD_SRCDIR)/buildOCamlInstall.ml		\
-    $(OCP_BUILD_SRCDIR)/buildOCamlPackage.ml		\
-    $(OCP_BUILD_SRCDIR)/buildOCamlRules.ml		\
-    $(OCP_BUILD_SRCDIR)/buildOCamlMeta.ml		\
-    $(OCP_BUILD_SRCDIR)/buildOCamlTest.ml		\
-    $(OCP_BUILD_SRCDIR)/buildOasis.ml
+BUILD_OCAML= $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlConfig.ml	\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlTypes.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlGlobals.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlMisc.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlVariables.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamldep.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlSyntaxes.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlInstall.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlPackage.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlRules.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlMeta.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlTest.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOasis.ml
 
-BUILD_MAIN= $(OCP_BUILD_SRCDIR)/buildArgs.ml	\
-    $(OCP_BUILD_SRCDIR)/buildActions.ml		\
-    $(OCP_BUILD_SRCDIR)/buildActionsWarnings.ml	\
-    $(OCP_BUILD_SRCDIR)/buildActionInit.ml	\
-    $(OCP_BUILD_SRCDIR)/buildActionPrefs.ml	\
-    $(OCP_BUILD_SRCDIR)/buildActionConfigure.ml	\
-    $(OCP_BUILD_SRCDIR)/buildActionBuild.ml	\
-    $(OCP_BUILD_SRCDIR)/buildActionInstall.ml	\
-    $(OCP_BUILD_SRCDIR)/buildActionClean.ml	\
-    $(OCP_BUILD_SRCDIR)/buildActionTests.ml	\
-    $(OCP_BUILD_SRCDIR)/buildActionUninstall.ml	\
-    $(OCP_BUILD_SRCDIR)/buildActionQuery.ml	\
-    $(OCP_BUILD_SRCDIR)/buildActionHelp.ml	\
+BUILD_MAIN= $(OCP_BUILD_SRCDIR)/actions/buildArgs.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActions.ml		\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionsWarnings.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionInit.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionPrefs.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionConfigure.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionBuild.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionInstall.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionClean.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionTests.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionUninstall.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionQuery.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionHelp.ml	\
     $(OCP_BUILD_SRCDIR)/buildMain.ml
 
 OCP_BUILD_MLS= $(STRING_COMPAT) $(OCPLIB_DEBUG) $(OCPLIB_LANG)		\
@@ -148,7 +152,7 @@ OCP_BUILD_MLS= $(STRING_COMPAT) $(OCPLIB_DEBUG) $(OCPLIB_LANG)		\
   $(BUILD_LIB) $(BUILD_OCAMLFIND) $(BUILD_OCAML) $(BUILD_MAIN)
 
 OCP_BUILD_MLLS= \
-   $(lang_SRCDIR)/ocamllexer.mll $(OCP_BUILD_SRCDIR)/metaLexer.mll 
+   $(lang_SRCDIR)/ocamllexer.mll $(OCP_BUILD_SRCDIR)/ocaml/metaLexer.mll 
 
 OCP_BUILD_MLYS= $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.mly
 
