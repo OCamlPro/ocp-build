@@ -98,10 +98,11 @@ let new_package package_loc state name dirname filename filenames kind options =
     package_node = LinearToposort.new_node ();
   } in
   state.packages <- IntMap.add pk.package_id pk state.packages;
+  (*
   let s = BuildOCPPrinter.string_of_package (fun _ _ _ -> ()) pk in
   Printf.eprintf "New package:\n";
   Printf.eprintf "%s\n%!" s;
-
+  *)
   pk
 
 let empty_config = BuildValue.empty_config
@@ -179,16 +180,16 @@ let define_package loc pj config
     ~name
     ~kind
     =
-  Printf.eprintf "define_package: substitute dirname\n%!";
+  (*  Printf.eprintf "define_package: substitute dirname\n%!"; *)
   let dirname =
     try
       let list = BuildValue.get_strings [config.config_env] "dirname"  in
-      Printf.eprintf "subst_global...\n%!";
+      (* Printf.eprintf "subst_global...\n%!"; *)
       BuildSubst.subst_global (String.concat Filename.dir_sep list)
     with Var_not_found _ ->
       config.config_dirname
   in
-  Printf.eprintf "dirname = %S\n%!" dirname;
+  (* Printf.eprintf "dirname = %S\n%!" dirname;*)
   let dirname = if dirname = "" then "." else dirname in
   new_package loc pj name
     dirname
@@ -1167,12 +1168,12 @@ let verify_packages w state =
 
   IntMap.iter (fun _ pk ->
     if pk.package_disabled then begin
-      Printf.eprintf "BuildOCP: %S disabled\n%!" pk.package_name;
+      (* Printf.eprintf "BuildOCP: %S disabled\n%!" pk.package_name; *)
       disabled_packages := pk :: !disabled_packages
     end
     else begin
-      Printf.eprintf "BuildOCP: %s_%d sorted \n%!"
-        pk.package_name pk.package_id;
+        (* Printf.eprintf "BuildOCP: %s_%d sorted \n%!"
+           pk.package_name pk.package_id; *)
       sorted_packages := pk :: !sorted_packages
         end
   ) state.packages;
@@ -1180,6 +1181,7 @@ let verify_packages w state =
   let (sorted_packages, cycle, non_sorted) =
     PackageSorter.sort !sorted_packages in
 
+  (*
   List.iteri (fun i pk ->
     Printf.eprintf "sorted: %d -> %S[%d]   \n%!"
       i pk.package_name pk.package_id;
@@ -1187,8 +1189,8 @@ let verify_packages w state =
       Printf.eprintf " %S[%d]%!" pk2.package_name pk2.package_id
     ) pk.package_requires_list;
     Printf.eprintf "\n%!";
-
   ) sorted_packages;
+  *)
 
   let pj = {
     project_sorted = Array.of_list sorted_packages;

@@ -19,7 +19,7 @@
 (**************************************************************************)
 
 
-(* ocp-build prefs [OPTIONS]
+(* ocp-build install [OPTIONS]
 
   Set the options of the user preference file.
 
@@ -29,43 +29,48 @@
 open BuildArgs
 open BuildOptions
 
-let filename = ref UserOptions.default_filename
-let arg_list =
-  ("-f", Arg.String (fun s -> filename := s),
-   "FILENAME Save preferences to file FILENAME") ::
-    [
-      arg_set_int UserOptions.njobs_option;
-      arg_set_int UserOptions.verbosity_option;
+(* TODO: handle -arch attribute, ie:
+   - remove only directories in arch/ subdir
+   - don't remove other topdirectories/
+*)
 
-      arg_set_true UserOptions.autoscan_option;
-      arg_set_false UserOptions.autoscan_option;
+let distclean_arg = ref false
 
-      arg_set_true UserOptions.color_option;
-      arg_set_false UserOptions.color_option;
-
-      arg_set_true UserOptions.digest_option;
-      arg_set_false UserOptions.digest_option;
-
-      arg_set_true UserOptions.bytecode_option;
-      arg_set_false UserOptions.bytecode_option;
-
-      arg_set_true UserOptions.native_option;
-      arg_set_false UserOptions.native_option;
-    ]
+let arg_list = [
+  "-distclean", Arg.Set distclean_arg, " Remove _obuild directory";
+]
 
 let action () =
-  BuildOptions.load_config UserOptions.config_file (File.of_string !filename);
-  BuildOptions.apply_arguments ();
-  BuildOptions.save_config UserOptions.config_file
+  let project_root = BuildOptions.find_project_root () in
+  let obuild_dir = File.add_basenames project_root
+        [ project_build_dirname ] in
+  let obuild_dir = File.to_string obuild_dir in
+  if !distclean_arg then begin
+    Printf.eprintf "Removing _obuild directory\n%!";
+    BuildActions.delete_file_or_directory obuild_dir;
+  end else begin
+
+    Printf.eprintf "Removing build targets\n%!";
+
+
+    begin
+      try
+        let files = Sys.readdir obuild_dir in
+        Array.iter (fun file ->
+          let filename = Filename.concat obuild_dir file in
+          if Sys.is_directory filename then
+            BuildActions.delete_file_or_directory filename;
+        ) files
+      with _ -> ()
+    end;
+    ()
+  end
 
 let subcommand = {
-  sub_name = "prefs";
-  sub_help =  "Set the user global preferences.";
+  sub_name = "clean";
+  sub_help =  "Clean the project.";
   sub_arg_list = arg_list;
   sub_arg_anon = None;
-  sub_arg_usage = [
-    "Set the user global preferences.";
-  ];
+  sub_arg_usage = [ "Clean the project."; ];
   sub_action = action;
 }
-

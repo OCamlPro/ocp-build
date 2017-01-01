@@ -37,7 +37,7 @@ let is_enabled options =
   BuildValue.get_bool_with_default options "enabled" true
 
 let add_ocaml_package loc state config name kind =
-  Printf.eprintf "BuildOCamlPackage.add_ocaml_package %S\n%!" name;
+  (*  Printf.eprintf "BuildOCamlPackage.add_ocaml_package %S\n%!" name; *)
   let (pk : unit BuildOCPTypes.package) =
     BuildOCP.define_package loc state config ~name ~kind
   in
@@ -59,9 +59,11 @@ let add_ocaml_package loc state config name kind =
   pk.package_plugin <- OCamlPackage opk;
   if not ( is_enabled [env] ) then
     pk.package_disabled <- true;
+  (*
   let s = BuildOCPPrinter.string_of_package (fun _ _ _ -> ()) pk in
   Printf.eprintf "New OCaml Description:\n";
   Printf.eprintf "%s\n%!" s;
+  *)
   opk
 
 let add_ocaml_package_unit loc state config name kind =
@@ -327,7 +329,6 @@ let update_deps pj =
 
 let verify_packages w state =
 
-  Printf.eprintf "BuildOCamlPackage.verify_packages\n%!";
   let package_id = ref 0 in
   let packages = ref [] in
 
@@ -1115,6 +1116,6 @@ let init_env env_pj =
 
 
 let () =
-  Printf.eprintf "BuildOCamlPackage._init()\n%!";
+  Printf.eprintf "OCamlPlugin: enabled.\n%!";
   BuildOCP.plugin_verifiers := verify_packages :: !BuildOCP.plugin_verifiers;
   ()

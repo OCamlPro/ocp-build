@@ -19,8 +19,6 @@
 (**************************************************************************)
 
 
-(* open BuildBase *)
-
 (* clean all generated object files *)
 val delete_file_or_directory : string -> unit
 val time_step : string -> unit
