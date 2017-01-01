@@ -101,12 +101,14 @@ let config_filename_validated bc lib_loc (filename, digest_o) =
 
 let new_library bc pk package_dirname src_dir dst_dir mut_dir =
   let b = bc.build_context in
-  let envs = [ pk.package_options ] in
+  (*  let envs = [ pk.package_options ] in *)
 
   let lib_name = pk.package_name in
   let lib_loc = (pk.package_filename,
                  pk.package_loc.BuildValue.Types.loc_begin.Lexing.pos_lnum,
                  pk.package_name) in
+
+  (*
   let lib_installed = BuildValue.is_already_installed envs in
   let lib_install =
     not lib_installed &&
@@ -130,6 +132,8 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
       ) pk.package_filenames;
       [file_ready]
   in
+  let lib_meta = BuildValue.get_bool_with_default [pk.package_options] "meta" false in
+  *)
 
   let lib =
     {
@@ -137,15 +141,11 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
       lib_context = b;
       lib_id = pk.package_id;
       lib_name = pk.package_name;
-      lib_installed;
-      lib_install;
-      lib_ready;
       lib_loc;
-      lib_options = pk.package_options;
+      (*      lib_options = pk.package_options; *)
       lib_source_kind = pk.package_source_kind;
 
-      lib_meta = BuildValue.get_bool_with_default [pk.package_options] "meta" false;
-      lib_version = pk.package_version;
+      (*      lib_version = pk.package_version; *)
       lib_dirname = File.of_string package_dirname;
       lib_provides = pk.package_provides ;
       lib_type = pk.package_type ;
@@ -179,7 +179,7 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
   bc.packages_by_name <- StringMap.add lib.lib_name lib bc.packages_by_name;
   if verbose 5 then begin
     Printf.eprintf "BuildGlobals.new_library %S\n" lib.lib_name;
-    Printf.eprintf "  lib_install = %b\n%!" lib.lib_install;
+  (*    Printf.eprintf "  lib_install = %b\n%!" lib.lib_install; *)
   end;
   lib
 

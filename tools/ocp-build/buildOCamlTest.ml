@@ -96,9 +96,9 @@ let serial_workqueue = Queue.create ()
 
 let find_binaries b cwd lib =
   let has_asm =
-    BuildValue.get_bool_with_default [lib.lib.lib_options] "asm" true in
+    BuildValue.get_bool_with_default [lib.lib_opk.opk_options] "asm" true in
   let has_byte = BuildValue.get_bool_with_default
-    [lib.lib.lib_options] "byte" true in
+    [lib.lib_opk.opk_options] "byte" true in
   let get_binary ext =
     let binary_basename =
       lib.lib.lib_name ^ ext
@@ -144,7 +144,7 @@ let test_package b stats lib only_benchmarks =
           begin
             match !program with
               None ->
-              let cmd = BuildValue.get_strings_with_default [lib.lib.lib_options]
+              let cmd = BuildValue.get_strings_with_default [lib.lib_opk.opk_options]
                   "test_cmd" [] in
               if cmd = [] then begin
                 Printf.eprintf "Error: test %S has no source files.\n%!"
@@ -182,7 +182,7 @@ let test_package b stats lib only_benchmarks =
       in
       let tests_result_dir = Filename.concat cwd (File.to_string tests_dir) in
       List.iter (fun (test, options) ->
-        let options = [ options; lib.lib.lib_options ] in
+        let options = [ options; lib.lib_opk.opk_options ] in
         let test_asm = BuildValue.get_bool_with_default options "test_asm" true in
         let test_byte = BuildValue.get_bool_with_default options "test_byte" true in
         let do_test =

@@ -487,14 +487,7 @@ let init_env () =
   BuildActions.time_step "Environment read and checked.";
   (* TODO: we could check that all the packages are indeed installed ! *)
 
-  BuildOCamlVariables.packages_option.set
-    (VList (Array.to_list (Array.map (fun pk ->
-        let dirname = BuildGlobals.absolute_filename pk.package_dirname in
-        List.iter (fun suffix ->
-          BuildSubst.add_to_global_subst (pk.package_name ^ suffix) dirname)
-          [ "_SRC_DIR"; "_DST_DIR"; "_FULL_SRC_DIR"; "_FULL_DST_DIR" ];
-        VTuple [VString pk.package_name; VObject pk.package_options]
-      ) env_pj.project_sorted)));
+  BuildOCamlPackage.init_env env_pj;
 
   BuildActionsWarnings.print_env_warnings p.project_dir w;
 

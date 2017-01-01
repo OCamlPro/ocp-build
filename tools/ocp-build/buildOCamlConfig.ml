@@ -437,7 +437,7 @@ let set_global_config cout =
       ocaml_config_architecture.set [cfg.ocaml_architecture];
       ocaml_config_os_type.set [cfg.ocaml_os_type];
       ocaml_config_ext_dll.set cfg.ocaml_ext_dll;
-
+      Printf.eprintf "Build subst OCAMLLIB\n%!";
       BuildSubst.add_to_global_subst "OCAMLLIB" cfg.ocaml_ocamllib;
       BuildSubst.add_to_global_subst "OCAMLBIN" cfg.ocaml_ocamlbin;
   end;

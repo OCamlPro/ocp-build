@@ -28,7 +28,7 @@ open MetaTypes
 
 open BuildEngineTypes
 
-
+open BuildOCamlTypes
 open BuildOCPTypes
 open BuildValue.Types
 
@@ -161,7 +161,7 @@ let load_META_files pj ocamllib top_dirname =
                           VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link)]
                 ) requires)) in
             let options = BuildValue.set_bool options "generated" true in
-            let pk = BuildOCamlPackage.add_ocaml_package
+            let opk = BuildOCamlPackage.add_ocaml_package
               (BuildValue.noloc fullname)
               pj
               {
@@ -173,6 +173,7 @@ let load_META_files pj ocamllib top_dirname =
               fullname
               kind
             in
+            let pk = opk.opk_package in
             pk.package_source_kind <- "meta";
 
             (* this package has already been generated *)
@@ -180,17 +181,18 @@ let load_META_files pj ocamllib top_dirname =
             begin
               match meta.meta_version with
                 None -> ()
-              | Some version -> pk.package_version <- version
+              | Some version ->
+                opk.opk_version <- version
             end;
 
             begin
               match archive with
                 None ->
-                pk.package_options <- BuildValue.set_bool pk.package_options "meta"  true ;
+                opk.opk_options <- BuildValue.set_bool opk.opk_options "meta"  true ;
                 if verbose 4 then
                   Printf.eprintf "Warning: package %S is meta\n%!" fullname
               | Some archive ->
-                pk.package_options <- BuildValue.set_string pk.package_options "archive" archive;
+                opk.opk_options <- BuildValue.set_string opk.opk_options "archive" archive;
             end;
 
 (* We don't check packages now.
@@ -198,8 +200,8 @@ This will be done later, in BuildOCP.verify_packages
 
             BuildOCP.check_package pk;
 *)
-            let s = BuildOCPPrinter.string_of_package (fun _ _ _ -> ()) pk in
             if verbose 5 then begin
+              let s = BuildOCPPrinter.string_of_package (fun _ _ _ -> ()) pk in
               Printf.eprintf "Translation of %S:\n" meta_filename;
               Printf.eprintf "%s\n%!" s;
             end;

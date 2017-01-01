@@ -23,7 +23,7 @@ open BuildOCPTypes
 open BuildOCamlTypes
 open BuildValue.Types
 
-let verbose = DebugVerbosity.verbose [] "BuildOCamlPackage"
+let verbose = DebugVerbosity.verbose [ "B"; "BP" ] "BuildOCamlPackage"
 
 exception OCamlPackage of ocaml_description
 
@@ -38,32 +38,41 @@ let add_ocaml_package loc state config name kind =
   let (pk : unit BuildOCPTypes.package) =
     BuildOCP.define_package loc state config ~name ~kind
   in
-  let options = pk.package_options in
+  let env = config.config_env in
+  let opk_version = BuildValue.get_string_with_default [env]
+      "version"  "0.1-alpha" in
   let opk = {
     opk_name = name;
     opk_package = pk;
-    opk_options = pk.package_options;
+    opk_options = env;
     opk_dirname = pk.package_dirname;
     opk_kind = pk.package_type;
-    opk_version = BuildValue.get_string_with_default [options]
-      "version"  "0.1-alpha";
+    opk_version;
     opk_id  = 0;
     opk_deps_map = StringMap.empty;
     opk_requires_map = IntMap.empty;
     opk_requires = [];
   } in
   pk.package_plugin <- OCamlPackage opk;
-  pk
+  let s = BuildOCPPrinter.string_of_package (fun _ _ _ -> ()) pk in
+  Printf.eprintf "New OCaml Description:\n";
+  Printf.eprintf "%s\n%!" s;
+  opk
 
 let add_ocaml_package_unit loc state config name kind =
-  let (_ : unit package) = add_ocaml_package  loc state config name kind in
+  let (_ : ocaml_description) =
+    add_ocaml_package  loc state config name kind in
   ()
+
+let add_ocaml_package_pk loc state config name kind =
+  let opk = add_ocaml_package  loc state config name kind in
+  opk.opk_package
 
 
 let _ =
   (* For .ocp files, we can only define OCaml packages, so
      BuildOCP has a specific way to do it ! *)
-  BuildOCP.add_ocaml_package := add_ocaml_package;
+  BuildOCP.add_ocaml_package := add_ocaml_package_pk;
 
   add_primitive "new_package"
     [ "Add a new OCaml package" ]
@@ -474,8 +483,10 @@ let verify_packages w state =
 
   let check_package_unicity pk =
     if verbose 5 || !print_package_deps then
-      Printf.eprintf "check_package_unicity %s of %s\n%!"
-        pk.opk_name pk.opk_dirname;
+      Printf.eprintf "check_package_unicity %s_%d of %s\n%!"
+        pk.opk_name
+        pk.opk_package.package_id
+        pk.opk_dirname;
     (*
       StringMap.iter (fun name pkdep ->
       Printf.eprintf "\t%s depends on %s\n%!"
@@ -1076,6 +1087,25 @@ let verify_packages w state =
   ) sorted_packages;
 
 ()
+
+let pk_opk pk =
+  match pk.package_plugin with
+  | OCamlPackage opk -> opk
+  | _ -> assert false
+
+let init_env env_pj =
+
+  BuildOCamlVariables.packages_option.set
+    (VList (Array.to_list (Array.map (fun pk ->
+      let opk = pk_opk pk in
+      let dirname = BuildGlobals.absolute_filename pk.package_dirname in
+      List.iter (fun suffix ->
+        BuildSubst.add_to_global_subst (pk.package_name ^ suffix) dirname)
+        [ "_SRC_DIR"; "_DST_DIR"; "_FULL_SRC_DIR"; "_FULL_DST_DIR" ];
+      VTuple [VString pk.package_name; VObject opk.opk_options]
+     ) env_pj.project_sorted)));
+  ()
+
 
 let () =
   Printf.eprintf "BuildOCamlPackage._init()\n%!";

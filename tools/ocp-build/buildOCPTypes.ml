@@ -43,8 +43,8 @@ type 'a package = {
 					be an option, since it should
 					apply to modules too. *)
   mutable package_type : package_type; (* what it generates *)
-  mutable package_version : string;
-  mutable package_auto : string option; (* unused: TODO *)
+  (*  mutable package_version : string; *)
+  (*  mutable package_auto : string option; (* unused: TODO *) *)
 
   package_loc : location;
 (* Where this package is defined : *)
@@ -53,11 +53,11 @@ type 'a package = {
   package_filenames : (string * Digest.t option) list;
 
 
-  mutable package_options : env;
+  (*  mutable package_options : env; *)
   mutable package_plugin : exn;
   mutable package_disabled : bool;
   mutable package_requires_list : 'a package list;
-  mutable package_pk : pre_package;
+  (*  mutable package_pk : pre_package; *)
   mutable package_node : LinearToposort.node;
 (*  pi : 'a; *)
 }

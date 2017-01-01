@@ -50,18 +50,13 @@ type package_info = {
   lib_id : int;
   lib_name : string;
   lib_builder_context : builder_context;
-  mutable lib_ready : BuildEngineTypes.build_file list;
-  mutable lib_installed : bool;
-  mutable lib_install : bool;
   lib_loc : string * int * string;
-  mutable lib_options : BuildValue.Types.env;
 
-  mutable lib_version : string;
+  (*  mutable lib_version : string; *)
   mutable lib_dirname : File.t;
   mutable lib_provides : string;
   mutable lib_type : BuildOCPTypes.package_type;
   mutable lib_tag : string;
-  mutable lib_meta : bool;
   (* true means that it should be ignored about objects *)
   lib_filename : string;
   lib_source_kind : string;

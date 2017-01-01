@@ -221,6 +221,7 @@ let install where what lib installdir =
   match BuildOCamlGlobals.get_by_id lib with
   | None -> ()
   | Some lib ->
+    let opk = lib.lib_opk in
     Printf.eprintf "Installing %S in %S\n%!" lib.lib.lib_name installdir;
     let log = ref [] in
     let uninstall_file = Filename.concat installdir
@@ -228,7 +229,7 @@ let install where what lib installdir =
     let save_uninstall warning =
       let log = !log in
       let log =
-        (VERSION, lib.lib.lib_version) ::
+        (VERSION, opk.opk_version) ::
           (TYPE, BuildOCP.string_of_package_type lib.lib.lib_type) ::
           log in
       let log = match warning with
@@ -251,9 +252,9 @@ let install where what lib installdir =
     (* Do the installation *)
       let meta = MetaFile.empty () in
 
-      meta.meta_version <- Some lib.lib.lib_version;
+      meta.meta_version <- Some opk.opk_version;
       meta.meta_description <- Some
-        (BuildValue.get_string_with_default [lib.lib.lib_options] "description" lib.lib.lib_name);
+        (BuildValue.get_string_with_default [lib.lib_opk.opk_options] "description" lib.lib.lib_name);
       List.iter (fun dep ->
         let olib = dep.dep_project in
         if dep.dep_link then
@@ -343,7 +344,7 @@ let install where what lib installdir =
           let src_file = Filename.concat (File.to_string lib.lib.lib_dirname) file in
           copy_file where log src_file dst_file
         )
-          (BuildValue.get_strings_with_default [lib.lib.lib_options] "data_files" []);
+          (BuildValue.get_strings_with_default [lib.lib_opk.opk_options] "data_files" []);
 
       end;
 
@@ -355,7 +356,7 @@ let install where what lib installdir =
         let src_file = Filename.concat (File.to_string lib.lib.lib_dirname) file in
         copy_file where log src_file dst_file
       )
-        (BuildValue.get_strings_with_default [lib.lib.lib_options] "lib_files" []);
+        (BuildValue.get_strings_with_default [lib.lib_opk.opk_options] "lib_files" []);
 
       List.iter (fun file ->
         safe_mkdir where log installbin;
@@ -364,7 +365,7 @@ let install where what lib installdir =
         let src_file = Filename.concat (File.to_string lib.lib.lib_dirname) file in
         copy_file where log src_file dst_file
       )
-        (BuildValue.get_strings_with_default [lib.lib.lib_options] "bin_files" []);
+        (BuildValue.get_strings_with_default [lib.lib_opk.opk_options] "bin_files" []);
 
     (* What kind of META file do we create ? *)
       let topdir_list = split_dir (Filename.dirname installdir) in

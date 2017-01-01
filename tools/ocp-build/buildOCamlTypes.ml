@@ -92,6 +92,11 @@ type ocaml_package = {
 
   mutable lib_requires :
     ocaml_package BuildOCPTypes.package_dependency list;
+
+  mutable lib_ready : BuildEngineTypes.build_file list;
+  mutable lib_installed : bool;
+  mutable lib_install : bool;
+  mutable lib_meta : bool;
 }
 
 and ocaml_description = {
@@ -99,7 +104,7 @@ and ocaml_description = {
   opk_package : unit BuildOCPTypes.package;
   mutable opk_options : BuildValue.Types.env;
   opk_dirname : string;
-  opk_version : string;
+  mutable opk_version : string;
   opk_kind : package_type;
 
   mutable opk_id : int; (* initialized only when sorting *)

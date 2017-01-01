@@ -78,11 +78,11 @@ let new_package package_loc state name dirname filename filenames kind options =
   let package_id = state.npackages in
     (* Printf.eprintf "new_package %s_%d\n%!" name package_id; *)
   state.npackages <- state.npackages + 1;
-  let rec pk = {
+  let pk = {
     package_source_kind = "ocp";
     package_id = package_id;
-    package_auto = None;
-    package_version = "";
+    (*    package_auto = None; *)
+    (*    package_version = ""; *)
     package_loc;
     package_filename = filename;
     package_filenames = filenames;
@@ -90,14 +90,18 @@ let new_package package_loc state name dirname filename filenames kind options =
     package_provides = name;
     package_type = kind;
     package_dirname = dirname;
-    package_options = options;
+    (*    package_options = options; *)
     package_plugin = Not_found;
     package_disabled = false;
     package_requires_list = [];
-    package_pk = pk;
+    (*    package_pk = pk; *)
     package_node = LinearToposort.new_node ();
   } in
   state.packages <- IntMap.add pk.package_id pk state.packages;
+  let s = BuildOCPPrinter.string_of_package (fun _ _ _ -> ()) pk in
+  Printf.eprintf "New package:\n";
+  Printf.eprintf "%s\n%!" s;
+
   pk
 
 let empty_config = BuildValue.empty_config
@@ -174,14 +178,17 @@ let check_package w pk =
 let define_package loc pj config
     ~name
     ~kind
-  =
+    =
+  Printf.eprintf "define_package: substitute dirname\n%!";
   let dirname =
     try
       let list = BuildValue.get_strings [config.config_env] "dirname"  in
+      Printf.eprintf "subst_global...\n%!";
       BuildSubst.subst_global (String.concat Filename.dir_sep list)
     with Var_not_found _ ->
       config.config_dirname
   in
+  Printf.eprintf "dirname = %S\n%!" dirname;
   let dirname = if dirname = "" then "." else dirname in
   new_package loc pj name
     dirname
@@ -558,7 +565,7 @@ let verify_packages w state =
 
   ) !plugin_verifiers;
 
-  let packages = final_state state in
+  let _packages = final_state state in
 
   (*
   (* Verify that package directories really exist, and add 'requires'
@@ -1164,7 +1171,8 @@ let verify_packages w state =
       disabled_packages := pk :: !disabled_packages
     end
     else begin
-      Printf.eprintf "BuildOCP: %S sorted \n%!" pk.package_name;
+      Printf.eprintf "BuildOCP: %s_%d sorted \n%!"
+        pk.package_name pk.package_id;
       sorted_packages := pk :: !sorted_packages
         end
   ) state.packages;
@@ -1173,7 +1181,13 @@ let verify_packages w state =
     PackageSorter.sort !sorted_packages in
 
   List.iteri (fun i pk ->
-    Printf.eprintf "sorted: %d -> %S\n%!" pk.package_name
+    Printf.eprintf "sorted: %d -> %S[%d]   \n%!"
+      i pk.package_name pk.package_id;
+    List.iter (fun pk2 ->
+      Printf.eprintf " %S[%d]%!" pk2.package_name pk2.package_id
+    ) pk.package_requires_list;
+    Printf.eprintf "\n%!";
+
   ) sorted_packages;
 
   let pj = {
@@ -1430,6 +1444,7 @@ let load_project_state filename =
 
 *)
 
+      (*
 let find_package pj file =
   let list = ref [] in
 
@@ -1464,7 +1479,7 @@ let find_package pj file =
   ) pj.project_sorted;
 
   !list
-
+      *)
 
 let rec find_obuild f dir =
   let possible_dir = Filename.concat dir "_obuild" in
