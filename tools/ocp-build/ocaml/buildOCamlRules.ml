@@ -2884,3 +2884,6 @@ let create w cin cout bc state =
     end in
     (module P : BuildTypes.Package)
   ) libs
+
+let () =
+  BuildOCamlPackage.init ()
