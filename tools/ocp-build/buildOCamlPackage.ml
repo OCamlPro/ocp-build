@@ -33,6 +33,9 @@ let add_primitive name prim_help prim =
   BuildOCP.add_primitive prim_name prim_help prim
 
 
+let is_enabled options =
+  BuildValue.get_bool_with_default options "enabled" true
+
 let add_ocaml_package loc state config name kind =
   Printf.eprintf "BuildOCamlPackage.add_ocaml_package %S\n%!" name;
   let (pk : unit BuildOCPTypes.package) =
@@ -54,6 +57,8 @@ let add_ocaml_package loc state config name kind =
     opk_requires = [];
   } in
   pk.package_plugin <- OCamlPackage opk;
+  if not ( is_enabled [env] ) then
+    pk.package_disabled <- true;
   let s = BuildOCPPrinter.string_of_package (fun _ _ _ -> ()) pk in
   Printf.eprintf "New OCaml Description:\n";
   Printf.eprintf "%s\n%!" s;
@@ -158,9 +163,6 @@ let print_package_deps = ref false
 
 let normalized_dir dir =
   File.to_string (File.of_string dir)
-
-let is_enabled options =
-  BuildValue.get_bool_with_default options "enabled" true
 
 
 let new_dep pk pk2 options =
@@ -335,7 +337,7 @@ let verify_packages w state =
 
       let options = opk.opk_options in
 
-      if BuildValue.get_bool_with_default [options] "enabled" true &&
+      if not opk.opk_package.package_disabled &&
         not ( BuildMisc.exists_as_directory opk.opk_dirname ) then begin
       (* TODO: we should probably do much more than that, i.e. disable also a
          package when some files are missing. *)
@@ -405,8 +407,8 @@ let verify_packages w state =
       (* TODO: We should also test for asm/byte... *)
       then begin
         if verbose 5 then
-          Printf.eprintf "Discarding duplicated package %S\n%!"
-            pk1.opk_name;
+          Printf.eprintf "Discarding duplicated package %s_%d\n%!"
+            pk1.opk_name pk1.opk_package.package_id;
         PackageEquality
       end
       else
@@ -481,24 +483,24 @@ let verify_packages w state =
   in
 
 
-  let check_package_unicity pk =
+  let check_package_unicity opk =
     if verbose 5 || !print_package_deps then
       Printf.eprintf "check_package_unicity %s_%d of %s\n%!"
-        pk.opk_name
-        pk.opk_package.package_id
-        pk.opk_dirname;
+        opk.opk_name
+        opk.opk_package.package_id
+        opk.opk_dirname;
     (*
       StringMap.iter (fun name pkdep ->
       Printf.eprintf "\t%s depends on %s\n%!"
-      pk.opk_name pkdep.dep_project
-      ) pk.package_deps_map;
+      opk.opk_name pkdep.dep_project
+      ) opk.package_deps_map;
     *)
-    let envs = [pk.opk_options] in
-    if is_enabled envs then
+    let envs = [opk.opk_options] in
+    if not opk.opk_package.package_disabled then
       try
-        let tpk_name = pk.opk_name in
+        let tpk_name = opk.opk_name in
         let tpk_tags =
-          match pk.opk_kind with
+          match opk.opk_kind with
           | ProgramPackage
           | LibraryPackage
           | ObjectsPackage
@@ -521,7 +523,7 @@ let verify_packages w state =
           tpk_id = !tpk_id;
           tpk_requires = IntMap.empty; tpk_required_by = IntMap.empty;
           tpk_raw_requires = StringMap.empty;
-          tpk_pk = pk; tpk_enabled = true; tpk_keys = [];
+          tpk_pk = opk; tpk_enabled = true; tpk_keys = [];
           tpk_name; tpk_tags; tpk_names } in
         tpk_packages := tpk :: !tpk_packages;
         verify_unicity tpk_name "" tpk;
@@ -1065,6 +1067,11 @@ let verify_packages w state =
     let pk = opk.opk_package in
     pk.package_disabled <- true;
   ) !disabled_packages;
+
+  List.iter (fun opk ->
+    let pk = opk.opk_package in
+    pk.package_disabled <- true;
+  ) !superseded_packages;
 
   let package_id = ref 0 in
   List.iter (fun opk ->
