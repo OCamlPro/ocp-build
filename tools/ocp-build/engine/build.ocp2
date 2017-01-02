@@ -1,0 +1,35 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                              OCamlPro TypeRex                          *)
+(*                                                                        *)
+(*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
+(*   This file is distributed under the terms of the GPL v3.0             *)
+(*      (GNU Public Licence version 3.0).                                 *)
+(*                                                                        *)
+(*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
+(*                                                                        *)
+(*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       *)
+(*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES       *)
+(*  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND              *)
+(*  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS   *)
+(*  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN    *)
+(*  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN     *)
+(*  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE      *)
+(*  SOFTWARE.                                                             *)
+(**************************************************************************)
+
+begin
+  ocaml.files = [
+
+  "buildEngineTypes.ml";      (* All interesting types for the build engine *)
+  "buildEngineGlobals.ml";    (* Global tables and misc functions *)
+  "buildEngineRules.ml";      (* Functions to create compilation rules *)
+  "buildEngineContext.ml";    (* Initialisation of the build Engine *)
+  "buildEngineDisplay.ml";
+  "buildEngine.ml";           (* The generic parallel build engine *)
+  ];
+
+   ocaml.requires =  [ "ocp-build-misc"; "ocplib-unix" ];
+
+   OCaml.library( "ocp-build-engine", ocaml);
+end

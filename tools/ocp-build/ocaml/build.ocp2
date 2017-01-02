@@ -1,0 +1,85 @@
+(**************************************************************************)
+(*                                                                        *)
+(*                              OCamlPro TypeRex                          *)
+(*                                                                        *)
+(*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
+(*   This file is distributed under the terms of the GPL v3.0             *)
+(*      (GNU Public Licence version 3.0).                                 *)
+(*                                                                        *)
+(*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
+(*                                                                        *)
+(*  THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,       *)
+(*  EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES       *)
+(*  OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND              *)
+(*  NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS   *)
+(*  BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN    *)
+(*  ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN     *)
+(*  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE      *)
+(*  SOFTWARE.                                                             *)
+(**************************************************************************)
+
+begin
+  ocaml.files = [ "metaTypes.ml";
+                  "metaLexer.mll", { pp =[] };
+                  "metaParser.ml"; (* load to raw version of META file *)
+                  "metaConfig.ml"; (* detect ocamlfind search path *)
+                  "metaFile.ml";   (* for interpreted version of META file *)
+          ];
+  ocaml.requires = [ "ocp-build-misc" ];
+  OCaml.library( "ocplib-ocamlfind", ocaml);
+end
+
+
+begin
+   ocaml.files = [ "metaMain.ml" ];
+   ocaml.requires = [ "ocplib-ocamlfind"];
+   OCaml.program ("test-meta", ocaml);
+end
+
+
+(*
+This plugin defines the rules to build OCaml packages.
+BuildOCamlRules.create is directly called from BuildMain, so it
+is not yet an optional plugin, but it should at some point (TODO).
+*)
+begin
+  ocaml.files = [
+    "buildOCamlConfig.ml";
+    "buildOCamlTypes.ml";
+    "buildOCamlGlobals.ml";
+    "buildOCamlMisc.ml";
+    "buildOCamlVariables.ml";
+    "buildOCamldep.ml";         (* Load dependencies from a file generated
+                                     by ocamldep *)
+    "buildOCamlSyntaxes.ml";    (* For preprocessing of OCaml files *)
+    "buildOCamlInstall.ml";
+    "buildOCamlPackage.ml";
+    "buildOCamlRules.ml";       (* Initialisation of the build Engine *)
+    "buildOCamlMeta.ml";
+    "buildOCamlTest.ml";
+
+    (*    "buildOCFGen.ml"; *)
+    "buildOCamlAutogen.ml";           (* Generate .ocp from directory content *)
+(*    "buildOCamlMain.ml"; *)
+  ];
+  ocaml.requires = [ "ocp-build-lib"; "ocplib-ocamlfind" ];
+  OCaml.library("ocp-build-ocaml-plugin", ocaml);
+ end
+
+begin
+  ocaml.files = [ "buildOasis.ml" ];
+  ocaml.requires = [ "ocp-build-project" ];
+  OCaml.library("ocp-build-oasis", ocaml);
+end
+
+(*
+begin
+
+  ocaml.files = [
+    "buildObjectInspector.ml";    (* Functions to explore object files *)
+  ];
+
+  ocaml.requires = [ "ocp-build-misc" ];
+  OCaml.library( "ocp-build-ocaml", ocaml);
+end
+*)
