@@ -2806,6 +2806,7 @@ let create w cin cout bc state =
   let install_where = BuildOCamlInstall.install_where cin cout in
   let install_what = BuildOCamlInstall.install_what () in
 
+  let pks =
   Array.map (fun lib ->
     let module P = struct
       let name = lib.lib.lib_name
@@ -2884,6 +2885,9 @@ let create w cin cout bc state =
     end in
     (module P : BuildTypes.Package)
   ) libs
+  in
+
+  pks
 
 let () =
   BuildOCamlPackage.init ()

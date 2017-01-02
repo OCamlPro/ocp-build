@@ -18,8 +18,10 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-exception SyntaxDepDeclaredAsNotSyntax of string * string * string
-exception SyntaxDepNotDeclared of string * string * string
+val w_SyntaxDepDeclaredAsNotSyntax:
+  BuildWarnings.set -> string * string * string -> unit
+val w_SyntaxDepNotDeclared:
+  BuildWarnings.set -> string * string * string -> unit
 
 val get_pp :
    BuildWarnings.set ->

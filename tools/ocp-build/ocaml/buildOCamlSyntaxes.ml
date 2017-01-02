@@ -21,6 +21,17 @@
 
 open StringCompat
 
+let w_SyntaxDepDeclaredAsNotSyntax w (lib_name, tool_name, pk_name) =
+  BuildWarnings.wprintf w
+    "Warning: in package %S, %s_requires: dependency %S not declared as syntax"
+    lib_name tool_name pk_name
+
+let w_SyntaxDepNotDeclared w (lib_name, tool_name, pk_name) =
+  BuildWarnings.wprintf w
+    "Warning: in package %s, %s_requires dependency %S not declared\n%!"
+    lib_name tool_name pk_name
+
+
 (* TODO: generate a
 
 begin syntax "toto:syntax"
@@ -63,9 +74,6 @@ open BuildTypes
 open BuildOCamlTypes
 open BuildOCamlVariables
 open BuildOCamlMisc
-
-exception SyntaxDepDeclaredAsNotSyntax of string * string * string
-exception SyntaxDepNotDeclared of string * string * string
 
 let verbose = DebugVerbosity.verbose ["B"] "BuildOCamlSyntaxes"
 
@@ -137,8 +145,7 @@ let get_tool_require w tool_name lib s =
     let olib = dep.dep_project in
     if olib == lib then begin
       if not dep.dep_syntax then begin
-        BuildWarnings.add w
-          (SyntaxDepDeclaredAsNotSyntax (lib.lib.lib_name, tool_name, pk_name))
+        w_SyntaxDepDeclaredAsNotSyntax w (lib.lib.lib_name, tool_name, pk_name)
 (*        print_warnings [
         Printf.sprintf "package %S" lib.lib.lib_name;
           Printf.sprintf "%s_requires: dependency %S not declared as syntax" tool_name pk_name ] *)
@@ -148,8 +155,7 @@ let get_tool_require w tool_name lib s =
     end
   ) lib.lib_requires;
   if not !declared then begin
-    BuildWarnings.add w
-      (SyntaxDepNotDeclared (lib.lib.lib_name, tool_name, pk_name));
+    w_SyntaxDepNotDeclared w (lib.lib.lib_name, tool_name, pk_name);
   end;
   match BuildOCamlGlobals.get_by_id pk with
   | None ->

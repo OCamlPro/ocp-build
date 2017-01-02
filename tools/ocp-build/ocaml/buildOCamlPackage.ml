@@ -342,12 +342,11 @@ let verify_packages w state =
         not ( BuildMisc.exists_as_directory opk.opk_dirname ) then begin
       (* TODO: we should probably do much more than that, i.e. disable also a
          package when some files are missing. *)
-         BuildWarnings.add w
-           (BuildOCP.MissingDirectory
-               (
-                 opk.opk_dirname,
-                 opk.opk_name,
-                 pk.package_filename));
+          BuildOCP.w_MissingDirectory w
+            (
+              opk.opk_dirname,
+              opk.opk_name,
+              pk.package_filename);
          pk.package_disabled <- true
         end else begin
           packages := opk :: !packages;
@@ -457,9 +456,8 @@ let verify_packages w state =
         raise Not_found
 
       | PackageConflict ->
-        BuildWarnings.add w
-          (BuildOCP.PackageConflict (tpk.tpk_pk.opk_package,
-                             tpk2.tpk_pk.opk_package, tpk.tpk_pk.opk_package));
+          BuildOCP.w_PackageConflict w (tpk.tpk_pk.opk_package,
+                             tpk2.tpk_pk.opk_package, tpk.tpk_pk.opk_package);
         remove_tpk tpk2;
         raise Not_found
 
@@ -645,8 +643,7 @@ let verify_packages w state =
           "Warning: installed package %s depends on source package %s\n%!"
           pk.opk_name pk2.opk_name;
         *)
-        BuildWarnings.add w (BuildOCP.BadInstalledPackage
-                                (pk.opk_name, pk2.opk_name));
+        BuildOCP.w_BadInstalledPackage w (pk.opk_name, pk2.opk_name);
         raise Exit
     end;
 
@@ -655,7 +652,7 @@ let verify_packages w state =
     dep2.dep_syntax <- dep.dep_syntax;
   in
   let add_missing pk tag dep =
-    BuildWarnings.add w (BuildOCP.MissingPackage (dep.dep_project, [pk.opk_package]));
+    BuildOCP.w_MissingPackage w (dep.dep_project, [pk.opk_package]);
     let dep = dep.dep_project ^ ":" ^ tag in
     let pk = pk.opk_name ^ ":" ^ tag in
     begin
@@ -700,8 +697,8 @@ let verify_packages w state =
               let pk2 = Hashtbl.find h2 (dep.dep_project, "") in
               add_require pk (dep, pk2)
             with Not_found ->
-              BuildWarnings.add w
-                (BuildOCP.MissingDependency ("", tpk.tpk_name, dep.dep_project));
+              BuildOCP.w_MissingDependency w
+                ("", tpk.tpk_name, dep.dep_project);
 (*
               Printf.eprintf "Warning: missing dependency, %S requires %S\n%!"
                 tpk.tpk_name dep.dep_project;
@@ -759,8 +756,8 @@ let verify_packages w state =
                     | LibraryPackage
                     | ObjectsPackage
                       ->
-                      BuildWarnings.add w
-                        (BuildOCP.KindMismatch ("bytecode", pk.opk_name, "native", pk2.opk_name));
+                      BuildOCP.w_KindMismatch w
+                        ("bytecode", pk.opk_name, "native", pk2.opk_name);
                         raise Exit
                     | ProgramPackage
                     | SyntaxPackage ->
@@ -781,8 +778,8 @@ let verify_packages w state =
                       | SyntaxPackage
                         -> assert false
                     with Not_found ->
-                      BuildWarnings.add w
-                        (BuildOCP.MissingDependency ("bytecode", tpk.tpk_name, dep.dep_project));
+                      BuildOCP.w_MissingDependency w
+                        ("bytecode", tpk.tpk_name, dep.dep_project);
 (*
                       Printf.eprintf "Warning: missing dependency, bytecode %S requires %S bytecode\n%!"
                         tpk.tpk_name dep.dep_project;
@@ -824,9 +821,8 @@ let verify_packages w state =
                     | LibraryPackage
                     | ObjectsPackage
                       ->
-                      BuildWarnings.add w
-                        (BuildOCP.KindMismatch ("native", pk.opk_name,
-                                        "bytecode", pk2.opk_name));
+                      BuildOCP.w_KindMismatch w ("native", pk.opk_name,
+                                                 "bytecode", pk2.opk_name);
                         raise Exit
                     | ProgramPackage
                     | SyntaxPackage ->
@@ -847,8 +843,8 @@ let verify_packages w state =
                       | SyntaxPackage
                         -> assert false
                     with Not_found ->
-                      BuildWarnings.add w
-                        (BuildOCP.MissingDependency ("native", tpk.tpk_name, dep.dep_project));
+                      BuildOCP.w_MissingDependency w
+                        ("native", tpk.tpk_name, dep.dep_project);
 
                       (*                Printf.eprintf "Warning: missing dependency, native %S requires %S native\n%!"
                                                              tpk.tpk_name dep.dep_project; *)
@@ -889,7 +885,7 @@ let verify_packages w state =
       with Exit ->
         tpk.tpk_enabled <- false;
         disabled_packages := pk :: !disabled_packages;
-        BuildWarnings.add w (BuildOCP.IncompletePackage pk.opk_package)
+        BuildOCP.w_IncompletePackage w pk.opk_package
     ) queue
   done;
 
@@ -1116,9 +1112,9 @@ let init_env env_pj =
 
 
 
-let init () =
+let () =
   Printf.eprintf "OCamlPlugin: enabled.\n%!";
   BuildOCP.plugin_verifiers := verify_packages :: !BuildOCP.plugin_verifiers;
   ()
 
-let () = init ()
+let init () = ()

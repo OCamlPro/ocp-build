@@ -26,10 +26,13 @@ we create another field, equal will still not change.
 open StringCompat
 
 type set = {
-  mutable warnings : exn list;
+  mutable warnings : string list;
   mutable count : int; (* length of [warnings] field *)
   mutable sorted : bool;
 }
+
+type 'a warning = set -> 'a -> unit
+
 
 let empty_set () = { warnings = []; count = 0; sorted = true; }
 let add w e =
@@ -45,8 +48,16 @@ let sort w =
     w.warnings <- List.sort compare w.warnings;
     w.sorted <- true
   end
+
+let rec equals list1 list2 =
+  match list1, list2 with
+  | [], [] -> true
+  | h1 :: t1, h2 :: t2 ->
+    (h1 : string) = h2 && equals t1 t2
+  | _ -> false
+
 let equal w1 w2 =
-  w1.count = w2.count && (sort w1; sort w2; w1.warnings = w2.warnings)
+  w1.count = w2.count && (sort w1; sort w2; equals w1.warnings w2.warnings)
 let copy w = { w with count = w.count }
 let clear w =
   w.sorted <- true;
@@ -62,3 +73,6 @@ let diff w1 w2 =
       if not (Hashtbl.mem pre ww) then add w ww
     ) w1.warnings;
     w
+
+let wprintf w =
+  Printf.kprintf (fun s -> add w s)

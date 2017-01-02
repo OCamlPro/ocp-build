@@ -25,16 +25,16 @@ open StringCompat
 open BuildOCPTypes
 open BuildValue.Types
 
-
-exception MissingDirectory of string * string * string
-exception PackageConflict of
-    BuildOCPTypes.pre_package * BuildOCPTypes.pre_package *
-      BuildOCPTypes.pre_package
-exception BadInstalledPackage of string * string
-exception MissingDependency of string * string * string
-exception KindMismatch of string * string * string * string
-exception IncompletePackage of BuildOCPTypes.pre_package
-exception MissingPackage of string * BuildOCPTypes.pre_package list
+val w_MissingDirectory : (string * string * string) BuildWarnings.warning
+val w_PackageConflict :
+    (BuildOCPTypes.pre_package * BuildOCPTypes.pre_package *
+      BuildOCPTypes.pre_package) BuildWarnings.warning
+val w_BadInstalledPackage :
+  (string * string) BuildWarnings.warning
+val w_MissingDependency : (string * string * string) BuildWarnings.warning
+val w_KindMismatch : (string * string * string * string) BuildWarnings.warning
+val w_IncompletePackage : (BuildOCPTypes.pre_package) BuildWarnings.warning
+val w_MissingPackage : (string * BuildOCPTypes.pre_package list) BuildWarnings.warning
 
 
 
@@ -109,7 +109,7 @@ val add_primitive : (* only for OCP2 *)
 val print_conflict :
   'a BuildOCPTypes.package ->
   'b BuildOCPTypes.package ->
-  'c BuildOCPTypes.package -> unit
+  'c BuildOCPTypes.package -> string
 
 (* formerly in buildOCPInterp.mli *)
 

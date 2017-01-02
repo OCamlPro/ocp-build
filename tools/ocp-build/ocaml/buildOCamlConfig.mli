@@ -98,7 +98,7 @@ val arg_list : unit -> (string * Arg.spec * string) list
 val load_global_config : File.t -> unit
 *)
 
-exception MissingTool of string
+val w_MissingTool: BuildWarnings.set -> string -> unit
 
 val check_config :
   BuildWarnings.set ->

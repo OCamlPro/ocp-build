@@ -480,6 +480,7 @@ let init_env () =
   let p = BuildActions.load_project w in
   let env_state = do_read_env p in
   let env_pj = BuildOCP.verify_packages w env_state in
+
   if !print_env_arg then begin
     BuildOCPPrinter.eprint_project "Environment packages" env_pj;
     exit 0;
