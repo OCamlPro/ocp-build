@@ -18,22 +18,49 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-val arg_list : (string * Arg.spec * string) list
 
-type warning =
-[
-| BuildOCP.warning
-| BuildOCamlConfig.warning
-| BuildOCamlSyntaxes.warning
-]
 
-type set = warning BuildWarnings.set
 
-val set_default_is_always : unit -> unit
 
-(* [print_env_warnings set] prints warnings from [set],
-   using [filename] as a reminder of former warnings, and update
-   [filename] consequently. [kind] is a simple string to characterize
-   these warnings, typically "env" or "project" *)
-val print_env_warnings : File.t -> set -> unit
-val print_pj_warnings : File.t -> set -> unit
+
+
+
+
+open BuildEngineTypes
+
+open BuildEngineContext
+open BuildTypes
+open BuildOCamlTypes
+
+(*
+let iter_requires f olib =
+  List.iter (fun dep ->
+    let opk = dep.dep_project in
+    match opk.opk_lib with
+    | None -> assert false
+    | Some olib -> f olib dep
+  ) olib.lib_opk.opk_requires
+*)
+
+let byte_exe =
+  match MinUnix.os_type with
+     MinUnix.WINDOWS
+   | MinUnix.CYGWIN -> ".byte.exe"
+   | MinUnix.UNIX -> ".byte"
+
+let asm_exe =
+  match MinUnix.os_type with
+     MinUnix.WINDOWS
+   | MinUnix.CYGWIN -> ".asm.exe"
+   | MinUnix.UNIX -> ".asm"
+
+let add_dst_file b dst_dir filename =
+  add_file b dst_dir (Filename.basename filename)
+
+exception NoSuchFileInDir of string * string
+
+let find_dst_file dst_dir filename =
+  try
+    find_file dst_dir (Filename.basename filename)
+  with Not_found ->
+    raise (NoSuchFileInDir (filename, dst_dir.dir_fullname))

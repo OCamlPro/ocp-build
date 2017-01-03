@@ -65,7 +65,7 @@ let print_dependencies pj packages =
       [] -> ()
     | pk :: tail ->
       work_queue := tail;
-      List.iter (fun dep -> add_package dep.dep_project) pk.pi.package_requires;
+      List.iter (fun pk -> add_package pk) pk.package_requires_list;
       iter ()
   in
   iter ();
@@ -73,10 +73,9 @@ let print_dependencies pj packages =
   Array.iter (fun pk ->
     if IntSet.mem pk.package_id !deps then begin
       Printf.printf "%3d\t%S" pk.package_id pk.package_name;
-      List.iter (fun dep -> Printf.printf " (%s%d)"
-        (if dep.dep_link then "" else "*")
-        dep.dep_project.package_id)
-        pk.pi.package_requires;
+      List.iter (fun pk -> Printf.printf " (%d)"
+        pk.package_id)
+        pk.package_requires_list;
       Printf.printf "\n%!"
     end
   ) pj.project_sorted;

@@ -31,9 +31,8 @@ open BuildValue.Types
 open BuildConfig
 open BuildOptions
 
-type warning = [
-| `MissingTool of string
-]
+let w_MissingTool w tool =
+  BuildWarnings.wprintf w "Warning: Could not find OCaml %s tool.\n" tool
 
 module TYPES = struct
 
@@ -257,7 +256,8 @@ let check_config w cin =
       let byte_config = get_config ocamlc in
       let native_config = get_config ocamlopt in
       if byte_config <> native_config then begin
-        Printf.fprintf stderr "Warning: bytecode and native code compilers disagree on configuration%!\n";
+        Printf.fprintf stderr
+          "Warning: bytecode and native code compilers disagree on configuration%!\n";
 
         cout.cout_ocamlopt <- Some [ "inconsistent-ocamlopt-detected" ];
         cout.cout_ocamlc <- Some [ ocamlc ];
@@ -300,7 +300,7 @@ let check_config w cin =
       [ "ocamldoc" ] in
   begin match ocamldoc with
     None ->
-      BuildWarnings.add w (`MissingTool "ocamldoc");
+      w_MissingTool w "ocamldoc";
       cout.cout_ocamldoc <- Some [ "no-ocamldoc-detected" ]
     | Some ocamldoc ->
       cout.cout_ocamldoc <- Some [ocamldoc];
@@ -439,7 +439,6 @@ let set_global_config cout =
       ocaml_config_architecture.set [cfg.ocaml_architecture];
       ocaml_config_os_type.set [cfg.ocaml_os_type];
       ocaml_config_ext_dll.set cfg.ocaml_ext_dll;
-
       BuildSubst.add_to_global_subst "OCAMLLIB" cfg.ocaml_ocamllib;
       BuildSubst.add_to_global_subst "OCAMLBIN" cfg.ocaml_ocamlbin;
   end;

@@ -18,18 +18,15 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-type set
 
-type 'a warning = set -> 'a -> unit
+val plugin : (module BuildTypes.Plugin)
 
-val empty_set : unit -> set
-val add : set -> string -> unit
-val iter : (string -> unit) -> set -> unit
-val count : set -> int
-val sort : set -> unit
-val equal : set -> set -> bool
-val copy : set -> set
-val clear : set -> unit
-val diff : set -> set -> set
-
-val wprintf : set -> ('b, unit, string, unit) format4 -> 'b
+(* From the [validated_projects] table, fill the other
+   tables *)
+val create :
+  BuildWarnings.set ->
+  BuildOptions.config_input ->
+  BuildOCamlConfig.TYPES.config_output ->
+  BuildTypes.builder_context ->
+  BuildOCPTypes.project ->
+  (module BuildTypes.Package) array

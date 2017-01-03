@@ -42,6 +42,7 @@ module Init(S: sig
     type context
 
     val define_package :
+      location ->
       context ->
       config ->
       name:string ->

@@ -227,7 +227,7 @@ let filter_deps options option modules =
     not (StringSet.mem modname nodeps)) modules
 
 let load_modules_dependencies lib options force dst_dir pack_for needs_odoc filename =
-  let envs = [options; lib.lib.lib_options] in
+  let envs = [options; lib.lib_opk.opk_options] in
   let has_asm = asm_option.get envs in
   let has_byte = byte_option.get envs in
 
@@ -258,14 +258,13 @@ let load_modules_dependencies lib options force dst_dir pack_for needs_odoc file
   (*  let basename = Filename.basename full_basename in *)
   (*  let modname = String.capitalize basename in *)
 
-  let deps = lib.lib.lib_requires in
+  let deps = lib.lib_requires in
   let deps = List.concat (List.map (fun dep ->
-    match BuildOCamlGlobals.ocaml_package dep.dep_project with
-    | None -> []
-    | Some lib ->
+    let olib = dep.dep_project in
+
         if dep.dep_link ||
            (BuildValue.get_bool_with_default [dep.dep_options] "externals_only" false) then
-          [(lib.lib.lib_dst_dir, lib.lib_modules)]
+          [(olib.lib.lib_dst_dir, olib.lib_modules)]
         else []
       ) (List.rev deps)) in
   let rec add_internal_deps pack_for deps =

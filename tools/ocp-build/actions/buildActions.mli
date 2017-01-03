@@ -19,14 +19,15 @@
 (**************************************************************************)
 
 
-val plugin : (module BuildTypes.Plugin)
+(* clean all generated object files *)
+val delete_file_or_directory : string -> unit
+val time_step : string -> unit
+val time_steps : (string * float) list ref
 
-(* From the [validated_projects] table, fill the other
-   tables *)
-val create :
-  [> BuildOCamlSyntaxes.warning ] BuildWarnings.set ->
-  BuildOptions.config_input ->
-  BuildOCamlConfig.TYPES.config_output ->
-  BuildTypes.builder_context ->
-  BuildOCPTypes.project ->
-  (module BuildTypes.Package) array
+type project_info = {
+  project_dir : File.t;
+  cin : BuildOptions.config_input;
+  cout : BuildOCamlConfig.TYPES.config_output;
+}
+
+val load_project : BuildWarnings.set -> project_info

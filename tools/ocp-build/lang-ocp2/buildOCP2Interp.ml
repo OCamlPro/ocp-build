@@ -25,20 +25,21 @@ open BuildOCP2Prims
 
 module Eval(S: sig
 
-    type context
+  type context
 
-    val filesubst : (string * env list) StringSubst.M.subst
-    val define_package :
-           context -> config ->
-           name:string ->
-           kind:string ->
-           unit
+  val filesubst : (string * env list) StringSubst.M.subst
+  val define_package :
+    location ->
+    context -> config ->
+    name:string ->
+    kind:string ->
+    unit
 
     (*    if not !continue_on_ocp_error then exit 2; *)
-    val parse_error : unit -> unit
-    val new_file : context -> string -> string -> unit
+  val parse_error : unit -> unit
+  val new_file : context -> string -> string -> unit
 
-  end) = struct
+end) = struct
 
 module Primitives = BuildOCP2Prims.Init(S)
 let primitives_help = Primitives.primitives_help

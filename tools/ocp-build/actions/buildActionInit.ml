@@ -480,6 +480,7 @@ let init_env () =
   let p = BuildActions.load_project w in
   let env_state = do_read_env p in
   let env_pj = BuildOCP.verify_packages w env_state in
+
   if !print_env_arg then begin
     BuildOCPPrinter.eprint_project "Environment packages" env_pj;
     exit 0;
@@ -487,28 +488,11 @@ let init_env () =
   BuildActions.time_step "Environment read and checked.";
   (* TODO: we could check that all the packages are indeed installed ! *)
 
-  BuildOCamlVariables.packages_option.set
-    (VList (Array.to_list (Array.map (fun pk ->
-        let dirname = BuildGlobals.absolute_filename pk.package_dirname in
-        List.iter (fun suffix ->
-          BuildSubst.add_to_global_subst (pk.package_name ^ suffix) dirname)
-          [ "_SRC_DIR"; "_DST_DIR"; "_FULL_SRC_DIR"; "_FULL_DST_DIR" ];
-        VTuple [VString pk.package_name; VObject pk.package_options]
-      ) env_pj.project_sorted)));
+  BuildOCamlPackage.init_env env_pj;
 
   BuildActionsWarnings.print_env_warnings p.project_dir w;
 
   (w, p, env_state, env_pj)
-
-let init_project env_w p env_state  =
-
-  chdir_to_project p;
-
-  let (bc, package_map) = load_initial_project env_w p
-    (BuildOCP.copy_state env_state) in
-
-  (bc, package_map)
-
 
 let action () =
   BuildActionsWarnings.set_default_is_always ();
@@ -527,7 +511,12 @@ let action () =
     BuildMisc.safe_mkdir BuildOptions.project_build_dirname
   end;
   let (w, p, env_state, env_pj) = init_env () in
-  ignore (init_project w p env_state )
+
+  chdir_to_project p;
+
+  let (_bc, _package_map) = load_initial_project w p
+    (BuildOCP.copy_state env_state) in
+  ()
 
 let arg_list = [
   "-I", Arg.String (fun dir ->

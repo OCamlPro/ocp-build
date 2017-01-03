@@ -25,7 +25,6 @@
 
 *)
 
-(* open BuildBase *)
 open BuildArgs
 open BuildOptions
 
@@ -79,4 +78,3 @@ let subcommand = {
   ];
   sub_action = action;
 }
-

@@ -61,6 +61,7 @@ type module_origin =
 
 type ocaml_package = {
   lib : BuildTypes.package_info;
+  lib_opk : ocaml_description;
 
   lib_modules : (module_origin * string) StringMap.t ref;
   mutable lib_internal_modules :
@@ -82,10 +83,34 @@ type ocaml_package = {
   mutable lib_dep_deps : BuildEngineTypes.build_file IntMap.t;
 
   mutable lib_includes : string list option;
-  mutable lib_linkdeps : package_info list;
+  mutable lib_linkdeps : ocaml_package list;
 
   mutable lib_sources : BuildValue.Types.prop_list;
   mutable lib_tests : BuildValue.Types.prop_list;
   mutable lib_archive : string;
   mutable lib_stubarchive : string;
+
+  mutable lib_requires :
+    ocaml_package BuildOCPTypes.package_dependency list;
+
+  mutable lib_ready : BuildEngineTypes.build_file list;
+  mutable lib_installed : bool;
+  mutable lib_install : bool;
+  mutable lib_meta : bool;
+}
+
+and ocaml_description = {
+  opk_name : string;
+  opk_package : unit BuildOCPTypes.package;
+  mutable opk_options : BuildValue.Types.env;
+  opk_dirname : string;
+  mutable opk_version : string;
+  opk_kind : package_type;
+
+  mutable opk_id : int; (* initialized only when sorting *)
+  mutable opk_deps_map : string BuildOCPTypes.package_dependency StringMap.t;
+  mutable opk_requires_map :
+    ocaml_description BuildOCPTypes.package_dependency IntMap.t;
+  mutable opk_requires :
+    ocaml_description BuildOCPTypes.package_dependency list;
 }

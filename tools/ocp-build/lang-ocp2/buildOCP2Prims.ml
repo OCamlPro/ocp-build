@@ -72,6 +72,7 @@ module Init(S: sig
     type context
 
     val define_package :
+      location ->
       context ->
       config ->
       name:string ->
@@ -359,7 +360,7 @@ let _ =
     (fun loc ctx config args ->
        match args with
        | [VString name; VString kind; VObject config_env] ->
-         S.define_package ctx { config  with config_env } ~name ~kind;
+         S.define_package loc ctx { config  with config_env } ~name ~kind;
          VList []
        | _ ->
          raise_bad_arity loc "new_package(string,string,object)" 3 args

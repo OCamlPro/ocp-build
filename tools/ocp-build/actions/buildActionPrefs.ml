@@ -18,26 +18,53 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-type warning = [
-| `SyntaxDepDeclaredAsNotSyntax of string * string * string
-| `SyntaxDepNotDeclared of string * string * string
-]
 
-val get_pp :
-  [> warning ] BuildWarnings.set ->
-  BuildOCamlTypes.ocaml_package ->
-  string -> (* source basename *)
-  BuildValue.Types.env ->
-  BuildOCamlTypes.pp
+(* ocp-build prefs [OPTIONS]
+
+  Set the options of the user preference file.
+
+*)
 
 
-(* Should probably be in BuildOCamlMisc *)
-val add_pp_requires :
-  BuildEngineTypes.build_rule -> BuildOCamlTypes.pp -> unit
+open BuildArgs
+open BuildOptions
 
-val get_tool_requires :
-  [> warning ] BuildWarnings.set ->
-  string ->
-  BuildOCamlTypes.ocaml_package ->
-  string list ->
-  BuildEngineTypes.build_file list
+let filename = ref UserOptions.default_filename
+let arg_list =
+  ("-f", Arg.String (fun s -> filename := s),
+   "FILENAME Save preferences to file FILENAME") ::
+    [
+      arg_set_int UserOptions.njobs_option;
+      arg_set_int UserOptions.verbosity_option;
+
+      arg_set_true UserOptions.autoscan_option;
+      arg_set_false UserOptions.autoscan_option;
+
+      arg_set_true UserOptions.color_option;
+      arg_set_false UserOptions.color_option;
+
+      arg_set_true UserOptions.digest_option;
+      arg_set_false UserOptions.digest_option;
+
+      arg_set_true UserOptions.bytecode_option;
+      arg_set_false UserOptions.bytecode_option;
+
+      arg_set_true UserOptions.native_option;
+      arg_set_false UserOptions.native_option;
+    ]
+
+let action () =
+  BuildOptions.load_config UserOptions.config_file (File.of_string !filename);
+  BuildOptions.apply_arguments ();
+  BuildOptions.save_config UserOptions.config_file
+
+let subcommand = {
+  sub_name = "prefs";
+  sub_help =  "Set the user global preferences.";
+  sub_arg_list = arg_list;
+  sub_arg_anon = None;
+  sub_arg_usage = [
+    "Set the user global preferences.";
+  ];
+  sub_action = action;
+}

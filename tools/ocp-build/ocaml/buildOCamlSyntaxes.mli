@@ -18,18 +18,26 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-type set
+val w_SyntaxDepDeclaredAsNotSyntax:
+  BuildWarnings.set -> string * string * string -> unit
+val w_SyntaxDepNotDeclared:
+  BuildWarnings.set -> string * string * string -> unit
 
-type 'a warning = set -> 'a -> unit
+val get_pp :
+   BuildWarnings.set ->
+  BuildOCamlTypes.ocaml_package ->
+  string -> (* source basename *)
+  BuildValue.Types.env ->
+  BuildOCamlTypes.pp
 
-val empty_set : unit -> set
-val add : set -> string -> unit
-val iter : (string -> unit) -> set -> unit
-val count : set -> int
-val sort : set -> unit
-val equal : set -> set -> bool
-val copy : set -> set
-val clear : set -> unit
-val diff : set -> set -> set
 
-val wprintf : set -> ('b, unit, string, unit) format4 -> 'b
+(* Should probably be in BuildOCamlMisc *)
+val add_pp_requires :
+  BuildEngineTypes.build_rule -> BuildOCamlTypes.pp -> unit
+
+val get_tool_requires :
+  BuildWarnings.set ->
+  string ->
+  BuildOCamlTypes.ocaml_package ->
+  string list ->
+  BuildEngineTypes.build_file list

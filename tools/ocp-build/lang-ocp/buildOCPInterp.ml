@@ -28,6 +28,7 @@ module Eval(S: sig
 
     val filesubst : (string * env list) StringSubst.M.subst
     val define_package :
+      location ->
            context -> config ->
            name:string ->
            kind:string ->
@@ -130,7 +131,7 @@ and translate_toplevel_statement ctx config stmt =
     begin
       try
         let config = translate_statements ctx config simple_statements in
-        S.define_package ctx config
+        S.define_package (BuildValue.noloc config.config_filename) ctx config
           ~name:library_name
           ~kind:package_type
       with e ->

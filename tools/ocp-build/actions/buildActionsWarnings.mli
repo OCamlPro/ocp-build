@@ -18,28 +18,13 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-val subcommand : BuildArgs.subcommand
-val action : unit -> unit
 val arg_list : (string * Arg.spec * string) list
 
-val load_initial_project :
-  BuildActionsWarnings.set ->
-  BuildActions.project_info ->
-  BuildOCP.state ->
-  BuildTypes.builder_context *
-    (module BuildTypes.Package) StringCompat.StringMap.t
+val set_default_is_always : unit -> unit
 
-val init_env :
-  unit ->
-    BuildActionsWarnings.set *
-    BuildActions.project_info * BuildOCP.state *
-    BuildOCPTypes.project
-
-val init_project :
-  BuildActionsWarnings.set ->
-  BuildActions.project_info ->
-  BuildOCP.state ->
-  BuildTypes.builder_context *
-    (module BuildTypes.Package) StringCompat.StringMap.t
-
-val chdir_to_project : BuildActions.project_info -> unit
+(* [print_env_warnings set] prints warnings from [set],
+   using [filename] as a reminder of former warnings, and update
+   [filename] consequently. [kind] is a simple string to characterize
+   these warnings, typically "env" or "project" *)
+val print_env_warnings : File.t -> BuildWarnings.set -> unit
+val print_pj_warnings : File.t -> BuildWarnings.set -> unit

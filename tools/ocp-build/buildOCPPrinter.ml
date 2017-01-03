@@ -100,23 +100,23 @@ let package package_info b indent p =
     p.package_name p.package_id;
   Printf.bprintf b "%s  package_name = %S;\n" indent p.package_name;
   Printf.bprintf b "%s  package_dirname = %S;\n" indent p.package_dirname;
-  Printf.bprintf b "%s  package_options = {{\n" indent;
-  BuildValue.bprint_env b indent4 p.package_options;
+(*  Printf.bprintf b "%s  package_options = {{\n" indent;
+    BuildValue.bprint_env b indent4 p.package_options; *)
   Printf.bprintf b "  %s}};\n" indent;
   Printf.bprintf b "%s  package_source_kind = %S;\n" indent p.package_source_kind;
   if p.package_provides <> p.package_name then
     Printf.bprintf b "%s  package_provides = %S;\n" indent p.package_provides;
 
-  if p.package_version <> "[distributed with Ocaml]" then
-    Printf.bprintf b "%s  package_version = %S;\n" indent p.package_version;
-  if p.package_loc <> -1 then
-    Printf.bprintf b "%s  package_loc = %d;\n" indent p.package_loc;
+(*  if p.package_version <> "[distributed with Ocaml]" then
+    Printf.bprintf b "%s  package_version = %S;\n" indent p.package_version; *)
+  Printf.bprintf b "%s  package_loc = %s;\n" indent
+    (BuildValue.string_of_location p.package_loc);
   Printf.bprintf b "%s  package_filename = %S;\n" indent p.package_filename;
-  begin match p.package_auto with
+(*  begin match p.package_auto with
     | None -> ()
     | Some s ->
       Printf.bprintf b "%s  package_auto = Some %S;\n" indent s;
-  end;
+    end; *)
   Printf.bprintf b "%s  package_type = %s;\n" indent
     (string_of_package_type p.package_type);
   Printf.bprintf b "%s  package_filenames = " indent;
@@ -128,13 +128,14 @@ let package package_info b indent p =
   ) b indent p.package_filenames;
   Printf.bprintf b ";\n";
   Printf.bprintf b "%s  package_id = %d;\n" indent p.package_id;
-  package_info b indent p.pi;
+  (*  package_info b indent p.pi; *)
 (*
   mutable package_requires : package package_dependency list;
   mutable package_requires_map : package package_dependency IntMap.t;
 *)
   Printf.bprintf b "%s}\n" indent
 
+    (*
 let package_info b indent pi =
   let indent2 = indent ^ "  " in
   Printf.bprintf b "%s  package_validated = %b;\n" indent pi.package_validated;
@@ -150,8 +151,9 @@ let package_info b indent pi =
   intMap (package_dependency package_uid) b indent2 pi.package_requires_map;
   Printf.bprintf b ";\n";
   ()
+    *)
 
-let final_package = package package_info
+let final_package = package ()
 
 let string_x_package_list b indent (s, plist) =
   Printf.bprintf b "%s%S, " indent s;

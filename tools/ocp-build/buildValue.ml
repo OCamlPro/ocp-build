@@ -302,3 +302,23 @@ let config_set config name v =
   { config with config_env = set config.config_env name v }
 
 let unit = VObject empty_env
+
+let noloc pos_fname =
+  let pos =
+    let open Lexing in
+    {
+      pos_fname;
+      pos_lnum = -1;
+      pos_bol = 0;
+      pos_cnum = 0;
+    } in
+  {
+    loc_begin = pos;
+    loc_end = pos;
+  }
+
+let string_of_location loc =
+  let pos = loc.loc_begin in
+  let open Lexing in
+  Printf.sprintf "File %S, line %d, char %d"
+    pos.pos_fname pos.pos_lnum pos.pos_cnum

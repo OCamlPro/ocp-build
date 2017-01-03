@@ -21,15 +21,6 @@
 open StringCompat
 open BuildOCPTypes
 
-type warning =
-[
-  BuildOCP.warning
-| BuildOCamlConfig.warning
-| BuildOCamlSyntaxes.warning
-]
-
-type set = warning BuildWarnings.set
-
 type print_warnings =
 | PrintWarningsAlways
 | PrintWarningsIfChanged
@@ -73,40 +64,7 @@ let arg_list = [
 
 ]
 
-let print_warning (w : warning) =
-  match w with
-  | `MissingDirectory (dirname, name, filename) ->
-    Printf.eprintf
-      "Warning: directory %S for package does not exist: \
-            \   Package %S in %S disabled.\n%!"
-      dirname name filename
-  | `MissingTool tool ->
-    Printf.eprintf "Warning: Could not find OCaml %s tool.\n" tool
-  | `PackageConflict (pk1, pk2, pk3) ->
-    BuildOCP.print_conflict pk1 pk2 pk3
-  | `BadInstalledPackage (name1, name2) ->
-    Printf.eprintf
-      "Warning: installed package %s depends on source package %s\n%!"
-      name1 name2
-  | `MissingDependency (kind, name, dep) ->
-      Printf.eprintf "Warning: missing dependency, %s %S requires %S\n%!"
-        kind name dep
-  | `KindMismatch (kind, name, kind2, name2) ->
-    Printf.eprintf
-      "Warning: %s %S depends on %S, that only exists in %s\n%!"
-      kind name name2 kind2
-  | `SyntaxDepDeclaredAsNotSyntax (lib_name, tool_name, pk_name) ->
-    Printf.eprintf "Warning: in package %S, %s_requires: dependency %S not declared as syntax" lib_name tool_name pk_name
-  | `SyntaxDepNotDeclared (lib_name, tool_name, pk_name) ->
-    Printf.fprintf stderr "Warning: in package %s, %s_requires dependency %S not declared\n%!"
-      lib_name tool_name pk_name
-  | `IncompletePackage pk ->
-    Printf.eprintf "Warning: package %S disabled\n" pk.package_name
-  | `MissingPackage (name, pks) ->
-    Printf.eprintf "Warning: missing package %S, needed by\n" name;
-    List.iter (fun pk ->
-      Printf.eprintf "  * %S\n%!" pk.package_name) pks
-
+let print_warning w = Printf.eprintf "%s%!" w
 
 let print_warnings project_dir arg_print_warnings warnings_kind w =
   let warnings_filename =
@@ -118,7 +76,7 @@ let print_warnings project_dir arg_print_warnings warnings_kind w =
   end else begin
     if
         match arg_print_warnings with
-      | PrintWarningsNever ->
+        | PrintWarningsNever ->
         BuildWarnings.clear w;
         Printf.eprintf
           "Warning: %d %s warnings were not printed (remove %s)\n%!"
@@ -131,7 +89,7 @@ let print_warnings project_dir arg_print_warnings warnings_kind w =
             let ic = open_in_bin warnings_filename in
             let (version : int) = input_value ic in
             if version <> warnings_version then raise Exit;
-            let (w : 'a BuildWarnings.set) = input_value ic in
+            let (w : BuildWarnings.set) = input_value ic in
             close_in ic;
             w
           with _ ->
@@ -144,7 +102,8 @@ let print_warnings project_dir arg_print_warnings warnings_kind w =
             count warnings_kind arg_warnings_fmt warnings_kind
         end;
         not equal
-      | PrintWarningsAlways -> true
+      | PrintWarningsAlways ->
+        true
 
         then begin
           Printf.eprintf "----- %d %s warnings -----\n" count warnings_kind;
@@ -153,7 +112,7 @@ let print_warnings project_dir arg_print_warnings warnings_kind w =
         let oc = open_out_bin warnings_filename in
         output_value oc warnings_version;
         output_value oc w;
-        close_out oc
+        close_out oc;
     end
 
 let set_default_is_always () =

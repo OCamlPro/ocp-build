@@ -42,8 +42,8 @@ let do_install bc dest_dir _install_what projects _package_map =
     List.filter
       (fun p ->
          let module P = (val p : Package) in
-         let lib = P.info in
-         lib.lib_install &&
+         (*         let lib = P.info in *)
+         (*         lib.lib_install && *)
          BuildUninstall.is_installed state P.name)
       projects
   in
@@ -77,16 +77,16 @@ let do_install bc dest_dir _install_what projects _package_map =
   let add_to_install p =
     let module P = (val p : Package) in
     let lib = P.info in
-      if lib.lib_install &&
+    if (* lib.lib_install && *)
          not (StringMap.mem lib.lib_name !projects_to_install) then begin
         projects_to_install :=
           StringMap.add lib.lib_name p !projects_to_install;
 
         (* So, the semantics here is that packages are bundled together
-           only if they are installed at the same time. *)
+           only if they are installed at the same time.
         let bundle =
-          BuildValue.get_strings_with_default [lib.lib_options]
-            "bundle" [] in
+          BuildValue.get_strings_with_default [lib_options]
+            "bundle" [] in (* desactivated while transfering to OCaml plugin *)
         List.iter (fun name ->
             try
               let pj2 = StringMap.find name bc.packages_by_name in
@@ -97,6 +97,7 @@ let do_install bc dest_dir _install_what projects _package_map =
                 lib.lib_name name;
               BuildMisc.clean_exit 2
           ) bundle
+ *)
       end
     in
 
@@ -106,11 +107,9 @@ let do_install bc dest_dir _install_what projects _package_map =
 
     StringMap.iter (fun _ p ->
         let module P = (val p : Package) in
-        let lib = P.info in
-        if lib.lib_install then begin
-          P.install ();
-          incr install_ok
-        end
+        (*        let lib = P.info in *)
+        P.install ();
+        incr install_ok
       )
       !projects_to_install;
     if !install_errors > 0 then begin

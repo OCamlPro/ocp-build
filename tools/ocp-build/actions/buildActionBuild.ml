@@ -93,7 +93,10 @@ let add_finally action =
 
 
 
-let rec do_compile stage p ncores env_state arg_targets pre_w bc package_map =
+let rec do_compile stage p ncores env_state arg_targets pre_w  =
+
+  let (bc, package_map) = BuildActionInit.load_initial_project pre_w p
+    (BuildOCP.copy_state env_state) in
 
   if !configure_arg then BuildMisc.clean_exit 0;
 
@@ -259,10 +262,8 @@ let rec do_compile stage p ncores env_state arg_targets pre_w bc package_map =
       BuildMisc.clean_exit 2
     end else begin
       Printf.eprintf "Some configuration files were changed. Restarting build\n%!";
-      let (bc, package_map) = BuildActionInit.load_initial_project pre_w p
-        (BuildOCP.copy_state env_state) in
 
-      do_compile (stage+1) p ncores  env_state arg_targets pre_w bc package_map
+      do_compile (stage+1) p ncores  env_state arg_targets pre_w
     end else
     (p, bc, projects, package_map)
 
@@ -323,9 +324,10 @@ let do_build () =
       BuildMisc.clean_exit 2
   end;
 
-  let (bc, package_map) = BuildActionInit.init_project env_w p env_state in
 
-  do_compile 0 p (get_ncores p.cin) env_state targets env_w bc package_map
+  BuildActionInit.chdir_to_project p;
+
+  do_compile 0 p (get_ncores p.cin) env_state targets env_w
 
 
 let action () =

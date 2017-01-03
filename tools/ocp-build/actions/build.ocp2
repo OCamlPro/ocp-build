@@ -18,20 +18,25 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+begin
+  ocaml.files = [
+    "buildArgs.ml";
+    "buildActions.ml";          (* Main possible actions *)
+    "buildActionsWarnings.ml";          (* Main possible actions *)
+    "buildActionInit.ml";
+    "buildActionPrefs.ml";
+    "buildActionConfigure.ml";
+    "buildActionBuild.ml";
+    "buildActionInstall.ml";
+    "buildActionClean.ml";
+    "buildActionTests.ml";
+    "buildActionUninstall.ml";
+    "buildActionQuery.ml";
+    "buildActionHelp.ml";
+  ];
 
-(* open BuildBase *)
-
-(* clean all generated object files *)
-val delete_file_or_directory : string -> unit
-val time_step : string -> unit
-val time_steps : (string * float) list ref
-
-type project_info = {
-  project_dir : File.t;
-  cin : BuildOptions.config_input;
-  cout : BuildOCamlConfig.TYPES.config_output;
-}
-
-
-val load_project :
-  [> `MissingTool of string ] BuildWarnings.set -> project_info
+  ocaml.requires = [ "ocp-build-lib";
+                     "ocp-build-ocaml-plugin";
+                     "ocp-build-oasis" ];
+  OCaml.library( "ocp-build-actions", ocaml);
+end

@@ -47,25 +47,24 @@ type package_info = {
   lib_id : int;
   lib_name : string;
   lib_builder_context : builder_context;
-  mutable lib_ready : BuildEngineTypes.build_file list;
-  mutable lib_installed : bool;
-  mutable lib_install : bool;
-  lib_loc : string * int * string;
-  mutable lib_options : BuildValue.Types.env;
 
-  mutable lib_version : string;
+  lib_loc : string * int * string;
+  (*  mutable lib_options : BuildValue.Types.env; *)
+
+  (*  mutable lib_version : string; *)
   mutable lib_dirname : File.t;
   mutable lib_provides : string;
   mutable lib_type : BuildOCPTypes.package_type;
   mutable lib_tag : string;
-  mutable lib_meta : bool;
+
   (* true means that it should be ignored about objects *)
   lib_filename : string;
   lib_source_kind : string;
 
+  (*  lib_plugin : exn; *)
   lib_node : LinearToposort.node;
 
-  mutable lib_requires : package_info BuildOCPTypes.package_dependency list;
+  (*  mutable lib_requires : package_info list; *)
   mutable lib_added : bool;
   lib_src_dir : BuildEngineTypes.build_directory;
   lib_dst_dir : BuildEngineTypes.build_directory;
