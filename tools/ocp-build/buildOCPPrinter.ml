@@ -94,7 +94,7 @@ let package_uid b _indent p =
 
 let package package_info b indent p =
   let indent2 = indent ^ "  " in
-  let indent4 = indent2 ^ "  " in
+  let _indent4 = indent2 ^ "  " in
   Printf.bprintf b "{\n";
   Printf.bprintf b "%s  package_uid = \"%s_%d\";\n" indent
     p.package_name p.package_id;

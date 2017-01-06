@@ -322,3 +322,21 @@ let string_of_location loc =
   let open Lexing in
   Printf.sprintf "File %S, line %d, char %d"
     pos.pos_fname pos.pos_lnum pos.pos_cnum
+
+
+let rec set_deep_field env fields value =
+  match fields with
+  | [] -> assert false
+  | [field] -> set env field value
+  | field :: fields ->
+    let value =
+      let env =
+        try
+          match get [env] field with
+          | VObject env -> env
+          | _ -> assert false
+        with Not_found -> empty_env
+      in
+      set_deep_field env fields value
+    in
+    set env field (VObject value)

@@ -190,14 +190,6 @@ assignment_op:
 | MINUSEQUAL                { "-=" }
 ;
 
-lhs_expr:
-| IDENT                    { mkexp ( ExprIdent $1 ) }
-| lhs_expr DOT IDENT
-    { mkexp ( ExprField($1, mkexp (ExprValue (VString $3))) ) }
-| lhs_expr LBRACKET tupled_expr RBRACKET
-        { mkexp (ExprField($1, $3)) }
-;
-
 expr:
 | tupled_expr               { $1 }
 | tupled_expr COMMA expr_comma_expr  { mkexp (ExprTuple ($1 :: $3)) }
@@ -210,6 +202,14 @@ expr_comma_expr:
 
 tupled_expr:
 | logicalOR_expr { $1 }
+;
+
+lhs_expr:
+| IDENT                    { mkexp ( ExprIdent $1 ) }
+| lhs_expr DOT IDENT
+    { mkexp ( ExprField($1, mkexp (ExprValue (VString $3))) ) }
+| lhs_expr LBRACKET expr RBRACKET
+        { mkexp (ExprField($1, $3)) }
 ;
 
 logicalOR_expr:

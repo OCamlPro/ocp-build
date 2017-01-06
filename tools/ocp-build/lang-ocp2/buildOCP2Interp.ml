@@ -200,7 +200,8 @@ and for_int ctx config ident v1 v2 step body =
 and assign_field ctx config e fields v =
   let loc = e.exp_loc in
   match e.exp_expr with
-  | ExprIdent ident | ExprValue (VString ident) ->
+  | ExprIdent ident
+  | ExprValue (VString ident) ->
     let env = try
         BuildValue.config_get config ident
       with Var_not_found _ -> VObject BuildValue.empty_env
