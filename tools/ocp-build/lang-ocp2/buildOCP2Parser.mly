@@ -30,6 +30,47 @@ let symb_loc () =
 let mkstmt stmt_expr = { stmt_expr; stmt_loc = symb_loc (); }
 let mkexp exp_expr = { exp_expr; exp_loc = symb_loc (); }
 let mkinfix op exp = mkexp (ExprCall(mkexp (ExprIdent op), exp))
+
+let rec root_field root field =
+  match field.exp_expr with
+  | ExprField(exp, subfield) ->
+    let root = root_field root exp in
+    mkexp (ExprField(root, subfield))
+  | ExprIdent subfield ->
+    mkexp (ExprField(root, mkexp (ExprValue (VString subfield))))
+  | _ -> assert false
+
+let mkrecord fields =
+  let (simple_fields, deep_fields) =
+    List.fold_left (fun (simple_fields, deep_fields) (field, v) ->
+      match field.exp_expr with
+      | ExprIdent ident -> (ident, v) :: simple_fields, deep_fields
+      | ExprValue (VString ident) -> (ident, v) :: simple_fields, deep_fields
+      | ExprField _ -> simple_fields, (field,v) :: deep_fields
+      | _ -> assert false
+    ) ([],[]) fields in
+  match deep_fields with
+  | [] ->
+    mkexp (ExprRecord simple_fields)
+  | _ ->
+    let var = "%v%" in
+    let return_stmt = mkstmt (StmtReturn (Some (mkexp (ExprIdent var)))) in
+    let body =
+      List.fold_left (fun stmt (field, v) ->
+        let assign_stmt =
+          mkstmt (StmtAssign(root_field (mkexp (ExprIdent var)) field, v))
+        in
+        mkstmt (StmtSeq (assign_stmt, stmt))
+      )
+      return_stmt deep_fields
+    in
+    let init_stmt = mkstmt (StmtAssign (mkexp (ExprIdent var),
+                                        mkexp (ExprRecord simple_fields))) in
+    let body = mkstmt (StmtSeq (init_stmt, body)) in
+    let f = mkexp(ExprFunction([], body)) in
+    mkexp (ExprCall(f, []))
+
+
 %}
 
 %token EOF
@@ -208,6 +249,8 @@ lhs_expr:
 | IDENT                    { mkexp ( ExprIdent $1 ) }
 | lhs_expr DOT IDENT
     { mkexp ( ExprField($1, mkexp (ExprValue (VString $3))) ) }
+| lhs_expr DOT MINUS IDENT
+    { mkexp ( ExprField($1, mkexp (ExprValue (VString ("-"^$4)))) ) }
 | lhs_expr LBRACKET expr RBRACKET
         { mkexp (ExprField($1, $3)) }
 ;
@@ -269,18 +312,23 @@ unary_expr:
 
 no_operator_expr:
 | simple_expr               { $1 }
-| LBRACE ident_equal_exprs_maybe_empty RBRACE { mkexp (ExprRecord $2 ) }
+| LBRACE ident_equal_exprs_maybe_empty RBRACE { mkrecord $2 }
 ;
 
 ident_equal_exprs_maybe_empty:
 |                       { [] }
-| IDENT EQUAL expr ident_equal_exprs { ($1,$3) :: $4 }
+| field_or_string EQUAL expr ident_equal_exprs { ($1,$3) :: $4 }
 ;
 
 ident_equal_exprs:
 |                       { [] }
 | SEMI                  { [] }
-| SEMI IDENT EQUAL expr ident_equal_exprs { ($2,$4) :: $5 }
+| SEMI field_or_string EQUAL expr ident_equal_exprs { ($2,$4) :: $5 }
+;
+
+field_or_string:
+| lhs_expr { $1 }
+| STRING { mkexp (ExprValue (VString $1)) }
 ;
 
 simple_expr:
