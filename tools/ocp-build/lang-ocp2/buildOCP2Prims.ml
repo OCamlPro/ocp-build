@@ -267,6 +267,16 @@ let _ =
   add_primitive prim_sub_name [] (fun loc ctx config args ->
       match args with
       | [ VInt n1; VInt n2 ] -> VInt (n1 - n2)
+      | [ VObject { env = env }; VString s ] ->
+        VObject { env = StringMap.remove s env }
+      | [ VObject { env = env }; VList list ] ->
+        let env = List.fold_left (fun env v ->
+          match v with
+          | VString s -> StringMap.remove s env
+          | _ ->
+            raise_type_error loc "sub(object,list)" 2 "string list" (VList list)
+        ) env list in
+        VObject { env }
       | _ -> raise_bad_arity loc "sub(int,int)" 2 args
     );
 
@@ -348,11 +358,22 @@ let _ =
      to load a set of functions from a file. Since we have to interprete
      the content of the file, it can only be implemented in Interp.ml
   *)
+  let modules = Hashtbl.create 111 in
   add_primitive "module" [] (fun loc ctx config args ->
       match args with
       | [ VString s ] -> assert false
       | _ -> raise_bad_arity loc "module(string)" 1 args
     );
+
+  add_primitive "provides" [] (fun loc ctx config args ->
+      match args with
+      | [ VString s; value ] ->
+        if Hashtbl.mem modules s then
+          warning loc "redefinition of module %S" s;
+        Hashtbl.add modules s value;
+        VList []
+      | _ -> raise_bad_arity loc "provides(string, value)" 2 args
+  );
 
   add_primitive "new_package" [
     "Create a new package: new_package(name, kind, ocaml)"

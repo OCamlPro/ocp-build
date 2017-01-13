@@ -335,7 +335,7 @@ let rec set_deep_field env fields value =
           match get [env] field with
           | VObject env -> env
           | _ -> assert false
-        with Not_found -> empty_env
+        with Var_not_found _ -> empty_env
       in
       set_deep_field env fields value
     in
