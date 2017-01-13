@@ -55,6 +55,7 @@ module Types = struct
   (* The configuration at a package definition site *)
   type config = {
     config_env : env;
+    config_modules : (value * Versioning.version) StringMap.t ref;
     config_dirname : string;
     config_filename : string;
     config_filenames : (string * Digest.t option) list;
@@ -288,8 +289,9 @@ let new_path_option name v =
   }
     *)
 
-let empty_config = {
+let empty_config () = {
   config_env = empty_env;
+  config_modules = ref StringMap.empty;
   config_dirname = "";
   config_filename = "";
   config_filenames = [];

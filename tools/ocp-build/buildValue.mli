@@ -54,6 +54,7 @@ module Types : sig
   (* The configuration at a package definition site *)
   type config = {
     config_env : env;
+    config_modules : (value * Versioning.version) StringMap.t ref;
     config_dirname : string;
     config_filename : string;
     config_filenames : (string * Digest.t option) list;
@@ -136,7 +137,7 @@ val iter_env : (string -> plist -> unit) -> env -> unit
 val bprint_env : Buffer.t -> string -> env -> unit
 val bprint_value : Buffer.t -> string -> value -> unit
 
-val empty_config : config
+val empty_config : unit -> config
 val config_get : config -> string -> value
 val config_set : config -> string -> value -> config
 

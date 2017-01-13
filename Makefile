@@ -73,9 +73,12 @@ BUILD_MISC= $(OCP_BUILD_SRCDIR)/logger.ml				\
     $(OCP_BUILD_SRCDIR)/buildMtime.ml					\
     $(OCP_BUILD_SRCDIR)/buildScanner.ml					\
     $(OCP_BUILD_SRCDIR)/buildSubst.ml					\
-    $(OCP_BUILD_SRCDIR)/buildFind.ml $(OCP_BUILD_SRCDIR)/buildTerm.ml	\
-    $(OCP_BUILD_SRCDIR)/ocamldot.ml $(OCP_BUILD_SRCDIR)/buildValue.ml   \
-    $(OCP_BUILD_SRCDIR)/versioning.ml
+    $(OCP_BUILD_SRCDIR)/buildFind.ml 					\
+    $(OCP_BUILD_SRCDIR)/buildTerm.ml					\
+    $(OCP_BUILD_SRCDIR)/versioning.ml					\
+    $(OCP_BUILD_SRCDIR)/ocamldot.ml 					\
+    $(OCP_BUILD_SRCDIR)/buildValue.ml
+
 
 BUILD_PROJECT= \
     $(OCP_BUILD_SRCDIR)/buildOCPTypes.ml	\

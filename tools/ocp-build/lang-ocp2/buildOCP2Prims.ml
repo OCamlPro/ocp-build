@@ -358,21 +358,49 @@ let _ =
      to load a set of functions from a file. Since we have to interprete
      the content of the file, it can only be implemented in Interp.ml
   *)
-  let modules = Hashtbl.create 111 in
   add_primitive "module" [] (fun loc ctx config args ->
+    let modname, required_version =
       match args with
-      | [ VString s ] -> assert false
+      | [ VString modname ] -> modname, None
+      | [ VString modname; VString version ] ->
+        let version = Versioning.version_of_string version in
+        modname, Some version
       | _ -> raise_bad_arity loc "module(string)" 1 args
+      in
+    try
+      let (v, version) = StringMap.find modname !(config.config_modules) in
+      begin
+        match required_version with
+        | None -> ()
+        | Some required_version ->
+          if Versioning.compare required_version version > 0 then
+            fatal_error loc
+              "module %S required to have version %s, but version %s found"
+              modname
+              (Versioning.string_of_version required_version)
+              (Versioning.string_of_version version)
+      end;
+      v
+    with Not_found ->
+      fatal_error loc "could not find module %S" modname
     );
 
   add_primitive "provides" [] (fun loc ctx config args ->
       match args with
-      | [ VString s; value ] ->
-        if Hashtbl.mem modules s then
-          warning loc "redefinition of module %S" s;
-        Hashtbl.add modules s value;
+      | [ VString s; VString version; value ] ->
+        let version = Versioning.version_of_string version in
+        begin
+          try
+            let (_old_value, old_version) =
+              StringMap.find s !(config.config_modules) in
+            if Versioning.compare old_version version >= 0 then
+              raise Not_found
+          with Not_found ->
+            config.config_modules :=
+              StringMap.add s (value, version) !(config.config_modules)
+        end;
         VList []
-      | _ -> raise_bad_arity loc "provides(string, value)" 2 args
+      | _ -> raise_bad_arity loc "provides(string, version, value)" 2 args
   );
 
   add_primitive "new_package" [
@@ -387,6 +415,8 @@ let _ =
          raise_bad_arity loc "new_package(string,string,object)" 3 args
     );
 
+
+  (* Specific to OCaml *)
   add_primitive "packer" [
     "pack(string[,pack_env], list-of-strings)"
   ] (fun loc ctx config args ->
@@ -418,6 +448,16 @@ let _ =
       BuildValue.value (files @
                         [ packmodname ^ ".ml", pack_env ])
     );
+
+  add_primitive "List_mem" []
+    (fun loc ctx config args ->
+      match args with
+      | [ ele; VList list ] ->
+        VBool (List.mem ele list )
+      | _ ->
+        raise_bad_arity loc "List.mem(ele, list)" 2 args
+    );
+
 
   (*
   add_function "dstdir" [
