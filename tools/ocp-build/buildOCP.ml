@@ -144,13 +144,11 @@ let new_package package_loc state name dirname filename filenames kind options =
   *)
   pk
 
-let empty_config () = BuildValue.empty_config ()
-let generated_config () =
-  let empty_config = empty_config () in
-  {
-    empty_config with
-      config_env = BuildValue.set_bool empty_config.config_env "generated" true;
-  }
+let empty_config = BuildValue.empty_config
+let generated_config = {
+  empty_config with
+  config_env = BuildValue.set_bool empty_config.config_env "generated" true;
+}
 
   (*
 let new_package_dep pk s env =
@@ -324,29 +322,14 @@ let init_packages () =
   let packages = initial_state () in
   packages
 
+let empty_config () = BuildValue.empty_config
+let generated_config () = generated_config
+
 let print_loaded_ocp_files = ref false
 (* let print_dot_packages = ref (Some "_obuild/packages.dot") *)
 let print_package_deps = ref false
 
 let load_ocp_files config packages files =
-
-  List.iter (fun file ->
-    let file = File.to_string file in
-    let basename = Filename.basename file in
-    if Filename.check_suffix file ".ocp2" &&
-      String.lowercase basename <> "build.ocp2" then begin
-        if verbose 5 || !print_loaded_ocp_files then
-          Printf.eprintf "Reading module %s\n%!" file;
-        let (_config : config) = EvalOCP2.read_ocamlconf file packages config in
-        let modname = String.capitalize
-          (Filename.chop_suffix basename ".ocp2") in
-        if not (StringMap.mem modname !(config.config_modules)) then begin
-          Printf.eprintf "Error: file %S did not define module %S\n%!"
-            file modname;
-          exit 2
-          end
-      end
-  ) files;
 
   let nerrors = ref 0 in
   let rec iter parents files =
@@ -366,10 +349,10 @@ let load_ocp_files config packages files =
               if Filename.check_suffix file ".ocp" then
                 EvalOCP1.read_ocamlconf file packages config
               else
-                if Filename.basename file = "build.ocp2" then
-                  EvalOCP2.read_ocamlconf file packages config
-                else
-                  config
+              if Filename.check_suffix file ".ocp2" then
+                EvalOCP2.read_ocamlconf file packages config
+              else
+                assert false
             with BuildMisc.ParseError ->
               incr nerrors;
               config
@@ -787,7 +770,7 @@ let scan_root root_dir =
                   let file = File.of_string filename in
                   ocp_files := file :: !ocp_files
                 else
-                if Filename.check_suffix filename ".ocp2" then
+                if basename = "build.ocp2" then
                   let file = File.of_string filename in
                   ocp_files := file :: !ocp_files
                 else

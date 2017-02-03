@@ -73,8 +73,8 @@ let rec eval_statement ctx config stmt =
       | ExprIdent s ->
         BuildValue.config_set config s v
       | ExprField( exp, field) ->
-        let fields = eval_field ctx config field in
-        assign_field ctx config exp fields v
+        let field = eval_field ctx config field in
+        assign_field ctx config exp [field, loc] v
       | _ ->
         ocp2_raise loc "not-implemented" (VString "%set-field generic")
     end
@@ -200,8 +200,7 @@ and for_int ctx config ident v1 v2 step body =
 and assign_field ctx config e fields v =
   let loc = e.exp_loc in
   match e.exp_expr with
-  | ExprIdent ident
-  | ExprValue (VString ident) ->
+  | ExprIdent ident | ExprValue (VString ident) ->
     let env = try
         BuildValue.config_get config ident
       with Var_not_found _ -> VObject BuildValue.empty_env
@@ -215,8 +214,8 @@ and assign_field ctx config e fields v =
         raise_type_error loc "%set-field" 1  "object" env
     end
   | ExprField (e, field) ->
-    let new_fields = eval_field ctx config field in
-    assign_field ctx config e ( new_fields @ fields) v
+    let field = eval_field ctx config field in
+    assign_field ctx config e ( (field, loc) :: fields) v
   | _ ->
     assert false
 
@@ -242,21 +241,12 @@ and assign_field_rec loc env fields v =
 and eval_field ctx config exp =
   let field = eval_expression ctx config exp in
   match field with
-  | VTuple list ->
-    List.map (field_name_of_field exp) list
-  | _ -> [field_name_of_field exp field]
-
-and field_name_of_field exp field =
-  let field_name =
-  match field with
   | VString s -> s
   | VInt n -> string_of_int n
   | VBool true -> "true"
   | VBool false -> "false"
   | _ ->
     raise_type_error exp.exp_loc "%field" 1  "string" field
-  in
-  field_name, exp.exp_loc
 
 and eval_expression ctx config exp =
   let loc = exp.exp_loc in
@@ -278,28 +268,16 @@ and eval_expression ctx config exp =
     begin
       match v with
       | VObject env ->
-        let fields = eval_field ctx config field in
-        let rec get_fields value fields =
-          match fields with
-          | [] -> value
-          | (field, loc) :: fields ->
-              match value with
-              | VObject env ->
-                let value =
-                  try
-                    BuildValue.get_local [env] field
-                  with Var_not_found _ ->
-                    (*
-                      if StringMap.mem field !Primitives.primitives then
-                      VPrim field
-                      else *)
-                    raise (OCPExn (loc, "unknown-field", VString field))
-                in
-                get_fields value fields
-              | _ ->
-                raise_type_error loc "%get-field(value,field)" 1 "object" value
-        in
-        get_fields (VObject env) fields
+        let field = eval_field ctx config field in
+        begin try
+            BuildValue.get_local [env] field
+          with Var_not_found _ ->
+            (*
+            if StringMap.mem field !Primitives.primitives then
+              VPrim field
+            else *)
+            raise (OCPExn (loc, "unknown-field", VString field))
+        end
       | VList list ->
         let field = eval_expression ctx config field in
         begin

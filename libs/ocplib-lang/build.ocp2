@@ -42,7 +42,7 @@ begin
     "toposort.ml";
     "linearToposort.ml";
     "ocamllexer.mll", { pp = [] };
-(*    "trie.ml"; *)
+    "trie.ml";
     "ocpLang.ml";
     "stringSubst.ml";
     "manpage.ml";

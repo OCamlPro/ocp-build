@@ -63,14 +63,7 @@ begin
 (*    "buildOCamlMain.ml"; *)
   ];
   ocaml.requires = [ "ocp-build-lib"; "ocplib-ocamlfind" ];
-  (* HOW TO SPECIFY THE META FILE:
-  ocaml.META = {
-    archive.byte.value = "graphics.cma";
-    archive.-native.value = "graphics.cma";
-    archive.byte.-toplevel.append = "graphics.cma";   
-  };
-*)
-   OCaml.library("ocp-build-ocaml-plugin", ocaml);
+  OCaml.library("ocp-build-ocaml-plugin", ocaml);
  end
 
 begin

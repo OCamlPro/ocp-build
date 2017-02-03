@@ -1,6 +1,0 @@
-
-List = { mem = List_mem };
-
-provides("List", "1.0", List);
-
-

@@ -37,11 +37,18 @@ STRING_COMPAT=$(compat_SRCDIR)/stringCompat.ml
 OCPLIB_DEBUG= $(debug_SRCDIR)/debugVerbosity.ml	\
     $(debug_SRCDIR)/debugTyperex.ml
 
-OCPLIB_LANG= $(lang_SRCDIR)/ocpList.ml $(lang_SRCDIR)/ocpString.ml	\
-    $(lang_SRCDIR)/ocpArray.ml $(lang_SRCDIR)/intMap.ml			\
-    $(lang_SRCDIR)/ocpDigest.ml $(lang_SRCDIR)/linearToposort.ml	\
-    $(lang_SRCDIR)/ocamllexer.ml $(lang_SRCDIR)/ocpGenlex.ml		\
-    $(lang_SRCDIR)/stringSubst.ml $(lang_SRCDIR)/reentrantBuffers.ml
+OCPLIB_LANG= $(lang_SRCDIR)/ocpPervasives.ml			\
+    $(lang_SRCDIR)/ocpList.ml $(lang_SRCDIR)/ocpString.ml	\
+    $(lang_SRCDIR)/ocpStream.ml $(lang_SRCDIR)/ocpGenlex.ml	\
+    $(lang_SRCDIR)/ocpHashtbl.ml $(lang_SRCDIR)/ocpDigest.ml	\
+    $(lang_SRCDIR)/ocpArray.ml $(lang_SRCDIR)/option.ml		\
+    $(lang_SRCDIR)/intMap.ml $(lang_SRCDIR)/intSet.ml		\
+    $(lang_SRCDIR)/stringMap.ml $(lang_SRCDIR)/stringSet.ml	\
+    $(lang_SRCDIR)/toposort.ml $(lang_SRCDIR)/linearToposort.ml	\
+    $(lang_SRCDIR)/ocamllexer.ml $(lang_SRCDIR)/trie.ml		\
+    $(lang_SRCDIR)/ocpLang.ml $(lang_SRCDIR)/stringSubst.ml	\
+    $(lang_SRCDIR)/manpage.ml $(lang_SRCDIR)/stringTemplate.ml	\
+    $(lang_SRCDIR)/reentrantBuffers.ml
 
 OCPLIB_UNIX= $(unix_SRCDIR)/minUnix.ml $(unix_SRCDIR)/onlyUnix.ml	\
     $(unix_SRCDIR)/onlyWin32.ml
@@ -51,9 +58,11 @@ OCPLIB_FILE= $(file_SRCDIR)/fileSig.ml $(file_SRCDIR)/fileOS.ml	\
     $(file_SRCDIR)/fileLines.ml $(file_SRCDIR)/file.ml		\
     $(file_SRCDIR)/dir.ml 
 
-OCPLIB_SYSTEM=
+OCPLIB_SYSTEM= $(system_SRCDIR)/date.ml $(system_SRCDIR)/ocpUnix.ml	\
+    $(system_SRCDIR)/ocpFilename.ml $(system_SRCDIR)/debug.ml		\
+    $(system_SRCDIR)/fileTemplate.ml
 
-OCPLIB_CONFIG= \
+OCPLIB_CONFIG= $(config_SRCDIR)/pythonConfig.ml \
     $(config_SRCDIR)/simpleConfigTypes.ml \
     $(config_SRCDIR)/simpleConfigOCaml.ml \
     $(config_SRCDIR)/simpleConfig.ml
@@ -64,12 +73,9 @@ BUILD_MISC= $(OCP_BUILD_SRCDIR)/logger.ml				\
     $(OCP_BUILD_SRCDIR)/buildMtime.ml					\
     $(OCP_BUILD_SRCDIR)/buildScanner.ml					\
     $(OCP_BUILD_SRCDIR)/buildSubst.ml					\
-    $(OCP_BUILD_SRCDIR)/buildFind.ml 					\
-    $(OCP_BUILD_SRCDIR)/buildTerm.ml					\
-    $(OCP_BUILD_SRCDIR)/versioning.ml					\
-    $(OCP_BUILD_SRCDIR)/ocamldot.ml 					\
-    $(OCP_BUILD_SRCDIR)/buildValue.ml
-
+    $(OCP_BUILD_SRCDIR)/buildFind.ml $(OCP_BUILD_SRCDIR)/buildTerm.ml	\
+    $(OCP_BUILD_SRCDIR)/ocamldot.ml $(OCP_BUILD_SRCDIR)/buildValue.ml   \
+    $(OCP_BUILD_SRCDIR)/versioning.ml
 
 BUILD_PROJECT= \
     $(OCP_BUILD_SRCDIR)/buildOCPTypes.ml	\

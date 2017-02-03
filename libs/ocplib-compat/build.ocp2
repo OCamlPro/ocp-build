@@ -19,8 +19,6 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-String = module("String");
-
 ocaml.version = autoconf.package_version;
 
 function set_default(env, varname, default){
@@ -33,15 +31,13 @@ generated = set_default(., "generated", false);
 
 ocaml = { pp_requires = [] } + ocaml;
 
-(*
-if(  String.mem("+ocp", ocaml_version) )
+if( ocaml_version = "4.01.0+ocp1" || ocaml_version = "4.02.1+ocp1" )
   begin
     ocaml.files = [];
     ocaml.requires = [];
     new_package( "ocplib-compat", "library", ocaml);
   end
 else {
-*)
   if( generated ) begin
         new_package("ocp-pp","program",{
             generated = true;
@@ -63,6 +59,4 @@ else {
       ocaml.requires = [ "ocplib-compat" ];
       new_package( "ocplib-compat-top", "program", ocaml);
   end
-  (*
 }
-*)

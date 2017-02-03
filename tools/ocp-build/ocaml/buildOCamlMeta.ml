@@ -32,60 +32,53 @@ open BuildOCamlTypes
 open BuildOCPTypes
 open BuildValue.Types
 
-let set_field env var_name preds field value =
-  let fields =
-    var_name ::
-      (List.map (fun (name, positive) ->
-        if positive then name else "-" ^ name
-       ) preds) @ [field]
-  in
-  env := BuildValue.set_deep_field !env fields (VString value)
 
-let add_META pj ocamllib meta_dirname meta_filename =
-  (*
-    Printf.eprintf "dirname=%S\n%!" dirname;
-    Printf.eprintf "filename=%S\n%!" filename;
-  *)
-  try
-    let p = MetaParser.parse_file meta_filename in
-    if verbose 4 then
-      Printf.eprintf "Loaded %S\n%!" meta_filename;
-
-    let rec add_meta meta_dirname pj path name p =
-      if verbose 4 then
-        Printf.eprintf "add_meta %S %S\n%!" path name;
+let load_META_files pj ocamllib top_dirname =
+  let add_META meta_dirname meta_filename =
+    (*
+      Printf.eprintf "dirname=%S\n%!" dirname;
+      Printf.eprintf "filename=%S\n%!" filename;
+    *)
+    try
+      let p = MetaParser.parse_file meta_filename in
       let meta = MetaFile.meta_of_package p in
+      if verbose 4 then
+        Printf.eprintf "Loaded %S\n%!" meta_filename;
 
-      let dirname = match meta.meta_directory with
-        | Some dirname when dirname <> "" ->
-          if dirname.[0] = '^' || dirname.[0] = '+' then
-            Filename.concat ocamllib
-              (String.sub dirname 1 (String.length dirname-1))
-          else
+      let rec add_meta meta_dirname pj path name meta =
+        if verbose 4 then
+          Printf.eprintf "add_meta %S %S\n%!" path name;
+
+        let dirname = match meta.meta_directory with
+          | Some dirname when dirname <> "" ->
+            if dirname.[0] = '^' || dirname.[0] = '+' then
+              Filename.concat ocamllib
+                (String.sub dirname 1 (String.length dirname-1))
+            else
             if Filename.is_relative dirname then
               Filename.concat meta_dirname dirname
             else
               dirname
-        | _ -> meta_dirname
-      in
+          | _ -> meta_dirname
+        in
 
-      if verbose 4 then
-        Printf.eprintf "dirname=%S\n%!" dirname;
-      let exists =
-        match meta.meta_exists_if with
-          [] -> true
-        | list ->
-          List.for_all (fun filename ->
-            let proof_filename = Filename.concat dirname filename in
-            if not (Sys.file_exists proof_filename) then begin
-              if verbose 4 then
-                Printf.eprintf
-                  "Warning: proof of package %S does not exist\n%!"
-                  proof_filename;
-              false
-            end else true) list
-      in
-      if exists then
+        if verbose 4 then
+          Printf.eprintf "dirname=%S\n%!" dirname;
+        let exists =
+          match meta.meta_exists_if with
+            [] -> true
+          | list ->
+            List.for_all (fun filename ->
+              let proof_filename = Filename.concat dirname filename in
+              if not (Sys.file_exists proof_filename) then begin
+                if verbose 4 then
+                  Printf.eprintf
+                    "Warning: proof of package %S does not exist\n%!"
+                    proof_filename;
+                false
+              end else true) list
+        in
+        if exists then
           (*
             let name =
             match meta.meta_name with
@@ -94,145 +87,126 @@ let add_META pj ocamllib meta_dirname meta_filename =
             | Some name ->  (* lowercase to handle 'camlimages' *)
             String.lowercase name
             in  *)
-        let fullname = path ^ name in
-        let has_asm = ref None in
-        let has_byte = ref None in
-        let has_syntax = ref None in
+          let fullname = path ^ name in
+          let has_asm = ref None in
+          let has_byte = ref None in
+          let has_syntax = ref None in
 
-        StringMap.iter (fun _ var ->
-          match var.metavar_preds, var.metavar_value with
+          StringMap.iter (fun _ var ->
+            match var.metavar_preds, var.metavar_value with
             (* TODO: handle multiple files (objects) *)
 
-          | [ "byte", true ], [ archive ]
-            when Filename.check_suffix archive ".cma"
+            | [ "byte", true ], [ archive ]
+              when Filename.check_suffix archive ".cma"
               ->
-            has_byte := Some (Filename.chop_suffix archive ".cma")
+              has_byte := Some (Filename.chop_suffix archive ".cma")
 
-          | [ "syntax", true; "preprocessor", true ], [ archive ]
-            when Filename.check_suffix archive ".cma"
+            | [ "syntax", true; "preprocessor", true ], [ archive ]
+              when Filename.check_suffix archive ".cma"
               ->
-            has_syntax := Some (Filename.chop_suffix archive ".cma")
+              has_syntax := Some (Filename.chop_suffix archive ".cma")
 
-          | [ "native", true ], [ archive ]
-            when Filename.check_suffix archive ".cmxa"
+            | [ "native", true ], [ archive ]
+              when Filename.check_suffix archive ".cmxa"
               ->
-            has_asm := Some (Filename.chop_suffix archive ".cmxa")
+              has_asm := Some (Filename.chop_suffix archive ".cmxa")
 
-          | _ -> ()
-        ) meta.meta_archive;
+            | _ -> ()
+          ) meta.meta_archive;
 
-        let archive = match !has_asm, !has_byte with
-            None, None -> None
-          | Some asm_archive, Some byte_archive ->
-            if asm_archive = byte_archive then
-              Some byte_archive
-            else begin
-              Printf.eprintf "Warning: no common name for asm and byte in %S\n%!" fullname;
-              None
-            end
-          | archive, None
-          | None , archive -> archive
-        in
+          let archive = match !has_asm, !has_byte with
+              None, None -> None
+            | Some asm_archive, Some byte_archive ->
+              if asm_archive = byte_archive then
+                Some byte_archive
+              else begin
+                Printf.eprintf "Warning: no common name for asm and byte in %S\n%!" fullname;
+                None
+              end
+            | archive, None
+            | None , archive -> archive
+          in
 
-        let requires = ref [] in
-        StringMap.iter (fun _ var ->
-          match var.metavar_preds with
-          | [] ->
-            requires := List.map (fun s ->
-              match s with
-                "camlp4" -> "camlp4lib"
-              | s -> s
-            ) var.metavar_value
+          let requires = ref [] in
+          StringMap.iter (fun _ var ->
+            match var.metavar_preds with
+            | [] ->
+              requires := List.map (fun s ->
+                  match s with
+                    "camlp4" -> "camlp4lib"
+                  | s -> s
+                ) var.metavar_value
 
             (*
-              | [ "byte", true ] ->
-              has_byte := Some var.metavar_value
-              | [ "native", true ] ->
-              has_asm := Some var.metavar_value
-            *)
-          | _ -> ()
-        ) meta.meta_requires;
+                  | [ "byte", true ] ->
+                  has_byte := Some var.metavar_value
+                  | [ "native", true ] ->
+                  has_asm := Some var.metavar_value
+                *)
+            | _ -> ()
+          ) meta.meta_requires;
 
           (* for objects, we should set   pk.package_sources <- source_files; *)
 
 
-        let create_package p_option fullname kind requires archive =
+          let create_package fullname kind requires archive =
 
-          let options = BuildValue.empty_env in
+            let options = BuildValue.empty_env in
 
-          let options = BuildValue.set options
-            "requires" (VList (List.map (fun (s, link) ->
-              let link =
-                if Filename.check_suffix s ".syntax" then false else link in
-              VTuple [VString s;
-                      VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link)]
-            ) requires)) in
-          let options = BuildValue.set_bool options "generated" true in
-          let opk = BuildOCamlPackage.add_ocaml_package
-            (BuildValue.noloc fullname)
-            pj
-            {
-              config_dirname = dirname;
-              config_modules = ref StringMap.empty;
-              config_filename = meta_filename;
-                (* matters only for non-installed packages *)
-              config_filenames = [meta_filename, None];
-              config_env = options;
-            }
-            fullname
-            kind
-          in
-          let pk = opk.opk_package in
-          pk.package_source_kind <- "meta";
+            let options = BuildValue.set options
+                "requires" (VList (List.map (fun (s, link) ->
+                  let link =
+                    if Filename.check_suffix s ".syntax" then false else link in
+                  VTuple [VString s;
+                          VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link)]
+                ) requires)) in
+            let options = BuildValue.set_bool options "generated" true in
+            let opk = BuildOCamlPackage.add_ocaml_package
+              (BuildValue.noloc fullname)
+              pj
+              {
+                config_dirname = dirname;
+                config_filename = meta_filename;
+                 (* matters only for non-installed packages *)
+                config_filenames = [meta_filename, None];
+                config_env = options }
+              fullname
+              kind
+            in
+            let pk = opk.opk_package in
+            pk.package_source_kind <- "meta";
 
             (* this package has already been generated *)
 
-          begin
-            match meta.meta_version with
-              None -> ()
-            | Some version ->
-              opk.opk_version <- version
-          end;
+            begin
+              match meta.meta_version with
+                None -> ()
+              | Some version ->
+                opk.opk_version <- version
+            end;
 
-          begin
-            match archive with
-              None ->
+            begin
+              match archive with
+                None ->
                 opk.opk_options <- BuildValue.set_bool opk.opk_options "meta"  true ;
                 if verbose 4 then
                   Printf.eprintf "Warning: package %S is meta\n%!" fullname
-            | Some archive ->
-              opk.opk_options <- BuildValue.set_string opk.opk_options "archive" archive;
-          end;
+              | Some archive ->
+                opk.opk_options <- BuildValue.set_string opk.opk_options "archive" archive;
+            end;
 
-          begin match p_option with
-          | None -> ()
-          | Some p ->
-            let env = ref BuildValue.empty_env in
-            StringMap.iter (fun var_name var ->
-              List.iter (fun (preds, value) ->
-                set_field env var_name preds "value" value
-              ) var.var_assigns;
-              List.iter (fun (preds, value) ->
-                set_field env var_name preds "append" value
-              ) var.var_additions;
-            ) p.p_variables;
-            opk.opk_options <- BuildValue.set opk.opk_options "META"
-              (VObject !env);
-          end;
+(* We don't check packages now.
+This will be done later, in BuildOCP.verify_packages
 
-
-            (* We don't check packages now.
-               This will be done later, in BuildOCP.verify_packages
-
-               BuildOCP.check_package pk;
-            *)
-          if verbose 5 then begin
-            let s = BuildOCPPrinter.string_of_package (fun _ _ _ -> ()) pk in
-            Printf.eprintf "Translation of %S:\n" meta_filename;
-            Printf.eprintf "%s\n%!" s;
-          end;
-          ()
-        in
+            BuildOCP.check_package pk;
+*)
+            if verbose 5 then begin
+              let s = BuildOCPPrinter.string_of_package (fun _ _ _ -> ()) pk in
+              Printf.eprintf "Translation of %S:\n" meta_filename;
+              Printf.eprintf "%s\n%!" s;
+            end;
+()
+          in
 
 
           (* For syntaxes, we need to do some black magic, since we
@@ -247,56 +221,56 @@ let add_META pj ocamllib meta_dirname meta_filename =
              OCP packages.
 
              TODO: I am not completely happy with this behavior. We
-             might want to have a more aggressive behavior, based on
-             using a combination of META and ocamlobjinfo, to fix
-             information from META.  *)
-        begin match !has_syntax with
-        | None ->
-          create_package (Some p) fullname BuildOCPTypes.LibraryPackage
-            (List.map (fun l -> (l,true)) !requires) archive;
-        | Some syntax_archive ->
-          match archive with
-          | None ->
-            create_package None (fullname ^ ".ocp-syntax-library")
-              BuildOCPTypes.LibraryPackage
-              (List.map (fun l -> (l,true)) !requires)
-              (Some syntax_archive);
-            create_package (Some p) fullname BuildOCPTypes.SyntaxPackage
-              [fullname ^ ".ocp-syntax-library", true] None;
-          | Some archive ->
-            create_package (Some p) fullname BuildOCPTypes.LibraryPackage
-              (List.map (fun l -> (l,true)) !requires) (Some archive);
-            create_package None (fullname ^ ".ocp-syntax-library")
-              BuildOCPTypes.LibraryPackage
-              (List.map (fun l -> (l,true)) !requires)
-              (Some syntax_archive);
-            create_package None (fullname ^ ".ocp-syntax")
-              BuildOCPTypes.SyntaxPackage
-              [fullname ^ ".ocp-syntax-library", true] None;
-        end;
-        List.iter (fun (name, pp) ->
-          add_meta dirname pj (fullname ^ ".") name pp) p.p_packages
+              might want to have a more aggressive behavior, based on
+              using a combination of META and ocamlobjinfo, to fix
+              information from META.  *)
+          begin match !has_syntax with
+            | None ->
+              create_package fullname BuildOCPTypes.LibraryPackage
+                (List.map (fun l -> (l,true)) !requires) archive;
+            | Some syntax_archive ->
+              match archive with
+              | None ->
+                create_package (fullname ^ ".ocp-syntax-library")
+                  BuildOCPTypes.LibraryPackage
+                  (List.map (fun l -> (l,true)) !requires)
+                  (Some syntax_archive);
+                create_package fullname BuildOCPTypes.SyntaxPackage
+                  [fullname ^ ".ocp-syntax-library", true] None;
+              | Some archive ->
+                create_package fullname BuildOCPTypes.LibraryPackage
+                  (List.map (fun l -> (l,true)) !requires) (Some archive);
+                create_package (fullname ^ ".ocp-syntax-library")
+                  BuildOCPTypes.LibraryPackage
+                  (List.map (fun l -> (l,true)) !requires)
+                  (Some syntax_archive);
+                create_package (fullname ^ ".ocp-syntax")
+                  BuildOCPTypes.SyntaxPackage
+                  [fullname ^ ".ocp-syntax-library", true] None;
+          end;
+          List.iter (fun (name, meta) ->
+            add_meta dirname pj (fullname ^ ".") name meta) meta.meta_package;
 
-    in
-    let name = MetaParser.name_of_META meta_filename in
-    add_meta meta_dirname pj "" name p
+      in
+      let name = MetaParser.name_of_META meta_filename in
+      add_meta meta_dirname pj "" name meta
 
-  with e ->
-    Printf.eprintf "Warning: exception %S while loading %S\n%!"
-      (Printexc.to_string e) meta_filename
+    with e ->
+      Printf.eprintf "Warning: exception %S while loading %S\n%!"
+        (Printexc.to_string e) meta_filename
 
 
-let load_META_files pj ocamllib top_dirname =
+  in
   if verbose 4 then
     Printf.eprintf "Loading METAs from %S\n%!" top_dirname;
   let files = Sys.readdir top_dirname in
   Array.iter (fun basename ->
     let filename = Filename.concat top_dirname basename in
     if OcpString.starts_with basename "META." then
-      add_META pj ocamllib top_dirname filename
+      add_META top_dirname filename
     else
-      if Sys.is_directory filename then
-        let meta_filename = Filename.concat filename "META" in
-        if Sys.file_exists meta_filename then
-          add_META pj ocamllib filename meta_filename
+    if Sys.is_directory filename then
+      let meta_filename = Filename.concat filename "META" in
+      if Sys.file_exists meta_filename then
+        add_META filename meta_filename
   ) files

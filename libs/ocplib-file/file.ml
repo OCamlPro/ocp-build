@@ -164,7 +164,7 @@ let add_basename_simple dir basename =
 let add_basename dir basename =
   match dir.file_basename, basename with
   | "..", ".." -> add_basename_simple dir basename
-  | (""|"."), ".." -> to_parent_dir dir
+  | (""|"." | ".."), ".." -> to_parent_dir dir
   | ("/" | "\\"), ".." -> dir
   | _, ".." ->
     if dir.file_dir == dir then to_empty_dir dir else dir.file_dir
@@ -432,8 +432,6 @@ let write_file file s = FileString.write_file (to_string file) s
 let read_file file = FileString.read_file (to_string file)
 let write_lines file lines = FileString.file_of_lines (to_string file) lines
 let read_lines file = FileString.lines_of_file (to_string file)
-let read_lines_to_revlist file =
-  FileString.read_lines_to_revlist (to_string file)
 
 let read_subfile file pos len =
   FileString.read_subfile (to_string file) pos len

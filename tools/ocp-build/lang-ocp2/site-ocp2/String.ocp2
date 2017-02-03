@@ -1,6 +1,0 @@
-
-String = { mem = String_mem };
-
-provides("String", "1.0", String);
-
-

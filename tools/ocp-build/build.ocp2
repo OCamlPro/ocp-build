@@ -18,8 +18,6 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-(* List = module("List", "1.0");  *)
-
 (* Inherit user configuration, typically set by a file build.ocp2 in
 the top directory containing:
 
