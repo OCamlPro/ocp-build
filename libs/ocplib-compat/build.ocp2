@@ -33,6 +33,7 @@ generated = set_default(., "generated", false);
 
 ocaml = { pp_requires = [] } + ocaml;
 
+(*
 if(  String.mem("+ocp", ocaml_version) )
   begin
     ocaml.files = [];
@@ -40,6 +41,7 @@ if(  String.mem("+ocp", ocaml_version) )
     new_package( "ocplib-compat", "library", ocaml);
   end
 else {
+*)
   if( generated ) begin
         new_package("ocp-pp","program",{
             generated = true;
@@ -61,4 +63,6 @@ else {
       ocaml.requires = [ "ocplib-compat" ];
       new_package( "ocplib-compat-top", "program", ocaml);
   end
+  (*
 }
+*)
