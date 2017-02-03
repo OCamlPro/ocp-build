@@ -19,6 +19,8 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+String = module("String");
+
 ocaml.version = autoconf.package_version;
 
 function set_default(env, varname, default){
@@ -31,7 +33,7 @@ generated = set_default(., "generated", false);
 
 ocaml = { pp_requires = [] } + ocaml;
 
-if( ocaml_version = "4.01.0+ocp1" || ocaml_version = "4.02.1+ocp1" )
+if(  String.mem("+ocp", ocaml_version) )
   begin
     ocaml.files = [];
     ocaml.requires = [];

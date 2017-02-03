@@ -219,139 +219,139 @@ let _ =
   ] prim_raise;
 
   add_primitive prim_identity_name [] (fun loc ctx config args ->
-      match args with
-      | [ v ] -> v
-      | _ -> raise_bad_arity loc "identity(any)" 1 args
-    );
+    match args with
+    | [ v ] -> v
+    | _ -> raise_bad_arity loc "identity(any)" 1 args
+  );
 
   add_primitive prim_not_name [] (fun loc ctx config args ->
-      match args with
-      | [ VBool bool ] -> VBool (not bool)
-      | [ VInt n ] -> VInt (-n)
-      | _ -> raise_bad_arity loc "not(bool/int)" 1 args
-    );
+    match args with
+    | [ VBool bool ] -> VBool (not bool)
+    | [ VInt n ] -> VInt (-n)
+    | _ -> raise_bad_arity loc "not(bool/int)" 1 args
+  );
 
   add_primitive prim_or_name [] (fun loc ctx config args ->
-      match args with
-      | [ VBool bool1; VBool bool2 ] -> VBool (bool1 || bool2)
-      | [ VInt n1; VInt n2 ] -> VInt (n1 lor n2)
-      | _ -> raise_bad_arity loc "or(bool/int,bool/int)" 2 args
-    );
+    match args with
+    | [ VBool bool1; VBool bool2 ] -> VBool (bool1 || bool2)
+    | [ VInt n1; VInt n2 ] -> VInt (n1 lor n2)
+    | _ -> raise_bad_arity loc "or(bool/int,bool/int)" 2 args
+  );
 
   add_primitive prim_and_name [] (fun loc ctx config args ->
-      match args with
-      | [ VBool bool1; VBool bool2 ] -> VBool (bool1 && bool2)
-      | [ VInt n1; VInt n2 ] -> VInt (n1 land n2)
-      | _ -> raise_bad_arity loc "and(bool/int,bool/int)" 2 args
-    );
+    match args with
+    | [ VBool bool1; VBool bool2 ] -> VBool (bool1 && bool2)
+    | [ VInt n1; VInt n2 ] -> VInt (n1 land n2)
+    | _ -> raise_bad_arity loc "and(bool/int,bool/int)" 2 args
+  );
 
   add_primitive prim_xor_name [] (fun loc ctx config args ->
-      match args with
-      | [ VInt n1; VInt n2 ] -> VInt (n1 lxor n2)
-      | _ -> raise_bad_arity loc "xor(bool,bool)" 2 args
-    );
+    match args with
+    | [ VInt n1; VInt n2 ] -> VInt (n1 lxor n2)
+    | _ -> raise_bad_arity loc "xor(bool,bool)" 2 args
+  );
 
   add_primitive prim_add_name [] (fun loc ctx config args ->
-      match args with
-      | [ VInt n1; VInt n2 ] -> VInt (n1 + n2)
-      | [ VList l1; VList l2 ] -> VList (l1 @ l2)
-      | [ VString s1; VString s2 ] -> VString (s1 ^ s2)
-      | [ VString s; v ] -> VString (s ^ (BuildValue.string_of_value v))
-      | [ VObject env1; VObject env2 ] ->
-        VObject (StringMap.fold (fun s v env ->
-            BuildValue.set env s v
-          ) env2.env env1)
-      | _ -> raise_bad_arity loc "add(any,any)" 2 args
-    );
+    match args with
+    | [ VInt n1; VInt n2 ] -> VInt (n1 + n2)
+    | [ VList l1; VList l2 ] -> VList (l1 @ l2)
+    | [ VString s1; VString s2 ] -> VString (s1 ^ s2)
+    | [ VString s; v ] -> VString (s ^ (BuildValue.string_of_value v))
+    | [ VObject env1; VObject env2 ] ->
+      VObject (StringMap.fold (fun s v env ->
+        BuildValue.set env s v
+      ) env2.env env1)
+    | _ -> raise_bad_arity loc "add(any,any)" 2 args
+  );
 
   add_primitive prim_sub_name [] (fun loc ctx config args ->
-      match args with
-      | [ VInt n1; VInt n2 ] -> VInt (n1 - n2)
-      | [ VObject { env = env }; VString s ] ->
-        VObject { env = StringMap.remove s env }
-      | [ VObject { env = env }; VList list ] ->
-        let env = List.fold_left (fun env v ->
-          match v with
-          | VString s -> StringMap.remove s env
-          | _ ->
-            raise_type_error loc "sub(object,list)" 2 "string list" (VList list)
-        ) env list in
-        VObject { env }
-      | _ -> raise_bad_arity loc "sub(int,int)" 2 args
-    );
+    match args with
+    | [ VInt n1; VInt n2 ] -> VInt (n1 - n2)
+    | [ VObject { env = env }; VString s ] ->
+      VObject { env = StringMap.remove s env }
+    | [ VObject { env = env }; VList list ] ->
+      let env = List.fold_left (fun env v ->
+        match v with
+        | VString s -> StringMap.remove s env
+        | _ ->
+          raise_type_error loc "sub(object,list)" 2 "string list" (VList list)
+      ) env list in
+      VObject { env }
+    | _ -> raise_bad_arity loc "sub(int,int)" 2 args
+  );
 
   (* We could use [ "n1"; "n2" ] * { x = 1 } as
-        [ "n1", { x = 1 }; "n2", { x = 2 }]
+     [ "n1", { x = 1 }; "n2", { x = 2 }]
   *)
   add_primitive prim_mul_name [] (fun loc ctx config args ->
-      match args with
-      | [ VInt n1; VInt n2 ] -> VInt (n1 * n2)
-      | _ -> raise_bad_arity loc "mul(int,int)" 2 args
-    );
+    match args with
+    | [ VInt n1; VInt n2 ] -> VInt (n1 * n2)
+    | _ -> raise_bad_arity loc "mul(int,int)" 2 args
+  );
 
   add_primitive prim_div_name [] (fun loc ctx config args ->
-      match args with
-      | [ VInt n1; VInt n2 ] ->
-        if n2 = 0 then ocp2_raise loc "div-by-zero" (VTuple args);
-        VInt (n1 / n2)
-      | _ -> raise_bad_arity loc "div(int,int)" 2 args
-    );
+    match args with
+    | [ VInt n1; VInt n2 ] ->
+      if n2 = 0 then ocp2_raise loc "div-by-zero" (VTuple args);
+      VInt (n1 / n2)
+    | _ -> raise_bad_arity loc "div(int,int)" 2 args
+  );
 
   add_primitive prim_mod_name [] (fun loc ctx config args ->
-      match args with
-      | [ VInt n1; VInt n2 ] ->
-        if n2 = 0 then ocp2_raise loc "mod-by-zero" (VTuple args);
-        VInt (n1 mod n2)
-      | _ -> raise_bad_arity loc "mod(int,int)" 2 args
-    );
+    match args with
+    | [ VInt n1; VInt n2 ] ->
+      if n2 = 0 then ocp2_raise loc "mod-by-zero" (VTuple args);
+      VInt (n1 mod n2)
+    | _ -> raise_bad_arity loc "mod(int,int)" 2 args
+  );
 
   add_primitive prim_lsl_name [] (fun loc ctx config args ->
-      match args with
-      | [ VInt n1; VInt n2 ] -> VInt (n1 lsl n2)
-      | _ -> raise_bad_arity loc "lsl(int,int)" 2 args
-    );
+    match args with
+    | [ VInt n1; VInt n2 ] -> VInt (n1 lsl n2)
+    | _ -> raise_bad_arity loc "lsl(int,int)" 2 args
+  );
 
   add_primitive prim_mod_name [] (fun loc ctx config args ->
-      match args with
-      | [ VInt n1; VInt n2 ] -> VInt (n1 lsr n2)
-      | _ -> raise_bad_arity loc "lsr(int,int)" 2 args
-    );
+    match args with
+    | [ VInt n1; VInt n2 ] -> VInt (n1 lsr n2)
+    | _ -> raise_bad_arity loc "lsr(int,int)" 2 args
+  );
 
   add_primitive prim_lessthan_name [] (fun loc ctx config args ->
-      match args with
-      | [ v1; v2 ] -> VBool (v1 < v2)
-      | _ -> raise_bad_arity loc "lessthan(any,any)" 2 args
-    );
+    match args with
+    | [ v1; v2 ] -> VBool (v1 < v2)
+    | _ -> raise_bad_arity loc "lessthan(any,any)" 2 args
+  );
 
   add_primitive prim_greaterthan_name [] (fun loc ctx config args ->
-      match args with
-      | [ v1; v2 ] -> VBool (v1 > v2)
-      | _ -> raise_bad_arity loc "greaterthan(any,any)" 2 args
-    );
+    match args with
+    | [ v1; v2 ] -> VBool (v1 > v2)
+    | _ -> raise_bad_arity loc "greaterthan(any,any)" 2 args
+  );
 
   add_primitive prim_lessequal_name [] (fun loc ctx config args ->
-      match args with
-      | [ v1; v2 ] -> VBool (v1 <= v2)
-      | _ -> raise_bad_arity loc "lessequal(any,any)" 2 args
-    );
+    match args with
+    | [ v1; v2 ] -> VBool (v1 <= v2)
+    | _ -> raise_bad_arity loc "lessequal(any,any)" 2 args
+  );
 
   add_primitive prim_greaterequal_name [] (fun loc ctx config args ->
-      match args with
-      | [ v1; v2 ] -> VBool (v1 >= v2)
-      | _ -> raise_bad_arity loc "greaterequal(any,any)" 2 args
-    );
+    match args with
+    | [ v1; v2 ] -> VBool (v1 >= v2)
+    | _ -> raise_bad_arity loc "greaterequal(any,any)" 2 args
+  );
 
   add_primitive prim_equal_name [] (fun loc ctx config args ->
-      match args with
-      | [ v1; v2 ] -> VBool (v1 = v2)
-      | _ -> raise_bad_arity loc "equal(any,any)" 2 args
-    );
+    match args with
+    | [ v1; v2 ] -> VBool (v1 = v2)
+    | _ -> raise_bad_arity loc "equal(any,any)" 2 args
+  );
 
   add_primitive prim_notequal_name [] (fun loc ctx config args ->
-      match args with
-      | [ v1; v2 ] -> VBool (v1 <> v2)
-      | _ -> raise_bad_arity loc "notequal(any,any)" 2 args
-    );
+    match args with
+    | [ v1; v2 ] -> VBool (v1 <> v2)
+    | _ -> raise_bad_arity loc "notequal(any,any)" 2 args
+  );
 
   (* This primitive should be used as:
      List = module( "List" );
@@ -366,7 +366,7 @@ let _ =
         let version = Versioning.version_of_string version in
         modname, Some version
       | _ -> raise_bad_arity loc "module(string)" 1 args
-      in
+    in
     try
       let (v, version) = StringMap.find modname !(config.config_modules) in
       begin
@@ -383,36 +383,36 @@ let _ =
       v
     with Not_found ->
       fatal_error loc "could not find module %S" modname
-    );
+  );
 
   add_primitive "provides" [] (fun loc ctx config args ->
-      match args with
-      | [ VString s; VString version; value ] ->
-        let version = Versioning.version_of_string version in
-        begin
-          try
-            let (_old_value, old_version) =
-              StringMap.find s !(config.config_modules) in
-            if Versioning.compare old_version version >= 0 then
-              raise Not_found
-          with Not_found ->
-            config.config_modules :=
-              StringMap.add s (value, version) !(config.config_modules)
-        end;
-        VList []
-      | _ -> raise_bad_arity loc "provides(string, version, value)" 2 args
+    match args with
+    | [ VString s; VString version; value ] ->
+      let version = Versioning.version_of_string version in
+      begin
+        try
+          let (_old_value, old_version) =
+            StringMap.find s !(config.config_modules) in
+          if Versioning.compare old_version version >= 0 then
+            raise Not_found
+        with Not_found ->
+          config.config_modules :=
+            StringMap.add s (value, version) !(config.config_modules)
+      end;
+      VList []
+    | _ -> raise_bad_arity loc "provides(string, version, value)" 2 args
   );
 
   add_primitive "new_package" [
     "Create a new package: new_package(name, kind, ocaml)"
   ]
     (fun loc ctx config args ->
-       match args with
-       | [VString name; VString kind; VObject config_env] ->
-         S.define_package loc ctx { config  with config_env } ~name ~kind;
-         VList []
-       | _ ->
-         raise_bad_arity loc "new_package(string,string,object)" 3 args
+      match args with
+      | [VString name; VString kind; VObject config_env] ->
+        S.define_package loc ctx { config  with config_env } ~name ~kind;
+        VList []
+      | _ ->
+        raise_bad_arity loc "new_package(string,string,object)" 3 args
     );
 
 
@@ -420,34 +420,34 @@ let _ =
   add_primitive "packer" [
     "pack(string[,pack_env], list-of-strings)"
   ] (fun loc ctx config args ->
-      let packmodname, pack_env, files =
-        match args with
-        | [VString packmodname; files] ->
-          (packmodname, BuildValue.empty_env, files)
-        | [VString packmodname; VObject pack_env; files] ->
-          (packmodname, pack_env, files)
-        | _ ->
-          raise_bad_arity loc "pack(name, files)" 2 args
-      in
-      let files = BuildValue.prop_list files in
-      let modnames = ref [] in
+    let packmodname, pack_env, files =
+      match args with
+      | [VString packmodname; files] ->
+        (packmodname, BuildValue.empty_env, files)
+      | [VString packmodname; VObject pack_env; files] ->
+        (packmodname, pack_env, files)
+      | _ ->
+        raise_bad_arity loc "pack(name, files)" 2 args
+    in
+    let files = BuildValue.prop_list files in
+    let modnames = ref [] in
 
-      let files = List.map (fun (file, file_env) ->
-          file,
-          BuildValue.set_strings file_env "packed"
-            (packmodname ::
-             (try
-                BuildValue.get_strings [ file_env ] "packed"
-              with Var_not_found _ ->
-                modnames := Filename.basename file :: !modnames;
-                []))
-        ) files in
+    let files = List.map (fun (file, file_env) ->
+      file,
+      BuildValue.set_strings file_env "packed"
+        (packmodname ::
+           (try
+              BuildValue.get_strings [ file_env ] "packed"
+            with Var_not_found _ ->
+              modnames := Filename.basename file :: !modnames;
+              []))
+    ) files in
 
-      let pack_env = BuildValue.set_strings pack_env "pack" (List.rev !modnames) in
+    let pack_env = BuildValue.set_strings pack_env "pack" (List.rev !modnames) in
 
-      BuildValue.value (files @
+    BuildValue.value (files @
                         [ packmodname ^ ".ml", pack_env ])
-    );
+  );
 
   add_primitive "List_mem" []
     (fun loc ctx config args ->
@@ -458,55 +458,64 @@ let _ =
         raise_bad_arity loc "List.mem(ele, list)" 2 args
     );
 
+  add_primitive "String_mem" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString ele; VString list ] ->
+        VBool (try ignore (OcpString.find ele list); true
+          with Not_found -> false )
+      | _ ->
+        raise_bad_arity loc "String.mem(ele, list)" 2 args
+    );
 
   (*
-  add_function "dstdir" [
+    add_function "dstdir" [
     "Replaced by %{package_FULL_DST_DIR}%";
     "ENV must contain:";
     "- p : the package";
     "ENV can contain:";
     "- file : a filename that will be appended";
-  ] (fun envs _env ->
+    ] (fun envs _env ->
     let p = BuildValue.get_local_string envs "p" in
     let s = Printf.sprintf "%%{%s_FULL_DST_DIR}%%" p in
     let s = try
-              let file = BuildValue.get_local_string envs "file" in
-              Filename.concat s file
-      with Var_not_found _ -> s
+    let file = BuildValue.get_local_string envs "file" in
+    Filename.concat s file
+    with Var_not_found _ -> s
     in
     VString s
-  );
+    );
 
-  add_function "srcdir" [
+    add_function "srcdir" [
     "Replaced by %{package_FULL_SRC_DIR}%";
     "ENV must contain:";
     "- p : the package";
     "ENV can contain:";
     "- file : a filename that will be appended";
-  ] (fun envs _env ->
+    ] (fun envs _env ->
     let p = BuildValue.get_local_string envs "p" in
     let s = Printf.sprintf "%%{%s_FULL_SRC_DIR}%%" p in
     let s =try
-             let file = BuildValue.get_local_string envs "file" in
-             Filename.concat s file
-      with Var_not_found _ -> s
+    let file = BuildValue.get_local_string envs "file" in
+    Filename.concat s file
+    with Var_not_found _ -> s
     in
     VString s
-  );
+    );
 
-  add_function "byte_exe" [] (fun envs _env ->
+    add_function "byte_exe" [] (fun envs _env ->
     let p = BuildValue.get_local_string envs "p" in
     let s = Printf.sprintf "%%{%s_FULL_DST_DIR}%%/%s.byte" p p in
     VString s
-  );
+    );
 
-  add_function "asm_exe" [] (fun envs _env ->
+    add_function "asm_exe" [] (fun envs _env ->
     let p = BuildValue.get_local_string envs "p" in
     let s = Printf.sprintf "%%{%s_FULL_DST_DIR}%%/%s.asm" p p in
     VString s
-  );
+    );
 
-  add_function "split" [
+    add_function "split" [
     "Cut a string into a list of strings, at a given char,";
     "  empty strings are kept.";
     "ENV must contain:";
@@ -514,15 +523,15 @@ let _ =
     "ENV can contain:";
     "- sep : a string, whose first char will be the separator";
     "    (default to space)";
-  ]
+    ]
     (fun envs _env ->
-      let s = BuildValue.get_string envs "s" in
-      let sep = BuildValue.get_string_with_default envs "sep" " " in
-      let sep = if sep = "" then ' ' else sep.[0] in
-      VList (List.map (fun s -> VString s) (OcpString.split s sep))
+    let s = BuildValue.get_string envs "s" in
+    let sep = BuildValue.get_string_with_default envs "sep" " " in
+    let sep = if sep = "" then ' ' else sep.[0] in
+    VList (List.map (fun s -> VString s) (OcpString.split s sep))
     );
 
-  add_function "split_simplify" [
+    add_function "split_simplify" [
     "Cut a string into a list of strings, at a given char,";
     "  empty strings are removed.";
     "ENV must contain:";
@@ -530,22 +539,22 @@ let _ =
     "ENV can contain:";
     "- sep : a string, whose first char will be the separator";
     "    (default to space)";
-  ] (fun envs _env ->
+    ] (fun envs _env ->
     let s = BuildValue.get_string envs "s" in
     let sep = BuildValue.get_string_with_default envs "sep" " " in
     let sep = if sep = "" then ' ' else sep.[0] in
     VList (List.map (fun s -> VString s) (OcpString.split_simplify s sep))
-  );
+    );
 
-  let uniq_counter = ref 0 in
-  add_function "uniq" [
+    let uniq_counter = ref 0 in
+    add_function "uniq" [
     "Returns a uniq string, to be used as a uniq identifier";
-  ] (fun _ _ ->
+    ] (fun _ _ ->
     incr uniq_counter;
     VString (Printf.sprintf ".id_%d" !uniq_counter));
-  ()
+    ()
 
-*)
+  *)
 
   ()
 
