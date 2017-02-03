@@ -59,6 +59,8 @@ module type CONTENT_OPERATIONS = sig
   (* [read_lines file] returns the content of [file] as an array of
      lines *)
   val read_lines :  in_file -> string array
+  val read_lines_to_revlist :  in_file -> string list
+
   (* [lines_of_file] is an alias for [read_lines] *)
   val lines_of_file : in_file -> string array
 

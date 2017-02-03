@@ -28,7 +28,7 @@ let verbose = DebugVerbosity.verbose [ "B"; "BP" ] "BuildOCamlPackage"
 exception OCamlPackage of ocaml_description
 
 let add_primitive name prim_help prim =
-  let prim_name = "OCaml." ^ name in
+  let prim_name = "OCaml_" ^ name in
   BuildOCamlVariables.ocamlmod_add name (VPrim prim_name);
   BuildOCP.add_primitive prim_name prim_help prim
 

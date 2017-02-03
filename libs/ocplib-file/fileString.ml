@@ -179,6 +179,12 @@ let read_lines file =
   close_in ic;
   lines
 
+let read_lines_to_revlist file =
+  let ic = open_in file in
+  let lines = FileChannel.read_lines_to_revlist ic in
+  close_in ic;
+  lines
+
 let write_lines filename lines =
   let oc = open_out filename in
   Array.iter (fun l -> FileChannel.output_line oc l) lines;

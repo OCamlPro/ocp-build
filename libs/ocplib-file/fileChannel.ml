@@ -86,7 +86,7 @@ let read_subfile ic pos len =
 let string_of_subfile = read_subfile
 
 
-let read_lines ic =
+let read_lines_to_revlist ic =
   let lines = ref [] in
   begin try
       while true do
@@ -94,7 +94,11 @@ let read_lines ic =
       done
     with End_of_file -> ()
   end;
-  let lines = Array.of_list !lines in
+  !lines
+
+let read_lines ic =
+  let lines = read_lines_to_revlist ic in
+  let lines = Array.of_list lines in
   OcpArray.rev lines;
   lines
 

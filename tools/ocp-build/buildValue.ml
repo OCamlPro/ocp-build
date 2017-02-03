@@ -55,6 +55,7 @@ module Types = struct
   (* The configuration at a package definition site *)
   type config = {
     config_env : env;
+    config_modules : (value * Versioning.version) StringMap.t ref;
     config_dirname : string;
     config_filename : string;
     config_filenames : (string * Digest.t option) list;
@@ -288,8 +289,9 @@ let new_path_option name v =
   }
     *)
 
-let empty_config = {
+let empty_config () = {
   config_env = empty_env;
+  config_modules = ref StringMap.empty;
   config_dirname = "";
   config_filename = "";
   config_filenames = [];
@@ -322,3 +324,21 @@ let string_of_location loc =
   let open Lexing in
   Printf.sprintf "File %S, line %d, char %d"
     pos.pos_fname pos.pos_lnum pos.pos_cnum
+
+
+let rec set_deep_field env fields value =
+  match fields with
+  | [] -> assert false
+  | [field] -> set env field value
+  | field :: fields ->
+    let value =
+      let env =
+        try
+          match get [env] field with
+          | VObject env -> env
+          | _ -> assert false
+        with Var_not_found _ -> empty_env
+      in
+      set_deep_field env fields value
+    in
+    set env field (VObject value)

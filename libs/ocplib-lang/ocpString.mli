@@ -138,7 +138,7 @@ val substrings : string -> string list
 val split_chars : string -> char list -> string list
 
 (** [find sub s] looks for the string [sub] in [s] and returns the
-position of its first occurrence. *)
+position of its first occurrence. Raise Not_found if not found. *)
 val find : string -> string -> int
 
 (** [find_from sub s pos] looks for the string [sub] in [s] after

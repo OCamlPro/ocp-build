@@ -21,7 +21,7 @@ let _ =
   for i = 1 to Array.length Sys.argv - 1 do
     let arg = Sys.argv.(i) in
     let state = { unit = () } in
-    let config = BuildValue.empty_config in
+    let config = BuildValue.empty_config () in
     let ( _ : BuildValue.Types.config) =
       EvalOCP2.read_ocamlconf arg state config in
     ()
