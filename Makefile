@@ -123,7 +123,8 @@ BUILD_OCAML= $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlConfig.ml	\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlRules.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlMeta.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlTest.ml		\
-    $(OCP_BUILD_SRCDIR)/ocaml/buildOasis.ml
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOasis.ml \
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlPlugin.ml
 
 BUILD_MAIN= $(OCP_BUILD_SRCDIR)/actions/buildArgs.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActions.ml		\
