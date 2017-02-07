@@ -18,6 +18,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+module Arg = struct
+
 type key = string
 type doc = string
 type usage_msg = string
@@ -397,3 +399,5 @@ let write_aux sep file args =
 let write_arg = write_aux '\n'
 
 let write_arg0 = write_aux '\x00'
+
+end

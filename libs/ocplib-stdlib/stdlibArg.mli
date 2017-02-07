@@ -18,6 +18,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+module Arg : sig
+
 (** Parsing of command line arguments.
 
    This module provides a general mechanism for extracting options and
@@ -201,3 +203,5 @@ val write_arg: string -> string array -> unit
 val write_arg0: string -> string array -> unit
 (** Identical to {!Arg.write_arg} but uses the null character for terminator
     instead of newline. *)
+
+end

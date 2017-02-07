@@ -18,7 +18,7 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-module Arg = StdlibArg
+open StdlibArg
 
 val arg_list : (string * Arg.spec * string) list
 

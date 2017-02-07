@@ -18,7 +18,7 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-module Arg = StdlibArg
+open StdlibArg
 
 val shortcut_arg :
   string -> string ->

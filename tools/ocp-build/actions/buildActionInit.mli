@@ -18,7 +18,7 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-module Arg = StdlibArg
+open StdlibArg
 
 val subcommand : BuildArgs.subcommand
 val action : unit -> unit

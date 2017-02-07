@@ -18,6 +18,8 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+open StdlibArg
+
 (* This is called when the plugin is loaded, or from the main if the plugin
  is linked statically. It is called after the subcommands has been chosen,
    allowing a right choice of arguments. *)
@@ -33,7 +35,7 @@ let init subcommand_name =
 
   add_args ["SUBCOMMAND"; "build"]
     [
-      "--print-incomplete-packages", StdlibArg.Set
+      "--print-incomplete-packages", Arg.Set
         BuildOCamlPackage.print_incomplete_packages,
       " Print incomplete packages";
 

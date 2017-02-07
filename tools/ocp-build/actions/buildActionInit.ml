@@ -33,7 +33,7 @@ open BuildValue.Types
 open BuildActions
 open BuildTypes
 
-module Arg = StdlibArg
+open StdlibArg
 
 let verbose = DebugVerbosity.verbose ["B"] "BuildActionInit"
 

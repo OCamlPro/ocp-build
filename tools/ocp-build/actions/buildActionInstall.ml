@@ -18,14 +18,13 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+open StdlibArg
 open StringCompat
 
 open BuildTypes
 open BuildArgs
 open BuildTerm
 open BuildActions
-
-module Arg = StdlibArg
 
 let do_install bc dest_dir _install_what projects _package_map =
 

@@ -33,6 +33,7 @@
    in a particular compilation scheme.
 *)
 
+open StdlibArg
 open StringCompat
 
 open BuildActions

@@ -48,7 +48,7 @@ open SimpleConfig
  - one for the project: ocp-build.root
 *)
 
-module Arg = StdlibArg
+open StdlibArg
 
 type config_input = {
   mutable cin_ocamlc_variants : string list;
