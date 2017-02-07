@@ -22,6 +22,7 @@
 (* ocp-build uninstall [OPTIONS]
 *)
 
+open StdlibArg
 open StringCompat
 
 open BuildArgs

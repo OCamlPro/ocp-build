@@ -114,6 +114,7 @@ module type Package = sig
   val clean_targets : unit -> BuildEngineTypes.build_file list
 
   val test : unit -> (unit -> unit) option
+  val pre_installed : unit -> bool
   val install : unit -> unit
 
   (* Where to find the uninstaller *)

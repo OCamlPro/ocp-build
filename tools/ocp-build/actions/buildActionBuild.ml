@@ -49,6 +49,8 @@ open BuildTerm
 open BuildActions
 open BuildValue.Types
 
+open StdlibArg
+
 let verbose = DebugVerbosity.verbose ["B"] "BuildActionBuild"
 
   (*
@@ -115,7 +117,9 @@ let rec do_compile stage p ncores env_state arg_targets pre_w  =
     match arg_targets with
       [] ->
         StringMap.iter (fun _ pj ->
-          projects := pj :: !projects) package_map;
+          let module P = (val pj : Package) in
+          if not (P.pre_installed ()) then
+            projects := pj :: !projects) package_map;
         !projects
     | list ->
       List.iter (fun name ->

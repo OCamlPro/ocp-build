@@ -327,7 +327,242 @@ let update_deps pj =
     print_deps "AFTER update_deps SORT" pj;
   ()
 
+let print_incomplete_packages = ref false
+
+module Warnings = struct
+
+  type kind = Any | Bytecode | Native
+
+  type package = {
+    pw_name : string;
+    mutable pw_byte_missing_dep: package StringMap.t;
+    mutable pw_byte_missed_by: package StringMap.t;
+    mutable pw_asm_missing_dep: package StringMap.t;
+    mutable pw_asm_missed_by: package StringMap.t;
+    mutable pw_missing_dep: package StringMap.t;
+    mutable pw_missed_by: package StringMap.t;
+    mutable pw_displayed : bool;
+  }
+
+  let packages = ref StringMap.empty
+
+  let get_package pw_name =
+    try
+      StringMap.find pw_name !packages
+    with Not_found ->
+      let p = {
+        pw_name;
+        pw_byte_missing_dep = StringMap.empty;
+        pw_byte_missed_by = StringMap.empty;
+        pw_asm_missing_dep = StringMap.empty;
+        pw_asm_missed_by = StringMap.empty;
+        pw_missing_dep = StringMap.empty;
+        pw_missed_by = StringMap.empty;
+        pw_displayed = false;
+      } in
+      packages := StringMap.add pw_name p !packages;
+      p
+
+  let reset () =
+    packages := StringMap.empty
+
+  let w_MissingDirectory w (dirname, name, filename) =
+    BuildWarnings.wprintf w
+      "Warning: directory %S for package does not exist: \
+            \   Package %S in %S disabled.\n%!"
+      dirname name filename
+  let w_PackageConflict w (pk1, pk2, pk3) =
+    BuildWarnings.add w (BuildOCP.print_conflict pk1 pk2 pk3)
+  let w_BadInstalledPackage w (name1, name2) =
+    BuildWarnings.wprintf w
+      "Warning: installed package %s depends on source package %s\n%!"
+      name1 name2
+  let w_MissingDependency w (kind, name, dep_name) =
+    let p = get_package dep_name in
+    let pk = get_package name in
+    match kind with
+    | Any ->
+      p.pw_missed_by <- StringMap.add pk.pw_name pk p.pw_missed_by;
+      pk.pw_missing_dep <- StringMap.add p.pw_name p pk.pw_missing_dep;
+    | Bytecode ->
+      p.pw_byte_missed_by <- StringMap.add pk.pw_name pk p.pw_byte_missed_by;
+      pk.pw_byte_missing_dep <- StringMap.add p.pw_name p pk.pw_byte_missing_dep;
+    | Native ->
+      p.pw_asm_missed_by <- StringMap.add pk.pw_name pk p.pw_asm_missed_by;
+      pk.pw_asm_missing_dep <- StringMap.add p.pw_name p pk.pw_asm_missing_dep
+
+  let w_KindMismatch w (kind, name, kind2, name2) =
+    BuildWarnings.wprintf w
+      "Warning: %s %S depends on %S, that only exists in %s\n%!"
+      kind name name2 kind2
+
+  let w_DisablingPackage w (kind, name) = ()
+  let w_IncompletePackage w pk = ()
+  let w_MissingPackage w (name, pks) =
+    (*
+    let p = get_package Any name in
+    List.iter (fun pk_name ->
+      let pk = get_package Any pk_name in
+      p.pw_for <- StringMap.add pk.pw_name pk p.pw_for;
+      pk.pw_missing <- StringMap.add p.pw_name p pk.pw_missing;
+    ) pks
+    *)
+    ()
+    (*
+    BuildWarnings.wprintf w
+      "Warning: missing package %S, needed by\n  %s\n" name
+      (String.concat "  \n"
+         (List.map (fun pk -> String.escaped pk.package_name) pks))
+    *)
+
+
+  let simplify () =
+    StringMap.iter (fun _ p ->
+
+      StringMap.iter (fun name pk ->
+        if StringMap.mem name p.pw_asm_missing_dep then
+          p.pw_missing_dep <- StringMap.add name pk p.pw_missing_dep
+      ) p.pw_byte_missing_dep;
+
+      StringMap.iter (fun name pk ->
+        if StringMap.mem name p.pw_asm_missed_by then
+          p.pw_missed_by <- StringMap.add name pk p.pw_missed_by
+      ) p.pw_byte_missed_by;
+
+      StringMap.iter (fun name _ ->
+        p.pw_byte_missing_dep <- StringMap.remove name p.pw_byte_missing_dep;
+        p.pw_asm_missing_dep <- StringMap.remove name p.pw_asm_missing_dep;
+      ) p.pw_missing_dep;
+
+      StringMap.iter (fun name _ ->
+        p.pw_byte_missed_by <- StringMap.remove name p.pw_byte_missed_by;
+        p.pw_asm_missed_by <- StringMap.remove name p.pw_asm_missed_by;
+      ) p.pw_missed_by;
+
+    ) !packages
+
+
+  let cut_lines ncols s =
+    let len = String.length s in
+    let b = Buffer.create len in
+
+    let rec iter0 indent pos =
+      if pos < len then
+        match s.[pos] with
+        | ' ' ->
+          iter0 (indent+1) (pos+1)
+        | '\n' ->
+          iter0 0 (pos+1)
+        | _ ->
+          iter1 indent pos (pos+1)
+
+    and iter1 indent pos0 pos =
+      match s.[pos] with
+      | ' ' ->
+        Buffer.add_string b (String.make indent ' ');
+        Buffer.add_string b (String.sub s pos0 (pos-pos0));
+        iter2 indent (indent+pos-pos0) (pos+1) (pos+1)
+      | '\n' ->
+        iter0 0 (pos+1)
+      | _ ->
+        iter1 indent pos0 (pos+1)
+
+    and iter2 indent x pos0 pos =
+      match s.[pos] with
+      | ' ' | '\n' ->
+        let x =
+          if x + pos - pos0 + 1 >= ncols then begin
+            Buffer.add_string b "\n";
+            Buffer.add_string b (String.make (indent + 3) ' ');
+            Buffer.add_string b (String.sub s pos0 (pos-pos0));
+            indent + 3 + pos - pos0
+          end else begin
+            Buffer.add_string b " ";
+            Buffer.add_string b (String.sub s pos0 (pos-pos0));
+            x + pos - pos0 + 1
+          end
+        in
+        if s.[pos] = ' ' then
+          iter2 indent x (pos+1) (pos+1)
+        else begin
+          Buffer.add_string b "\n";
+          iter0 0 (pos+1)
+        end
+      | _ ->
+        iter2 indent x pos0 (pos+1)
+
+
+    in
+    iter0 0 0;
+    Buffer.contents b
+
+
+  let flush w =
+    if not (StringMap.is_empty !packages) then
+      let b = Buffer.create 1000 in
+      simplify ();
+      Printf.bprintf b "MISSING ROOT PACKAGES:\n";
+    StringMap.iter (fun _ p ->
+      if
+        StringMap.is_empty p.pw_missing_dep &&
+        StringMap.is_empty p.pw_asm_missing_dep &&
+        StringMap.is_empty p.pw_byte_missing_dep
+      then begin
+        Printf.bprintf b "  * %S missed by:" p.pw_name;
+        StringMap.iter (fun _ p -> Printf.bprintf b " %S" p.pw_name) p.pw_missed_by;
+        StringMap.iter (fun _ p -> Printf.bprintf b " %S(byte)" p.pw_name) p.pw_byte_missed_by;
+        StringMap.iter (fun _ p -> Printf.bprintf b " %S(asm)" p.pw_name) p.pw_asm_missed_by;
+        Printf.bprintf b "\n";
+        p.pw_displayed <- true
+      end
+    ) !packages;
+    if !print_incomplete_packages then begin
+    Printf.bprintf b "INCOMPLETE PACKAGES:\n";
+    StringMap.iter (fun _ p ->
+      if not p.pw_displayed then begin
+        Printf.bprintf b "  * %S\n" p.pw_name;
+        Printf.bprintf b "    missing deps:";
+        StringMap.iter (fun _ p -> Printf.bprintf b " %S" p.pw_name)
+          p.pw_missing_dep;
+        StringMap.iter (fun _ p -> Printf.bprintf b " %S(byte)" p.pw_name)
+          p.pw_byte_missing_dep;
+        StringMap.iter (fun _ p -> Printf.bprintf b " %S(asm)" p.pw_name)
+          p.pw_asm_missing_dep;
+        Printf.bprintf b "\n";
+        if not (
+          StringMap.is_empty p.pw_missed_by &&
+          StringMap.is_empty p.pw_byte_missed_by &&
+          StringMap.is_empty p.pw_asm_missed_by
+        ) then begin
+          Printf.bprintf b "    missed by:";
+          StringMap.iter (fun _ p -> Printf.bprintf b " %S" p.pw_name) p.pw_missed_by;
+          StringMap.iter (fun _ p -> Printf.bprintf b " %S(byte)" p.pw_name) p.pw_byte_missed_by;
+          StringMap.iter (fun _ p -> Printf.bprintf b " %S(asm)" p.pw_name) p.pw_asm_missed_by;
+          Printf.bprintf b "\n";
+        end;
+        p.pw_displayed <- true
+      end
+    ) !packages;
+    end else begin
+      let nincomplete = ref 0 in
+      StringMap.iter (fun _ p ->
+        if not p.pw_displayed then incr nincomplete
+      ) !packages;
+      Printf.bprintf b "%d INCOMPLETE PACKAGES: " !nincomplete;
+      StringMap.iter (fun _ p ->
+        if not p.pw_displayed then
+          Printf.bprintf b " %S" p.pw_name
+      ) !packages;
+      Printf.bprintf b "\n"
+    end;
+
+    BuildWarnings.wprintf w "%s%!" (cut_lines 80 (Buffer.contents b))
+
+end
+
 let verify_packages w state =
+
+  Warnings.reset ();
 
   let package_id = ref 0 in
   let packages = ref [] in
@@ -342,7 +577,7 @@ let verify_packages w state =
         not ( BuildMisc.exists_as_directory opk.opk_dirname ) then begin
       (* TODO: we should probably do much more than that, i.e. disable also a
          package when some files are missing. *)
-          BuildOCP.w_MissingDirectory w
+          Warnings.w_MissingDirectory w
             (
               opk.opk_dirname,
               opk.opk_name,
@@ -456,7 +691,7 @@ let verify_packages w state =
         raise Not_found
 
       | PackageConflict ->
-          BuildOCP.w_PackageConflict w (tpk.tpk_pk.opk_package,
+          Warnings.w_PackageConflict w (tpk.tpk_pk.opk_package,
                              tpk2.tpk_pk.opk_package, tpk.tpk_pk.opk_package);
         remove_tpk tpk2;
         raise Not_found
@@ -643,7 +878,7 @@ let verify_packages w state =
           "Warning: installed package %s depends on source package %s\n%!"
           pk.opk_name pk2.opk_name;
         *)
-        BuildOCP.w_BadInstalledPackage w (pk.opk_name, pk2.opk_name);
+        Warnings.w_BadInstalledPackage w (pk.opk_name, pk2.opk_name);
         raise Exit
     end;
 
@@ -652,7 +887,7 @@ let verify_packages w state =
     dep2.dep_syntax <- dep.dep_syntax;
   in
   let add_missing pk tag dep =
-    BuildOCP.w_MissingPackage w (dep.dep_project, [pk.opk_package]);
+    Warnings.w_MissingPackage w (dep.dep_project, [pk.opk_package.package_name]);
     let dep = dep.dep_project ^ ":" ^ tag in
     let pk = pk.opk_name ^ ":" ^ tag in
     begin
@@ -697,8 +932,8 @@ let verify_packages w state =
               let pk2 = Hashtbl.find h2 (dep.dep_project, "") in
               add_require pk (dep, pk2)
             with Not_found ->
-              BuildOCP.w_MissingDependency w
-                ("", tpk.tpk_name, dep.dep_project);
+              Warnings.w_MissingDependency w
+                (Warnings.Any, tpk.tpk_name, dep.dep_project);
 (*
               Printf.eprintf "Warning: missing dependency, %S requires %S\n%!"
                 tpk.tpk_name dep.dep_project;
@@ -756,7 +991,7 @@ let verify_packages w state =
                     | LibraryPackage
                     | ObjectsPackage
                       ->
-                      BuildOCP.w_KindMismatch w
+                      Warnings.w_KindMismatch w
                         ("bytecode", pk.opk_name, "native", pk2.opk_name);
                         raise Exit
                     | ProgramPackage
@@ -778,8 +1013,8 @@ let verify_packages w state =
                       | SyntaxPackage
                         -> assert false
                     with Not_found ->
-                      BuildOCP.w_MissingDependency w
-                        ("bytecode", tpk.tpk_name, dep.dep_project);
+                      Warnings.w_MissingDependency w
+                        (Warnings.Bytecode, tpk.tpk_name, dep.dep_project);
 (*
                       Printf.eprintf "Warning: missing dependency, bytecode %S requires %S bytecode\n%!"
                         tpk.tpk_name dep.dep_project;
@@ -789,6 +1024,7 @@ let verify_packages w state =
               ) pk.opk_deps_map;
             with Exit ->
               (*              Printf.eprintf "\tDisabling bytecode version of %S\n%!" tpk.tpk_name; *)
+              Warnings.w_DisablingPackage w (Warnings.Bytecode, pk.opk_name);
               has_byte := false;
           end;
 
@@ -821,7 +1057,7 @@ let verify_packages w state =
                     | LibraryPackage
                     | ObjectsPackage
                       ->
-                      BuildOCP.w_KindMismatch w ("native", pk.opk_name,
+                      Warnings.w_KindMismatch w ("native", pk.opk_name,
                                                  "bytecode", pk2.opk_name);
                         raise Exit
                     | ProgramPackage
@@ -843,8 +1079,8 @@ let verify_packages w state =
                       | SyntaxPackage
                         -> assert false
                     with Not_found ->
-                      BuildOCP.w_MissingDependency w
-                        ("native", tpk.tpk_name, dep.dep_project);
+                      Warnings.w_MissingDependency w
+                        (Warnings.Native, tpk.tpk_name, dep.dep_project);
 
                       (*                Printf.eprintf "Warning: missing dependency, native %S requires %S native\n%!"
                                                              tpk.tpk_name dep.dep_project; *)
@@ -854,6 +1090,7 @@ let verify_packages w state =
             with Exit ->
               (*              Printf.eprintf "\tDisabling native version of %S\n%!" tpk.tpk_name; *)
               has_asm := false;
+              Warnings.w_DisablingPackage w (Warnings.Native, pk.opk_name);
           end;
 
           if !has_byte || !has_asm then begin
@@ -885,9 +1122,11 @@ let verify_packages w state =
       with Exit ->
         tpk.tpk_enabled <- false;
         disabled_packages := pk :: !disabled_packages;
-        BuildOCP.w_IncompletePackage w pk.opk_package
+        Warnings.w_IncompletePackage w pk.opk_package
     ) queue
   done;
+
+  Warnings.flush w;
 
   (*
   if !missing_dep_of <> StringMap.empty then begin

@@ -18,8 +18,11 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+open StdlibArg
+
 open StringCompat
 open BuildOCPTypes
+
 
 type print_warnings =
 | PrintWarningsAlways

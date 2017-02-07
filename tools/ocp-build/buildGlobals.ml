@@ -18,6 +18,7 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+open StdlibArg
 
 open StringCompat
 open BuildTypes
@@ -103,7 +104,7 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
   let b = bc.build_context in
   (*  let envs = [ pk.package_options ] in *)
 
-  let lib_name = pk.package_name in
+  (*  let lib_name = pk.package_name in *)
   let lib_loc = (pk.package_filename,
                  pk.package_loc.BuildValue.Types.loc_begin.Lexing.pos_lnum,
                  pk.package_name) in
@@ -187,3 +188,8 @@ let absolute_filename dirname =
   if Filename.is_relative dirname then
     Filename.concat (BuildMisc.getcwd ()) dirname
   else dirname
+
+
+(* This is the arg_list used when the subcommand is
+   called. Plugins can add arguments here *)
+let arg_list = ref ([] : (string * Arg.spec * string) list)

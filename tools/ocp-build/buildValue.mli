@@ -65,6 +65,7 @@ end
 open Types
 
 val string_of_value : value -> string
+val string_of_env : env -> string
 
 val prop_list : value -> prop_list
 val value : prop_list -> value

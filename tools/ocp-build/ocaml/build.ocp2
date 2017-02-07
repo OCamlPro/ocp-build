@@ -60,7 +60,7 @@ begin
 
     (*    "buildOCFGen.ml"; *)
     "buildOCamlAutogen.ml";           (* Generate .ocp from directory content *)
-(*    "buildOCamlMain.ml"; *)
+    "buildOCamlPlugin.ml";
   ];
   ocaml.requires = [ "ocp-build-lib"; "ocplib-ocamlfind" ];
   (* HOW TO SPECIFY THE META FILE:

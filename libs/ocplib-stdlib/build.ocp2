@@ -3,8 +3,9 @@
 (*                              OCamlPro TypeRex                          *)
 (*                                                                        *)
 (*   Copyright OCamlPro 2011-2016. All rights reserved.                   *)
-(*   This file is distributed under the terms of the GPL v3.0             *)
-(*      (GNU Public Licence version 3.0).                                 *)
+(*   This file is distributed under the terms of the LGPL v2.1 with       *)
+(*   the special exception on linking described in the file LICENSE.      *)
+(*      (GNU Lesser General Public Licence version 2.1)                   *)
 (*                                                                        *)
 (*     Contact: <typerex@ocamlpro.com> (http://www.ocamlpro.com/)         *)
 (*                                                                        *)
@@ -18,15 +19,19 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
-open StdlibArg
+(*
+  This library is used to backport some modules from OCaml
+  stdlib, so that we can use new functions in our projects, while
+  still being compatible with OCaml 3.12.1. We should keep
+  this library up-to-date with OCaml as long as possible.
+*)
 
-val arg_list : (string * Arg.spec * string) list
+begin
+  ocaml.version = autoconf.package_version;
 
-val set_default_is_always : unit -> unit
+  ocaml.files = [
+     "stdlibArg.ml"
+  ];
 
-(* [print_env_warnings set] prints warnings from [set],
-   using [filename] as a reminder of former warnings, and update
-   [filename] consequently. [kind] is a simple string to characterize
-   these warnings, typically "env" or "project" *)
-val print_env_warnings : File.t -> BuildWarnings.set -> unit
-val print_pj_warnings : File.t -> BuildWarnings.set -> unit
+  new_package( "ocplib-stdlib", "library", ocaml);
+end

@@ -14,11 +14,12 @@ lang_SRCDIR=libs/ocplib-lang
 unix_SRCDIR=libs/ocplib-unix
 file_SRCDIR=libs/ocplib-file
 system_SRCDIR=libs/ocplib-system
+stdlib_SRCDIR=libs/ocplib-stdlib
 config_SRCDIR=libs/ocplib-config
 OCP_BUILD_SRCDIR=tools/ocp-build
 OCP_BUILD_DSTDIR=$(OBUILD_DSTDIR)/ocp-build
 
-OCPLIB_NAMES=debug lang unix file system config compat subcmd
+OCPLIB_NAMES=stdlib debug lang unix file system config compat subcmd
 
 INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
     $(OCP_BUILD_SRCDIR) \
@@ -34,6 +35,8 @@ OCP_BUILD_BOOTER=boot/ocp-build.asm
 
 STRING_COMPAT=$(compat_SRCDIR)/stringCompat.ml
 
+OCPLIB_STDLIB=$(stdlib_SRCDIR)/stdlibArg.ml
+
 OCPLIB_DEBUG= $(debug_SRCDIR)/debugVerbosity.ml	\
     $(debug_SRCDIR)/debugTyperex.ml
 
@@ -41,7 +44,9 @@ OCPLIB_LANG= $(lang_SRCDIR)/ocpList.ml $(lang_SRCDIR)/ocpString.ml	\
     $(lang_SRCDIR)/ocpArray.ml $(lang_SRCDIR)/intMap.ml			\
     $(lang_SRCDIR)/ocpDigest.ml $(lang_SRCDIR)/linearToposort.ml	\
     $(lang_SRCDIR)/ocamllexer.ml $(lang_SRCDIR)/ocpGenlex.ml		\
-    $(lang_SRCDIR)/stringSubst.ml $(lang_SRCDIR)/reentrantBuffers.ml
+    $(lang_SRCDIR)/stringSubst.ml $(lang_SRCDIR)/reentrantBuffers.ml \
+    $(lang_SRCDIR)/stringMap.ml \
+    $(lang_SRCDIR)/stringSet.ml
 
 OCPLIB_UNIX= $(unix_SRCDIR)/minUnix.ml $(unix_SRCDIR)/onlyUnix.ml	\
     $(unix_SRCDIR)/onlyWin32.ml
@@ -123,7 +128,8 @@ BUILD_OCAML= $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlConfig.ml	\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlRules.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlMeta.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlTest.ml		\
-    $(OCP_BUILD_SRCDIR)/ocaml/buildOasis.ml
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOasis.ml \
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlPlugin.ml
 
 BUILD_MAIN= $(OCP_BUILD_SRCDIR)/actions/buildArgs.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActions.ml		\
@@ -140,10 +146,11 @@ BUILD_MAIN= $(OCP_BUILD_SRCDIR)/actions/buildArgs.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionHelp.ml	\
     $(OCP_BUILD_SRCDIR)/buildMain.ml
 
-OCP_BUILD_MLS= $(STRING_COMPAT) $(OCPLIB_DEBUG) $(OCPLIB_LANG)		\
-  $(OCPLIB_UNIX) $(OCPLIB_FILE) $(OCPLIB_SYSTEM) $(OCPLIB_CONFIG)	\
-  $(BUILD_MISC) $(BUILD_PROJECT) $(BUILD_ENGINE) $(BUILD_OCAML_OBJS)	\
-  $(BUILD_LIB) $(BUILD_OCAMLFIND) $(BUILD_OCAML) $(BUILD_MAIN)
+OCP_BUILD_MLS= $(STRING_COMPAT) $(OCPLIB_STDLIB) $(OCPLIB_DEBUG)	\
+  $(OCPLIB_LANG) $(OCPLIB_UNIX) $(OCPLIB_FILE) $(OCPLIB_SYSTEM)		\
+  $(OCPLIB_CONFIG) $(BUILD_MISC) $(BUILD_PROJECT) $(BUILD_ENGINE)	\
+  $(BUILD_OCAML_OBJS) $(BUILD_LIB) $(BUILD_OCAMLFIND) $(BUILD_OCAML)	\
+  $(BUILD_MAIN)
 
 OCP_BUILD_MLLS= \
    $(lang_SRCDIR)/ocamllexer.mll $(OCP_BUILD_SRCDIR)/ocaml/metaLexer.mll 

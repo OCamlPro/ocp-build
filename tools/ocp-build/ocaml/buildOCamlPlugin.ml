@@ -20,13 +20,25 @@
 
 open StdlibArg
 
-val arg_list : (string * Arg.spec * string) list
+(* This is called when the plugin is loaded, or from the main if the plugin
+ is linked statically. It is called after the subcommands has been chosen,
+   allowing a right choice of arguments. *)
 
-val set_default_is_always : unit -> unit
+let init subcommand_name =
 
-(* [print_env_warnings set] prints warnings from [set],
-   using [filename] as a reminder of former warnings, and update
-   [filename] consequently. [kind] is a simple string to characterize
-   these warnings, typically "env" or "project" *)
-val print_env_warnings : File.t -> BuildWarnings.set -> unit
-val print_pj_warnings : File.t -> BuildWarnings.set -> unit
+  Printf.eprintf "Init OCamlPlugin for %S\n%!" subcommand_name;
+
+  let add_args subs args =
+    if List.mem subcommand_name subs then
+      BuildGlobals.arg_list := !BuildGlobals.arg_list @ args
+  in
+
+  add_args ["SUBCOMMAND"; "build"]
+    [
+      "--print-incomplete-packages", Arg.Set
+        BuildOCamlPackage.print_incomplete_packages,
+      " Print incomplete packages";
+
+    ];
+
+  ()
