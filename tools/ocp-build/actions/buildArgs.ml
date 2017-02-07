@@ -146,7 +146,7 @@ let rec arg_align list =
     (string, arg_usage, String.concat "\n" help) :: arg_align tail
 
 let arg_anon_none s = raise (Arg.Bad s)
-let arg_anon s =  targets_arg := s :: !targets_arg
+let arg_anon s =  BuildGlobals.targets_arg := s :: !BuildGlobals.targets_arg
 
 
 

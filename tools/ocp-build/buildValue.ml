@@ -128,6 +128,11 @@ let string_of_value v =
   bprint_value b "" v;
   Buffer.contents b
 
+let string_of_env v =
+  let b = Buffer.create 1000 in
+  bprint_env b "" v;
+  Buffer.contents b
+
 let empty_env = { env = StringMap.empty }
 let global_env = ref StringMap.empty
 let set_global name v =
@@ -334,11 +339,26 @@ let rec set_deep_field env fields value =
     let value =
       let env =
         try
-          match get [env] field with
+          match get_local [env] field with
           | VObject env -> env
-          | _ -> assert false
+          | v ->
+            Printf.kprintf failwith
+              "BuildValue.set_deep_field: field %S not an object but %s" field
+              (string_of_value v)
         with Var_not_found _ -> empty_env
       in
       set_deep_field env fields value
     in
     set env field (VObject value)
+
+let set_deep_field env fields value =
+  try
+    set_deep_field env fields value
+  with exn ->
+    Printf.eprintf
+      "BuildValue.set_deep_field:\nenv:%s\nfields: [%s]\nvalue:%s\n%!"
+      (string_of_env env)
+      (String.concat " ; " fields)
+      (string_of_value value)
+    ;
+    raise exn

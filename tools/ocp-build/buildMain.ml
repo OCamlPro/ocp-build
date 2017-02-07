@@ -75,7 +75,7 @@ let subcommands =  [
 (* The default command is the 'build' one *)
 let default_subcommand = {
   BuildActionBuild.subcommand with
-  sub_name = "[SUBCOMMAND]";
+  sub_name = "SUBCOMMAND";
   sub_arg_usage = [
     "Build command for OCaml projects";
     "";
@@ -118,10 +118,13 @@ let _ =
       Sys.argv.(0) <- Sys.argv.(0) ^ " build";
       default_subcommand
   in
-  let arg_list = arg_align s.sub_arg_list in
+  BuildGlobals.arg_list := arg_align (s.sub_arg_list @ !BuildGlobals.arg_list);
   let arg_usage = make_arg_usage s in
+
+  BuildOCamlPlugin.init s.sub_name;
+
   try
-    Arg.parse arg_list (match s.sub_arg_anon with
+    Arg.parse_dynamic BuildGlobals.arg_list (match s.sub_arg_anon with
         None -> arg_anon_none
       | Some f -> f) arg_usage;
     s.sub_action ();

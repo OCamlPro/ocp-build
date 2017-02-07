@@ -57,6 +57,7 @@ end
   begin library "bigarray"
     has_byte = true
     has_asm  = true
+    requires = [ "unix" ]
     files = [ "bigarray.ml" ]
   end
 

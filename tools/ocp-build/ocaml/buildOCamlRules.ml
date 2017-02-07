@@ -2873,6 +2873,8 @@ let create w cin cout bc state =
         | None -> assert false
         | Some install_dir -> install_dir
 
+      let pre_installed () = lib.lib_installed
+
 
       let install () =
         if lib.lib_install then

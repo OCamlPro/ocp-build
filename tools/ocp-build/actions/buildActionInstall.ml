@@ -35,6 +35,20 @@ let do_install bc dest_dir _install_what projects _package_map =
 
   let install_dirs = StringSet.to_list !install_dirs in
 
+  let projects_to_install_set = ref StringSet.empty in
+  let projects_to_install_list = ref [] in
+  let add_to_install p =
+    let module P = (val p : Package) in
+    let lib = P.info in
+    if not (StringSet.mem lib.lib_name !projects_to_install_set) then begin
+      projects_to_install_set :=
+        StringSet.add lib.lib_name !projects_to_install_set;
+      projects_to_install_list := p :: !projects_to_install_list;
+    end
+    in
+
+  List.iter add_to_install projects;
+
   let already_installed =
 
     let state = BuildUninstall.init dest_dir install_dirs
@@ -45,7 +59,7 @@ let do_install bc dest_dir _install_what projects _package_map =
          (*         let lib = P.info in *)
          (*         lib.lib_install && *)
          BuildUninstall.is_installed state P.name)
-      projects
+      !projects_to_install_list
   in
   let bold s =
     if term.esc_ansi then Printf.sprintf "\027[1m%s\027[m" s else s
@@ -73,45 +87,17 @@ let do_install bc dest_dir _install_what projects _package_map =
     end;
   end;
 
-  let projects_to_install = ref StringMap.empty in
-  let add_to_install p =
-    let module P = (val p : Package) in
-    let lib = P.info in
-    if (* lib.lib_install && *)
-         not (StringMap.mem lib.lib_name !projects_to_install) then begin
-        projects_to_install :=
-          StringMap.add lib.lib_name p !projects_to_install;
 
-        (* So, the semantics here is that packages are bundled together
-           only if they are installed at the same time.
-        let bundle =
-          BuildValue.get_strings_with_default [lib_options]
-            "bundle" [] in (* desactivated while transfering to OCaml plugin *)
-        List.iter (fun name ->
-            try
-              let pj2 = StringMap.find name bc.packages_by_name in
-              pj2.lib_bundles <- lib :: pj2.lib_bundles
-            with Not_found ->
-              Printf.eprintf
-                "Error: package %S bundled in package %S, not found\n%!"
-                lib.lib_name name;
-              BuildMisc.clean_exit 2
-          ) bundle
- *)
-      end
-    in
-
-    List.iter add_to_install projects;
-    let install_errors = ref 0 in
+  let install_errors = ref 0 in
     let install_ok = ref 0 in
 
-    StringMap.iter (fun _ p ->
+    List.iter (fun p ->
         let module P = (val p : Package) in
         (*        let lib = P.info in *)
         P.install ();
         incr install_ok
       )
-      !projects_to_install;
+      !projects_to_install_list;
     if !install_errors > 0 then begin
       if !install_ok = 0 then
         Printf.eprintf "Install completely failed\n%!"
@@ -139,7 +125,7 @@ let arg_list =
 
 let action () =
   BuildActionBuild.make_build_targets := true;
-  let (p, bc, projects,package_map) = BuildActionBuild.do_build () in
+  let (p, bc, projects, package_map) = BuildActionBuild.do_build () in
 
   let install_where = BuildOCamlInstall.install_where p.cin p.cout in
   let install_what = BuildOCamlInstall.install_what () in
@@ -153,7 +139,7 @@ let subcommand = {
   sub_name = "install";
   sub_help =  "Install the project.";
   sub_arg_list = arg_list;
-  sub_arg_anon = Some arg_anon;
+  sub_arg_anon = Some BuildArgs.arg_anon;
   sub_arg_usage = [ "Install the project."; ];
   sub_action = action;
 }
