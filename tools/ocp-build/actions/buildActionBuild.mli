@@ -18,6 +18,8 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+module Arg = StdlibArg
+
 val arg_list : (string * Arg.spec * string) list
 val subcommand : BuildArgs.subcommand
 val old_subcommand : BuildArgs.subcommand

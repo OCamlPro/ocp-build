@@ -25,6 +25,7 @@
 
 *)
 
+module Arg = StdlibArg
 
 open BuildArgs
 open BuildOptions

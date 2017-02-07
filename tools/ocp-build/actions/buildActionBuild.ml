@@ -49,6 +49,8 @@ open BuildTerm
 open BuildActions
 open BuildValue.Types
 
+module Arg = StdlibArg
+
 let verbose = DebugVerbosity.verbose ["B"] "BuildActionBuild"
 
   (*

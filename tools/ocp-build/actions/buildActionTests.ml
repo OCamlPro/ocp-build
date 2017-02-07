@@ -18,6 +18,8 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+module Arg = StdlibArg
+
 open BuildArgs
 open BuildActions
 open BuildTypes

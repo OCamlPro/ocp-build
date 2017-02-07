@@ -14,11 +14,12 @@ lang_SRCDIR=libs/ocplib-lang
 unix_SRCDIR=libs/ocplib-unix
 file_SRCDIR=libs/ocplib-file
 system_SRCDIR=libs/ocplib-system
+stdlib_SRCDIR=libs/ocplib-stdlib
 config_SRCDIR=libs/ocplib-config
 OCP_BUILD_SRCDIR=tools/ocp-build
 OCP_BUILD_DSTDIR=$(OBUILD_DSTDIR)/ocp-build
 
-OCPLIB_NAMES=debug lang unix file system config compat subcmd
+OCPLIB_NAMES=stdlib debug lang unix file system config compat subcmd
 
 INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
     $(OCP_BUILD_SRCDIR) \
@@ -33,6 +34,8 @@ OCPLIB_LIBS=$(foreach lib, $(OCPLIB_NAMES), ocplib-$(lib))
 OCP_BUILD_BOOTER=boot/ocp-build.asm
 
 STRING_COMPAT=$(compat_SRCDIR)/stringCompat.ml
+
+OCPLIB_STDLIB=$(stdlib_SRCDIR)/stdlibArg.ml
 
 OCPLIB_DEBUG= $(debug_SRCDIR)/debugVerbosity.ml	\
     $(debug_SRCDIR)/debugTyperex.ml
@@ -141,10 +144,11 @@ BUILD_MAIN= $(OCP_BUILD_SRCDIR)/actions/buildArgs.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionHelp.ml	\
     $(OCP_BUILD_SRCDIR)/buildMain.ml
 
-OCP_BUILD_MLS= $(STRING_COMPAT) $(OCPLIB_DEBUG) $(OCPLIB_LANG)		\
-  $(OCPLIB_UNIX) $(OCPLIB_FILE) $(OCPLIB_SYSTEM) $(OCPLIB_CONFIG)	\
-  $(BUILD_MISC) $(BUILD_PROJECT) $(BUILD_ENGINE) $(BUILD_OCAML_OBJS)	\
-  $(BUILD_LIB) $(BUILD_OCAMLFIND) $(BUILD_OCAML) $(BUILD_MAIN)
+OCP_BUILD_MLS= $(STRING_COMPAT) $(OCPLIB_STDLIB) $(OCPLIB_DEBUG)	\
+  $(OCPLIB_LANG) $(OCPLIB_UNIX) $(OCPLIB_FILE) $(OCPLIB_SYSTEM)		\
+  $(OCPLIB_CONFIG) $(BUILD_MISC) $(BUILD_PROJECT) $(BUILD_ENGINE)	\
+  $(BUILD_OCAML_OBJS) $(BUILD_LIB) $(BUILD_OCAMLFIND) $(BUILD_OCAML)	\
+  $(BUILD_MAIN)
 
 OCP_BUILD_MLLS= \
    $(lang_SRCDIR)/ocamllexer.mll $(OCP_BUILD_SRCDIR)/ocaml/metaLexer.mll 

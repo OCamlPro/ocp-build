@@ -191,4 +191,4 @@ let absolute_filename dirname =
 
 (* This is the arg_list used when the subcommand is
    called. Plugins can add arguments here *)
-let arg_list = ref ([] : (string * Arg.spec * string) list)
+let arg_list = ref ([] : (string * StdlibArg.spec * string) list)

@@ -18,6 +18,8 @@
 (*  SOFTWARE.                                                             *)
 (**************************************************************************)
 
+module Arg = StdlibArg
+
 val shortcut_arg :
   string -> string ->
   (string * Arg.spec * string) list ->

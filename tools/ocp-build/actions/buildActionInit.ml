@@ -33,6 +33,8 @@ open BuildValue.Types
 open BuildActions
 open BuildTypes
 
+module Arg = StdlibArg
+
 let verbose = DebugVerbosity.verbose ["B"] "BuildActionInit"
 
 let do_load_project_files cin project_dir state =
