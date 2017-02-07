@@ -140,6 +140,12 @@ libs/ocplib-lang/reentrantBuffers.cmx : \
     libs/ocplib-lang/reentrantBuffers.cmi
 libs/ocplib-lang/reentrantBuffers.cmi : \
     libs/ocplib-compat/string-compat/stringCompat.cmo
+libs/ocplib-lang/stringMap.cmo : libs/ocplib-lang/stringMap.cmi
+libs/ocplib-lang/stringMap.cmx : libs/ocplib-lang/stringMap.cmi
+libs/ocplib-lang/stringMap.cmi :
+libs/ocplib-lang/stringSet.cmo : libs/ocplib-lang/stringSet.cmi
+libs/ocplib-lang/stringSet.cmx : libs/ocplib-lang/stringSet.cmi
+libs/ocplib-lang/stringSet.cmi :
 libs/ocplib-lang/stringSubst.cmo : libs/ocplib-lang/stringSubst.cmi
 libs/ocplib-lang/stringSubst.cmx : libs/ocplib-lang/stringSubst.cmi
 libs/ocplib-lang/stringSubst.cmi :
