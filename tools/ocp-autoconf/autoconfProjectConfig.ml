@@ -93,7 +93,11 @@ let project_version = SimpleConfig.create_option config
 
 let manage_files = SimpleConfig.create_option config
     [ "manage_files" ]
-    [ "Files managed by ocp-autoconf in this project" ]
+    [
+"Files managed by ocp-autoconf in this project.";
+"Note that 'autoconf' here means the *directory* autoconf, i.e. all files";
+"in that directory.";
+    ]
     (SimpleConfig.list_option SimpleConfig.string_option)
     [ "autoconf" ]
 
