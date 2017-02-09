@@ -1,15 +1,14 @@
-/******************************************************************************/
-/*                                                                            */
-/*                          TypeRex OCaml Tools                               */
-/*                                                                            */
-/*                               OCamlPro                                     */
-/*                                                                            */
-/*    Copyright 2011-2012 OCamlPro                                            */
-/*    All rights reserved.  See accompanying files for the terms under        */
-/*    which this file is distributed. In doubt, contact us at                 */
-/*    contact@ocamlpro.com (http://www.ocamlpro.com/)                         */
-/*                                                                            */
-/******************************************************************************/
+/**************************************************************************/
+/*                                                                        */
+/*   Typerex Libraries                                                    */
+/*                                                                        */
+/*   Copyright 2011-2017 OCamlPro SAS                                     */
+/*                                                                        */
+/*   All rights reserved.  This file is distributed under the terms of    */
+/*   the GNU Lesser General Public License version 2.1, with the          */
+/*   special exception on linking described in the file LICENSE.          */
+/*                                                                        */
+/**************************************************************************/
 
 #ifdef ALSO__CYGWIN__
 #define _WIN32
