@@ -1,0 +1,68 @@
+(**************************************************************************)
+(*                                                                        *)
+(*   Typerex Tools                                                        *)
+(*                                                                        *)
+(*   Copyright 2011-2017 OCamlPro SAS                                     *)
+(*                                                                        *)
+(*   All rights reserved.  This file is distributed under the terms of    *)
+(*   the GNU General Public License version 3 described in the file       *)
+(*   LICENSE.                                                             *)
+(*                                                                        *)
+(**************************************************************************)
+
+(* shared as a library, because other tools, like 'ocp-complete'
+  may want to load 'ocp-edit-mode' configuration. *)
+
+begin
+
+(* TODO: change with:
+*)
+
+  ocaml.files = [
+       "editVersion.ml",{ ocp2ml = true; env_strings = [ "datadir" ] };
+(*
+       "editConfiguration.mlp" (ml = true
+             pp = [ "_obuild/ocp-subst-config/ocp-subst-config.byte" "-config-file" "typerex.config" ]
+    )
+*)
+    "editOptions.ml" ];
+
+  ocaml.requires = [ "ocplib-system" ;
+                     "ocplib-config";
+                   (*  "ocp-subst-config" *)
+                   ];
+  (*  pp_requires = [ "ocp-subst-config:byte" ] *)
+  OCaml.library("ocplib-edit-mode", ocaml);
+end
+
+begin
+
+    ocaml.data_files = [ "files/emacs" ];
+    ocaml.doc_files = [];
+
+    ocaml.files = [
+        "editFiles.ml",
+                { file2string = [
+                  "files/ocp-index.el";
+                  "files/ocp-annot.el"                  
+                  ] };
+        "editInstall.ml"; (* installation *)
+        "editEmacs.ml"; (* called from Emacs *)
+        "editConfig.ml"; (* modification of configuration *)
+        (* "editCandidates.ml";*)
+        "editDocumentation.ml";
+        "editQuery.ml";
+        "editMain.ml";
+    ];
+
+    ocaml.requires = [
+      "ocplib-subcmd";
+      "ocplib-edit-mode";
+      (* "ocaml-approx-lexer"; *)
+      "ocplib-lang";
+      "ocplib-system"; (* "ocaml-bincompat" *)
+      "ocaml-typing";
+      "ocp-build-project" ];
+
+    OCaml.program("ocp-edit-mode", ocaml);
+end

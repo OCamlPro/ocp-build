@@ -1,0 +1,33 @@
+(**************************************************************************)
+(*                                                                        *)
+(*   Typerex Tools                                                        *)
+(*                                                                        *)
+(*   Copyright 2011-2017 OCamlPro SAS                                     *)
+(*                                                                        *)
+(*   All rights reserved.  This file is distributed under the terms of    *)
+(*   the GNU General Public License version 3 described in the file       *)
+(*   LICENSE.                                                             *)
+(*                                                                        *)
+(**************************************************************************)
+
+begin
+  ocaml.files = [
+    "annotParser.ml";
+  ];
+  ocaml.requires = [
+    "ocplib-file" ;
+    "ocplib-lang";
+  ];
+  OCaml.library("ocplib-compiler-annot", ocaml);
+end
+
+begin
+  ocaml.files = [
+    "annotMain.ml";
+  ];
+  ocaml.requires = [
+    "ocplib-compiler-annot" ;
+    "ocplib-lang";
+  ];
+  OCaml.program("ocp-annot", ocaml);
+end
