@@ -15,6 +15,11 @@ open MinUnix
 external waitpids : int -> int array -> int * MinUnix.process_status
   = "onlyWin32_waitpids_ml"
 
+external create_process_chdir : string -> string -> string option ->
+  file_descr -> file_descr -> file_descr -> string option -> int
+    = "onlyWin32_create_process_chdir"
+  "onlyWin32_create_process_chdir_native"
+
 type fileinfo = {
   dwFileAttributes : int;
   ftCreationTime : float; (* in Unix seconds *)
@@ -46,11 +51,6 @@ let rec safe_waitpid pid =
 
 
 (* High-level process management (system, popen) *)
-
-external create_process_chdir : string -> string -> string option ->
-  file_descr -> file_descr -> file_descr -> string option -> int
-    = "onlyWin32_create_process_chdir"
-  "onlyWin32_create_process_chdir_native"
 
 let make_cmdline args =
   let maybe_quote f =

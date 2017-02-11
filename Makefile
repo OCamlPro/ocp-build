@@ -11,7 +11,8 @@ STRcompat_SRCDIR=libs/ocplib-compat
 compat_SRCDIR=$(STRcompat_SRCDIR)/string-compat
 debug_SRCDIR=libs/ocplib-debug
 lang_SRCDIR=libs/ocplib-lang
-unix_SRCDIR=libs/ocplib-unix
+minunix_SRCDIR=libs/ocplib-unix
+unix_SRCDIR=libs/ocplib-maxunix
 file_SRCDIR=libs/ocplib-file
 system_SRCDIR=libs/ocplib-system
 stdlib_SRCDIR=libs/ocplib-stdlib
@@ -157,8 +158,8 @@ OCP_BUILD_MLLS= \
 
 OCP_BUILD_MLYS= $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.mly
 
-OCP_BUILD_CS= $(unix_SRCDIR)/minUnix_c.c			\
- $(unix_SRCDIR)/onlyWin32_c.c $(unix_SRCDIR)/onlyUnix_c.c
+OCP_BUILD_CS= $(minunix_SRCDIR)/minUnix_c.c			\
+ $(minunix_SRCDIR)/onlyWin32_c.c $(minunix_SRCDIR)/onlyUnix_c.c
 
 OCP_BUILD_CMXS= $(OCP_BUILD_MLS:.ml=.cmx)
 OCP_BUILD_CMOS= $(OCP_BUILD_MLS:.ml=.cmo)

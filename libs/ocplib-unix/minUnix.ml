@@ -283,8 +283,14 @@ type access_permission =
 external chmod : string -> file_perm -> unit = "unix_chmod"
 external access : string -> access_permission list -> unit = "unix_access"
 
+#if OCAML_VERSION < "4.05.0"
 external dup : file_descr -> file_descr = "unix_dup"
 external dup2 : file_descr -> file_descr -> unit = "unix_dup2"
+#else
+external dup : ?cloexec:bool -> file_descr -> file_descr = "unix_dup"
+external dup2 : ?cloexec:bool -> file_descr -> file_descr -> unit = "unix_dup2"
+#endif
+
 external set_nonblock : file_descr -> unit = "unix_set_nonblock"
 external clear_nonblock : file_descr -> unit = "unix_clear_nonblock"
 external set_close_on_exec : file_descr -> unit = "unix_set_close_on_exec"
@@ -295,7 +301,11 @@ external rmdir : string -> unit = "unix_rmdir"
 external chdir : string -> unit = "unix_chdir"
 external getcwd : unit -> string = "unix_getcwd"
 
+#if OCAML_VERSION < "4.05.0"
 external pipe : unit -> file_descr * file_descr = "unix_pipe"
+#else
+external pipe : ?cloexec:bool -> unit -> file_descr * file_descr = "unix_pipe"
+#endif
 
 (*
 external select :
