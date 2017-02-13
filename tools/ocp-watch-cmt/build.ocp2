@@ -20,6 +20,7 @@ begin
   ocaml.requires = [
     "unix";
     "ocplib-file";
+    "ocplib-compiler-annot";
   ] + string_compat;
 
   new_package("ocp-watch-cmt","program", ocaml);

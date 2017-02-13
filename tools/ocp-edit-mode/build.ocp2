@@ -14,24 +14,11 @@
   may want to load 'ocp-edit-mode' configuration. *)
 
 begin
-
-(* TODO: change with:
-*)
-
   ocaml.files = [
-       "editVersion.ml",{ ocp2ml = true; env_strings = [ "datadir" ] };
-(*
-       "editConfiguration.mlp" (ml = true
-             pp = [ "_obuild/ocp-subst-config/ocp-subst-config.byte" "-config-file" "typerex.config" ]
-    )
-*)
-    "editOptions.ml" ];
-
-  ocaml.requires = [ "ocplib-system" ;
-                     "ocplib-config";
-                   (*  "ocp-subst-config" *)
-                   ];
-  (*  pp_requires = [ "ocp-subst-config:byte" ] *)
+    "editVersion.ml",{ ocp2ml = true; env_strings = [ "datadir" ] };
+    "editOptions.ml"
+   ];
+  ocaml.requires = [ "ocplib-system" ; "ocplib-config" ];
   OCaml.library("ocplib-edit-mode", ocaml);
 end
 
@@ -44,7 +31,8 @@ begin
         "editFiles.ml",
                 { file2string = [
                   "files/ocp-index.el";
-                  "files/ocp-annot.el"                  
+                  "files/ocp-annot.el";
+                  "files/ocamlspot.el"
                   ] };
         "editInstall.ml"; (* installation *)
         "editEmacs.ml"; (* called from Emacs *)
@@ -58,9 +46,8 @@ begin
     ocaml.requires = [
       "ocplib-subcmd";
       "ocplib-edit-mode";
-      (* "ocaml-approx-lexer"; *)
       "ocplib-lang";
-      "ocplib-system"; (* "ocaml-bincompat" *)
+      "ocplib-system";
       "ocaml-typing";
       "ocp-build-project" ];
 

@@ -23,10 +23,10 @@
 
 open StringCompat
 
+let quiet = ref false
 let verbose = ref false
-let failure_reset_delay = ref 60.
 let project_includes = ref []
-let watch_delay = ref 5
+let watch_delay = ref 2
 
 
 (* When running in OCaml distribution, use the following additional
@@ -51,16 +51,7 @@ let ocaml_includes = [
   "lex";
 ]
 
-
-
 let pwd = Sys.getcwd ()
-
-(* When a failure happens while checking a .cmt file, the file is
-   added to this failure set for 60 seconds, before retrying to check it
-   again. *)
-let failures = ref StringMap.empty
-
-
 let digest_null = Digest.string ""
 
 (* Try to match digests extracted from .cmt files with .ml files found
@@ -79,8 +70,15 @@ and digest_info = {
   mutable digest_files : source_file StringMap.t;
 }
 
+(* [digest -> digest_info], to find sources with the same digest *)
 let digests = ref StringMap.empty
+
+(* [filename -> source_file] to find info on source file *)
 let source_files = ref StringMap.empty
+
+(* [cmt_filename -> last mtime] used to only test a .cmt file if it
+   has changed *)
+let cmt_mtimes = ref StringMap.empty
 
 let file_mtime filename =
   try (Unix.stat filename).Unix.st_mtime with _ -> 0.0
@@ -176,74 +174,100 @@ let read_cmt_info read_cmt filename =
   | Some digest -> OcpDigest.from_hex digest
 
 let check_cmt read_cmt includes cmt_file =
-  if not (StringMap.mem cmt_file !failures) then
-  try
-    let ml_digest = read_cmt_info read_cmt cmt_file in
-    let annot_files =
-      try
-        let d = get_digest ml_digest in
-        let annot_files = ref [] in
-        StringMap.iter (fun _ file ->
-          let annot_file =
-            (Filename.chop_suffix file.file_name ".ml") ^ ".annot"
-          in
-          annot_files := annot_file :: !annot_files
-        ) d.digest_files;
-        !annot_files
-      with Not_found ->
-        [(Filename.chop_suffix cmt_file ".cmt") ^ ".annot"]
-    in
-    let annot_files =
-      let ml_file = (Filename.chop_suffix cmt_file ".cmt") ^ ".ml" in
-      let annot_file =
-        (Filename.chop_suffix ml_file ".ml") ^ ".annot"
-      in
-      if Sys.file_exists ml_file && not (List.mem annot_file annot_files)
-      then
-        annot_file :: annot_files
-      else
-        annot_files
-    in
-    if List.exists (fun annot_file ->
-      is_build_required annot_file [cmt_file]) annot_files
-    then begin
-      let includes = Filename.dirname cmt_file :: includes in
-      let includes = match includes with
-          [] -> ""
-        | _ -> "-I " ^ String.concat " -I " includes
+  let mtime = file_mtime cmt_file in
+  let previous_mtime =
+    try
+      StringMap.find cmt_file !cmt_mtimes
+    with Not_found -> 0.0
+  in
+  if previous_mtime < mtime then begin
+    cmt_mtimes := StringMap.add cmt_file mtime !cmt_mtimes;
+    if not !quiet then Printf.eprintf "%s%!" cmt_file;
+    try
+      let ml_digest = read_cmt_info read_cmt cmt_file in
+      let annot_files =
+        try
+          let d = get_digest ml_digest in
+          let annot_files = ref [] in
+          StringMap.iter (fun _ file ->
+            let annot_file =
+              (Filename.chop_suffix file.file_name ".ml") ^ ".annot"
+            in
+            annot_files := annot_file :: !annot_files
+          ) d.digest_files;
+          !annot_files
+        with Not_found ->
+          [(Filename.chop_suffix cmt_file ".cmt") ^ ".annot"]
       in
 
-      let cmd = Printf.sprintf
-        "%s %s -annot %s%s" read_cmt includes cmt_file
-       (if !verbose then "" else dev_null)
+      let annot_files =
+        let ml_file = (Filename.chop_suffix cmt_file ".cmt") ^ ".ml" in
+        let annot_file =
+          (Filename.chop_suffix ml_file ".ml") ^ ".annot"
+        in
+        if Sys.file_exists ml_file && not (List.mem annot_file annot_files)
+        then
+          annot_file :: annot_files
+        else
+          annot_files
       in
-      if !verbose then Printf.eprintf "calling %s\n%!" cmd;
-      let retcode = Sys.command cmd in
-      if retcode <> 0 then raise Exit;
-      let generated_file = cmt_file ^ ".annot" in
-      match annot_files with
-        [ annot_file ] ->
-          (try Sys.remove annot_file with _ -> ());
-          Sys.rename generated_file annot_file;
-          Printf.eprintf "-> %s\n%!" annot_file
-      | [] -> assert false
-      | _ ->
-        let annot_content = FileString.read_file generated_file in
-        Sys.remove generated_file;
-        List.iter (fun annot_file ->
-          FileString.write_file annot_file annot_content;
-          Printf.eprintf "-> %s\n%!" annot_file
-        ) annot_files
-    end
-  with _ ->
-    failures := StringMap.add cmt_file (Unix.gettimeofday ()) !failures
+      if List.exists (fun annot_file ->
+        is_build_required annot_file [cmt_file]) annot_files
+      then begin
+        let includes = Filename.dirname cmt_file :: includes in
+        let includes = match includes with
+            [] -> ""
+          | _ -> "-I " ^ String.concat " -I " includes
+        in
 
-let reset_failures () =
-  let time = Unix.gettimeofday () -. !failure_reset_delay in
-  StringMap.iter (fun cmt_file failure_time ->
-    if failure_time < time then
-      failures := StringMap.remove cmt_file !failures
-  ) !failures
+        let cmd = Printf.sprintf
+          "%s %s -annot %s%s" read_cmt includes cmt_file
+          (if !verbose then "" else dev_null)
+        in
+        if !verbose then Printf.eprintf "calling %s\n%!" cmd;
+        let retcode = Sys.command cmd in
+        if retcode <> 0 then raise Exit;
+        let generated_file = cmt_file ^ ".annot" in
+        let { AnnotParser.annot_filenames } =
+          AnnotParser.parse_file generated_file in
+        let annot_files = List.fold_left (fun annot_files filename ->
+          if !verbose then
+            Printf.eprintf "(loc %S)%!" filename;
+          if Sys.file_exists filename then
+            let annot_file = (Filename.chop_extension filename) ^ ".annot" in
+            if not (List.mem annot_file annot_files) then
+              let ml_time = file_mtime filename in
+              let annot_time = file_mtime annot_file in
+              if annot_time < ml_time then
+                annot_file :: annot_files
+              else annot_files
+            else annot_files
+          else annot_files
+        ) annot_files annot_filenames
+        in
+        if not !quiet then Printf.eprintf " UPDATED\n%!";
+        match annot_files with
+          [ annot_file ] ->
+            (try Sys.remove annot_file with _ -> ());
+            Sys.rename generated_file annot_file;
+            if not !quiet then Printf.eprintf "   -> %s\n%!" annot_file
+        | [] -> assert false
+        | _ ->
+          let annot_content = FileString.read_file generated_file in
+          Sys.remove generated_file;
+          List.iter (fun annot_file ->
+            FileString.write_file annot_file annot_content;
+            if not !quiet then Printf.eprintf "   -> %s\n%!" annot_file
+          ) annot_files
+      end else
+        if not !quiet then Printf.eprintf " OK\n%!"
+    with exn ->
+      if !verbose then begin
+        Printf.eprintf "\bException %s\n%!" (Printexc.to_string exn)
+      end else
+        if not !quiet then
+          Printf.eprintf " FAILED\n%!"
+  end
 
 let check_ml file_name =
   let file = get_source_file file_name in
@@ -264,22 +288,34 @@ let check_ml file_name =
     with _ ->
       ()
 
+let arg_list = [
+
+  "-I", Arg.String (fun s ->
+    project_includes := s :: !project_includes),
+  "DIR Read .cmi files from here";
+
+  "--clean", Arg.Unit (fun () ->
+    iter_files "." (fun filename ->
+      if Filename.check_suffix filename ".annot" then
+        try Sys.remove filename with _ ->
+          Printf.eprintf "Error: cannot remove %S\n%!" filename
+    );
+  ), " Clear all .annot files";
+
+  "--verbose", Arg.Set verbose,
+  " Verbose mode";
+  "--quiet", Arg.Set quiet,
+  " Quiet mode (equivalent to -q)";
+  "-q", Arg.Set quiet,
+  " Quiet mode (equivalent to --quiet)";
+  "--delay", Arg.Int ((:=) watch_delay),
+  Printf.sprintf "SECS Delay in seconds between scans (default %d)"
+    !watch_delay;
+]
+
 let () =
   let arg_usage = "ocp-watch-cmt [OPTIONS]" in
-  let arg_list = Arg.align [
-    "-I", Arg.String (fun s ->
-      project_includes := s :: !project_includes),
-    "DIR Read .cmi files from here";
-    "--clean", Arg.Unit (fun () ->
-      iter_files "." (fun filename ->
-        if Filename.check_suffix filename ".annot" then
-          try Sys.remove filename with _ ->
-            Printf.eprintf "Error: cannot remove %S\n%!" filename
-      );
-    ), " Clear all .annot files";
-    "--verbose", Arg.Set verbose,
-    " Verbose mode";
-  ] in
+  let arg_list = Arg.align arg_list in
 
   Arg.parse arg_list (fun s ->
     Printf.eprintf "Error: unexpected argument %S\n%!" s;
@@ -330,7 +366,6 @@ let () =
         );
         List.iter check_ml !ml_files;
         List.iter (check_cmt read_cmt includes) !cmt_files;
-        reset_failures ();
       with Not_found -> ()
     end;
     Unix.sleep !watch_delay;

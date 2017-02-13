@@ -19,6 +19,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "C-c C-t") 'ocp-annot-print-info-at-point)
     (define-key map (kbd "C-c ;") 'ocp-annot-jump-to-definition-at-point)
+    (define-key map (kbd "C-c C-a") 'ocp-annot-find-alternate-file)
 ;    (define-key map (kbd "C-c ;") 'ocp-annot-jump-to-definition-at-point-other-window)
 ;    (define-key map (kbd "C-c :") 'ocp-annot-jump-to-sig-at-point-other-window)
 ;    (define-key map (kbd "C-c C-;") 'ocp-annot-jump-to-definition-at-point)
@@ -31,13 +32,6 @@
   :keymap ocp-annot-keymap
   )
 
-;;
-;;
-;;
-;;     Formatting current FILE:POS
-;;
-;;
-;;
 
 ;; ‘bufferpos-to-filepos’ and ‘filepos-to-bufferpos’ are new in Emacs 25.1.
 ;; Provide fallbacks for older versions.
@@ -53,10 +47,87 @@
     (lambda (byte &optional _quality _coding-system)
       (byte-to-position (1+ byte)))))
 
+
+;;
+;;
+;;
+;;     Formatting positions as FILE:POS
+;;
+;;
+;;
+
 (defun ocp-annot-location-at-point ()
   "Location in FILE:POS format of point"
   (format "%s:%d" (buffer-file-name)
           (ocp-annot-bufferpos-to-filepos (point))))
+
+(defun ocp-annot-bufferpos-of-location(pos)
+  (ocp-annot-filepos-to-bufferpos pos))
+
+;;
+;;
+;;
+;;     Formatting positions as FILE:LINE:LINEPOS
+;;
+;;
+;;
+
+;; ocamlspot.el uses a different computation, maybe we should try the same one
+;; if we find a performance problem
+(defun ocp-annot-location2-at-point ()
+  "Location in FILE:LINE:LINEPOS format of point"
+  (let*(
+        (line (count-lines (point-min) (min (1+ (point)) (point-max))))
+        (line-pos
+         (- (ocp-annot-bufferpos-to-filepos (point))
+            (ocp-annot-bufferpos-to-filepos (line-beginning-position))))
+      )
+    (format "%s:%d:%d"
+            (buffer-file-name) line line-pos)))
+
+;; Some code taken from ocamlspot.el (by Jun Furuse)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; column bytes => column chars
+
+;; This looks complicated, but we need this conversion for multi-byte characters
+
+;; Same as (goto-line), but without unwanted side-effects.
+(defun ocp-annot-goto-line (line)
+  (goto-char (point-min))
+  (forward-line (1- line)))
+
+;; returns the string at line
+(defun ocp-annot-buffer-substring-at-line (line)
+  ; no need of save-excursion
+  (ocp-annot-goto-line line)
+  (buffer-substring-no-properties (line-beginning-position)
+                                  (line-end-position)))
+
+;; returns the first [bytes] of [str] as chars, not as bytes
+(defun ocp-annot-chars-of-bytes-of-string (str bytes)
+  (length
+   (decode-coding-string
+    (substring (encode-coding-string str buffer-file-coding-system)
+               0 bytes)
+    buffer-file-coding-system)))
+
+;; returns the buffer position of [bytes] at [line]
+(defun ocp-annot-pos-of-bytes-at-line (line bytes)
+  ; no need of save-excursion
+  (ocp-annot-goto-line line)
+  (let ((pos-at-beginning-of-line (line-beginning-position))
+        (chars-from-beginning-of-line
+         (ocp-annot-chars-of-bytes-of-string
+          (ocp-annot-buffer-substring-at-line line) bytes)))
+    (+ pos-at-beginning-of-line chars-from-beginning-of-line)))
+
+;; pos is a list : (list LINE LINEPOS)
+(defun ocp-annot-bufferpos-of-location2(pos)
+  (let*(
+        (line (car pos))
+        (line-pos (car (cdr pos)))
+        )
+    (save-excursion
+      (ocp-annot-pos-of-bytes-at-line line line-pos))))
 
 ;;
 ;;
@@ -110,12 +181,12 @@
 
 (defun ocp-annot-get-info (location)
   (let*(
-       (output (ocp-annot-run "--query-info" location))
+       (output (ocp-annot-run "--query-info-file-pos" location))
        (res (read-from-string output)))
     (car-safe res)))
 
 (defvar ocp-annot-get-info-cached-location "")
-(defvar ocp-annot-get-info-cached-parent "")
+(defvar ocp-annot-get-info-cached-parent ())
 (defun ocp-annot-get-info-cached (location)
   (if (string= location ocp-annot-get-info-cached-location)
       (let*(
@@ -123,9 +194,9 @@
            (parent (cdr (assoc :parent infos)))
            )
         (if (not parent)
-            (setq ocp-annot-get-info-cached-location "")
-          (setq ocp-annot-get-info-cached-parent parent)
-          infos))
+            (setq ocp-annot-get-info-cached-location "loc"))
+        (setq ocp-annot-get-info-cached-parent parent)
+          infos)
     (let*(
           (infos (ocp-annot-get-info location))
           (parent (cdr (assoc :parent infos)))
@@ -143,7 +214,7 @@
     (set-face-background 'ocp-annot-expr-face "#88FF44"))
 (overlay-put ocp-annot-expr-ovl 'face 'ocp-annot-expr-face)
 
-(defun ocp-annot-print-info (location)
+(defun ocp-annot-print-info (location &optional to-kill)
   "Display the type of an expression in the minibuffer. If called several times, display the types of enclosing expressions."
   (let*
       (
@@ -160,15 +231,21 @@
           (right (cdr (assoc :right infos)))
           )
         (move-overlay ocp-annot-expr-ovl
-                      (ocp-annot-filepos-to-bufferpos  left)
-                      (ocp-annot-filepos-to-bufferpos  right) target-buf)
+                      (ocp-annot-bufferpos-of-location  left)
+                      (ocp-annot-bufferpos-of-location  right) target-buf)
         (display-message-or-buffer type "*ocp-annot*")
+        (if to-kill (kill-new type))
         (unwind-protect (sit-for 60)
           (delete-overlay ocp-annot-expr-ovl))))))
 
 (defun ocp-annot-print-info-at-point ()
   (interactive nil)
   (ocp-annot-print-info (ocp-annot-location-at-point))
+)
+
+(defun ocp-annot-print-info-at-point-and-copy ()
+  (interactive nil)
+  (ocp-annot-print-info (ocp-annot-location-at-point) t)
 )
 
 ;;
@@ -181,7 +258,7 @@
 
 (defun ocp-annot-query-jump (location)
   (let*(
-       (output (ocp-annot-run "--query-jump" location))
+       (output (ocp-annot-run "--query-jump-file-pos" location))
        (res (read-from-string output)))
     (car-safe res)))
 
@@ -190,7 +267,7 @@
   (if file
       (if other-window (find-file-other-window file) (find-file file))
     )
-  (goto-char (ocp-annot-filepos-to-bufferpos pos))
+  (goto-char (ocp-annot-bufferpos-of-location pos))
   )
 
 (defvar ocp-annot-jump-to-definition-target-location "")
@@ -222,15 +299,27 @@
           (setq ocp-annot-jump-to-definition-source-file source-file)
           (setq ocp-annot-jump-to-definition-source-pos source-pos)
           )
-        ))))
+        )))
+  )
+
+(defun ocp-annot-jump-backward ()
+  (interactive nil)
+  (let* (
+         (from-source-file (buffer-file-name))
+         (from-source-pos (point))
+         (to-source-file ocp-annot-jump-to-definition-source-file)
+         (to-source-pos ocp-annot-jump-to-definition-source-pos)
+         )
+    (setq ocp-annot-jump-to-definition-source-file from-source-file)
+    (setq ocp-annot-jump-to-definition-source-pos from-source-pos)
+    (ocp-annot-jump to-source-file to-source-pos)
+  ))
 
 (defun ocp-annot-jump-to-definition (location &optional other-window)
   "Jump to the definition of an identifier. If called from the target of the jump, jump back to the origin."
   (if
       (string= location ocp-annot-jump-to-definition-target-location)
-      (ocp-annot-jump
-       ocp-annot-jump-to-definition-source-file
-       ocp-annot-jump-to-definition-source-pos)
+      (ocp-annot-jump-backward)
     (ocp-annot-jump-to-definition-really location other-window)
     ))
 
@@ -243,3 +332,34 @@
   (interactive nil)
   (ocp-annot-jump-to-definition (ocp-annot-location-at-point) t)
 )
+
+;;
+;;
+;;
+;;     Jumping between interface/implementation
+;;
+;;
+;;
+
+(defun ocp-annot-find-alternate-file ()
+  "Switch Implementation/Interface."
+  (interactive)
+  (let* (
+         (name buffer-file-name)
+         (output (ocp-annot-run "--query-alternate-file" name))
+         (m0 (message (format "[%s]" output)))
+         (res (read-from-string output))
+         (infos (car-safe res))
+         (file (cdr (assoc :file infos)))
+         (kind (cdr (assoc :kind infos)))
+         (should-create (assoc :create infos))
+         )
+    (if should-create
+        (if (y-or-n-p
+             (format "Create %s file %s " kind 
+                     (file-name-nondirectory file)))
+            (find-file file))
+      (if file (find-file file)))
+    )
+  )
+      

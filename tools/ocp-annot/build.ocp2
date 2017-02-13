@@ -31,3 +31,13 @@ begin
   ];
   OCaml.program("ocp-annot", ocaml);
 end
+
+(*
+begin
+  ocaml.files = [
+    "example.ml";
+  ];
+  ocaml.requires = [];
+  OCaml.library("ocplib-compiler-annot-example", ocaml);
+end
+*)

@@ -64,12 +64,11 @@ let indent_use_tabs = create_option config
     "(\"None\" to use the system setting)" ]
   (option_option bool_option) (Some false)
 
-
 let query_tools = create_option config
-  [ "query_tools" ]
-  [ "Preferred order for query tools (ocp-index,ocp-annot)" ]
+  [ "query_tools_order" ]
+  [ "Order in which tools should be initialized" ]
   (list_option string_option)
-  [ "ocp-index"; "ocp-annot" ]
+  [ "ocp-annot"; "ocp-index";"ocamlspot" ]
 
 let show_paren_style = create_option config
   [ "show_paren_style" ]

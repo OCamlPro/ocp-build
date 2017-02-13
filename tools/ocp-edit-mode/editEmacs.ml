@@ -142,16 +142,24 @@ let load_global_config () =
         "'(\"\\.ocp$\" . typerex-mode)" @
 
         [
-          match has_ocp_index with
-          | Some _ ->
-            List.assoc "files/ocp-index.el" EditFiles.files
-          | None ->
-            match has_ocp_annot with
-            | Some _ ->
-              List.assoc "files/ocp-annot.el" EditFiles.files
+        (match has_ocp_index with
+          | Some _ -> List.assoc "files/ocp-index.el" EditFiles.files
+          | None -> ""
+        );
+        (match has_ocp_annot with
+            | Some _ -> List.assoc "files/ocp-annot.el" EditFiles.files
             | None -> ""
-        ]
-
+        )
+        ] @
+        (match has_ocamlspot with
+        | Some ocamlspot_path ->
+          [
+            List.assoc "files/ocamlspot.el" EditFiles.files;
+            Printf.sprintf
+              "(setq ocamlspot-command %S)" ocamlspot_path
+          ]
+        | None -> []
+        )
         @
         [ "(setq save-abbrevs nil)"    ] @
         add_lambda_hook "tuareg-mode-hook"
@@ -189,29 +197,13 @@ let all_mode_hook mode =
       "(local-set-key  (kbd \"C-c C-f\") 'ocp-fix-errors)";
       "(local-set-key  (kbd \"C-c C-d\") 'ocp-fix-errors)";
     ]
-    @
-[
-  "(local-set-key \"\\C-c;\" 'ocamlspot-query)";
-  "(local-set-key \"\\C-c:\" 'ocamlspot-query-interface)";
-  "(local-set-key \"\\C-c'\" 'ocamlspot-query-uses)";
-  "(local-set-key \"\\C-c\\C-t\" 'ocamlspot-type)";
-  "(local-set-key \"\\C-c\\C-i\" 'ocamlspot-xtype)";
-  "(local-set-key \"\\C-c\\C-y\" 'ocamlspot-type-and-copy)";
-  "(local-set-key \"\\C-cx\" 'ocamlspot-expand)";
-  "(local-set-key \"\\C-c\\C-u\" 'ocamlspot-use)";
-  "(local-set-key \"\\C-ct\" 'caml-types-show-type)";
-  "(local-set-key \"\\C-cp\" 'ocamlspot-pop-jump-stack)";
-]
-      @
     *)
-                          (match has_ocp_index with
-                          | Some _ -> ["(ocp-index-mode t)"]
-                          | None ->
-                            match has_ocp_annot with
-                          | Some _ -> ["(ocp-annot-mode t)"]
-                          | None -> []
-                          )@
-
+    List.map (fun tool ->
+      match has_tool tool with
+      | Some _ ->  Printf.sprintf "(%s-mode t)" tool
+      | None -> ""
+    ) !!EditOptions.query_tools
+    @
       [
       "(show-paren-mode t)";
       "(setq blink-matching-paren t)";

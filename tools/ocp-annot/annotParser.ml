@@ -10,6 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open StringCompat
+
 type position = int * int * int (* (line number, line pos, char pos) *)
 
 type location = string * position * position
@@ -23,6 +25,10 @@ type ident =
 | ExtRef of string
 | IntRef of string * location (* definition *)
 
+type annot_file = {
+  annot_filenames : string list;
+  annot_infos : (location * kind list) list;
+}
 
 let error fn s =
   Printf.eprintf "Error: unexpected argument %S to function %s\n%!"
@@ -40,12 +46,14 @@ let parse_pos pos =
       (int_of_string line, int_of_string char1, int_of_string char2)
   | _ -> error "parse_pos" pos
 
-let parse_location line =
+let parse_location fileset line =
   (*  Printf.eprintf "parse_location %S\n%!" line; *)
   match OcpString.split line '"' with
     [ ""; file1; pos1; file2; pos2 ] ->
       let pos1 = parse_pos pos1 in
-      let pos2 = parse_pos pos2 in
+      let (_,_,endpos) as pos2 = parse_pos pos2 in
+      if endpos >= 0 && not (StringSet.mem file1 !fileset) then
+        fileset := StringSet.add file1 !fileset;
       assert (file1 = file2);
       (file1, pos1, pos2)
   | _ -> error "parse_location" line
@@ -76,12 +84,13 @@ let parse_ident line =
 
 
 let parse_file filename =
+  let fileset = ref StringSet.empty in
   let lines = FileLines.read_file filename in
   let rec iter lines locations =
     match lines with
       [] | [ "" ] -> locations
     | line :: lines ->
-      let location = parse_location line in
+      let location = parse_location fileset line in
       iter2 lines locations location []
 
   and iter2 lines locations location infos =
@@ -94,7 +103,7 @@ let parse_file filename =
       iter2 lines locations location (Ident reference :: infos)
     | line :: lines ->
       let locations = (location, infos) :: locations in
-      let location = parse_location line in
+      let location = parse_location fileset line in
       iter2 lines locations location []
 
 
@@ -106,4 +115,6 @@ let parse_file filename =
     | line :: lines ->
       iter3 lines locations location infos (line :: prev_lines)
   in
-  iter lines []
+  let annot_infos = iter lines [] in
+  let annot_filenames = StringSet.to_list !fileset in
+  { annot_infos; annot_filenames }

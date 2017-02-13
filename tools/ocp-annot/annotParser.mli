@@ -22,6 +22,10 @@ type ident =
 | ExtRef of string
 | IntRef of string * location (* location of definition *)
 
+type annot_file = {
+  annot_filenames : string list;
+  annot_infos : (location * kind list) list;
+}
 
-val parse_file :  string -> (location * kind list) list
+val parse_file :  string -> annot_file
 val parse_ident : string -> ident
