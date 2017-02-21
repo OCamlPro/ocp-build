@@ -7,7 +7,7 @@
 #   * ocp-autoconf.ac for autoconf parts              #
 #                                                     #
 #######################################################
-AC_INIT(typerex-build,1.99.18-beta)
+AC_INIT(ocp-build,1.99.18-beta)
 CONFIGURE_ARGS=$*
 AC_COPYRIGHT(Copyright 2011-2016 OCamlPro SAS)
 OCAML_MINIMAL_VERSION=3.12.1
@@ -115,7 +115,7 @@ AC_PROG_OCAMLYACC
 OPAM_REPO=/home/lefessan/WindowsSharedFolder/opam-repository-with-archives
 OPAM_REPO_OFFICIAL_REMOTE=ocaml
 OPAM_REPO_FORK_REMOTE=origin
-DOWNLOAD_URL_PREFIX=http://github.com/OCamlPro/typerex-build/archive/
+DOWNLOAD_URL_PREFIX=http://github.com/OCamlPro/ocp-build/archive/
 
 ###############################################################
 ##                                                            #
