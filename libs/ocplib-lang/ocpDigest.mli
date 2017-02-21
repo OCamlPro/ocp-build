@@ -19,11 +19,10 @@ val to_hex : t -> string
 
 (** Return the digest corresponding to the printable hexadecimal representation. *)
 val of_hex : string -> t
+val from_hex : string -> t
 
 (** Return the digest by interpreting the string as a raw digest *)
 val of_direct_string : string -> t
 
 (** Return the string with the raw digest inside *)
 val to_direct_string : t -> string
-
-

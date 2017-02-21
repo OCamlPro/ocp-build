@@ -395,6 +395,7 @@ val access : string -> access_permission list -> unit
 (** {6 Operations on file descriptors} *)
 
 
+#if OCAML_VERSION < "4.05.0"
 val dup : file_descr -> file_descr
 (** Return a new file descriptor referencing the same file as
    the given descriptor. *)
@@ -402,6 +403,17 @@ val dup : file_descr -> file_descr
 val dup2 : file_descr -> file_descr -> unit
 (** [dup2 fd1 fd2] duplicates [fd1] to [fd2], closing [fd2] if already
    opened. *)
+#else
+val dup : ?cloexec:bool -> file_descr -> file_descr
+(** Return a new file descriptor referencing the same file as
+   the given descriptor. *)
+
+val dup2 : ?cloexec:bool -> file_descr -> file_descr -> unit
+(** [dup2 fd1 fd2] duplicates [fd1] to [fd2], closing [fd2] if already
+   opened. *)
+
+#endif
+
 
 val set_nonblock : file_descr -> unit
 (** Set the ``non-blocking'' flag on the given descriptor.
@@ -443,11 +455,21 @@ val getcwd : unit -> string
 
 (** {6 Pipes and redirections} *)
 
+#if OCAML_VERSION < "4.05.0"
 
 val pipe : unit -> file_descr * file_descr
 (** Create a pipe. The first component of the result is opened
    for reading, that's the exit to the pipe. The second component is
    opened for writing, that's the entrance to the pipe. *)
+
+#else
+
+val pipe : ?cloexec:bool -> unit -> file_descr * file_descr
+(** Create a pipe. The first component of the result is opened
+   for reading, that's the exit to the pipe. The second component is
+   opened for writing, that's the entrance to the pipe. *)
+
+#endif
 
 (*
 (** {6 Polling} *)

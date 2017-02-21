@@ -14,57 +14,6 @@ open StringCompat
 
 (* Message digest (MD5) *)
 
-  (*
-
-type t = string
-
-external unsafe_string: string -> int -> int -> t = "caml_md5_string"
-external channel: in_channel -> int -> t = "caml_md5_chan"
-
-let string str =
-  unsafe_string str 0 (String.length str)
-
-let substring str ofs len =
-  if ofs < 0 || len < 0 || ofs > String.length str - len
-  then invalid_arg "Digest.substring"
-  else unsafe_string str ofs len
-
-let file filename =
-  let ic = open_in_bin filename in
-  let d = channel ic (-1) in
-  close_in ic;
-  d
-
-let output chan digest =
-  output chan digest 0 16
-
-let input chan =
-  let digest = Bytes.create 16 in
-  really_input chan digest 0 16;
-  digest
-  *)
-(*
-let to_hex d =
-  let result = Bytes.create 32 in
-  for i = 0 to 15 do
-    String.blit (Printf.sprintf "%02x" (int_of_char d.[i])) 0 result (2*i) 2;
-  done;
-  result
-;;
-*)
-
-(**************************************************************************)
-(*                                                                        *)
-(*   Typerex Libraries                                                    *)
-(*                                                                        *)
-(*   Copyright 2011-2017 OCamlPro SAS                                     *)
-(*                                                                        *)
-(*   All rights reserved.  This file is distributed under the terms of    *)
-(*   the GNU Lesser General Public License version 2.1, with the          *)
-(*   special exception on linking described in the file LICENSE.          *)
-(*                                                                        *)
-(**************************************************************************)
-
 let _ =
   assert (int_of_char 'a' = 97);
   assert (int_of_char 'A' = 65);
@@ -85,7 +34,8 @@ let of_hex_char c =
 (*let to_hex_old = to_hex *)
 
 let to_hex d =
-  let result = Bytes.create 32 in
+  let len = String.length d * 2 in
+  let result = Bytes.create len in
   let rec iter result d i i2 =
     let c = d.[i] in
     let c = int_of_char c in
@@ -93,8 +43,9 @@ let to_hex d =
     let c2 = c land 15 in
     result.[i2] <- to_hex_char c1;
     result.[i2+1] <- to_hex_char c2;
-    if i < 15 then
-      iter result d (i+1) (i2+2)
+    let i2 = i2 + 2 in
+    if i2 < len-1 then
+      iter result d (i+1) i2
   in
   iter result d 0 0;
 (*
@@ -108,14 +59,15 @@ let to_hex d =
 ;;
 
 let of_hex d =
-  let result = Bytes.create 16 in
+  let len = String.length d / 2 in
+  let result = Bytes.create len in
   let rec iter result d i i2 =
     let c1 = d.[i2] in
     let c2 = d.[i2+1] in
     let c1 = of_hex_char c1 in
     let c2 = of_hex_char c2 in
     result.[i] <- char_of_int ((c1 lsl 4) + c2);
-    if i < 15 then
+    if i < len-1 then
       iter result d (i+1) (i2+2)
   in
   iter result d 0 0;
@@ -129,8 +81,8 @@ let of_hex d =
   Bytes.to_string result
 ;;
 
+let from_hex = of_hex
+
 
 let to_direct_string s = s
-let of_direct_string s =
-  if String.length s <> 16 then invalid_arg "OcpDigest.of_direct_string";
-  s
+let of_direct_string s = s
