@@ -30,6 +30,7 @@ let empty () = {
   meta_error = StringMap.empty;
   meta_requires = StringMap.empty;
   meta_archive = StringMap.empty;
+  meta_plugin = StringMap.empty;
 
   meta_package = [];
 }
@@ -65,6 +66,19 @@ let add_archive meta preds values =
     } in
     meta.meta_archive <- StringMap.add key var meta.meta_archive
 
+let add_plugin meta preds values =
+  let key = key_of_preds preds in
+  try
+    let var = StringMap.find key meta.meta_plugin in
+    var.metavar_value <- var.metavar_value @ values
+  with Not_found ->
+    let var = {
+      metavar_key = key;
+      metavar_preds = preds;
+      metavar_value = values;
+    } in
+    meta.meta_plugin <- StringMap.add key var meta.meta_plugin
+
 let fprintf_option_field oc indent name field =
     match field with
       None -> ()
@@ -98,6 +112,7 @@ let create_meta_file filename meta =
     fprintf_option_field oc indent "linkopts" meta.meta_linkopts;
     fprintf_entries oc indent "requires" meta.meta_requires;
     fprintf_entries oc indent "archive" meta.meta_archive;
+    fprintf_entries oc indent "plugin" meta.meta_plugin;
     fprintf_list_field oc indent "exists_if" meta.meta_exists_if;
     List.iter (fun (name, meta) ->
       Printf.fprintf oc "%spackage %S (\n" indent name;
@@ -142,6 +157,8 @@ let rec meta_of_package p =
                 add_requires meta [] (split_simplify str)
               | "archive" ->
                 add_archive meta [] (split_simplify str)
+              | "plugin" ->
+                add_plugin meta [] (split_simplify str)
               | _ ->
                 if verbose 4 then
                   Printf.eprintf "MetaParser.parse_file: discarding %S\n%!"

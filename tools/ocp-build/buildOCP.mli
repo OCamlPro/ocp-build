@@ -13,7 +13,7 @@
 (* open BuildBase *)
 open StringCompat
 open BuildOCPTypes
-open BuildValue.Types
+open BuildValue.TYPES
 
 val w_MissingDirectory : (string * string * string) BuildWarnings.warning
 val w_PackageConflict :
@@ -76,24 +76,24 @@ val generated_config : unit -> config
 
 val add_ocaml_package :
            (location -> state ->
-            BuildValue.Types.config ->
+            BuildValue.TYPES.config ->
             string -> BuildOCPTypes.package_type -> unit BuildOCPTypes.package)
            ref
 val package_type_of_string : string -> BuildOCPTypes.package_type
 val define_package :
   location ->
   state ->
-  BuildValue.Types.config ->
+  BuildValue.TYPES.config ->
   name:string ->
   kind:BuildOCPTypes.package_type -> unit BuildOCPTypes.package
 
 val add_primitive : (* only for OCP2 *)
   string ->
   string list ->
-  (BuildValue.Types.location ->
+  (BuildValue.TYPES.location ->
    state ->
-   BuildValue.Types.config ->
-   BuildValue.Types.value list -> BuildValue.Types.value) ->
+   BuildValue.TYPES.config ->
+   BuildValue.TYPES.value list -> BuildValue.TYPES.value) ->
   unit
 
 val print_conflict :

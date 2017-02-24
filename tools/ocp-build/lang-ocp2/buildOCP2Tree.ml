@@ -10,10 +10,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open BuildValue.Types
+open BuildValue.TYPES
 open StringCompat
 
-exception OCPExn of location * string * BuildValue.Types.value
+exception OCPExn of location * string * BuildValue.TYPES.value
 
 type statement = {
   stmt_expr : statement_expr;
@@ -46,7 +46,7 @@ and expression_expr =
   | ExprRecord of (string * expression) list
   | ExprList of expression list
   | ExprTuple of expression list
-  | ExprValue of BuildValue.Types.value
+  | ExprValue of BuildValue.TYPES.value
   | ExprTry of expression * (string * (string * expression)) list
   | ExprEnv
 

@@ -11,23 +11,23 @@
 (**************************************************************************)
 
 open StringCompat
-open BuildValue.Types
+open BuildValue.TYPES
 open BuildOCP2Tree
 
-val fatal_error : BuildValue.Types.location ->
+val fatal_error : BuildValue.TYPES.location ->
   ('a, unit, string, 'b) format4 -> 'a
 val warning : location -> ('a, unit, string, unit) format4 -> 'a
 
 val raise_type_error :
   location ->
-  string -> int -> string -> BuildValue.Types.value -> 'a
+  string -> int -> string -> BuildValue.TYPES.value -> 'a
 
 val raise_bad_arity :
   location ->
-  string -> int -> BuildValue.Types.value list -> 'a
+  string -> int -> BuildValue.TYPES.value list -> 'a
 
 val ocp2_raise :
-  location -> string -> BuildValue.Types.value -> 'a
+  location -> string -> BuildValue.TYPES.value -> 'a
 
 module Init(S: sig
 
@@ -51,10 +51,10 @@ module Init(S: sig
     ) StringMap.t ref
   val add_primitive :
            string -> string list ->
-           (BuildValue.Types.location ->
+           (BuildValue.TYPES.location ->
             S.context ->
-            BuildValue.Types.config ->
-            BuildValue.Types.value list -> BuildValue.Types.value) ->
+            BuildValue.TYPES.config ->
+            BuildValue.TYPES.value list -> BuildValue.TYPES.value) ->
            unit
   val primitives_help : unit -> string list StringCompat.StringMap.t
 

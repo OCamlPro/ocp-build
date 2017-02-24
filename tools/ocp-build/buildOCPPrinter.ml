@@ -12,7 +12,7 @@
 
 open StringCompat
 open BuildOCPTypes
-open BuildValue.Types
+open BuildValue.TYPES
 
 let string_of_package_type = function
   | ProgramPackage -> "ProgramPackage"

@@ -13,7 +13,7 @@
 open StringCompat
 open BuildOCPTypes
 
-open BuildValue.Types
+open BuildValue.TYPES
 
 let continue_on_ocp_error = ref false
 

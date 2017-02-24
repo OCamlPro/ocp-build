@@ -21,7 +21,7 @@ open BuildEngineTypes
 
 open BuildOCamlTypes
 open BuildOCPTypes
-open BuildValue.Types
+open BuildValue.TYPES
 
 let set_field env var_name preds field value =
   let fields =

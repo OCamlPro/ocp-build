@@ -15,7 +15,7 @@
 
 open BuildMisc
 
-open BuildValue.Types
+open BuildValue.TYPES
 
 open BuildConfig
 open BuildOptions

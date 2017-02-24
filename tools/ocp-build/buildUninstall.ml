@@ -12,6 +12,10 @@
 
 open StringCompat
 
+module TYPES = struct
+
+  type raw_kind = DIR | FILE | VERSION | WARNING | TYPE | PACK
+
 type package_uninstaller = {
   mutable un_nfiles : int;
   mutable un_ndirs : int;
@@ -23,6 +27,10 @@ type package_uninstaller = {
   mutable un_type : string;
   mutable un_packages : string list;
 }
+
+end
+
+open TYPES
 
 type state = {
   un_destdir : string option;
@@ -195,3 +203,28 @@ let uninstall_package state lib =
 
 (* val uninstall_package : state -> BuildTypes.package_info -> unit *)
 *)
+
+
+
+
+
+type raw_uninstaller = (raw_kind * string) list ref
+
+let create_un () = ref []
+let add_un_field log kind name =
+  log := (kind, name) :: !log
+
+let save_un uninstall_file log =
+  let oc = open_out uninstall_file in
+  Printf.fprintf oc "OCP 1\n";
+  List.iter (fun (kind, file) ->
+    Printf.fprintf oc "%s %s\n" (match kind with
+      FILE -> "REG"
+    | DIR -> "DIR"
+    | VERSION -> "VER"
+    | WARNING -> "WAR"
+    | TYPE -> "TYP"
+    | PACK -> "PCK"
+    ) (String.escaped file);
+  ) !log;
+  close_out oc

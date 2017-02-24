@@ -19,6 +19,7 @@ open BuildEngineGlobals
 
 open BuildOCamlTypes
 open BuildOCPTypes (* for dep_link *)
+open BuildUninstall.TYPES
 
 (* TODO:
   When installing, we should accept the option -sanitize, to clean everything
@@ -57,24 +58,6 @@ type install_what = {
   install_asm_lib : bool;
 }
 
-  (*
-type package_uninstaller = {
-  mutable un_nfiles : int;
-  mutable un_ndirs : int;
-  mutable un_version : string;
-  mutable un_name : string;
-  mutable un_descr : string;
-  mutable un_warning : string option;
-  mutable un_directory : string;
-  mutable un_type : string;
-  mutable un_packages : string list;
-}
-  *)
-
-type kind = DIR | FILE | VERSION | WARNING | TYPE | PACK
-
-(* type log = (kind * string) list *)
-
 module List = struct
   include List
 
@@ -87,11 +70,6 @@ module List = struct
         split_after t1 t2
       else
         None
-
-(*
-  let starts_with l1 l2 =
-    (split_after l1 l2) <> None
-*)
 end
 
 
@@ -113,23 +91,6 @@ let split_dir dir =
       | _ -> iter (pos+1) pos0 path dir len
   in
   iter 0 0 [] dir (String.length dir)
-
-(*
-let string_of_kind = function
-| CMI -> "CMI"
-| CMO -> "CMO"
-| CMX -> "CMX"
-| CMXS -> "CMXS"
-| CMA -> "CMA"
-| CMXA -> "CMXA"
-| CMXA_A -> "CMXA_A"
-| C_A -> "C_A"
-| RUN_BYTE -> "RUN_BYTE"
-| RUN_ASM -> "RUN_ASM"
-*)
-
-let add_log log kind name =
-  log := (kind, name) :: !log
 
 let in_destdir where file =
   match where.install_destdir with
@@ -156,7 +117,7 @@ let rec safe_mkdir where log filename =
     | "." | ".." -> ()
     | _ ->
       MinUnix.mkdir filename_d 0o755;
-      add_log log DIR filename
+      BuildUninstall.add_un_field log DIR filename
 
 (* [dst] must be the target file name, not the name of its directory *)
 let rec copy_rec where log src dst =
@@ -170,7 +131,7 @@ let rec copy_rec where log src dst =
       copy_rec where log (Filename.concat src basename)
         (Filename.concat dst basename)) src
   | MinUnix.S_REG ->
-    add_log log FILE dst;
+    BuildUninstall.add_un_field log FILE dst;
     FileString.copy_file src dst_d;
     MinUnix.chmod dst_d st.MinUnix.st_perm
   | _ ->
@@ -187,26 +148,49 @@ let copy_file where log src_file dst_file =
   installed, to check that all libraries have also their dependencies
   loaded. *)
 
-(* This function should be replaced by a translation towards
- the uninstaller type, and then use a common function to save
-   that type from BuildUninstall *)
+let install_meta log where installdir meta lib =
 
-let save_uninstall_log uninstall_file log =
-  let oc = open_out uninstall_file in
-  Printf.fprintf oc "OCP 1\n";
-  List.iter (fun (kind, file) ->
-    Printf.fprintf oc "%s %s\n" (match kind with
-      FILE -> "REG"
-    | DIR -> "DIR"
-    | VERSION -> "VER"
-    | WARNING -> "WAR"
-    | TYPE -> "TYP"
-    | PACK -> "PCK"
-    ) (String.escaped file);
-  ) log;
-  close_out oc
+      (* What kind of META file do we create ? *)
+  let topdir_list = split_dir (Filename.dirname installdir) in
+  let ocamlfind_path = List.map split_dir where.install_ocamlfind in
 
+  Printf.fprintf stderr "\n%!";
+  let meta_files =
+    if List.mem topdir_list ocamlfind_path then
+      [Filename.concat installdir "META"]
+    else
+      let ocamllib = split_dir where.install_ocamllib in
+      let installdir_list = split_dir installdir in
+      match List.split_after installdir_list ocamllib with
+      | None ->
+        meta.meta_directory <- Some installdir;
+        []
+      | Some subdir ->
+        meta.meta_directory <- Some ("^" ^ String.concat "/" subdir);
+        []
+  in
+  let rec iter meta_files =
+    match meta_files with
+      [] ->
+        Printf.eprintf "Warning: could not write the META file\n%!"
 
+    | meta_file :: meta_files ->
+      try
+            (*            Printf.eprintf "CHECK %S\n%!" meta_file; *)
+        let meta_file_d = in_destdir where meta_file in
+        safe_mkdir where log (Filename.dirname meta_file);
+        MetaFile.create_meta_file meta_file_d meta;
+        BuildUninstall.add_un_field log FILE meta_file;
+        Printf.eprintf "Generated META file %s\n%!" meta_file;
+      with _ -> iter meta_files
+  in
+  iter (if meta_files = [] then
+      let meta_basename = Printf.sprintf "META.%s" lib.lib.lib_name in
+      List.map (fun dirname ->
+        Filename.concat dirname meta_basename
+      ) (where.install_ocamlfind @ [ where.install_ocamllib ])
+    else meta_files);
+  ()
 
 let install where what lib installdir =
   match BuildOCamlGlobals.get_by_id lib with
@@ -214,31 +198,31 @@ let install where what lib installdir =
   | Some lib ->
     let opk = lib.lib_opk in
     Printf.eprintf "Installing %S in %S\n%!" lib.lib.lib_name installdir;
-    let log = ref [] in
+    let log = BuildUninstall.create_un () in
     let uninstall_file = Filename.concat installdir
       (Printf.sprintf "%s.uninstall" lib.lib.lib_name) in
     let save_uninstall warning =
-      let log = !log in
-      let log =
-        (VERSION, opk.opk_version) ::
-          (TYPE, BuildOCP.string_of_package_type lib.lib.lib_type) ::
-          log in
-      let log = match warning with
-          None -> log
-        | Some warning -> (WARNING, warning) :: log
-      in
+      BuildUninstall.add_un_field log VERSION opk.opk_version;
+      BuildUninstall.add_un_field log TYPE
+        (BuildOCP.string_of_package_type lib.lib.lib_type);
+      begin match warning with
+          None -> ()
+        | Some warning ->
+          BuildUninstall.add_un_field log WARNING warning
+      end;
       let uninstall_file_d = in_destdir where uninstall_file in
-      save_uninstall_log uninstall_file_d log
+      BuildUninstall.save_un uninstall_file_d log
     in
     try
       let installbin = where.install_bindir in
       let installdir_d = in_destdir where installdir in
       if not (Sys.file_exists installdir_d) then
         safe_mkdir where log installdir;
-      add_log log FILE uninstall_file;
+      BuildUninstall.add_un_field log FILE uninstall_file;
 
       let bundle = lib.lib.lib_bundles in
-      List.iter (fun pk -> add_log log PACK pk.lib_name) bundle;
+      List.iter (fun pk ->
+        BuildUninstall.add_un_field log PACK pk.lib_name) bundle;
 
     (* Do the installation *)
       let meta = MetaFile.empty () in
@@ -256,38 +240,30 @@ let install where what lib installdir =
         let dst_file =
           match kind with
 
-          | CMI when
-              what.install_asm_lib || what.install_byte_lib ->
+          | CMI when what.install_asm_lib || what.install_byte_lib ->
             Some (Filename.concat installdir file.file_basename)
-          | C_A when
-              what.install_asm_lib || what.install_byte_lib ->
+          | C_A when what.install_asm_lib || what.install_byte_lib ->
             Some (Filename.concat installdir file.file_basename)
-          | CMO when
-              what.install_byte_lib ->
+          | CMO when what.install_byte_lib ->
             Some (Filename.concat installdir file.file_basename)
           | CMX
-          | CMXA_A when
-              what.install_asm_lib ->
+          | CMXA_A when what.install_asm_lib ->
             Some (Filename.concat installdir file.file_basename)
-          | CMA when
-              what.install_byte_lib ->
+          | CMA when what.install_byte_lib ->
             MetaFile.add_archive meta [ "byte", true ] [ file.file_basename ];
-                meta.meta_exists_if <- file.file_basename::
-                  meta.meta_exists_if;
-                Some (Filename.concat installdir file.file_basename)
-          | CMXA when
-              what.install_asm_lib ->
-            MetaFile.add_archive meta [ "native", true ] [ file.file_basename ];
-                Some (Filename.concat installdir file.file_basename)
-          | CMXS when
-              what.install_asm_lib ->
+            MetaFile.add_plugin meta [ "byte", true ] [ file.file_basename ];
+            meta.meta_exists_if <- file.file_basename :: meta.meta_exists_if;
             Some (Filename.concat installdir file.file_basename)
-          | RUN_ASM when
-              what.install_asm_bin ->
+          | CMXA when what.install_asm_lib ->
+            MetaFile.add_archive meta [ "native", true ] [ file.file_basename ];
+            Some (Filename.concat installdir file.file_basename)
+          | CMXS when what.install_asm_lib ->
+            MetaFile.add_plugin meta [ "native", true ] [ file.file_basename ];
+            Some (Filename.concat installdir file.file_basename)
+          | RUN_ASM when  what.install_asm_bin ->
             Some (Filename.concat installbin
                     (Filename.chop_suffix file.file_basename ".asm"))
-          | RUN_BYTE when
-              what.install_byte_bin ->
+          | RUN_BYTE when what.install_byte_bin ->
             Some (Filename.concat installbin file.file_basename)
 
           | RUN_BYTE
@@ -358,46 +334,7 @@ let install where what lib installdir =
       )
         (BuildValue.get_strings_with_default [lib.lib_opk.opk_options] "bin_files" []);
 
-    (* What kind of META file do we create ? *)
-      let topdir_list = split_dir (Filename.dirname installdir) in
-      let ocamlfind_path = List.map split_dir where.install_ocamlfind in
-
-      Printf.fprintf stderr "\n%!";
-      let meta_files =
-        if List.mem topdir_list ocamlfind_path then
-          [Filename.concat installdir "META"]
-        else
-          let ocamllib = split_dir where.install_ocamllib in
-          let installdir_list = split_dir installdir in
-          match List.split_after installdir_list ocamllib with
-          | None ->
-            meta.meta_directory <- Some installdir;
-            []
-          | Some subdir ->
-            meta.meta_directory <- Some ("^" ^ String.concat "/" subdir);
-            []
-      in
-      let rec iter meta_files =
-        match meta_files with
-          [] ->
-            Printf.eprintf "Warning: could not write the META file\n%!"
-
-        | meta_file :: meta_files ->
-          try
-            (*            Printf.eprintf "CHECK %S\n%!" meta_file; *)
-            let meta_file_d = in_destdir where meta_file in
-            safe_mkdir where log (Filename.dirname meta_file);
-            MetaFile.create_meta_file meta_file_d meta;
-            add_log log FILE meta_file;
-            Printf.eprintf "Generated META file %s\n%!" meta_file;
-          with _ -> iter meta_files
-      in
-      iter (if meta_files = [] then
-          let meta_basename = Printf.sprintf "META.%s" lib.lib.lib_name in
-          List.map (fun dirname ->
-            Filename.concat dirname meta_basename
-          ) (where.install_ocamlfind @ [ where.install_ocamllib ])
-        else meta_files);
+      install_meta log where installdir meta lib;
 
       save_uninstall None;
 

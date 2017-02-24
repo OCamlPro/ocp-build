@@ -16,7 +16,7 @@ open BuildOCamlVariables
 open BuildEngineTypes
 open BuildTypes
 open BuildOCPTypes
-open BuildValue.Types
+open BuildValue.TYPES
 
 let verbose = DebugVerbosity.verbose [ "B" ] "BuildOCamldep"
 

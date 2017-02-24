@@ -45,7 +45,7 @@ open BuildEngineGlobals
 open BuildEngineContext
 open BuildEngineRules
 
-open BuildValue.Types
+open BuildValue.TYPES
 
 open BuildTypes
 open BuildGlobals
@@ -644,7 +644,15 @@ let add_cmxs2cmxa_rule b lib cclib cmi_files cmx_files cmxo_files stubs_files =
   let cmxs_file = add_dst_file b dst_dir basename_cmxs in
   let a_file = add_dst_file b dst_dir basename_a in
 
-  if not lib.lib_installed then begin
+  let new_asmlink_deps = [ cmxa_file; a_file ] in
+  let new_asm_targets = [
+    cmxa_file, CMXA;
+    a_file, CMXA_A;
+  ] in
+  let new_asm_targets =
+    if lib.lib_installed then
+      new_asm_targets
+    else
 
     (* Build the cmxa *)
     let temp_cmxa = add_temp_file b src_dir basename_cmxa in
@@ -668,40 +676,51 @@ let add_cmxs2cmxa_rule b lib cclib cmi_files cmx_files cmxo_files stubs_files =
 
     end;
 
-    add_more_rule_sources lib r [ ocamlopt_deps; asmlink_deps; link_deps ] options;
+    add_more_rule_sources lib r
+      [ ocamlopt_deps; asmlink_deps; link_deps ] options;
     add_rule_sources r cmx_files;
     add_rule_sources r cmxo_files;
     add_rule_sources r cmi_files;
 
-    if cmxs_plugin.get options then begin
+    let new_asm_targets =
+      if cmxs_plugin.get options then begin
 
-      let temp_cmxs = add_temp_file b src_dir basename_cmxs in
+        let temp_cmxs = add_temp_file b src_dir basename_cmxs in
 
-      let cmd = new_command (ocamlopt_cmd.get options ) (asmlinkflags lib) in
-      add_command_args cmd [S "-shared"; S "-I"; S lib.lib.lib_dst_dir.dir_fullname; S "-o"; BF temp_cmxs ];
-      if cclib <> "" then add_command_strings cmd ["-cclib"; cclib];
-      if force_link_option.get options then
-        add_command_strings cmd [ "-linkall" ];
+        let cmd = new_command (ocamlopt_cmd.get options ) (asmlinkflags lib) in
+        add_command_args cmd [S "-shared"; S "-I";
+                              S lib.lib.lib_dst_dir.dir_fullname;
+                              S "-o"; BF temp_cmxs ];
+        if cclib <> "" then add_command_strings cmd ["-cclib"; cclib];
+        if force_link_option.get options then
+          add_command_strings cmd [ "-linkall" ];
 
-      let cmd = add_files_to_link_to_command "cmxs lib" cmd options cmx_files in
-(*      add_command_args cmd [BF temp_cmxa]; *)
+        let cmd = add_files_to_link_to_command "cmxs lib"
+          cmd options cmx_files in
+        (*      add_command_args cmd [BF temp_cmxa]; *)
 
-      add_rule_command r cmd;
-      add_rule_target r cmxs_file;
-      add_rule_temporaries r [ temp_cmxs ];
-      add_more_rule_sources lib r [ ocamlopt_deps; asmlink_deps; link_deps ] options;
-      add_rule_sources r stubs_files; (* TODO: as we introduce this new dependency, we might want to
-       split generation of .cmxa from .cmxs to be able to do them in parallel *)
-      cross_move r [
-   F temp_cmxs.file_file, F cmxs_file.file_file;
-      ];
-    end;
+        add_rule_command r cmd;
+        add_rule_target r cmxs_file;
+        add_rule_temporaries r [ temp_cmxs ];
+        add_more_rule_sources lib r
+          [ ocamlopt_deps; asmlink_deps; link_deps ] options;
+        add_rule_sources r stubs_files;
+      (* TODO: as we introduce this new dependency, we might want to
+         split generation of .cmxa from .cmxs to be able to do them in
+         parallel *)
+        cross_move r [
+          F temp_cmxs.file_file, F cmxs_file.file_file;
+        ];
+        (cmxs_file, CMXS) :: new_asm_targets
+      end
+      else new_asm_targets
+    in
     cross_move r [ F temp_cmxa.file_file, F cmxa_file.file_file;
-         F temp_a.file_file, F a_file.file_file;
+                   F temp_a.file_file, F a_file.file_file;
                  ];
-
-  end;
-  (cmxa_file, a_file)
+    new_asm_targets
+  in
+  (new_asmlink_deps, new_asm_targets)
 
 
 
@@ -2209,14 +2228,15 @@ let add_library w b lib =
 
   if  asm_option.get envs &&
     !(ptmp.cmx_files) <> [] then begin
-    let (cmxa_file, a_file) =
-      add_cmxs2cmxa_rule b lib cclib !(ptmp.cmi_files) !(ptmp.cmx_files) !(ptmp.cmxo_files) stubs_files in
+    let (asmlink_deps, asm_targets) =
+      add_cmxs2cmxa_rule b lib cclib !(ptmp.cmi_files)
+        !(ptmp.cmx_files) !(ptmp.cmxo_files) stubs_files in
     lib.lib_asm_targets <-
-      (cmxa_file, CMXA) :: (a_file, CMXA_A) ::
+      asm_targets @
       (List.map (fun s -> (s, CMI)) !(ptmp.cmi_files) ) @
       (List.map (fun s -> (s, CMX)) !(ptmp.cmx_files) ) @
       lib.lib_asm_targets;
-    lib.lib_asmlink_deps <- cmxa_file :: a_file :: lib.lib_asmlink_deps;
+    lib.lib_asmlink_deps <- asmlink_deps @ lib.lib_asmlink_deps;
     lib.lib_asm_cmx_objects <- !(ptmp.cmx_files) @ lib.lib_asm_cmx_objects;
     lib.lib_asm_cmxo_objects <- !(ptmp.cmxo_files) @ lib.lib_asm_cmxo_objects;
   end;

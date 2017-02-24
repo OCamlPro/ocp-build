@@ -11,7 +11,7 @@
 (**************************************************************************)
 
 open StringCompat
-open BuildValue.Types
+open BuildValue.TYPES
 open BuildOCP2Tree
 
 module Eval(S: sig
@@ -50,10 +50,10 @@ module Eval(S: sig
  val add_primitive :
            string ->
            string list ->
-           (BuildValue.Types.location ->
+           (BuildValue.TYPES.location ->
             S.context ->
-            BuildValue.Types.config ->
-            BuildValue.Types.value list -> BuildValue.Types.value) ->
+            BuildValue.TYPES.config ->
+            BuildValue.TYPES.value list -> BuildValue.TYPES.value) ->
            unit
 
 end

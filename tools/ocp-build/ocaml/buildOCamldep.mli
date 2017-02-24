@@ -17,13 +17,13 @@ val load_dependencies : string -> (string * string list list) list
 (* [load_modules_dependencies filename] returns a list of association between
  a target and a list of filenames, its dependencies. *)
 val load_modules_dependencies :
-  BuildOCamlTypes.ocaml_package -> BuildValue.Types.env ->
+  BuildOCamlTypes.ocaml_package -> BuildValue.TYPES.env ->
   BuildOCamlTypes.force_kind ->
   BuildEngineTypes.build_directory -> string list -> (* needs_odoc *) bool ->
   string -> (string * string list list) list
 
 
-val modname_of_file : BuildValue.Types.env list ->
+val modname_of_file : BuildValue.TYPES.env list ->
   BuildOCamlTypes.force_kind ->
   string -> bool * string * string
 

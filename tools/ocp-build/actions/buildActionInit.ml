@@ -21,7 +21,7 @@ open BuildTerm (* Terminal functions *)
 open BuildOptions (* cin_... *)
 open BuildOCamlConfig.TYPES
 open BuildOCPTypes
-open BuildValue.Types
+open BuildValue.TYPES
 open BuildActions
 open BuildTypes
 
