@@ -54,6 +54,7 @@ open BuildOCamlConfig
 open BuildOCamlTypes
 open BuildOCamlVariables
 open BuildOCamlMisc
+open BuildOCamlInstall.TYPES
 
 let comp_deps w lib options =
   let options = [ options; lib.lib_opk.opk_options ] in
@@ -1407,7 +1408,6 @@ let create_ml_file_if_needed b lib mut_dir options ml_file =
 
     let tmp_ml = add_file b mut_dir ml_file.file_basename in
     let tmp_ml_file = tmp_ml.file_file in
-
 (* generate file in a buffer *)
     let b = Buffer.create 1000 in
     let opk = lib.lib_opk in
@@ -1442,7 +1442,8 @@ let create_ml_file_if_needed b lib mut_dir options ml_file =
     Printf.bprintf b "let requires = [\n";
     List.iter (fun dep ->
       let lib = dep.dep_project in
-        Printf.bprintf b "   %S, %S;\n" lib.lib.lib_name opk.opk_version;
+      Printf.bprintf b "   %S, %S;\n" lib.lib.lib_name
+        lib.lib_opk.opk_version;
     ) lib.lib_requires;
     Printf.bprintf b "  ]\n";
 
@@ -2875,6 +2876,8 @@ let create w cin cout bc state =
         lazy (BuildOCamlInstall.find_installdir
                 install_where name)
 
+      (* where to look for previously installed packages *)
+      let install_dirs () = install_where.install_libdirs
 
       let test () = assert false
 
@@ -2886,6 +2889,7 @@ let create w cin cout bc state =
 
       let pre_installed () = lib.lib_installed
 
+      let to_install () = lib.lib_install
 
       let install () =
         if lib.lib_install then

@@ -1,0 +1,114 @@
+
+\section{Using a simple preprocessor with {\tt -pp}}
+
+Here is a typical example of using an installed preprocessor:
+
+\begin{verbatim}
+begin library "my_lib"
+  files = [ "foo.ml" (pp = "camlp4o") ]
+  requires = [ "camlp4o" ]
+end
+\end{verbatim}
+
+Note that the \verb+camlp4o+ package should be defined as a program,
+not a library to avoid linking.
+
+\subsection{Using a preprocessor built in the same project}
+
+Here is an example where the preprocessor is built in the same project:
+
+\begin{verbatim}
+begin library "my_lib"
+  ocp_pp =  "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte"
+  files = [ "foo.ml" (pp = ocp_pp)
+            "bar.ml" ]
+  requires = [ "ocp-pp" ]
+  pp_requires = [ "ocp-pp:byte" ]
+end
+\end{verbatim}
+
+or alternatively:
+
+\begin{verbatim}
+begin library "my_lib"
+  ocp_pp =  "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte"
+  files = [ "foo.ml" (pp = ocp_pp
+                      pp_deps = [ ocp_pp ]  )
+            "bar.ml"
+  ]
+  requires = [ "ocp-pp" ]
+end
+\end{verbatim}
+
+The name of the preprocessor \verb|%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte|:
+tells \ocpbuild{} that it should find the preprocessor as \verb|ocp-pp.byte|
+in the result directory of \verb|ocp-pp|. The package of the preprocessor
+itself should appear in the \verb|requires|.
+
+The other options are:
+\begin{itemize}
+\item \verb|pp| builds the content of the \verb|-pp| option of OCaml. It
+  is either a string with the executable to be used, or a list of strings,
+  for the executable and its arguments, i.e. \verb|"prepro option"| will
+  trigger an error and should be replaced by \verb|[ "prepro" "option"|.
+\item \verb|pp_deps| is a list of files that should be built before running
+  the preprocessor. Note that you should use \verb|%{package_FULL_DST_DIR}%|
+  substitutions if the dependencies are built in the same project.
+\item \verb|pp_requires| is a list of dependencies, but specified as
+  package outputs, i.e. \verb|"package:kind"| where \verb|kind| is either
+  \verb|byte| or \verb|asm|.
+\end{itemize}
+
+These options can be specified either at the package level (they will apply
+to all files) or at the file level.
+
+Here is another example, where the interface file \verb|foo.mli| is
+specified separately to prevent the preprocessor from being called on it:
+\begin{verbatim}
+begin library "my_lib"
+  ocp_pp =  "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte"
+  files = [ "foo.mli"
+            "foo.ml" (pp = ocp_pp
+                      pp_deps = [ ocp_pp ]  )
+            "bar.ml"
+  ]
+  requires = [ "ocp-pp" ]
+end
+\end{verbatim}
+ 
+\section{Defining a syntax package}
+
+It is also possible to define a package as a \verb|syntax|, so that
+it can be used in other packages.
+
+First, let's define a syntax package for the \verb|js_of_ocaml| Camlp4 syntax:
+
+\begin{verbatim}
+begin (* begin..end to limit the scope of generated=true *)
+  generated = true   (* the following packages are already installed *)
+  (* the following packages are installed in this directory: *)
+  dirname = [ "%{js_of_ocaml.syntax_SRC_DIR}%" ]
+  begin objects "js_of_ocaml.camlp4-syntax.objects"
+    files = [ "pa_js.ml" ] (* we want ps_js.cmo to be linked by camlp4o *)
+  end
+  begin syntax (* this package is a "syntax" *)
+      "js_of_ocaml.camlp4-syntax" (* the name used for that syntax *)
+    (* we need "camlp4o" to be used, just with the previous package *)
+    requires = [ "js_of_ocaml.camlp4-syntax.objects" "camlp4o" ]
+  end
+end
+\end{verbatim}
+
+Now, we can use it in one of our packages:
+
+\begin{verbatim}
+begin library "my-jslib"
+  has_asm = false (* no need to build a native version *)
+  syntax = "js_of_ocaml.camlp4-syntax" (* the syntax to be used ! *)
+  files = [ "utils.ml" ]
+  (* we need both the syntax and the library: *)
+  requires = [ "js_of_ocaml.camlp4-syntax" "js_of_ocaml" ]
+end
+
+\end{verbatim}
+

@@ -143,7 +143,7 @@ let ocaml_add name v =
     BuildValue.set_global "OCaml" (VObject (BuildValue.set env name v))
   | _ -> assert false
 
-
+let install_META = BuildValue.new_bool_option "install_META" true
 
   (* not implemented *)
 

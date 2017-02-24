@@ -174,6 +174,14 @@ type open_flag =
   | O_SYNC
   | O_RSYNC
   | O_SHARE_DELETE
+#if OCAML_VERSION >= "4.05"
+  | O_CLOEXEC                   (** Set the close-on-exec flag on the
+                                   descriptor returned by {!openfile}.
+                                   See {!set_close_on_exec} for more
+                                   information. *)
+  | O_KEEPEXEC                  (** Clear the close-on-exec flag.
+                                    This is currently the default. *)
+#endif
 
 type file_perm = int
 

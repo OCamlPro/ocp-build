@@ -297,6 +297,7 @@ let travis_versions = SimpleConfig.create_option config
       "4.01.0";
       "4.02.3";
       "4.03.0";
+      "4.04.0";
     ]
 
 (* If the file does not exist, here is the version it should start with *)

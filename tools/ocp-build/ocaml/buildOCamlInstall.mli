@@ -10,6 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+module TYPES : sig
+
 type install_where = {
   install_destdir : string option;
 
@@ -27,7 +29,8 @@ type install_what = {
   install_byte_lib : bool;
   install_asm_lib : bool;
 }
-
+end
+open TYPES
 
 val install :
   install_where ->

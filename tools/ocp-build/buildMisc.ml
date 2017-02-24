@@ -90,40 +90,6 @@ end = struct
   open MinUnix
   type error_handler = exn -> unit
 
-(* move to OcpString.rev
-  let string_rev s =
-    let len = String.length s in
-    let ss = Bytes.create len in
-    let lenMinus1 = len-1 in
-    for i = 0 to len-1 do
-      ss.[i] <- s.[lenMinus1-i];
-    done;
-    ss
-*)
-
-    (*
-(* This is supposed to be implemented as Filename.quote ? Verify ! *)
-  let win_buf_escape_argument b arg =
-    let len = String.length arg in
-    Buffer.add_char b '"';
-    let rec iter escaped b s pos =
-      if pos > 0 then
-        let pos = pos-1 in
-        let c = s.[pos] in
-        match c, escaped with
-        | '"', _
-        | '\\', true ->
-          Buffer.add_char b c;
-          Buffer.add_char b '\\'; (* after, because we reverse afterwards ! *)
-          iter true b s pos
-        | _ ->
-          Buffer.add_char b c;
-          iter false b s pos
-    in
-    iter true b arg len;
-    Buffer.add_char b '"'
-    *)
-
       (*
   let win_cmdline_of_args args =
     let b = Buffer.create 100 in
@@ -268,13 +234,18 @@ let create_process cmd maybe_chdir stdin stdout stderr =
     in
 
     try
-      let pid = MinUnix2.create_process error_handler cmd (Array.of_list (cmd :: args)) maybe_chdir
+      let pid = MinUnix2.create_process error_handler cmd
+        (Array.of_list (cmd :: args)) maybe_chdir
         stdin_fd stdout_fd stderr_fd in
       (match stdin with None -> () | Some _ -> MinUnix.close stdin_fd);
       (match stdout with None -> () | Some _ -> MinUnix.close stdout_fd);
       (match stderr with None -> () | Some _ -> MinUnix.close stderr_fd);
       `PID pid
-    with exn -> `EXN exn
+    with exn ->
+      (match stdin with None -> () | Some _ -> MinUnix.close stdin_fd);
+      (match stdout with None -> () | Some _ -> MinUnix.close stdout_fd);
+      (match stderr with None -> () | Some _ -> MinUnix.close stderr_fd);
+      `EXN exn
 
 let wait_command pid =
   try
