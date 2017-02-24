@@ -27,6 +27,7 @@ type meta = {
 
   mutable meta_requires : string list var StringMap.t;
   mutable meta_archive : string list var StringMap.t;
+  mutable meta_plugin : string list var StringMap.t;
   mutable meta_error : string var StringMap.t;
 
   mutable meta_package : (string * meta) list;

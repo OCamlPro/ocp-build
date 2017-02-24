@@ -38,7 +38,8 @@ open BuildOptions
 open BuildArgs
 open BuildTerm
 open BuildActions
-open BuildValue.Types
+open BuildValue.TYPES
+open BuildUninstall.TYPES
 
 open StdlibArg
 
@@ -66,7 +67,6 @@ let make_doc_targets = ref false
 let make_test_targets = ref false
 
 let print_installed install_where =
-  let open BuildUninstall in
   Printf.printf "Installed packages:\n";
   List.iter (fun un ->
     Printf.printf "\t%s . %s (%s)\n%!"

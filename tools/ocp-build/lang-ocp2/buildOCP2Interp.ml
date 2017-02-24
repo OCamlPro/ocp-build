@@ -11,7 +11,7 @@
 (**************************************************************************)
 
 open StringCompat
-open BuildValue.Types
+open BuildValue.TYPES
 open BuildOCP2Tree
 open BuildOCP2Prims
 
@@ -50,7 +50,7 @@ let read_config_file filename =
 
 (* Before this line is exactly the same as in BuildOCPInterp.ml *)
 
-exception OCPReturn of BuildValue.Types.value
+exception OCPReturn of BuildValue.TYPES.value
 
 let rec eval_statement ctx config stmt =
   let loc = stmt.stmt_loc in

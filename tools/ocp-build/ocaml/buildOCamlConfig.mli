@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open BuildValue.Types
+open BuildValue.TYPES
 
 (* These values are modified by reading the configuration *)
 val ocamlc_cmd : string list source_option

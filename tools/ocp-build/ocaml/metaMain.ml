@@ -45,6 +45,8 @@ let rec print indent m =
   print_vars indent m.meta_requires;
   Printf.printf "%s  meta_archive =\n" indent;
   print_vars indent m.meta_archive;
+  Printf.printf "%s  meta_plugin =\n" indent;
+  print_vars indent m.meta_plugin;
   Printf.printf "%s  meta_error =\n" indent;
 (*  print_vars indent m.meta_error; *)
 

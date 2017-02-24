@@ -13,7 +13,7 @@
 open StringCompat
 open BuildOCPTypes
 open BuildOCamlTypes
-open BuildValue.Types
+open BuildValue.TYPES
 
 let verbose = DebugVerbosity.verbose [ "B"; "BP" ] "BuildOCamlPackage"
 

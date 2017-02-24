@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open BuildValue.Types
+open BuildValue.TYPES
 
 
 (* is this file an implementation source ? *)

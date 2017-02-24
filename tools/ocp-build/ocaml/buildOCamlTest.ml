@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open BuildValue.Types
+open BuildValue.TYPES
 open BuildEngineTypes
 open BuildTypes
 

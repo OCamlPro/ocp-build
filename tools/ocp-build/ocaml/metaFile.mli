@@ -16,6 +16,7 @@ val empty : unit -> MetaTypes.meta
 val create_meta_file : string -> MetaTypes.meta -> unit
 val add_requires : MetaTypes.meta -> (string * bool) list -> string list -> unit
 val add_archive : MetaTypes.meta -> (string * bool) list -> string list -> unit
+val add_plugin : MetaTypes.meta -> (string * bool) list -> string list -> unit
 val split_simplify : string -> string list
 
 val meta_of_package : MetaTypes.meta_package -> MetaTypes.meta

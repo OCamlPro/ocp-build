@@ -33,7 +33,7 @@ let _ =
     let arg = Sys.argv.(i) in
     let state = { unit = () } in
     let config = BuildValue.empty_config () in
-    let ( _ : BuildValue.Types.config) =
+    let ( _ : BuildValue.TYPES.config) =
       EvalOCP2.read_ocamlconf arg state config in
     ()
   done

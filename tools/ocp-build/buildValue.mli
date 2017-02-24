@@ -12,7 +12,7 @@
 
 open StringCompat
 
-module Types : sig
+module TYPES : sig
 
   type location = {
     loc_begin : Lexing.position;
@@ -54,7 +54,7 @@ module Types : sig
 
 end
 
-open Types
+open TYPES
 
 val string_of_value : value -> string
 val string_of_env : env -> string
@@ -138,4 +138,4 @@ val unit : value
 val noloc : string -> location
 val string_of_location : location -> string
 
-val set_deep_field : Types.env -> string list -> Types.value -> Types.env
+val set_deep_field : TYPES.env -> string list -> TYPES.value -> TYPES.env

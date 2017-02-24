@@ -27,7 +27,7 @@ type 'a package_dependency = 'a BuildOCPTypes.package_dependency =
       mutable dep_link : bool;
       mutable dep_syntax : bool;
       mutable dep_optional : bool;
-      dep_options : BuildValue.Types.env;
+      dep_options : BuildValue.TYPES.env;
     }
 
       (*

@@ -60,7 +60,7 @@ end
 open BuildMisc
 open BuildEngineTypes
 open BuildEngineRules
-open BuildValue.Types
+open BuildValue.TYPES
 open BuildTypes
 open BuildOCamlTypes
 open BuildOCamlVariables

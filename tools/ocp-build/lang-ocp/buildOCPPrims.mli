@@ -11,7 +11,7 @@
 (**************************************************************************)
 
 open StringCompat
-open BuildValue.Types
+open BuildValue.TYPES
 open BuildOCPTree
 
 module Init(S: sig

@@ -19,7 +19,7 @@ val get_pp :
    BuildWarnings.set ->
   BuildOCamlTypes.ocaml_package ->
   string -> (* source basename *)
-  BuildValue.Types.env ->
+  BuildValue.TYPES.env ->
   BuildOCamlTypes.pp
 
 

@@ -15,7 +15,7 @@
 (* Precedence of operators is the same as in Javascript !! *)
 
   open StringCompat
-  open BuildValue.Types
+  open BuildValue.TYPES
 open BuildOCP2Tree
 
 let symb_loc () =

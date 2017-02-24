@@ -76,8 +76,8 @@ type ocaml_package = {
   mutable lib_includes : string list option;
   mutable lib_linkdeps : ocaml_package list;
 
-  mutable lib_sources : BuildValue.Types.prop_list;
-  mutable lib_tests : BuildValue.Types.prop_list;
+  mutable lib_sources : BuildValue.TYPES.prop_list;
+  mutable lib_tests : BuildValue.TYPES.prop_list;
   mutable lib_archive : string;
   mutable lib_stubarchive : string;
 
@@ -93,7 +93,7 @@ type ocaml_package = {
 and ocaml_description = {
   opk_name : string;
   opk_package : unit BuildOCPTypes.package;
-  mutable opk_options : BuildValue.Types.env;
+  mutable opk_options : BuildValue.TYPES.env;
   opk_dirname : string;
   mutable opk_version : string;
   opk_kind : package_type;

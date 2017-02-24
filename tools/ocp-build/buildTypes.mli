@@ -30,7 +30,7 @@ type 'a package_dependency = 'a BuildOCPTypes.package_dependency =
       mutable dep_link : bool;
       mutable dep_syntax : bool;
       mutable dep_optional : bool;
-      dep_options : BuildValue.Types.env;
+      dep_options : BuildValue.TYPES.env;
     }
 
 type package_info = {
@@ -40,7 +40,7 @@ type package_info = {
   lib_builder_context : builder_context;
 
   lib_loc : string * int * string;
-  (*  mutable lib_options : BuildValue.Types.env; *)
+  (*  mutable lib_options : BuildValue.TYPES.env; *)
 
   (*  mutable lib_version : string; *)
   mutable lib_dirname : File.t;

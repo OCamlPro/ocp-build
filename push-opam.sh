@@ -13,7 +13,7 @@
 VERSION=${PACKAGE_VERSION}
 PACKAGE=${PACKAGE_NAME}
 
-SUBPACKAGES="ocp-build ocp-pp ocp-autoconf ocplib-compat ocplib-file ocplib-config ocplib-lang"
+SUBPACKAGES="ocp-pp ocp-autoconf ocplib-compat ocplib-file ocplib-config ocplib-lang"
 
 (cd ${OPAM_REPO} && git checkout master && git pull ${OPAM_REPO_OFFICIAL_REMOTE} master)
 

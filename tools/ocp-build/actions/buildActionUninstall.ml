@@ -19,7 +19,7 @@ open StringCompat
 open BuildArgs
 
 open BuildGlobals
-open BuildUninstall (* for package_uninstaller fields *)
+open BuildUninstall.TYPES (* for package_uninstaller fields *)
 
 
 (* TODO:
@@ -105,7 +105,8 @@ let action () =
         let packages = BuildUninstall.list_installed state in
         Printf.printf "Found %d packages that can be uninstalled\n%!" (List.length packages);
         List.iter (fun un ->
-            Printf.printf "* %s version %s type %s dir %s\n%!" un.un_name un.un_version un.un_type un.un_directory;
+          Printf.printf "* %s version %s type %s dir %s\n%!"
+            un.un_name un.un_version un.un_type un.un_directory;
           ) packages
     end
 

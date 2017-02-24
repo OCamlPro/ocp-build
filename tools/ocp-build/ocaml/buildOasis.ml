@@ -14,7 +14,7 @@ open StringCompat
 
 open BuildOCPTypes
 
-open BuildValue.Types
+open BuildValue.TYPES
 
 let find_indent line =
   let rec find_indent line i len =

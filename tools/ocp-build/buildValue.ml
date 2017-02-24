@@ -12,7 +12,7 @@
 
 open StringCompat
 
-module Types = struct
+module TYPES = struct
 
 
   type location = {
@@ -54,7 +54,7 @@ module Types = struct
 
 end
 
-open Types
+open TYPES
 
 
 
