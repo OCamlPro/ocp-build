@@ -12,8 +12,8 @@ autoconf/configure.ac d7cfdc104858974951944b26a9401b82
 autoconf/m4/ax_compare_version.m4 ebb455a7fd6a8ba9a4e38a25c8f0b686
 autoconf/m4/ocaml.m4 bffe7da970a9e23a89b611c00360f36f
 autoconf/ocaml-config.h.in 361f7d5a23b30c6c49756a9e34c2dcf9
-build.ocp 4f02c2f6cf1c5b1a3733e483151d5eb4
-build.ocp2 7576805963593d60edfda0996265efb2
+build.ocp 7ee759a4bb44c3dd8f57d0bc4782fa8d
+build.ocp2 3dfecfef7e2346259ebb54adc293b5ac
 configure 3ffc5da4b7c00140c3024342e64cc2a5
 opam 7c455f32a65e0777ff126431ff9e05f2
 push-opam.sh 963d1ccef3296188b67060b3e70732b2

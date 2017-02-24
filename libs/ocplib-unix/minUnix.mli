@@ -218,7 +218,16 @@ type open_flag =
   | O_RSYNC                     (** Reads complete as writes (depending on *)
                                    (* O_SYNC/O_DSYNC) *)
   | O_SHARE_DELETE              (** Windows only: allow the file to be deleted *)
-                                   (* while still open *)
+                                (* while still open *)
+#if OCAML_VERSION >= "4.05"
+  | O_CLOEXEC                   (** Set the close-on-exec flag on the
+                                   descriptor returned by {!openfile}.
+                                   See {!set_close_on_exec} for more
+                                   information. *)
+  | O_KEEPEXEC                  (** Clear the close-on-exec flag.
+                                    This is currently the default. *)
+#endif
+
 (** The flags to {!Unix.openfile}. *)
 
 
