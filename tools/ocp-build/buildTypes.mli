@@ -107,7 +107,8 @@ module type Package = sig
   val test : unit -> (unit -> unit) option
   val pre_installed : unit -> bool
   val install : unit -> unit
+  val to_install : unit -> bool
 
   (* Where to find the uninstaller *)
-  val install_dir : unit -> string
+  val install_dirs : unit -> string list
 end

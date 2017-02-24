@@ -1,6 +1,24 @@
 Change log
 ==========
 
+2017-02-24:
+* ocp-build install:
+  * Install .cmxs files, and add predicate "plugin" to META files
+  * New project option "install_META = true/false"
+  * Better uninstallion rules
+  * New arguments "--print-only" and "--uninstall-only"
+* ocp-build uninstall:
+  * Make "--install-lib" optional when ocamlc is detected in PATH
+  * Argument "--query" without packages list all installed packages
+  * New arguments to format "--query" output: "--format FORMAT", "--dir",
+      "--name", "--version", "--type"
+  * New arguments to display by type: "--query-program" and "--query-library"
+* ocp-autoconf:
+  * Set default version from autoconf package_version
+  * Added 4.04 to default Travis
+* user-manual:
+  * More info on preprocessing
+
 2016-12-24:
 * Use exceptions for warnings, while waiting for extensible types to be
  available in all supported OCaml versions

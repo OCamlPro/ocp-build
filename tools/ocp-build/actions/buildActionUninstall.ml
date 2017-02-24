@@ -31,8 +31,9 @@ open BuildUninstall.TYPES (* for package_uninstaller fields *)
 
 let destdir = ref None
 let scandirs = ref []
+let format = ref "$name $version ($type) $dir"
 
-type query = All | Directory | Version
+type query = All | Program | Library
 
 type action =
   | ActionList
@@ -54,22 +55,33 @@ let set_action_arg arg_name arg_action arg_help =
   (arg_name, Arg.Unit arg_action, arg_help)
 
 let arg_list = [
-  "-destdir", Arg.String (fun s ->
-      destdir := Some s),
-  "DIR Set root of installation dir";
 
-  "-install-lib", Arg.String (fun s ->
+  set_action_arg "--list" ActionList
+    " Only list installed packages";
+  set_action_arg "--query" (ActionQuery All)
+    " Query information on the following packages";
+  set_action_arg "--query-program" (ActionQuery Program)
+    " Query information on the following packages";
+  set_action_arg "--query-library" (ActionQuery Library)
+    " Query information on the following packages";
+
+  "--install-lib", Arg.String (fun s ->
       scandirs := s :: !scandirs),
   "DIR Scan directory for packages to uninstall";
+  "--format", Arg.String (fun s -> format := s),
+  "FORMAT Format for query (with $name,$version,$dir,$type)";
+  "--name", Arg.Unit (fun () -> format := "$name"),
+  " Set format to '$name'";
+  "--version", Arg.Unit (fun () -> format := "$version"),
+  " Set format to '$version'";
+  "--dir", Arg.Unit (fun () -> format := "$dir"),
+  " Set format to '$dir'";
+  "--type", Arg.Unit (fun () -> format := "$type"),
+  " Set format to '$type'";
 
-  set_action_arg "-list" ActionList
-    " Only list installed packages";
-  set_action_arg "-query" (ActionQuery All)
-    " Query information on the following packages";
-  set_action_arg "-query-dir" (ActionQuery Directory)
-    " Query directory information on the following packages";
-  set_action_arg "-query-version" (ActionQuery Version)
-    " Query information on the following packages";
+  "--destdir", Arg.String (fun s ->
+      destdir := Some s),
+  "DIR Set root of installation dir";
 ]
 
 let action () =
@@ -83,9 +95,15 @@ let action () =
         let ocamllib = Sys.getenv "OCAMLLIB" in
         scandirs := [ocamllib]
       with Not_found ->
-        Printf.eprintf
-          "Error: you MUST at least use `-install-lib DIR` once.\n%!";
-        exit 2
+        try
+          let env_PATH = BuildConfig.get_PATH () in
+          let ocamlc = BuildConfig.find_in_PATH "ocamlc" env_PATH in
+          let prefix = Filename.dirname (Filename.dirname ocamlc) in
+          scandirs := [Filename.concat prefix "lib"]
+        with Not_found ->
+          Printf.eprintf
+            "Error: you MUST at least use `-install-lib DIR` once.\n%!";
+          exit 2
   end;
 
   let targets = List.rev !targets_arg in
@@ -98,47 +116,57 @@ let action () =
     BuildUninstall.finish state;
   | Some (_,ActionList) ->
     begin match targets with
-      | name :: _ ->
-        Printf.eprintf "Error: unexpected argument %s after -list\n%!" name;
-        exit 2
-      | [] ->
-        let packages = BuildUninstall.list_installed state in
-        Printf.printf "Found %d packages that can be uninstalled\n%!" (List.length packages);
-        List.iter (fun un ->
-          Printf.printf "* %s version %s type %s dir %s\n%!"
-            un.un_name un.un_version un.un_type un.un_directory;
-          ) packages
+    | name :: _ ->
+      Printf.eprintf "Error: unexpected argument %s after -list\n%!" name;
+      exit 2
+    | [] ->
+      let packages = BuildUninstall.list_installed state in
+      Printf.printf "Found %d packages that can be uninstalled\n%!" (List.length packages);
+      List.iter (fun un ->
+        Printf.printf "* %s %s (%s) %s\n%!"
+          un.un_name un.un_version un.un_type un.un_directory;
+      ) packages
     end
 
 
   | Some (arg_name, ActionQuery query) ->
-    if targets = [] then begin
-      Printf.eprintf "Warning: %s with no package specified\n%!" arg_name;
-      exit 0
-    end;
-    let packages = BuildUninstall.list_installed state in
-    let packages =
-      let map = ref StringMap.empty in
-      List.iter (fun un ->
+    let b = Buffer.create 100 in
+    let print_target un =
+      if match query with
+      | All -> true
+      | Program -> un.un_type = "program"
+      | Library -> un.un_type = "library" then begin
+        Buffer.clear b;
+        Buffer.add_substitute b (function
+        | "name" -> un.un_name
+        | "version" -> un.un_version
+        | "type" -> un.un_type
+        | "dir" -> un.un_directory
+        | s -> "$" ^ s) !format;
+        Printf.printf "%s\n%!" (Buffer.contents b)
+      end
+        in
+      let packages = BuildUninstall.list_installed state in
+      let packages =
+        let map = ref StringMap.empty in
+        List.iter (fun un ->
           map :=  StringMap.add un.un_name un !map
         ) packages;
-      !map
-    in
-    let not_found = ref false in
-    List.iter (fun target ->
+        !map
+      in
+      if targets = [] then begin
+        StringMap.iter (fun _ un -> print_target un) packages;
+        exit 0
+      end;
+      let not_found = ref false in
+      List.iter (fun target ->
         try
           let un = StringMap.find target packages in
-          match query with
-          | All ->
-            Printf.printf "* %s version %s type %s dir %s\n%!" un.un_name un.un_version un.un_type un.un_directory
-          | Directory ->
-            Printf.printf "%s\n%!" un.un_directory
-          | Version ->
-            Printf.printf "%s\n%!" un.un_version
+          print_target un
         with Not_found ->
           Printf.eprintf "Package %S not found.\n%!" target
       ) targets;
-    if !not_found then exit 2
+      if !not_found then exit 2
 
 let subcommand = {
   sub_name = "uninstall";

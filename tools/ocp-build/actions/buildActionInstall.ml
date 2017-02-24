@@ -18,13 +18,20 @@ open BuildArgs
 open BuildTerm
 open BuildActions
 
+open BuildOCamlInstall.TYPES
+
+let uninstall_only = ref false
+let print_only = ref false
+
 let do_install bc dest_dir _install_what projects _package_map =
 
   let install_dirs = ref StringSet.empty in
   List.iter (fun p ->
-      let module P = (val p : Package) in
-      install_dirs := StringSet.add (P.install_dir()) !install_dirs;
-    ) projects;
+    let module P = (val p : Package) in
+    let list = P.install_dirs() in
+    List.iter (fun s ->
+      install_dirs := StringSet.add s !install_dirs) list;
+  ) projects;
 
   let install_dirs = StringSet.to_list !install_dirs in
 
@@ -33,34 +40,43 @@ let do_install bc dest_dir _install_what projects _package_map =
   let add_to_install p =
     let module P = (val p : Package) in
     let lib = P.info in
-    if not (StringSet.mem lib.lib_name !projects_to_install_set) then begin
+    if P.to_install () &&
+      not (StringSet.mem lib.lib_name !projects_to_install_set) then begin
       projects_to_install_set :=
         StringSet.add lib.lib_name !projects_to_install_set;
       projects_to_install_list := p :: !projects_to_install_list;
     end
-    in
+  in
 
   List.iter add_to_install projects;
 
+  if !print_only then Printf.printf "Packages to install:\n%!";
   let already_installed =
 
     let state = BuildUninstall.init dest_dir install_dirs
     in
     List.filter
       (fun p ->
-         let module P = (val p : Package) in
+        let module P = (val p : Package) in
          (*         let lib = P.info in *)
          (*         lib.lib_install && *)
-         BuildUninstall.is_installed state P.name)
+        let already_installed = BuildUninstall.is_installed state P.name in
+        if !print_only then
+          Printf.printf "  %s %s\n%!" P.name
+            (if already_installed then " (uninstall first)" else "");
+        already_installed
+      )
       !projects_to_install_list
   in
+  if !print_only then exit 0;
+
   let bold s =
     if term.esc_ansi then Printf.sprintf "\027[1m%s\027[m" s else s
   in
   if already_installed <> [] then begin
     let names =  String.concat ", " (List.map (fun p ->
-        let module P = (val p : Package) in
-        bold P.name) already_installed) in
+      let module P = (val p : Package) in
+      bold P.name) already_installed) in
     if !BuildArgs.auto_uninstall then begin
       Printf.printf "Packages %s are already installed, removing first...\n"
         names;
@@ -69,8 +85,8 @@ let do_install bc dest_dir _install_what projects _package_map =
       in
       List.iter
         (fun p ->
-           let module P = (val p : Package) in
-           BuildUninstall.uninstall state P.name
+          let module P = (val p : Package) in
+          BuildUninstall.uninstall state P.name
         )
         already_installed;
       BuildUninstall.finish state
@@ -80,16 +96,17 @@ let do_install bc dest_dir _install_what projects _package_map =
     end;
   end;
 
+  if not !uninstall_only then
 
-  let install_errors = ref 0 in
+    let install_errors = ref 0 in
     let install_ok = ref 0 in
 
     List.iter (fun p ->
-        let module P = (val p : Package) in
+      let module P = (val p : Package) in
         (*        let lib = P.info in *)
-        P.install ();
-        incr install_ok
-      )
+      P.install ();
+      incr install_ok
+    )
       !projects_to_install_list;
     if !install_errors > 0 then begin
       if !install_ok = 0 then
@@ -110,6 +127,12 @@ let arg_list =
     ),
   "BUNDLE Install a bundle packages to uninstall all\n  packages at once";
 
+        "--uninstall-only", Arg.Set uninstall_only,
+  " Only uninstall packages supposed to be install";
+
+        "--print-only", Arg.Set print_only,
+  " Only compute and print the list of actions to perform";
+
       ];
       BuildActionBuild.arg_list
     ]
@@ -122,7 +145,7 @@ let action () =
 
   let install_where = BuildOCamlInstall.install_where p.cin p.cout in
   let install_what = BuildOCamlInstall.install_what () in
-  do_install bc install_where.BuildOCamlInstall.install_destdir
+  do_install bc install_where.install_destdir
     install_what projects package_map;
   ()
 

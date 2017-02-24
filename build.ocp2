@@ -22,3 +22,4 @@
 
 
 include "autoconf/config.ocp2gen";
+ocaml.version = autoconf.package_version;

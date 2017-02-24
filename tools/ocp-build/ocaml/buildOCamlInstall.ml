@@ -17,6 +17,7 @@ open BuildTypes
 open BuildEngineTypes
 open BuildEngineGlobals
 
+open BuildValue.TYPES
 open BuildOCamlTypes
 open BuildOCPTypes (* for dep_link *)
 open BuildUninstall.TYPES
@@ -41,6 +42,8 @@ open BuildUninstall.TYPES
         the "directory" is absolute.
 *)
 
+module TYPES = struct
+
 type install_where = {
   install_destdir : string option;
   install_libdirs : string list;
@@ -57,6 +60,9 @@ type install_what = {
   install_byte_lib : bool;
   install_asm_lib : bool;
 }
+
+end
+open TYPES
 
 module List = struct
   include List
@@ -148,49 +154,53 @@ let copy_file where log src_file dst_file =
   installed, to check that all libraries have also their dependencies
   loaded. *)
 
-let install_meta log where installdir meta lib =
+let install_META log where installdir meta lib =
 
-      (* What kind of META file do we create ? *)
-  let topdir_list = split_dir (Filename.dirname installdir) in
-  let ocamlfind_path = List.map split_dir where.install_ocamlfind in
+  if BuildOCamlVariables.install_META.get [lib.lib_opk.opk_options] then
+    let really_install_META meta_file =
+      let meta_file_d = in_destdir where meta_file in
+      safe_mkdir where log (Filename.dirname meta_file);
+      MetaFile.create_meta_file meta_file_d meta;
+      BuildUninstall.add_un_field log FILE meta_file;
+      Printf.eprintf "Generated META file %s\n%!" meta_file;
+    in
 
-  Printf.fprintf stderr "\n%!";
-  let meta_files =
+  (* What kind of META file do we create ? *)
+    let topdir_list = split_dir (Filename.dirname installdir) in
+    let ocamlfind_path = List.map split_dir where.install_ocamlfind in
+
     if List.mem topdir_list ocamlfind_path then
-      [Filename.concat installdir "META"]
+      really_install_META (Filename.concat installdir "META")
     else
-      let ocamllib = split_dir where.install_ocamllib in
-      let installdir_list = split_dir installdir in
-      match List.split_after installdir_list ocamllib with
-      | None ->
-        meta.meta_directory <- Some installdir;
-        []
-      | Some subdir ->
-        meta.meta_directory <- Some ("^" ^ String.concat "/" subdir);
-        []
-  in
-  let rec iter meta_files =
-    match meta_files with
-      [] ->
-        Printf.eprintf "Warning: could not write the META file\n%!"
-
-    | meta_file :: meta_files ->
-      try
-            (*            Printf.eprintf "CHECK %S\n%!" meta_file; *)
-        let meta_file_d = in_destdir where meta_file in
-        safe_mkdir where log (Filename.dirname meta_file);
-        MetaFile.create_meta_file meta_file_d meta;
-        BuildUninstall.add_un_field log FILE meta_file;
-        Printf.eprintf "Generated META file %s\n%!" meta_file;
-      with _ -> iter meta_files
-  in
-  iter (if meta_files = [] then
       let meta_basename = Printf.sprintf "META.%s" lib.lib.lib_name in
-      List.map (fun dirname ->
-        Filename.concat dirname meta_basename
-      ) (where.install_ocamlfind @ [ where.install_ocamllib ])
-    else meta_files);
-  ()
+      let installdir_list = split_dir installdir in
+      let rec iter dirs =
+        match dirs with
+        | dir :: dirs ->
+          begin
+            let dir_list = split_dir dir in
+            match List.split_after installdir_list dir_list with
+            | None -> iter dirs
+            | Some subdir ->
+              meta.meta_directory <- Some (String.concat "/" subdir);
+              really_install_META (Filename.concat dir meta_basename)
+          end
+        | [] ->
+          begin
+            let ocamllib = split_dir where.install_ocamllib in
+            meta.meta_directory <- Some
+              (match List.split_after installdir_list ocamllib with
+              | None -> installdir
+              | Some subdir -> "^" ^ String.concat "/" subdir
+              );
+            let dir = match where.install_ocamlfind with
+              | [] -> where.install_ocamllib
+              | dir :: _ -> dir
+            in
+            really_install_META (Filename.concat dir meta_basename)
+          end
+      in
+      iter where.install_ocamlfind
 
 let install where what lib installdir =
   match BuildOCamlGlobals.get_by_id lib with
@@ -333,8 +343,9 @@ let install where what lib installdir =
         copy_file where log src_file dst_file
       )
         (BuildValue.get_strings_with_default [lib.lib_opk.opk_options] "bin_files" []);
+      Printf.eprintf "\n%!";
 
-      install_meta log where installdir meta lib;
+      install_META log where installdir meta lib;
 
       save_uninstall None;
 

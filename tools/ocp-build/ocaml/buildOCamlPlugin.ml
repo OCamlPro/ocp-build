@@ -18,8 +18,6 @@ open StdlibArg
 
 let init subcommand_name =
 
-  Printf.eprintf "Init OCamlPlugin for %S\n%!" subcommand_name;
-
   let add_args subs args =
     if List.mem subcommand_name subs then
       BuildGlobals.arg_list := !BuildGlobals.arg_list @ args

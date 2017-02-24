@@ -24,6 +24,7 @@ begin
 end
 
 begin
+   ocaml.install = false;
    ocaml.files = [ "eval.ml" ];
    ocaml.requires = [ "ocp-build-lang-ocp2" ];
    new_package( "ocp2-eval", "program", ocaml);

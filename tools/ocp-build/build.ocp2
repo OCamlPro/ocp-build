@@ -19,6 +19,8 @@ config["ocp-build"].enabled = false;
 *)
 ocaml += getconf("ocp-build"); 
 
+ocaml.install_META = false;
+
 ocaml.exists = true;
 ocaml.bytelink = [];
 ocaml.asmlink = [];

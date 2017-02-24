@@ -1344,7 +1344,6 @@ let init_env env_pj =
 
 
 let () =
-  Printf.eprintf "OCamlPlugin: enabled.\n%!";
   BuildOCP.plugin_verifiers := verify_packages :: !BuildOCP.plugin_verifiers;
   ()
 

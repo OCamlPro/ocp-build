@@ -11,6 +11,7 @@
 (**************************************************************************)
 
 begin
+  ocaml.install = false;
   ocaml.files = [ "unix.ml" ];
   new_package("no-unix", "library", ocaml);
 end

@@ -40,6 +40,7 @@ open BuildTerm
 open BuildActions
 open BuildValue.TYPES
 open BuildUninstall.TYPES
+open BuildOCamlInstall.TYPES
 
 open StdlibArg
 
@@ -280,8 +281,7 @@ let do_build () =
 
   if !list_installed_arg then begin
     let state =
-      let open BuildOCamlInstall in
-      let where = install_where p.cin p.cout in
+      let where = BuildOCamlInstall.install_where p.cin p.cout in
       BuildUninstall.init where.install_destdir where.install_libdirs
     in
     print_installed state;
@@ -291,7 +291,6 @@ let do_build () =
   let targets = List.rev !targets_arg in
   if !uninstall_arg && targets <> [] then begin
     let state =
-      let open BuildOCamlInstall in
       let where = BuildOCamlInstall.install_where p.cin p.cout in
       BuildUninstall.init where.install_destdir where.install_libdirs
     in
@@ -304,12 +303,10 @@ let do_build () =
       None -> ()
     | Some package ->
       let state =
-        let open BuildOCamlInstall in
         let where = BuildOCamlInstall.install_where p.cin p.cout in
         BuildUninstall.init where.install_destdir where.install_libdirs
       in
       List.iter (fun un ->
-        let open BuildUninstall in
         if un.un_name = package then begin
           Printf.printf "%s\n%!" un.un_directory;
           BuildMisc.clean_exit 0

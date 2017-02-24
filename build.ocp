@@ -20,3 +20,4 @@
  ****************************************************************************)
 
 if include "autoconf/config.ocpgen" then {} else {}
+version = package_version
