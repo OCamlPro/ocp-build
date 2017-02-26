@@ -370,7 +370,7 @@ let install where what lib installdir =
 (* TODO: we might install the same package several times in different
    directories, no ? *)
 
-let find_installdir where lib_name =
+let find_installdir where lib =
   (match where.install_destdir with
       None -> ()
     | Some destdir ->
@@ -382,6 +382,13 @@ let find_installdir where lib_name =
           destdir;
         BuildMisc.clean_exit 2
   );
+
+  let lib_name = lib.lib.lib_name in
+  let install_subdir = BuildOCamlVariables.install_subdir.get [lib.lib_opk.opk_options] in
+  let lib_name =
+    if install_subdir = "" then lib_name else
+      Filename.concat install_subdir lib_name
+  in
 
     (* Check whether it is already installed : *)
   let iter possible libdirs =

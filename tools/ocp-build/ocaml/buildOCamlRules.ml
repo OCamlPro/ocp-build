@@ -2874,7 +2874,7 @@ let create w cin cout bc state =
       (* lazy because shared AND it can creates directories *)
       let install_dir =
         lazy (BuildOCamlInstall.find_installdir
-                install_where name)
+                install_where lib)
 
       (* where to look for previously installed packages *)
       let install_dirs () = install_where.install_libdirs

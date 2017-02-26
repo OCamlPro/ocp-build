@@ -39,7 +39,7 @@ val install :
 
 val find_installdir :
   install_where ->
-  string -> string option
+  BuildOCamlTypes.ocaml_package -> string option
 
 
 val install_where :
