@@ -13,7 +13,20 @@
 VERSION=${PACKAGE_VERSION}
 PACKAGE=${PACKAGE_NAME}
 
-if test -f ocp-autoconf.d/descr; then ; else
+case "$1" in
+    "") break;;
+    -r)
+        echo Reverting changes to opam-repo
+        cd ${OPAM_REPO} && \
+                git checkout master &&
+                git branch -D ${PACKAGE}.${VERSION} &&
+                git push ${OPAM_REPO_FORK_REMOTE} :${PACKAGE}.${VERSION};
+        echo You can now restart.
+        exit 0
+        ;;
+esac
+
+if test -f ocp-autoconf.d/descr ; then :; else
   echo Missing required file 'descr'
   exit 2
 fi
