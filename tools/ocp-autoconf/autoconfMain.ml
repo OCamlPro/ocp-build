@@ -14,6 +14,12 @@ open StringCompat
 open SimpleConfig.Op (* !! and =:= *)
 open AutoconfArgs
 
+
+
+
+let commit_filename =  Filename.concat autoconf_dir "generated.files"
+let commit_filename_old =  "ocp-autoconf.files"
+
 let apply_makers () =
   List.iter (fun file ->
       try
@@ -44,7 +50,10 @@ let () =
 
   apply_makers ();
 
-  let files = AutoconfFS.commit "ocp-autoconf.files" in
+  FileString.safe_mkdir ocp_autoconf_dir;
+  if Sys.file_exists commit_filename_old then
+    Sys.rename  commit_filename_old commit_filename;
+  let files = AutoconfFS.commit commit_filename in
 
   if !arg_git_add then begin
     let cmd = Printf.sprintf "git add %s" (String.concat " " files) in

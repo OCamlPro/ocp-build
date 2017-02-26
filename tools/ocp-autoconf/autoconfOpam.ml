@@ -30,6 +30,9 @@ let wrong_value oc field options =
     abort oc
   end
 
+let opam_trailer = Filename.concat AutoconfArgs.ocp_autoconf_dir "opam.trailer"
+let opam_trailer_old = "opam.trailer"
+
 let () =
 
   AutoconfCommon.register_maker "opam" (fun () ->
@@ -37,7 +40,7 @@ let () =
 
       let already_done = ref StringSet.empty in
 
-      let oc = AutoconfFS.create_file "opam" in
+      let oc = AutoconfFS.open_out "opam" in
       AutoconfFS.fprintf oc
         "(**************************************************************)\n";
         AutoconfFS.fprintf oc
@@ -203,8 +206,12 @@ let () =
 
         ) !!opam_fields;
 
-      if Sys.file_exists "opam.trailer" then begin
-        Printf.eprintf "   using %S\n%!" "opam.trailer";
+      if Sys.file_exists opam_trailer_old then begin
+        FileString.safe_mkdir AutoconfArgs.ocp_autoconf_dir;
+        Sys.rename opam_trailer_old opam_trailer;
+      end;
+      if Sys.file_exists opam_trailer then begin
+        Printf.eprintf "   using %S\n%!" opam_trailer;
         AutoconfFS.fprintf oc "\n";
         AutoconfFS.fprintf oc
           "(**************************************************************)\n";
@@ -217,25 +224,40 @@ let () =
         AutoconfFS.fprintf oc
           "(**************************************************************)\n";
         AutoconfFS.fprintf oc "\n";
-        AutoconfFS.output_string oc (FileString.read_file "opam.trailer");
+        AutoconfFS.output_string oc (FileString.read_file opam_trailer);
       end else begin
-        Printf.eprintf "   no file %S\n%!" "opam.trailer";
+        Printf.eprintf "   no file %S\n%!" opam_trailer;
       end;
-      AutoconfFS.close_file oc;
+      AutoconfFS.close_out oc;
       ()
     )
 
 let () =
   AutoconfCommon.register_maker "push-opam.sh" (fun () ->
 
-      if not ( Sys.file_exists "descr") then begin
-        Printf.eprintf
-          "Warning: files 'descr' need to be present for\n";
-        Printf.eprintf "  'push-opam.sh' to be generated.\n%!";
-      end else
-      if (!!AutoconfProjectConfig.download_url_prefix = "" &&
-          !!AutoconfProjectConfig.github_project = "") ||
-         !!AutoconfGlobalConfig.opam_repo = "" then begin
+    let descr_file = Filename.concat AutoconfArgs.ocp_autoconf_dir "descr" in
+    let descr_file_old = "descr" in
+    if not (Sys.file_exists descr_file) &&
+      Sys.file_exists descr_file_old then begin
+        Sys.rename descr_file_old descr_file
+    end;
+
+    let findlib_file =
+      Filename.concat AutoconfArgs.ocp_autoconf_dir "findlib" in
+    let findlib_file_old = "findlib" in
+    if not (Sys.file_exists findlib_file) &&
+      Sys.file_exists findlib_file_old then begin
+        Sys.rename findlib_file_old findlib_file
+      end;
+
+    if not ( Sys.file_exists descr_file) then begin
+      Printf.eprintf
+        "Warning: file '%s' needs to be present for\n" descr_file;
+      Printf.eprintf "  'push-opam.sh' to be executed.\n%!";
+    end;
+    if (!!AutoconfProjectConfig.download_url_prefix = "" &&
+        !!AutoconfProjectConfig.github_project = "") ||
+      !!AutoconfGlobalConfig.opam_repo = "" then begin
 
         Printf.eprintf
           "Warning: options 'download_url' (ocp-autoconf.config) and 'opam_repo' (~/.ocp/ocp-autoconf/) need to be set for\n";
@@ -246,4 +268,4 @@ let () =
         AutoconfFS.write_file ~exe:true "push-opam.sh"
           (AutoconfCommon.find_content "skeleton/push-opam.sh");
       end
-    )
+  )

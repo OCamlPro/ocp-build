@@ -15,41 +15,9 @@ open SimpleConfig.Op (* !! and =:= *)
 open AutoconfProjectConfig
 
 let () =
-  List.iter (fun file ->
-      AutoconfCommon.register_maker file
-        (fun () ->
-           AutoconfCommon.save_file (Filename.concat "skeleton" file)))
-    [
-    "build.ocp";
-    "build.ocp2";
-    "Makefile";
-    ".gitignore";
-    "LICENSE";
-    ".travis-install.sh";
-    ".travis-ci.sh";
-  ]
-
-let () =
   AutoconfCommon.register_maker "configure"
     (fun () ->
        AutoconfCommon.save_file ~exe:true "skeleton/configure";
-    )
-
-let () =
-  AutoconfCommon.register_maker ".travis.yml"
-    (fun () ->
-       let s = AutoconfCommon.find_content "skeleton/.travis.yml" in
-       let oc = AutoconfFS.create_file ".travis.yml" in
-       AutoconfFS.output_string oc s;
-       List.iter (fun version ->
-           if version = "system" ||
-              (version >= !!ocaml_minimal_version &&
-               (!!ocaml_unsupported_version = "" ||
-                !!ocaml_unsupported_version > version)) then
-             AutoconfFS.output_string oc
-               (Printf.sprintf "  - OCAML_VERSION=%s\n" version)
-         ) !!travis_versions;
-       AutoconfFS.close_file oc
     )
 
 let () =
@@ -91,7 +59,7 @@ let () =
            AutoconfFS.write_file dst_filename content
          ) !!extra_m4_files;
 
-       let oc = AutoconfFS.create_file "autoconf/configure.ac" in
+       let oc = AutoconfFS.open_out "autoconf/configure.ac" in
 
        AutoconfFS.fprintf oc "#######################################################\n";
        AutoconfFS.fprintf oc "#                                                     #\n";
@@ -214,8 +182,16 @@ let () =
          AutoconfFS.fprintf oc "DOWNLOAD_URL_PREFIX=http://github.com/%s/archive/\n"
            !!AutoconfProjectConfig.github_project;
 
-       if Sys.file_exists "ocp-autoconf.ac" then begin
-         Printf.eprintf "  using %S\n%!" "ocp-autoconf.ac";
+       let configure_ac_old = "ocp-autoconf.ac" in
+       let configure_ac = Filename.concat
+         AutoconfArgs.ocp_autoconf_dir "configure.ac" in
+       FileString.safe_mkdir AutoconfArgs.ocp_autoconf_dir;
+       if Sys.file_exists configure_ac_old then begin
+         Sys.rename configure_ac_old configure_ac;
+       end;
+
+       if Sys.file_exists configure_ac then begin
+         Printf.eprintf "  using %S\n%!" configure_ac;
         AutoconfFS.fprintf oc "\n";
         AutoconfFS.fprintf oc
           "###############################################################\n";
@@ -229,8 +205,8 @@ let () =
           "###############################################################\n";
         AutoconfFS.fprintf oc "\n";
 
-         AutoconfFS.output_string oc (FileString.read_file "ocp-autoconf.ac");
-                 AutoconfFS.fprintf oc "\n";
+        AutoconfFS.output_string oc (FileString.read_file configure_ac);
+        AutoconfFS.fprintf oc "\n";
         AutoconfFS.fprintf oc
           "###############################################################\n";
         AutoconfFS.fprintf oc
@@ -244,8 +220,8 @@ let () =
         AutoconfFS.fprintf oc "\n";
 
        end else begin
-         Printf.eprintf "  no file %S\n%!" "ocp-autoconf.ac. Creating one.";
-         let file = "ocp-autoconf.ac" in
+         Printf.eprintf "  no file %S; Creating one.\n%!" configure_ac;
+         let file = configure_ac in
          AutoconfCommon.save_file (Filename.concat "skeleton" file)
        end;
 
@@ -349,22 +325,22 @@ let () =
 
        AutoconfFS.output_string oc
          (AutoconfCommon.find_content "skeleton/autoconf/configure.trailer");
-       AutoconfFS.close_file oc;
+       AutoconfFS.close_out oc;
 
 
-       let oc = AutoconfFS.create_file "autoconf/Makefile.config.in" in
+       let oc = AutoconfFS.open_out "autoconf/Makefile.config.in" in
        List.iter (fun (var,_) ->
            AutoconfFS.fprintf oc "%s=@%s@\n" var var;
          ) config_vars;
        List.iter (fun var ->
            AutoconfFS.fprintf oc "%s=@%s@\n" var var;
          ) bool_vars;
-       AutoconfFS.close_file oc;
+       AutoconfFS.close_out oc;
 
-       AutoconfFS.close_file oc;
+       AutoconfFS.close_out oc;
 
 
-       let oc = AutoconfFS.create_file "autoconf/config.ocpgen.in" in
+       let oc = AutoconfFS.open_out "autoconf/config.ocpgen.in" in
        List.iter (function
            | (_var, None)-> ()
            | (var, Some name) ->
@@ -378,9 +354,9 @@ let () =
        AutoconfFS.fprintf oc "autoconf_dir = \"@PACKAGE_NAME@-autoconf-dir\"\n";
        AutoconfFS.output_string oc (AutoconfCommon.find_content
                                       "skeleton/autoconf/config.ocpgen.trailer");
-       AutoconfFS.close_file oc;
+       AutoconfFS.close_out oc;
 
-       let oc = AutoconfFS.create_file "autoconf/config.ocp2gen.in" in
+       let oc = AutoconfFS.open_out "autoconf/config.ocp2gen.in" in
 
        AutoconfFS.output_string oc
          (AutoconfCommon.find_content
@@ -400,18 +376,18 @@ let () =
        AutoconfFS.output_string oc
          (AutoconfCommon.find_content
             "skeleton/autoconf/config.ocp2gen.trailer");
-       AutoconfFS.close_file oc;
+       AutoconfFS.close_out oc;
 
 
-       let oc = AutoconfFS.create_file "autoconf/ocaml-config.h.in" in
+       let oc = AutoconfFS.open_out "autoconf/ocaml-config.h.in" in
        AutoconfFS.fprintf oc "#@OCAML_USE_POSIX_TYPES@ OCAML_USE_POSIX_TYPES\n";
-       AutoconfFS.close_file oc;
+       AutoconfFS.close_out oc;
 
-       let oc = AutoconfFS.create_file "autoconf/build.ocp" in
+       let oc = AutoconfFS.open_out "autoconf/build.ocp" in
        AutoconfFS.fprintf oc "(* Just here to refer to this directory *)\n";
        AutoconfFS.fprintf oc "if include \"config.ocpgen\" then {} else {}\n";
        AutoconfFS.fprintf oc "begin library autoconf_dir end\n";
-       AutoconfFS.close_file oc;
+       AutoconfFS.close_out oc;
 
        AutoconfFS.add_post_commit_hook (fun () ->
            Unix.chdir "autoconf";

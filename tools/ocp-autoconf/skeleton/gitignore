@@ -16,3 +16,7 @@ _olint
 
 # backups of modified files
 *~
+*.annot
+
+# content of file ocp-autoconf.d/gitignore
+

@@ -304,7 +304,7 @@ let travis_versions = SimpleConfig.create_option config
 let initial_format_version = 1
 
 (* This is the current version *)
-let current_format_version = 4
+let current_format_version = 5
 
 let update_options () =
 
@@ -377,6 +377,20 @@ let update_options () =
         "available";
       ] then
       opam_fields =:= default_opam_fields;
+  end;
+
+  if !!format_version < 5 then begin
+    format_version =:= 5;
+
+    List.iter (fun (old_name, new_name) ->
+      if List.mem old_name !!manage_files then
+        manage_files =:=
+        new_name :: (List.filter (fun s -> s <> old_name) !!manage_files)
+    )
+      [
+        ".travis-install.sh", "autoconf/travis-install.sh";
+        ".travis-ci.sh", "autoconf/travis-ci.sh";
+      ]
   end;
 
   assert (!!format_version = current_format_version);

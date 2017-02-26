@@ -20,4 +20,4 @@ distclean: clean ocp-distclean
 	find . -name '*~' -exec rm -f {} \;
 
 include autoconf/Makefile.rules
-
+-include ocp-autoconf.d/Makefile

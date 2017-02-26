@@ -460,6 +460,16 @@ let _ =
         raise_bad_arity loc "String.mem(ele, list)" 2 args
     );
 
+  (* Only since 1.99.18-beta *)
+  add_primitive "Sys_file_exists" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString file ] ->
+        VBool (Sys.file_exists file)
+      | _ ->
+        raise_bad_arity loc "Sys.file_exists(file)" 1 args
+    );
+
   (*
     add_function "dstdir" [
     "Replaced by %{package_FULL_DST_DIR}%";

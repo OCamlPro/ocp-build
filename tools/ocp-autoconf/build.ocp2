@@ -18,16 +18,16 @@ begin
     "autoconfFiles.ml", {file2string = [
 
         "skeleton/configure";
-        "skeleton/ocp-autoconf.ac";
+        "skeleton/ocp-autoconf.d/configure.ac";
         "skeleton/Makefile";
-        "skeleton/build.ocp";
-        "skeleton/build.ocp2";
-        "skeleton/.gitignore";
+        "skeleton/build.ocp-tmpl";
+        "skeleton/build.ocp2-tmpl";
+        "skeleton/gitignore";
         "skeleton/LICENSE";
         "skeleton/push-opam.sh";
         "skeleton/.travis.yml";
-        "skeleton/.travis-install.sh";
-        "skeleton/.travis-ci.sh";
+        "skeleton/autoconf/travis-install.sh";
+        "skeleton/autoconf/travis-ci.sh";
 
         "skeleton/autoconf/m4/ax_compare_version.m4";
         "skeleton/autoconf/m4/ocaml.m4";
@@ -40,13 +40,22 @@ begin
         "skeleton/autoconf/configure.ocaml";
         "skeleton/autoconf/configure.trailer";
       ] };
+      (* Arguments of the command *)
     "autoconfArgs.ml";
     "autoconfFS.ml";
     "autoconfCommon.ml";
+
+ (* Manage ".ocp/autoconf/ocp-autoconf.conf" *)
     "autoconfGlobalConfig.ml";
+ (* Manage "ocp-autoconf.config" *)
     "autoconfProjectConfig.ml";
+
+ (* Manage creation of the "autoconf/" directory and "./configure" *)
     "autoconfAutoconf.ml";
     "autoconfOpam.ml";
+    "autoconfOther.ml";
+
+
     "autoconfMain.ml";
   ];
   ocaml.requires = [

@@ -10,30 +10,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+type oc
+val open_out : string -> oc
+val output_string : oc -> string -> unit
+val fprintf : oc -> ('b, Buffer.t, unit) format -> 'b
+val close_out : oc -> unit
 
-let arg_force = ref false
-let arg_git_add = ref false
-let arg_save_template = ref false
+(* [write_file ?exe filename content] *)
+val write_file : ?exe:bool -> string -> string -> unit
 
-let ocp_autoconf_dir =  "ocp-autoconf.d"
-let autoconf_dir =  "autoconf"
+(* [commit commit_filename] commit all changes, and return the list of
+   modified files. *)
+val commit : string -> string list
 
-let arg_list = Arg.align [
-    "--save-template", Arg.Set arg_save_template,
-    " Save a template if configuration file is not found";
-    "--git-add", Arg.Set arg_git_add,
-    " Call 'git add' at the end";
-    "-f", Arg.Set arg_force,
-    " Force overwrite of existing files";
-  ]
-
-let arg_usage =
-  String.concat "\n" [
-    Printf.sprintf "%s [OPTIONS]" (Filename.basename Sys.executable_name);
-    "Available options:";
-  ]
-let arg_anon s =
-  Printf.eprintf "Error: unexpected argument %S\n%!" s;
-  Arg.usage arg_list arg_usage;
-  exit 2
+(* [add_post_commit_hook f] calls [f] when the files are committed *)
+val add_post_commit_hook : (unit -> string list) -> unit

@@ -13,6 +13,13 @@
 VERSION=${PACKAGE_VERSION}
 PACKAGE=${PACKAGE_NAME}
 
+if test -f ocp-autoconf.d/descr; then ; else
+  echo Missing required file 'descr'
+  exit 2
+fi
+
+
+
 (cd ${OPAM_REPO} && git checkout master && git pull ${OPAM_REPO_OFFICIAL_REMOTE} master)
 
 
@@ -31,13 +38,19 @@ CMD="mkdir -p ${OPAM_REPO}/packages/${PACKAGE}/${PACKAGE}.${VERSION}"
 echo $CMD
 $CMD
 
-CMD="cp opam descr ${OPAM_REPO}/packages/${PACKAGE}/${PACKAGE}.${VERSION}/"
+CMD="cp opam ${OPAM_REPO}/packages/${PACKAGE}/${PACKAGE}.${VERSION}/"
 echo $CMD
 $CMD
 
-CMD="cp findlib ${OPAM_REPO}/packages/${PACKAGE}/${PACKAGE}.${VERSION}/"
+CMD="cp ocp-autoconf.d/descr ${OPAM_REPO}/packages/${PACKAGE}/${PACKAGE}.${VERSION}/"
 echo $CMD
 $CMD || echo OK
+
+if test -f ocp-autoconf.d/findlib; then
+  CMD="cp ocp-autoconf.d/findlib ${OPAM_REPO}/packages/${PACKAGE}/${PACKAGE}.${VERSION}/"
+  echo $CMD
+  $CMD || echo OK
+fi
 
 URL=${DOWNLOAD_URL_PREFIX}${VERSION}.tar.gz
 TMPFILE=/tmp/push-ocaml.tmp
