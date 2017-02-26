@@ -12,6 +12,8 @@
 
 open StringCompat
 
+type oc = string * StringCompat.Buffer.t
+
 let post_commit_hooks = ref []
 let add_post_commit_hook (f : unit -> string list) =
   post_commit_hooks := f :: !post_commit_hooks
@@ -20,12 +22,6 @@ let files = ref []
 let write_file ?(exe=false) filename content =
   files := (filename, exe, content) :: !files
 
-let create_file filename =
-  (filename, Buffer.create 1000)
-let fprintf (_,b) = Printf.bprintf b
-let output_string (_,b) = Buffer.add_string b
-let close_file (filename, b) =
-  write_file filename (Buffer.contents b)
 
 let commit filename =
   let old_files = ref StringMap.empty in
@@ -90,3 +86,11 @@ let commit filename =
         files := hook () @ !files) !post_commit_hooks;
 
     !files
+
+
+let open_out filename =
+  (filename, Buffer.create 1000)
+let fprintf (_,b) = Printf.bprintf b
+let output_string (_,b) = Buffer.add_string b
+let close_out (filename, b) =
+  write_file filename (Buffer.contents b)

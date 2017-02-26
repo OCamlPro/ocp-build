@@ -10,14 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(****************************************************************************
-#
-#          This file is managed by ocp-autoconf.
-#
-#  Remove it from `manage_files` in 'ocp-autoconf.config' if you want to
-#  modify it manually.
-#
- ****************************************************************************)
+Sys = { file_exists = Sys_file_exists };
 
-if include "autoconf/config.ocpgen" then {} else {}
-version = package_version
+provides("Sys", "1.0", Sys);
+

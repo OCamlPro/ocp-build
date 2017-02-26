@@ -9,3 +9,5 @@
 
 if include "autoconf/config.ocpgen" then {} else {}
 version = package_version
+
+(* Content of file ocp-autoconf.d/build.ocp-inc: *)

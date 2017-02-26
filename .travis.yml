@@ -8,11 +8,11 @@ addons:
     - ocaml
     - opam
     - ocaml-native-compilers
-install: sh -ex .travis-install.sh
+install: sh -ex ./autoconf/travis-install.sh
 cache:
   directories:
   - ${HOME}/.opam
-script: sh -ex .travis-ci.sh
+script: sh -ex ./autoconf/travis-ci.sh
 env:
   - OCAML_VERSION=system
   - OCAML_VERSION=3.12.1
