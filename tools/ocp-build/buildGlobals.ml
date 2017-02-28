@@ -20,6 +20,8 @@ open BuildEngineContext
 open BuildEngineRules
 open BuildEngineTypes
 
+open BuildValue.TYPES
+
 let verbose = DebugVerbosity.verbose ["B"] "BuildGlobals"
 
 (* Under Windows, we cannot use dot-prefixed directories *)
@@ -185,3 +187,6 @@ let absolute_filename dirname =
 (* This is the arg_list used when the subcommand is
    called. Plugins can add arguments here *)
 let arg_list = ref ([] : (string * Arg.spec * string) list)
+
+let ocpbuild_version =
+  BuildValue.new_version_option "ocpbuild_version" BuildVersion.version

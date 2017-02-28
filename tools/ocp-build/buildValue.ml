@@ -20,11 +20,15 @@ module TYPES = struct
     loc_end : Lexing.position;
   }
 
+  type string_kind =
+  | StringRaw
+  | StringVersion
+
   type env = { env : value StringMap.t }
   and value =
   | VList of value list
   | VObject of env
-  | VString of string
+  | VString of string * string_kind
   | VTuple of value list
   | VBool of bool
   | VInt of int
@@ -82,7 +86,7 @@ bprint_plist b indent list =
       and *)
     bprint_value b indent v =
   match v with
-  | VString s -> Printf.bprintf b "%S" s
+  | VString (s,_) -> Printf.bprintf b "%S" s
   | VBool bool -> Printf.bprintf b "%b" bool
   | VInt int -> Printf.bprintf b "%d" int
   | VTuple [] -> assert false
@@ -154,12 +158,12 @@ let get envs name =
 
 let prop_list v =
   match v with
-  | VString s -> [s, empty_env]
+  | VString (s,_) -> [s, empty_env]
   | VList list ->
     List.map (fun v ->
       match v with
-      | VString s -> s, empty_env
-      | VTuple [VString s; VObject env] -> s, env
+      | VString (s,_) -> s, empty_env
+      | VTuple [VString (s,_); VObject env] -> s, env
       | _ ->
         Printf.eprintf "Not a property list element: %s\n%!"
           (string_of_value v);
@@ -172,8 +176,8 @@ let prop_list v =
 
 let value list =
   VList (List.map (fun (s,env) ->
-    if env == empty_env then VString s else
-      VTuple [VString s; VObject env]
+    if env == empty_env then VString (s, StringRaw) else
+      VTuple [VString (s, StringRaw); VObject env]
   ) list)
 
 let plist_of_bool b = VBool b
@@ -184,23 +188,24 @@ let bool_of_plist v =
   | _ -> true
 
 let plist_of_strings strings =
-  VList (List.map (fun s -> VString s) strings)
+  VList (List.map (fun s -> VString (s, StringRaw)) strings)
 let strings_of_plist list =
   List.map (fun (s,_) -> s) (prop_list list)
 
 let plist_of_string_option option =
   match option with
   | None -> VList []
-  | Some s -> VString s
+  | Some s -> VString (s, StringRaw)
 
 let string_option_of_plist list = match list with
   | VList [] -> None
   | _ -> Some (String.concat " " (strings_of_plist list))
 
-let plist_of_string s = VString s
+let plist_of_string s = VString (s, StringRaw)
+let plist_of_version s = VString (s, StringVersion)
 let string_of_plist list = (String.concat " " (strings_of_plist list))
 
-let plist_of_path s = VString s
+let plist_of_path s = VString (s, StringRaw)
 let path_of_plist list = String.concat "/" (strings_of_plist list)
 
 let set_bool env name v = set env name (plist_of_bool v)
@@ -211,6 +216,7 @@ let set_strings env name v = set env name (plist_of_strings v)
 let get_strings env name = strings_of_plist (get env name)
 let get_local_strings env name = strings_of_plist (get_local env name)
 
+let set_version env name v = set env name (VString (v, StringVersion))
 let set_string env name v = set env name (plist_of_string v)
 let get_string env name = string_of_plist (get env name)
 let get_local_string env name = string_of_plist (get_local env name)
@@ -274,6 +280,13 @@ let new_string_option name v =
   {
     get = (fun env -> get_string env name);
     set = (fun v -> set_global name (plist_of_string v));
+  }
+
+let new_version_option name v =
+  set_global name (plist_of_version v);
+  {
+    get = (fun env -> get_string env name);
+    set = (fun v -> set_global name (plist_of_version v));
   }
 
     (*
@@ -353,3 +366,69 @@ let set_deep_field env fields value =
       (string_of_value value)
     ;
     raise exn
+
+let new_object assoc =
+    let env = List.fold_left (fun env (label, v) ->
+      StringMap.add label v env
+    ) StringMap.empty assoc
+    in
+    VObject { env }
+
+
+
+let compare_versions s1 s2 =
+  Versioning.compare
+    (Versioning.version_of_string s1)  (Versioning.version_of_string s2)
+
+let revassoc_of_env env =
+  StringMap.fold (fun n v (nn, vv) ->
+    (n :: nn, v :: vv)
+  ) env ([],[])
+
+let rec compare_values e1 e2 =
+  match e1, e2 with
+
+  (* comparison of strings *)
+  | VString (s1, StringVersion), VString (s2,_)
+  | VString (s1, StringVersion), VList [ VString (s2,_) ]
+  | VList [VString (s1, StringVersion)], VString (s2,_)
+  | VString (s1,_), VString (s2, StringVersion)
+  | VString (s1,_), VList [ VString (s2, StringVersion) ]
+  | VList [VString (s1,_)], VString (s2, StringVersion)
+    -> compare_versions s1 s2
+  | VString (s1,_), VString (s2,_)
+  | VString (s1,_), VList [ VString (s2,_) ]
+  | VList [VString (s1,_)], VString (s2,_)
+    -> Pervasives.compare s1 s2
+
+  (* comparison of lists *)
+  | VList [], VList [] -> 0
+  | VList [], VList _ -> -1
+  | VList _, VList [] -> 1
+  | VList (h1::t1), VList (h2::t2) ->
+    (match compare_values h1 h2 with
+     | 0 -> compare_values (VList t1) (VList t2)
+     | v -> v)
+  (* comparison of tuples. Must be of the same size. *)
+  | VTuple t1, VTuple t2 when List.length t1 = List.length t2 ->
+    compare_values (VList t1) (VList t2)
+
+  (* comparison of ints *)
+  | VInt n1, VInt n2 -> Pervasives.compare n1 n2
+
+  (* comparison of bools *)
+  | VBool n1, VBool n2 -> Pervasives.compare n1 n2
+
+  (* comparison of objects: objects can only be compared if they have
+     exactly the same fields. Fields are then sorted by names and
+     compared. *)
+  | VObject o1, VObject o2 ->
+    let n1, t1 = revassoc_of_env o1.env in
+    let n2, t2 = revassoc_of_env o2.env in
+    if n1 <> n2 then
+      failwith "BuildValue.compare_values"
+    else
+      compare_values (VList (List.rev t1)) (VList (List.rev t2))
+
+  | _ ->
+    failwith "BuildValue.compare_values"

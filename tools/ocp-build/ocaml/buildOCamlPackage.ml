@@ -77,7 +77,7 @@ let _ =
     [ "Add a new OCaml package" ]
     (fun loc state config args ->
       match args with
-      | [ VString name; VString kind; VObject config_env ] ->
+      | [ VString (name,_); VString (kind,_); VObject config_env ] ->
         add_ocaml_package_unit loc state { config  with config_env }
           name (BuildOCP.package_type_of_string kind);
         BuildValue.unit
@@ -89,7 +89,7 @@ let _ =
     [ "Add a new OCaml library" ]
     (fun loc state config args ->
       match args with
-      | [ VString name; VObject config_env ] ->
+      | [ VString (name,_); VObject config_env ] ->
         add_ocaml_package_unit loc state { config  with config_env }
           name BuildOCPTypes.LibraryPackage;
         BuildValue.unit
@@ -101,15 +101,47 @@ let _ =
     [ "Add a new OCaml program" ]
     (fun loc state config args ->
       match args with
-      | [ VString name; VObject config_env ] ->
+      | [ VString (name,_); VObject config_env ] ->
         add_ocaml_package_unit loc state { config  with config_env }
           name BuildOCPTypes.ProgramPackage;
         BuildValue.unit
       |  _ ->
         BuildOCP2Prims.raise_bad_arity loc
           "OCaml.library(name,ocaml)" 2 args
-    )
+    );
 
+  add_primitive "pack" [
+    "pack(string[,pack_env], list-of-strings)"
+  ] (fun loc ctx config args ->
+    let packmodname, pack_env, files =
+      match args with
+      | [VString (packmodname,_); files] ->
+        (packmodname, BuildValue.empty_env, files)
+      | [VString (packmodname,_); VObject pack_env; files] ->
+        (packmodname, pack_env, files)
+      | _ ->
+        BuildOCP2Prims.raise_bad_arity loc "pack(name, files)" 2 args
+    in
+    let files = BuildValue.prop_list files in
+    let modnames = ref [] in
+
+    let files = List.map (fun (file, file_env) ->
+      file,
+      BuildValue.set_strings file_env "packed"
+        (packmodname ::
+           (try
+              BuildValue.get_strings [ file_env ] "packed"
+            with Var_not_found _ ->
+              modnames := Filename.basename file :: !modnames;
+              []))
+    ) files in
+
+    let pack_env = BuildValue.set_strings pack_env "pack" (List.rev !modnames) in
+
+    BuildValue.value (files @
+                        [ packmodname ^ ".ml", pack_env ])
+  );
+  ()
 
 (* This [getconf] primitive should probably be moved to BuildOCP,
 as it is not specific to OCaml, isn't it ? *)
@@ -118,7 +150,7 @@ let () =
     [ "getconf(name) returns the configuration associated with name" ]
     (fun loc state config args ->
       match args with
-      | [VString name] ->
+      | [VString (name,_)] ->
         begin
           try
             begin match BuildValue.config_get config "config" with
@@ -1337,7 +1369,7 @@ let init_env env_pj =
       List.iter (fun suffix ->
         BuildSubst.add_to_global_subst (pk.package_name ^ suffix) dirname)
         [ "_SRC_DIR"; "_DST_DIR"; "_FULL_SRC_DIR"; "_FULL_DST_DIR" ];
-      VTuple [VString pk.package_name; VObject opk.opk_options]
+      VTuple [VString (pk.package_name, StringRaw); VObject opk.opk_options]
      ) env_pj.project_sorted)));
   ()
 

@@ -174,7 +174,7 @@ let get_tool_requires w tool_name lib tool_requires =
 let add_pp_requires r pp =
   List.iter (fun file -> add_rule_source r file) pp.pp_requires
 
-let get_pp w lib basename options =
+let get_pp special w lib basename options =
   let options = [ options; lib.lib_opk.opk_options ] in
 (*  Printf.eprintf "get_pp %S\n%!" lib.lib.lib_name; *)
   let pp_flags =
@@ -183,7 +183,7 @@ let get_pp w lib basename options =
   match  syntax_option.get options with
   |  [] ->
     let pp_requires =  pp_requires_option.get options in
-    let pp_option = pp_option.get options in
+    let pp_option = BuildOCamlVariables.get pp_option special options in
     let pp_requires = get_tool_requires w "pp" lib pp_requires in
 
     {

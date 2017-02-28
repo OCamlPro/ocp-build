@@ -8,7 +8,7 @@ autoconf/build.ocp 9d81103f0dd977b6414645b9ab29c713
 autoconf/config.ocp2gen.in 580dd397811b979d94d9fe873d78e859
 autoconf/config.ocpgen.in a12b3db0b045829de61e185022392a05
 autoconf/config.ocpgen2.in 9a995bcba87527893659a1d970826a84
-autoconf/configure.ac d7cfdc104858974951944b26a9401b82
+autoconf/configure.ac aba31b2b7ac6df8995a35234e5ad577b
 autoconf/m4/ax_compare_version.m4 ebb455a7fd6a8ba9a4e38a25c8f0b686
 autoconf/m4/ocaml.m4 bffe7da970a9e23a89b611c00360f36f
 autoconf/ocaml-config.h.in 361f7d5a23b30c6c49756a9e34c2dcf9
@@ -18,4 +18,4 @@ build.ocp e34f091d3841a5b334fbb7341b9e227e
 build.ocp2 1e8c5c999be6aa80323779226d7c7f1a
 configure 3ffc5da4b7c00140c3024342e64cc2a5
 opam 7c455f32a65e0777ff126431ff9e05f2
-push-opam.sh 15e30fc1d1432e114d96a4f9b49ad810
+push-opam.sh 7b186ad07579199db36fa1cefb6496a8

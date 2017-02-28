@@ -65,19 +65,6 @@ let string_of_libloc lib =
   Printf.sprintf "File %S, line 0, characters 0-1:\nPackage %S:"
     lib.lib.lib_filename lib.lib.lib_name
 
-(*
-module Filename = struct
-  include Filename
-
-  let chop_extension f =
-    try
-      (chop_extension f : string)
-    with e ->
-      Printf.eprintf "In Filename.chop_extension(%S)\n%!" f;
-      raise e
-end
-*)
-
 (* TODO: [mut_dir] does not work for source files beginning with ".."
    and for source files in other packages (package = "toto")
 *)
@@ -519,7 +506,8 @@ module FileSorter = LinearToposort.Make(struct
   let debug = ref false
 end)
 
-let sort_ocaml_files cmo_files =
+(* We use the graph of build rules to sort topologically the object files *)
+let sort_ocaml_files lib cmo_files =
 
   if verbose 3 then begin
     Printf.eprintf "Sorting:\n";
@@ -548,23 +536,31 @@ let sort_ocaml_files cmo_files =
   List.iter (fun (file, to_sort) ->
     List.iter (fun r ->
       if r.rule_state <> RULE_INACTIVE then
-   IntMap.iter (fun _ file2 ->
-     try
-       let modname =
-         try Filename.chop_extension file2.file_basename
-         with _ -> raise Not_found in
-       let modname = String.capitalize modname in
-       let to_sort2 = StringMap.find modname !map in
-       if to_sort2 != to_sort then
-         to_sort.to_sort_deps <- to_sort2 :: to_sort.to_sort_deps
-     with Not_found -> ()
-   ) r.rule_sources
+        IntMap.iter (fun _ file2 ->
+          try
+            let modname =
+              try Filename.chop_extension file2.file_basename
+              with _ -> raise Not_found in
+            let modname = String.capitalize modname in
+            let to_sort2 = StringMap.find modname !map in
+            if to_sort2 != to_sort then
+              to_sort.to_sort_deps <- to_sort2 :: to_sort.to_sort_deps
+          with Not_found -> ()
+        ) r.rule_sources
     ) file.file_target_of
-
   ) cmo_files;
 
   let (sorted, cycle, _others) = FileSorter.sort list in
-  assert (cycle = []);
+  if cycle <> [] then begin
+    Printf.eprintf
+      "Error: There is a cycle in the inter-dependencies inside package %S.\n"
+    lib.lib.lib_name;
+    Printf.eprintf
+      " You MUST specify the link order of modules by ordering 'files'\n";
+    Printf.eprintf
+      " and using 'sort=false' in the package description.\n%!";
+    exit 2
+  end;
   let cmo_files =
     List.map (fun to_sort -> to_sort.to_sort_value) sorted in
 
@@ -581,15 +577,15 @@ let sort_ocaml_files cmo_files =
 
 
 
-let add_files_to_link_to_command case cmd options cmx_files =
+let add_files_to_link_to_command lib case cmd options cmx_files =
   if sort_files_option.get options  then begin
     DynamicAction (
       (Printf.sprintf "sort for %s" case),
       lazy (
-   let cmx_files = sort_ocaml_files cmx_files in
-   List.iter (fun cmx_file ->
-     add_command_args cmd [BF cmx_file]) cmx_files;
-   [Execute cmd]
+        let cmx_files = sort_ocaml_files lib cmx_files in
+        List.iter (fun cmx_file ->
+          add_command_args cmd [BF cmx_file]) cmx_files;
+        [Execute cmd]
       )
     )
   end else begin
@@ -601,7 +597,7 @@ let add_files_to_link_to_command case cmd options cmx_files =
 
 
 
-let add_cmos2cma_rule lib ptmp cclib cmo_files cma_file =
+let add_cmo2cma_rule lib ptmp cclib cmo_files cma_file =
   if not lib.lib_installed then
     let options = [lib.lib_opk.opk_options] in
     let cmd = new_command
@@ -613,7 +609,7 @@ let add_cmos2cma_rule lib ptmp cclib cmo_files cma_file =
     if force_link_option.get options then
       add_command_strings cmd [ "-linkall" ];
 
-    let cmd = add_files_to_link_to_command "byte lib" cmd options cmo_files in
+    let cmd = add_files_to_link_to_command lib "byte lib" cmd options cmo_files in
     let r = new_rule lib cma_file [cmd] in
     add_more_rule_sources lib r [ ocamlc_deps; bytelink_deps; link_deps ] options;
     add_rule_sources r cmo_files;
@@ -631,7 +627,7 @@ let cross_update r list =
       Move (true, f1, f2)
      ) list)
 
-let add_cmxs2cmxa_rule b lib cclib cmi_files cmx_files cmxo_files stubs_files =
+let add_cmx2cmxa_rule b lib cclib cmi_files cmx_files cmxo_files stubs_files =
   let options = [lib.lib_opk.opk_options] in
   let src_dir = lib.lib.lib_src_dir in
   let dst_dir = lib.lib.lib_dst_dir in
@@ -642,7 +638,6 @@ let add_cmxs2cmxa_rule b lib cclib cmi_files cmx_files cmxo_files stubs_files =
   let basename_a = lib.lib_archive ^ ext_lib in
 
   let cmxa_file = add_dst_file b dst_dir basename_cmxa in
-  let cmxs_file = add_dst_file b dst_dir basename_cmxs in
   let a_file = add_dst_file b dst_dir basename_a in
 
   let new_asmlink_deps = [ cmxa_file; a_file ] in
@@ -670,7 +665,7 @@ let add_cmxs2cmxa_rule b lib cclib cmi_files cmx_files cmxo_files stubs_files =
       if  force_link_option.get options then
         add_command_strings cmd [ "-linkall" ];
 
-      let cmd = add_files_to_link_to_command "asm lib" cmd options cmx_files in
+      let cmd = add_files_to_link_to_command lib "asm lib" cmd options cmx_files in
       add_rule_command r cmd;
       add_rule_target r a_file;
       add_rule_temporaries r [ temp_cmxa; temp_a ];
@@ -682,25 +677,43 @@ let add_cmxs2cmxa_rule b lib cclib cmi_files cmx_files cmxo_files stubs_files =
     add_rule_sources r cmx_files;
     add_rule_sources r cmxo_files;
     add_rule_sources r cmi_files;
+    cross_move r [ F temp_cmxa.file_file, F cmxa_file.file_file;
+                   F temp_a.file_file, F a_file.file_file;
+                 ];
 
     let new_asm_targets =
       if cmxs_plugin.get options then begin
 
         let temp_cmxs = add_temp_file b src_dir basename_cmxs in
 
-        let cmd = new_command (ocamlopt_cmd.get options ) (asmlinkflags lib) in
-        add_command_args cmd [S "-shared"; S "-I";
+        let asmlink_libs =
+          List.map (fun s ->
+            let s = subst global_subst s in
+            add_package_file lib s
+          ) (asmlink_libs.get options) in
+
+        let cmd = new_command
+          (ocamlopt_cmd.get options )
+          (
+            (asmlinkflags lib) @
+              [S "-shared"; S "-I";
                               S lib.lib.lib_dst_dir.dir_fullname;
-                              S "-o"; BF temp_cmxs ];
-        if cclib <> "" then add_command_strings cmd ["-cclib"; cclib];
-        if force_link_option.get options then
-          add_command_strings cmd [ "-linkall" ];
+                              S "-o"; BF temp_cmxs ] @
+              (if cclib = "" then [] else [S "-cclib"; S cclib]) @
+              (if force_link_option.get options then
+                  [S "-linkall" ] else [] ) @
+              (List.map (fun f -> BF f) asmlink_libs)
+          )
+        in
 
-        let cmd = add_files_to_link_to_command "cmxs lib"
+        let cmd = add_files_to_link_to_command lib "cmxs lib"
           cmd options cmx_files in
-        (*      add_command_args cmd [BF temp_cmxa]; *)
 
+        let cmxs_file = add_dst_file b dst_dir basename_cmxs in
+        (* We can probably not build the .cmxs in parallel with the .cmxa.
+           So, we just do then consecutively in the same rule. *)
         add_rule_command r cmd;
+        add_rule_sources r asmlink_libs;
         add_rule_target r cmxs_file;
         add_rule_temporaries r [ temp_cmxs ];
         add_more_rule_sources lib r
@@ -716,9 +729,6 @@ let add_cmxs2cmxa_rule b lib cclib cmi_files cmx_files cmxo_files stubs_files =
       end
       else new_asm_targets
     in
-    cross_move r [ F temp_cmxa.file_file, F cmxa_file.file_file;
-                   F temp_a.file_file, F a_file.file_file;
-                 ];
     new_asm_targets
   in
   (new_asmlink_deps, new_asm_targets)
@@ -763,7 +773,7 @@ let get_link_order lib =
     in
     tolink
 
-let add_cmos2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
+let add_cmo2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
   if not lib.lib_installed then
     let options = [lib.lib_opk.opk_options] in
     let ocamlc_command =
@@ -825,7 +835,15 @@ let add_cmos2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
     ) tolink;
     if !custom then add_command_string cmd "-custom";
 
-    let cmd = add_files_to_link_to_command "byte prog" cmd options cmo_files in
+    let bytelink_libs =
+      List.map (fun s ->
+        let s = subst global_subst s in
+        add_package_file lib s
+    ) (bytelink_libs.get options) in
+
+    List.iter (fun s -> add_command_arg cmd (BF s)) bytelink_libs;
+
+    let cmd = add_files_to_link_to_command lib "byte prog" cmd options cmo_files in
     let r = new_rule lib byte_file [cmd] in
     add_more_rule_sources lib r [ ocamlc_deps; bytelink_deps; link_deps ] options;
 
@@ -837,10 +855,11 @@ let add_cmos2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
         let lib = pd.dep_project in
           add_rule_sources r lib.lib_clink_deps;
           add_rule_sources r lib.lib_bytelink_deps;
-    ) lib.lib_requires
+    ) lib.lib_requires;
+    add_rule_sources r bytelink_libs
 
 
-let add_cmxs2asm_rule lib ptmp linkflags cclib cmx_files cmxo_files o_files opt_file =
+let add_cmx2asm_rule lib ptmp linkflags cclib cmx_files cmxo_files o_files opt_file =
   if  not lib.lib_installed then
     let options = [lib.lib_opk.opk_options] in
     let cmd = new_command
@@ -886,7 +905,15 @@ let add_cmxs2asm_rule lib ptmp linkflags cclib cmx_files cmxo_files o_files opt_
       | RulesPackage -> ()
     ) tolink;
 
-    let cmd = add_files_to_link_to_command "asm prog" cmd options cmx_files in
+    let asmlink_libs =
+      List.map (fun s ->
+        let s = subst global_subst s in
+        add_package_file lib s
+    ) (asmlink_libs.get options) in
+
+    List.iter (fun s -> add_command_arg cmd (BF s)) asmlink_libs;
+
+    let cmd = add_files_to_link_to_command lib "asm prog" cmd options cmx_files in
     let r = new_rule lib opt_file [cmd] in
     add_more_rule_sources lib r [ ocamlopt_deps; asmlink_deps; link_deps ] options;
 
@@ -899,8 +926,9 @@ let add_cmxs2asm_rule lib ptmp linkflags cclib cmx_files cmxo_files o_files opt_
         let lib2 = pd.dep_project in
           add_rule_sources r lib2.lib_clink_deps;
           add_rule_sources r lib2.lib_asmlink_deps;
-    ) lib.lib_requires
-
+    ) lib.lib_requires;
+    add_rule_sources r asmlink_libs;
+    ()
 
 let add_os2a_rule lib o_files a_file =
     let envs = [lib.lib_opk.opk_options] in
@@ -968,12 +996,12 @@ let move_compilation_garbage r copy_dir temp_dir kernel_name lib =
       let basename = kernel_name ^ ext in
       let src_file = File.add_basename temp_dir basename in
       let dst_file = add_file b lib.lib.lib_dst_dir basename in
-      let link_file = add_file b copy_dir basename in
+      let link_file = add_file b copy_dir (basename ^ ".link") in
       add_rule_command r (MoveIfExists
                             (F src_file, BF dst_file, Some (BF link_file)))
     ) exts
   in
-  move_to_build [ ".cmt"; ".cmti"; ".spit"; ".spot" ]
+  move_to_build [ ".cmt"; ".cmti"; ".spit"; ".spot"; ]
 
 
 
@@ -1123,7 +1151,7 @@ let add_mli_source w b lib ptmp mli_file options =
       ptmp.src_files <- IntMap.add mli_file.file_id mli_file ptmp.src_files;
 
       let copy_dir = copy_dir lib mli_file in
-      let ppv = BuildOCamlSyntaxes.get_pp w lib basename options in
+      let ppv = BuildOCamlSyntaxes.get_pp "mli" w lib basename options in
       let comp_deps = comp_deps w lib options in
       let mli_file, force =
         match ppv.pp_option with
@@ -1565,7 +1593,7 @@ let add_ml_source w b lib ptmp ml_file options =
       let copy_dir = copy_dir lib ml_file in
       let old_ml_file = ml_file in
       let ml_file = create_ml_file_if_needed b lib lib.lib.lib_mut_dir envs ml_file in
-      let ppv = BuildOCamlSyntaxes.get_pp w lib basename options in
+      let ppv = BuildOCamlSyntaxes.get_pp "ml" w lib basename options in
 
       (* [has_mli] = None | Some (build_file, in_source_directory_predicate) *)
       let _has_mli =
@@ -1818,7 +1846,7 @@ let add_ml_source w b lib ptmp ml_file options =
             (*      Printf.eprintf "Pack in %s [%s]\n" src_dir modname; *)
             let src_dir = add_directory b src_dir in
             let cmo_files = get_packed_objects lib r src_dir pack_of "cmo" in
-            let cmd = add_files_to_link_to_command "byte pack" cmd envs cmo_files in
+            let cmd = add_files_to_link_to_command lib "byte pack" cmd envs cmo_files in
             add_rule_command r cmd
           end;
 
@@ -1888,7 +1916,7 @@ let add_ml_source w b lib ptmp ml_file options =
 
             let src_dir = add_directory b (Filename.concat dst_dir.dir_fullname modname) in
             let cmx_files = get_packed_objects lib r src_dir pack_of "cmx" in
-            let cmd = add_files_to_link_to_command "asm pack" cmd envs cmx_files in
+            let cmd = add_files_to_link_to_command lib "asm pack" cmd envs cmx_files in
             add_rule_command r cmd
           end;
 
@@ -2221,7 +2249,7 @@ let add_library w b lib =
   !(ptmp.cmo_files) <> [] then begin
     let cma_file = add_dst_file b dst_dir (lib.lib_archive ^ ".cma") in
     lib.lib_bytelink_deps <- cma_file :: lib.lib_bytelink_deps;
-    add_cmos2cma_rule lib ptmp cclib !(ptmp.cmo_files) cma_file;
+    add_cmo2cma_rule lib ptmp cclib !(ptmp.cmo_files) cma_file;
     lib.lib_byte_targets <- (cma_file, CMA) ::
       (List.map (fun s -> (s, CMI)) !(ptmp.cmi_files)) @ lib.lib_byte_targets;
     lib.lib_cmo_objects <- !(ptmp.cmo_files) @ lib.lib_cmo_objects;
@@ -2230,7 +2258,7 @@ let add_library w b lib =
   if  asm_option.get envs &&
     !(ptmp.cmx_files) <> [] then begin
     let (asmlink_deps, asm_targets) =
-      add_cmxs2cmxa_rule b lib cclib !(ptmp.cmi_files)
+      add_cmx2cmxa_rule b lib cclib !(ptmp.cmi_files)
         !(ptmp.cmx_files) !(ptmp.cmxo_files) stubs_files in
     lib.lib_asm_targets <-
       asm_targets @
@@ -2594,7 +2622,7 @@ let add_program w b lib =
       else linkflags
     in
     let byte_file = add_dst_file b dst_dir (lib.lib_archive ^ byte_exe) in
-    add_cmos2byte_rule lib ptmp linkflags cclib !(ptmp.cmo_files)
+    add_cmo2byte_rule lib ptmp linkflags cclib !(ptmp.cmo_files)
       !(ptmp.o_files) byte_file;
     if byte_option.get  lib_options  then begin
       lib.lib_byte_targets <- (byte_file, RUN_BYTE) :: lib.lib_byte_targets;
@@ -2610,7 +2638,7 @@ let add_program w b lib =
       if linkall || !(ptmp.cmx_files) = [] then  S "-linkall" :: linkflags
       else linkflags in
     let asm_file = add_dst_file b dst_dir (lib.lib_archive ^ asm_exe) in
-    add_cmxs2asm_rule lib ptmp linkflags cclib
+    add_cmx2asm_rule lib ptmp linkflags cclib
       !(ptmp.cmx_files) !(ptmp.cmxo_files) !(ptmp.o_files) asm_file;
     if  asm_option.get lib_options && not is_toplevel then begin
       lib.lib_asm_targets <- (asm_file, RUN_ASM) :: lib.lib_asm_targets;
@@ -2703,13 +2731,14 @@ let add_package bc opk =
     BuildSubst.add_to_global_subst
       (Printf.sprintf "%s_DST_DIR" package_name) dst_dir.dir_fullname;
 
+    let full_src_dir = absolute_filename src_dir.dir_fullname in
+    let full_dst_dir = absolute_filename dst_dir.dir_fullname in
     BuildSubst.add_to_global_subst
       (Printf.sprintf "%s_FULL_SRC_DIR" package_name)
-      (absolute_filename src_dir.dir_fullname);
+      full_src_dir;
     BuildSubst.add_to_global_subst
       (Printf.sprintf "%s_FULL_DST_DIR" package_name)
-      (absolute_filename dst_dir.dir_fullname);
-
+      full_dst_dir;
     lib
   with Failure s ->
     Printf.eprintf "While preparing package %S:\n%!" package_name;

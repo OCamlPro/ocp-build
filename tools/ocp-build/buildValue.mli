@@ -19,11 +19,17 @@ module TYPES : sig
     loc_end : Lexing.position;
   }
 
+  (* Two kinds of strings: StringVersion only differs in comparison,
+     where a versioning comparison is used. *)
+  type string_kind =
+  | StringRaw
+  | StringVersion
+
   type env = { env : value StringMap.t }
   and value =
   | VList of value list
   | VObject of env
-  | VString of string
+  | VString of string * string_kind
   | VTuple of value list
   | VBool of bool
   | VInt of int
@@ -80,8 +86,10 @@ val string_option_of_plist : plist -> string option
 val plist_of_string_option : string option -> plist
 
 val set : env -> string -> plist -> env
+(* [get envs s] get from local envs, or from global env *)
 val get : env list -> string -> plist
 val get_with_default : env list -> string -> plist -> plist
+(* [get_local envs s] get only from local envs *)
 val get_local : env list -> string -> plist
 val get_local_with_default : env list -> string -> plist -> plist
 
@@ -124,6 +132,7 @@ val new_option : string -> plist -> plist source_option
 val new_bool_option : string -> bool -> bool source_option
 val new_strings_option : string -> string list -> string list source_option
 val new_string_option : string -> string -> string source_option
+val new_version_option : string -> string -> string source_option
 
 val iter_env : (string -> plist -> unit) -> env -> unit
 
@@ -139,3 +148,6 @@ val noloc : string -> location
 val string_of_location : location -> string
 
 val set_deep_field : TYPES.env -> string list -> TYPES.value -> TYPES.env
+
+val new_object : (string * value) list -> value
+val compare_values : value -> value -> int

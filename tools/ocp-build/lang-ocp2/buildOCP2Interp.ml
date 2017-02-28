@@ -68,7 +68,8 @@ let rec eval_statement ctx config stmt =
         let fields = eval_field ctx config field in
         assign_field ctx config exp fields v
       | _ ->
-        ocp2_raise loc "not-implemented" (VString "%set-field generic")
+        ocp2_raise loc "not-implemented"
+          (VString ("%set-field generic", StringRaw))
     end
 
   | StmtReturn s_opt ->
@@ -101,7 +102,7 @@ let rec eval_statement ctx config stmt =
     let file = eval_expression ctx config file in
     let filename =
       match file with
-      | VString file -> file
+      | VString (file,_) -> file
       | v ->
         raise_type_error loc "%include" 1 "string" v
     in
@@ -193,7 +194,7 @@ and assign_field ctx config e fields v =
   let loc = e.exp_loc in
   match e.exp_expr with
   | ExprIdent ident
-  | ExprValue (VString ident) ->
+  | ExprValue (VString (ident,_)) ->
     let env = try
         BuildValue.config_get config ident
       with Var_not_found _ -> VObject BuildValue.empty_env
@@ -241,7 +242,7 @@ and eval_field ctx config exp =
 and field_name_of_field exp field =
   let field_name =
   match field with
-  | VString s -> s
+  | VString (s,_) -> s
   | VInt n -> string_of_int n
   | VBool true -> "true"
   | VBool false -> "false"
@@ -262,7 +263,7 @@ and eval_expression ctx config exp =
         if StringMap.mem ident !Primitives.primitives then
           VPrim ident
         else
-          raise (OCPExn (loc, "unknown-variable", VString ident))
+          raise (OCPExn (loc, "unknown-variable", VString (ident, StringRaw)))
     end
 
   | ExprField (v, field) ->
@@ -285,7 +286,8 @@ and eval_expression ctx config exp =
                       if StringMap.mem field !Primitives.primitives then
                       VPrim field
                       else *)
-                    raise (OCPExn (loc, "unknown-field", VString field))
+                    raise (OCPExn (loc, "unknown-field",
+                                   VString (field, StringRaw)))
                 in
                 get_fields value fields
               | _ ->
@@ -411,7 +413,7 @@ let read_ocamlconf filename =
     | Some ast ->
       try
         let config = BuildValue.config_set config "dirname"
-            (VString config.config_dirname) in
+            (VString (config.config_dirname, StringRaw)) in
         eval_statement ctx config ast
       with
       | OCPExn (loc, name, arg) ->

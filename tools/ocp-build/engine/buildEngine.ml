@@ -1375,7 +1375,8 @@ let find_cycle b =
       false
     with Exit ->
       Printf.eprintf
-"Hint: use attribute 'nodeps' to remove incorrectly inferred dependencies\n%!";
+        "Hint: use attribute 'nodeps' (for .cmi) and 'noimpldeps' (for .cmx)\n";
+      Printf.eprintf "  to remove incorrectly inferred dependencies\n%!";
       true
 
 

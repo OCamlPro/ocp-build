@@ -374,7 +374,7 @@ let native_support = BuildValue.new_bool_option "native_support" true
 let byte_support = BuildValue.new_bool_option "byte_support" false
 
 
-let ocaml_config_version = BuildValue.new_string_option "ocaml_version" "0"
+let ocaml_config_version = BuildValue.new_version_option "ocaml_version" "0"
 let ocaml_major_version = BuildValue.new_strings_option "ocaml_major_version" [ ]
 let ocaml_minor_version = BuildValue.new_strings_option "ocaml_minor_version" [ "00" ]
 let ocaml_point_version = BuildValue.new_strings_option "ocaml_point_version" [ "0" ]

@@ -165,10 +165,12 @@ let _ =
 
     let (packmodname, pack_env) =
       match to_module with
-      | VList [ VTuple [VString packmodname; VObject pack_env] ]
-      | VTuple [VString packmodname; VObject pack_env]  ->
+      | VList [ VTuple [VString (packmodname,_);
+                        VObject pack_env] ]
+      | VTuple [VString (packmodname,_);
+                VObject pack_env]  ->
         packmodname, pack_env
-      | VString packmodname -> packmodname, BuildValue.empty_env
+      | VString (packmodname,_) -> packmodname, BuildValue.empty_env
       | _ -> failwith
         "%pack with wrong argument types, should be %pack(to_module = modname, files = [...])"
     in
@@ -205,7 +207,7 @@ let _ =
               Filename.concat s file
       with Var_not_found _ -> s
     in
-    VString s
+    VString (s, StringRaw)
   );
 
   add_function "srcdir" [
@@ -222,19 +224,19 @@ let _ =
              Filename.concat s file
       with Var_not_found _ -> s
     in
-    VString s
+    VString (s, StringRaw)
   );
 
   add_function "byte_exe" [] (fun envs _env ->
     let p = BuildValue.get_local_string envs "p" in
     let s = Printf.sprintf "%%{%s_FULL_DST_DIR}%%/%s.byte" p p in
-    VString s
+    VString (s, StringRaw)
   );
 
   add_function "asm_exe" [] (fun envs _env ->
     let p = BuildValue.get_local_string envs "p" in
     let s = Printf.sprintf "%%{%s_FULL_DST_DIR}%%/%s.asm" p p in
-    VString s
+    VString (s, StringRaw)
   );
 
   add_function "split" [
@@ -250,7 +252,8 @@ let _ =
       let s = BuildValue.get_string envs "s" in
       let sep = BuildValue.get_string_with_default envs "sep" " " in
       let sep = if sep = "" then ' ' else sep.[0] in
-      VList (List.map (fun s -> VString s) (OcpString.split s sep))
+      VList (List.map (fun s ->
+        VString (s, StringRaw)) (OcpString.split s sep))
     );
 
   add_function "split_simplify" [
@@ -265,7 +268,8 @@ let _ =
     let s = BuildValue.get_string envs "s" in
     let sep = BuildValue.get_string_with_default envs "sep" " " in
     let sep = if sep = "" then ' ' else sep.[0] in
-    VList (List.map (fun s -> VString s) (OcpString.split_simplify s sep))
+    VList (List.map (fun s ->
+      VString (s, StringRaw)) (OcpString.split_simplify s sep))
   );
 
   let uniq_counter = ref 0 in
@@ -273,7 +277,8 @@ let _ =
     "Returns a uniq string, to be used as a uniq identifier";
   ] (fun _ _ ->
     incr uniq_counter;
-    VString (Printf.sprintf ".id_%d" !uniq_counter));
+    VString (Printf.sprintf ".id_%d" !uniq_counter,
+             StringRaw));
   ()
 
 let primitives_help () =

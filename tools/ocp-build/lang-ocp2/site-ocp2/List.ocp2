@@ -10,7 +10,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-List = { mem = List_mem };
+List = {};
+
+try { List.mem = List_mem; } catch("unknown-variable", x){}
+try { List.map = List_map; } catch("unknown-variable", x){}
 
 provides("List", "1.0", List);
 

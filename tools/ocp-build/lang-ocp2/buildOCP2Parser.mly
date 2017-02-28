@@ -36,7 +36,10 @@ let rec root_field root field =
     let root = root_field root exp in
     mkexp (ExprField(root, subfield))
   | ExprIdent subfield ->
-    mkexp (ExprField(root, mkexp (ExprValue (VString subfield))))
+    mkexp (
+      ExprField(
+        root, mkexp (ExprValue (
+          VString (subfield, StringRaw)))))
   | _ -> assert false
 
 let mkrecord fields =
@@ -44,7 +47,8 @@ let mkrecord fields =
     List.fold_left (fun (simple_fields, deep_fields) (field, v) ->
       match field.exp_expr with
       | ExprIdent ident -> (ident, v) :: simple_fields, deep_fields
-      | ExprValue (VString ident) -> (ident, v) :: simple_fields, deep_fields
+      | ExprValue (VString (ident,_)) ->
+        (ident, v) :: simple_fields, deep_fields
       | ExprField _ -> simple_fields, (field,v) :: deep_fields
       | _ -> assert false
     ) ([],[]) fields in
@@ -247,9 +251,9 @@ tupled_expr:
 lhs_expr:
 | IDENT                    { mkexp ( ExprIdent $1 ) }
 | lhs_expr DOT IDENT
-    { mkexp ( ExprField($1, mkexp (ExprValue (VString $3))) ) }
+    { mkexp ( ExprField($1, mkexp (ExprValue (VString ($3, StringRaw)))) ) }
 | lhs_expr DOT MINUS IDENT
-    { mkexp ( ExprField($1, mkexp (ExprValue (VString ("-"^$4)))) ) }
+    { mkexp ( ExprField($1, mkexp (ExprValue (VString ("-"^$4, StringRaw)))) ) }
 | lhs_expr LBRACKET expr RBRACKET
         { mkexp (ExprField($1, $3)) }
 ;
@@ -327,7 +331,7 @@ ident_equal_exprs:
 
 field_or_string:
 | lhs_expr { $1 }
-| STRING { mkexp (ExprValue (VString $1)) }
+| STRING { mkexp (ExprValue (VString ($1, StringRaw))) }
 ;
 
 simple_expr:
@@ -339,12 +343,12 @@ simpler_expr:
 | LPAREN expr RPAREN        { $2 }
 | simple_expr LPAREN expr_args RPAREN     { mkexp ( ExprCall($1,$3) ) }
 | simpler_expr DOT IDENT
-    { mkexp (ExprField ($1, mkexp (ExprValue (VString $3)))) }
+    { mkexp (ExprField ($1, mkexp (ExprValue (VString ($3, StringRaw))))) }
 | FUNCTION LPAREN ident_args RPAREN LBRACE statements RBRACE
     { mkexp( ExprFunction($3,$6) ) }
 | TRUE                      { mkexp (ExprValue (VBool true)) }
 | FALSE                     { mkexp (ExprValue (VBool false)) }
-| STRING                    { mkexp (ExprValue (VString $1)) }
+| STRING                    { mkexp (ExprValue (VString ($1, StringRaw))) }
 | INT                       { mkexp (ExprValue (VInt $1)) }
 | LBRACKET expr_semi_exprs_maybe_empty RBRACKET { mkexp (ExprList $2) }
 | DOT                       { mkexp  ExprEnv }
