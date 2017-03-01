@@ -453,7 +453,7 @@ let load_project pj filename =
         (VList (List.map (fun s ->
           let link =
             if Filename.check_suffix s ".syntax" then false else true in
-          VTuple [VString s;
+          VTuple [VString (s,StringRaw);
                   VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link)]
          ) requires)) in
 

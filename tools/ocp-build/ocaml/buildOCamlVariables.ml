@@ -10,6 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open StringCompat
 open BuildValue.TYPES
 
 
@@ -54,6 +55,10 @@ let link_deps = BuildValue.new_strings_option "link_deps" []
 let asmlink_deps = BuildValue.new_strings_option "asmlink_deps" []
 let bytelink_deps = BuildValue.new_strings_option "bytelink_deps" []
 
+(* additional libs to link in a program, or in a .cmxs file for a library *)
+let asmlink_libs = BuildValue.new_strings_option "asmlink_libs" []
+let bytelink_libs = BuildValue.new_strings_option "bytelink_libs" []
+
 let is_toplevel = BuildValue.new_bool_option "is_toplevel" false
 
 
@@ -96,8 +101,9 @@ let pp_requires_option = BuildValue.new_strings_option "pp_requires" []
 let comp_requires_option = BuildValue.new_strings_option "comp_requires" []
 let pp_deps = BuildValue.new_strings_option "pp_deps" []
 
-(* which preprocessor command to use *)
+(* which preprocessor command to use
 let pp_option = BuildValue.new_strings_option "pp" []
+*)
 
 (* should files be sorted before linking ? *)
 let sort_files_option = BuildValue.new_bool_option "sort" false
@@ -168,3 +174,50 @@ let installed_option = BuildValue.new_bool_option "installed" false
 
 let features_option = BuildValue.new_strings_option "features" ([] : string list)
   *)
+
+
+
+type 'a specializable_type = {
+  type_of_value : value -> 'a;
+  type_to_value : 'a -> value;
+}
+
+type 'a specializable_field = {
+  field_name : string;
+  field_type : 'a specializable_type;
+  field_default : 'a;
+}
+
+let (strings_type : string list specializable_type) =
+  { type_of_value = BuildValue.strings_of_plist;
+    type_to_value = BuildValue.plist_of_strings;
+  }
+let (string_type : string specializable_type) =
+  { type_of_value = BuildValue.string_of_plist;
+    type_to_value = BuildValue.plist_of_string;
+  }
+
+let get fd special envs =
+  try
+    let v = BuildValue.get envs fd.field_name in
+    let v = match v with
+      | VObject o ->
+        (try StringMap.find special o.env with
+        | Not_found ->
+          StringMap.find "default" o.env)
+      | _ -> v
+    in
+    fd.field_type.type_of_value v
+
+  with
+  | Var_not_found _ (* BuildValue.get *)
+  | Not_found       (* StringMap.find *)
+    -> fd.field_default
+
+(* Two specializations: "ml" and "mli" *)
+let (pp_option : string list specializable_field) =
+  {
+    field_name = "pp";
+    field_type = strings_type;
+    field_default = [];
+  }

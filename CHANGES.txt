@@ -1,6 +1,26 @@
 Change log
 ==========
 
+2017-02-28:
+* ocp-build OCP2:
+  * new variable `ocpbuild_version` of type StringVersion
+  * new function `version(STRING)` to use version comparison (StringVersion)
+  * `ocaml_version` is of type StringVersion
+  * new function `List_map`
+  * new function `exit`
+  * better comparison of values
+* ocp-build:
+  * flush output immediately
+  * better error message when a cycle is found with sort=true
+  * in _mutable_tree, link files are now suffixed with .link
+* OCaml plugin:
+  * new function `OCaml.pack` for packing ("packer" is deprecated)
+  * new options `asmlink_libs` and `bytelink_libs` to add libraries
+    when linking programs in native and bytecode, and when creating
+    .cmxs shared libraries.
+
+2017-02-27: release 1.99.18-beta
+
 2017-02-24:
 * ocp-build install:
   * Install .cmxs files, and add predicate "plugin" to META files

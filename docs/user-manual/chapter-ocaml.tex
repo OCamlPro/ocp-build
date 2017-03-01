@@ -166,34 +166,86 @@ end
 \end{verbatim}
 
 
-\subsubsection{Configurations}
+\section{Description of Specific Rules}
 
-\subsubsection{Preprocessor requirements: {\tt pp\_requires}}
+In the following descriptions, variables noted as {\em \$var} refers
+to the variable in the environment of the rule, as specified directly
+in the {\tt .ocp} file or in the object given for the package in
+the {\tt .ocp2} file.
 
-The {\tt pp\_requires} option can be used to declare a dependency
-between one or more source files and a preprocessor that should thus
-be built before. The preprocessor must be specified as a program
-package in a projet, plus the target (bytecode {\tt byte} or native
-{\tt asm}):
+\subsection{Building a {\tt .cmxa} Library}
 
-\begin{verbatim}
-begin library "ocplib-doc"
-  files = [
-    "docHtml.ml" (
-       pp = [ "./_obuild/ocp-pp/ocp-pp.byte" ]
-       pp_requires = [ "ocp-pp:byte" ]
-    )
-    "docInfo.ml"
-  ]
-  requires = ["ocp-pp"]
-end
-\end{verbatim}
-
-Note that you still need:
+The generic rule to build a {\tt .cmxa} is the following:
 \begin{itemize}
-\item To specify the package in the {\tt requires} directive, to ensure that
-  this package will be available when your package will need it for processing.
-\item To specify the command {\tt pp} to call the preprocessor
+\item Targets: (the default value of {\em \$archive} is the name of the
+  library,{\em library}.
+\begin{itemize}
+\item {\tt \_obuild(lib)/{\em \$archive}.cmxa}
+\item {\tt \_obuild(lib)/{\em \$archive}.a}
+\end{itemize}
+\item Dependencies:
+\begin{itemize}
+\item From the package: {\tt cmx\_files}, {\tt o\_files},
+  {\tt cmi\_files}
+\item Variables: {\tt\em \$ocamlopt\_deps},  {\tt\em \$link\_deps},
+      {\tt\em \$asmlink\_deps}
+\end{itemize}
+\item Commands:
+  \begin{itemize}
+    \item Directory: the targets are first built in the sources, then
+      moved to the destination directory;
+    \item Compilation: {\tt
+      {\em \$ocamlopt} asmlinkflags "-a" "-o" temp\_cmxa
+      "-cclib" {\em \$cclib} (if {\em \$force\_link} then "-linkall")
+      includes(lib) cmxa\_requires(lib)  cmx\_files
+    }
+    \item {\tt asmlinkflags} is:
+      {\tt (if {\em \$debug} then "-g")\\
+        (if {\em \$asmdebug} then "-g")\\
+        (if {\em \$nopervasives} then "-nopervasives")\\
+        {\em \$asmlink}}
+  \end{itemize} 
 \end{itemize}
 
-\section{Command line options}
+\subsection{Building a {\tt .cmxs} Plugin}
+
+A {\tt .cmxs} plugin is built by default for every library, unless
+{\tt\em \$cmxs\_plugin} is {\tt false}. Since it is not clear that
+OCaml can build in parallel the native library and the native plugin,
+they are actually built consecutively in the same rule.
+
+Here are the parameters that are added to the {\tt .cmxa} rule:
+\begin{itemize}
+\item Targets:
+\begin{itemize}
+\item {\tt \_obuild(lib)/{\em \$archive}.cmxs}
+\end{itemize}
+\item Dependencies:
+\begin{itemize}
+\item From the package: {\tt cmx\_files}, {\tt o\_files},
+  {\tt cmi\_files} and {\tt stubs\_files}
+\item Variables: {\tt\em \$ocamlopt\_deps},  {\tt\em \$link\_deps},
+      {\tt\em \$asmlink\_deps}, {\tt\em \$asmlink\_libs}
+\end{itemize}
+\item Commands:
+  \begin{itemize}
+    \item Directory: the targets are first built in the sources, then
+      moved to the destination directory;
+    \item Compilation: {\tt
+      {\em \$ocamlopt} asmlinkflags "-shared"
+      "-I" \_obuild(lib) "-o" temp\_cmxa
+      "-cclib" {\em \$cclib} (if {\em \$force\_link} then "-linkall")
+      includes(lib) cmxa\_requires(lib) 
+      \$asmlink\_libs cmx\_files
+    }
+    \item same {\tt asmlinkflags} as in the {\tt .cmxa} rule
+  \end{itemize} 
+\end{itemize}
+
+Notice the additionnal {\tt\em \$asmlink\_libs} that can be added in a
+{\tt .cmxs} file, even if not part of the {\tt requires} (as for
+native programs).
+
+%%% Local Variables:
+%%% recompile: "pdflatex user-manual"
+%%% End:

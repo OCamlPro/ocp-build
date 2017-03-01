@@ -30,7 +30,7 @@ let set_field env var_name preds field value =
         if positive then name else "-" ^ name
        ) preds) @ [field]
   in
-  env := BuildValue.set_deep_field !env fields (VString value)
+  env := BuildValue.set_deep_field !env fields (VString (value, StringRaw))
 
 let add_META pj ocamllib meta_dirname meta_filename =
   (*
@@ -155,7 +155,7 @@ let add_META pj ocamllib meta_dirname meta_filename =
             "requires" (VList (List.map (fun (s, link) ->
               let link =
                 if Filename.check_suffix s ".syntax" then false else link in
-              VTuple [VString s;
+              VTuple [VString (s, StringRaw);
                       VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link)]
             ) requires)) in
           let options = BuildValue.set_bool options "generated" true in

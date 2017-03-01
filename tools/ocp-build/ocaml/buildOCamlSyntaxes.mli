@@ -16,6 +16,7 @@ val w_SyntaxDepNotDeclared:
   BuildWarnings.set -> string * string * string -> unit
 
 val get_pp :
+  string -> (* special: asm, byte, dep, mli *)
    BuildWarnings.set ->
   BuildOCamlTypes.ocaml_package ->
   string -> (* source basename *)

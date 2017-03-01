@@ -154,7 +154,7 @@ let end_command b proc time status =
       else
         if verbose 1 then
             (*          if !color then *)
-          Printf.eprintf "%s%2.2fs%s %s %s%s%s\n"
+          Printf.eprintf "%s%2.2fs%s %s %s%s%s\n%!"
             term.esc_cyan_text time term.esc_end
             (pretty_rule_name r (term.esc_columns - 16))
             (match status, has_stderr with

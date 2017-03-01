@@ -15,8 +15,8 @@ PACKAGE=${PACKAGE_NAME}
 
 case "$1" in
     "") break;;
-    --unbranch)
-        echo "Reverting changes to opam-repo"
+    -r)
+        echo Reverting changes to opam-repo
         cd ${OPAM_REPO} && \
                 git checkout master &&
                 git branch -D ${PACKAGE}.${VERSION} &&

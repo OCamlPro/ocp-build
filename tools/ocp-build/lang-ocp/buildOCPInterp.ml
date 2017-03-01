@@ -82,29 +82,6 @@ module Primitives = BuildOCPPrims.Init(S)
 let primitives_help = Primitives.primitives_help
 let primitives = Primitives.primitives
 
-let compare_string s1 s2 =
-  Versioning.compare
-    (Versioning.version_of_string s1)  (Versioning.version_of_string s2)
-
-let rec compare_expression e1 e2 =
-  match e1, e2 with
-  | VString s1, VString s2
-  | VString s1, VList [ VString s2 ]
-  | VList [VString s1], VString s2
-    -> compare_string s1 s2
-  | VList [], VList [] -> 0
-  | VList [], VList _ -> -1
-  | VList _, VList [] -> 1
-  | VList (h1::t1), VList (h2::t2) ->
-    (match compare_expression h1 h2 with
-     | 0 -> compare_expression (VList t1) (VList t2)
-     | v -> v)
-  | VInt n1, VInt n2 -> compare n1 n2
-  | _ ->
-    Printf.eprintf "Error: values cannot be compared as versions\n%!";
-    failwith "BuildOCPInterp.compare_versions"
-
-
 let rec translate_toplevel_statements ctx config list =
   match list with
     [] -> config
@@ -221,8 +198,8 @@ and translate_condition ctx config envs cond =
     let exp2 = translate_expression ctx config envs exp2 in
     exp1 = exp2 ||
     begin match exp1, exp2 with
-    | VString s1, VList [VString s2]
-    | VList [VString s1], VString s2 -> s1 = s2
+    | VString (s1,_), VList [VString (s2,_)]
+    | VList [VString (s1,_)], VString (s2,_) -> s1 = s2
     | _ -> false
     end
 
@@ -236,11 +213,11 @@ and translate_condition ctx config envs cond =
   | Greater (e1,e2) ->
     let e1 = translate_expression ctx config envs e1 in
     let e2 = translate_expression ctx config envs e2 in
-    compare_expression e1 e2 = 1
+    BuildValue.compare_values e1 e2 = 1
   | GreaterEqual (e1,e2) ->
     let e1 = translate_expression ctx config envs e1 in
     let e2 = translate_expression ctx config envs e2 in
-    compare_expression e1 e2 >= 0
+    BuildValue.compare_values e1 e2 >= 0
 
   | NotCondition cond -> not (translate_condition ctx config envs cond)
   | AndConditions (cond1, cond2) ->
@@ -304,9 +281,9 @@ and translate_option ctx config envs env op =
 
 and translate_string_expression ctx config envs exp =
   match translate_expression ctx config envs exp with
-    VString s |
-    VList [VString s] |
-    VList [VTuple [VString s; _]] -> s
+    VString (s,_) |
+    VList [VString (s,_)] |
+    VList [VTuple [VString (s,_); _]] -> s
   | _ -> failwith "Single string expected"
 
 and translate_expression ctx config envs exp =
@@ -314,7 +291,7 @@ and translate_expression ctx config envs exp =
   match exp with
 
   | ExprBool bool -> VBool bool
-  | ExprString s -> VString s
+  | ExprString s -> VString (s, StringRaw)
 
   | ExprPrimitive (s, args) ->
     let (f, _) = try StringMap.find s !primitives with

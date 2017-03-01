@@ -33,9 +33,9 @@ let warning loc =
 
 let raise_type_error loc prim_name arg_num type_expected value_received =
   raise (OCPExn (loc, "type-error",
-                 VTuple [VString prim_name;
+                 VTuple [VString (prim_name, StringRaw);
                          VInt arg_num;
-                         VString type_expected;
+                         VString (type_expected, StringRaw);
                          value_received]))
 
 let raise_bad_arity loc prim_name nargs_expected args =
@@ -47,11 +47,11 @@ let prim_print loc ctx config args =
       BuildValue.bprint_value b "" arg;
     ) args;
   Printf.eprintf "%s\n%!" (Buffer.contents b);
-  BuildValue.value []
+  BuildValue.unit
 
 let prim_raise loc ctx config args =
   match args with
-  | [VString name; v] ->
+  | [VString (name,_); v] ->
     raise (OCPExn (loc, name, v))
   | _ ->
     raise_bad_arity loc "raise(string,any)" 2 args
@@ -181,30 +181,18 @@ let _ =
       BuildValue.value [ String.concat sep path, env ]
     );
 
-  add_primitive "mem" [
-    "Check if a string is included in a list of strings";
-    "ENV must contain:";
-    "- string : the string";
-    "- strings : the list of strings";
-  ]
-    (fun envs _env ->
-      let string = BuildValue.get_string envs "string" in
-      let strings = BuildValue.get_strings envs "strings" in
-      let bool = List.mem string strings in
-      BuildValue.plist_of_bool bool
-    );
-
-*)
-    (*
-          if arity >= 0 &&
-             List.length args <> arity then
-            error loc "%s has arity %d" name arity;
 *)
 
 let varargs = -1
 
 let _ =
   add_primitive "print" [ "Display its arguments: print(args)"  ] prim_print;
+
+  add_primitive "exit" [] (fun loc ctx config args ->
+    match args with
+    | [ VInt n ] -> exit n
+    | _ -> exit 2
+  );
 
   add_primitive "raise" [
     "Raise an exception with its argument: raise(\"exn\", arg);"
@@ -247,8 +235,9 @@ let _ =
     match args with
     | [ VInt n1; VInt n2 ] -> VInt (n1 + n2)
     | [ VList l1; VList l2 ] -> VList (l1 @ l2)
-    | [ VString s1; VString s2 ] -> VString (s1 ^ s2)
-    | [ VString s; v ] -> VString (s ^ (BuildValue.string_of_value v))
+    | [ VString (s1,kind); VString (s2,_) ] -> VString (s1 ^ s2, kind)
+    | [ VString (s, kind); v ] ->
+      VString (s ^ (BuildValue.string_of_value v), kind)
     | [ VObject env1; VObject env2 ] ->
       VObject (StringMap.fold (fun s v env ->
         BuildValue.set env s v
@@ -259,12 +248,12 @@ let _ =
   add_primitive prim_sub_name [] (fun loc ctx config args ->
     match args with
     | [ VInt n1; VInt n2 ] -> VInt (n1 - n2)
-    | [ VObject { env = env }; VString s ] ->
+    | [ VObject { env = env }; VString (s,_) ] ->
       VObject { env = StringMap.remove s env }
     | [ VObject { env = env }; VList list ] ->
       let env = List.fold_left (fun env v ->
         match v with
-        | VString s -> StringMap.remove s env
+        | VString (s,_) -> StringMap.remove s env
         | _ ->
           raise_type_error loc "sub(object,list)" 2 "string list" (VList list)
       ) env list in
@@ -311,37 +300,43 @@ let _ =
 
   add_primitive prim_lessthan_name [] (fun loc ctx config args ->
     match args with
-    | [ v1; v2 ] -> VBool (v1 < v2)
+    | [ v1; v2 ] ->
+      VBool (BuildValue.compare_values v1 v2 < 0)
     | _ -> raise_bad_arity loc "lessthan(any,any)" 2 args
-  );
-
-  add_primitive prim_greaterthan_name [] (fun loc ctx config args ->
-    match args with
-    | [ v1; v2 ] -> VBool (v1 > v2)
-    | _ -> raise_bad_arity loc "greaterthan(any,any)" 2 args
   );
 
   add_primitive prim_lessequal_name [] (fun loc ctx config args ->
     match args with
-    | [ v1; v2 ] -> VBool (v1 <= v2)
+    | [ v1; v2 ] ->
+      VBool (BuildValue.compare_values v1 v2 <= 0)
     | _ -> raise_bad_arity loc "lessequal(any,any)" 2 args
+  );
+
+  add_primitive prim_greaterthan_name [] (fun loc ctx config args ->
+    match args with
+    | [ v1; v2 ] ->
+      VBool (BuildValue.compare_values v1 v2 > 0)
+    | _ -> raise_bad_arity loc "greaterthan(any,any)" 2 args
   );
 
   add_primitive prim_greaterequal_name [] (fun loc ctx config args ->
     match args with
-    | [ v1; v2 ] -> VBool (v1 >= v2)
+    | [ v1; v2 ] ->
+      VBool (BuildValue.compare_values v1 v2 >= 0)
     | _ -> raise_bad_arity loc "greaterequal(any,any)" 2 args
   );
 
   add_primitive prim_equal_name [] (fun loc ctx config args ->
     match args with
-    | [ v1; v2 ] -> VBool (v1 = v2)
+    | [ v1; v2 ] ->
+      VBool (BuildValue.compare_values v1 v2 = 0)
     | _ -> raise_bad_arity loc "equal(any,any)" 2 args
   );
 
   add_primitive prim_notequal_name [] (fun loc ctx config args ->
     match args with
-    | [ v1; v2 ] -> VBool (v1 <> v2)
+    | [ v1; v2 ] ->
+      VBool (BuildValue.compare_values v1 v2 <> 0)
     | _ -> raise_bad_arity loc "notequal(any,any)" 2 args
   );
 
@@ -353,8 +348,8 @@ let _ =
   add_primitive "module" [] (fun loc ctx config args ->
     let modname, required_version =
       match args with
-      | [ VString modname ] -> modname, None
-      | [ VString modname; VString version ] ->
+      | [ VString (modname,_) ] -> modname, None
+      | [ VString (modname,_); VString (version,_) ] ->
         let version = Versioning.version_of_string version in
         modname, Some version
       | _ -> raise_bad_arity loc "module(string)" 1 args
@@ -379,7 +374,7 @@ let _ =
 
   add_primitive "provides" [] (fun loc ctx config args ->
     match args with
-    | [ VString s; VString version; value ] ->
+    | [ VString (s,_); VString (version,_); value ] ->
       let version = Versioning.version_of_string version in
       begin
         try
@@ -400,7 +395,7 @@ let _ =
   ]
     (fun loc ctx config args ->
       match args with
-      | [VString name; VString kind; VObject config_env] ->
+      | [VString (name,_); VString (kind,_); VObject config_env] ->
         S.define_package loc ctx { config  with config_env } ~name ~kind;
         VList []
       | _ ->
@@ -414,9 +409,9 @@ let _ =
   ] (fun loc ctx config args ->
     let packmodname, pack_env, files =
       match args with
-      | [VString packmodname; files] ->
+      | [VString (packmodname,_); files] ->
         (packmodname, BuildValue.empty_env, files)
-      | [VString packmodname; VObject pack_env; files] ->
+      | [VString (packmodname,_); VObject pack_env; files] ->
         (packmodname, pack_env, files)
       | _ ->
         raise_bad_arity loc "pack(name, files)" 2 args
@@ -441,6 +436,17 @@ let _ =
                         [ packmodname ^ ".ml", pack_env ])
   );
 
+  add_primitive "version"
+    [ "version(STRING) translates its argument into a version,";
+      "so that later comparisons will use version comparison.";]
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (s, _) ] -> VString (s, StringVersion)
+      | _ ->
+        raise_bad_arity loc "version(string)" 1 args
+    );
+
+
   add_primitive "List_mem" []
     (fun loc ctx config args ->
       match args with
@@ -450,10 +456,21 @@ let _ =
         raise_bad_arity loc "List.mem(ele, list)" 2 args
     );
 
+  add_primitive "List_map" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VFunction f; VList list ] ->
+        VList (List.map (fun v -> f loc [v]) list)
+      | [ VList list; VFunction f ] ->
+        VList (List.map (fun v -> f loc [v]) list)
+      | _ ->
+        raise_bad_arity loc "List.map(function, list)" 2 args
+    );
+
   add_primitive "String_mem" []
     (fun loc ctx config args ->
       match args with
-      | [ VString ele; VString list ] ->
+      | [ VString (ele,_); VString (list,_) ] ->
         VBool (try ignore (OcpString.find ele list); true
           with Not_found -> false )
       | _ ->
@@ -464,7 +481,7 @@ let _ =
   add_primitive "Sys_file_exists" []
     (fun loc ctx config args ->
       match args with
-      | [ VString file ] ->
+      | [ VString (file,_) ] ->
         VBool (Sys.file_exists file)
       | _ ->
         raise_bad_arity loc "Sys.file_exists(file)" 1 args
