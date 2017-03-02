@@ -50,25 +50,36 @@ type ocaml_package = {
   lib : BuildTypes.package_info;
   lib_opk : ocaml_description;
 
+  lib_has_byte : bool;
+  lib_has_asm : bool;
+
   lib_modules : (module_origin * string) StringMap.t ref;
   mutable lib_internal_modules :
     (BuildEngineTypes.build_directory *
     ((module_origin * string) StringMap.t ref)) StringsMap.t;
-  mutable lib_byte_targets : (BuildEngineTypes.build_file * target_kind) list;
   lib_build_targets : BuildEngineTypes.build_file list ref;
   lib_doc_targets : BuildEngineTypes.build_file list ref;
   lib_test_targets : BuildEngineTypes.build_file list ref;
-  mutable lib_cmo_objects : BuildEngineTypes.build_file list;
-  mutable lib_bytecomp_deps : BuildEngineTypes.build_file list;
-  mutable lib_bytelink_deps : BuildEngineTypes.build_file list;
-  mutable lib_asm_targets : (BuildEngineTypes.build_file * target_kind) list;
-  mutable lib_asm_cmx_objects : BuildEngineTypes.build_file list; (* .cmx *)
-  mutable lib_asm_cmxo_objects : BuildEngineTypes.build_file list; (* .o *)
-  mutable lib_asmcomp_deps : BuildEngineTypes.build_file list;
-  mutable lib_asmlink_deps : BuildEngineTypes.build_file list;
-  mutable lib_clink_deps : BuildEngineTypes.build_file list;
-  mutable lib_dep_deps : BuildEngineTypes.build_file IntMap.t;
 
+  (* These fields are automatically populated from the lib_XXX_objects
+     fields *)
+  mutable lib_byte_targets : (BuildEngineTypes.build_file * target_kind) list;
+  mutable lib_asm_targets : (BuildEngineTypes.build_file * target_kind) list;
+
+  (* These fields are the external view of a package for other packages *)
+  mutable lib_cmi_objects : BuildEngineTypes.build_file list;
+  mutable lib_cmo_objects : BuildEngineTypes.build_file list;
+  mutable lib_cma_objects : BuildEngineTypes.build_file list;
+  mutable lib_cmx_objects : BuildEngineTypes.build_file list; (* .cmx *)
+  mutable lib_cmx_o_objects : BuildEngineTypes.build_file list; (* .o *)
+  mutable lib_cmxa_objects : BuildEngineTypes.build_file list; (* .cmxa *)
+  mutable lib_cmxa_a_objects : BuildEngineTypes.build_file list; (* .a *)
+  mutable lib_cmxs_objects : BuildEngineTypes.build_file list; (* .cmxa *)
+  mutable lib_a_objects : BuildEngineTypes.build_file list;
+  mutable lib_byte_objects : BuildEngineTypes.build_file list;
+  mutable lib_asm_objects : BuildEngineTypes.build_file list;
+
+  (* Only used as a cached value, not exported to other packages *)
   mutable lib_includes : string list option;
   mutable lib_linkdeps : ocaml_package list;
 

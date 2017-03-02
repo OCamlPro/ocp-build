@@ -295,7 +295,10 @@ publish-opam:
 	cd $(HOME)/.opam/opamer/opam-repository; git add packages/ocp-build/ocp-build.$(PACKAGE_VERSION)
 
 
-
+bootstrap:
+	cp -f _obuild/ocp-build/ocp-build.asm $(OCP_BUILD_BOOTER)
+	$(OCP_BUILD_BOOTER) clean
+	$(OCP_BUILD_BOOTER)
 
 include .depend
 
