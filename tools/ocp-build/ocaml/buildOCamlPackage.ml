@@ -109,6 +109,47 @@ let _ =
         BuildOCP2Prims.raise_bad_arity loc
           "OCaml.library(name,ocaml)" 2 args
     );
+  add_primitive "rules"
+    [ "Add a new set of OCaml rules" ]
+    (fun loc state config args ->
+      match args with
+      | [ VString (name,_); VObject config_env ] ->
+        add_ocaml_package_unit loc state { config  with config_env }
+          name BuildOCPTypes.RulesPackage;
+        BuildValue.unit
+      |  _ ->
+        BuildOCP2Prims.raise_bad_arity loc
+          "OCaml.rules(name,ocaml)" 2 args
+    );
+
+  add_primitive "objects"
+    [ "Add a new set of OCaml objects" ]
+    (fun loc state config args ->
+      match args with
+      | [ VString (name,_); VObject config_env ] ->
+        add_ocaml_package_unit loc state { config  with config_env }
+          name BuildOCPTypes.ObjectsPackage;
+        BuildValue.unit
+      |  _ ->
+        BuildOCP2Prims.raise_bad_arity loc
+          "OCaml.objects(name,ocaml)" 2 args
+    );
+
+  add_primitive "system"
+    [ "Call a shell command" ]
+    (fun loc state config args ->
+      match args with
+      | [ VList cmd ] ->
+          VTuple [ VString ("", StringRaw);
+                   BuildValue.new_object [ "value", VList cmd ] ]
+      | [ VList cmd; VObject { env } ] ->
+        let env = StringMap.add "value" (VList cmd) env in
+        VTuple [ VString ("", StringRaw);
+                 VObject { env } ]
+      |  _ ->
+        BuildOCP2Prims.raise_bad_arity loc
+          "OCaml.system(cmd [,options])" 1 args
+    );
 
   add_primitive "pack" [
     "pack(string[,pack_env], list-of-strings)"

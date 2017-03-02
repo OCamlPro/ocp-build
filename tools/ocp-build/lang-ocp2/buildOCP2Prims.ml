@@ -188,6 +188,13 @@ let varargs = -1
 let _ =
   add_primitive "print" [ "Display its arguments: print(args)"  ] prim_print;
 
+  add_primitive "message" [ "Print a message: print(STRING)"  ]
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (s,_) ] -> Printf.eprintf "%s\n%!" s; BuildValue.unit
+      | _ -> raise_bad_arity loc "message(STRING)" 1 args
+    );
+
   add_primitive "exit" [] (fun loc ctx config args ->
     match args with
     | [ VInt n ] -> exit n
@@ -465,6 +472,19 @@ let _ =
         VList (List.map (fun v -> f loc [v]) list)
       | _ ->
         raise_bad_arity loc "List.map(function, list)" 2 args
+    );
+
+  add_primitive "List_flatten" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VList list ] ->
+        VList (List.flatten
+                 (List.map (function
+                 | VList l -> l
+                 | v -> [v]) list
+                 ))
+      | _ ->
+        raise_bad_arity loc "List.flatten(list)" 1 args
     );
 
   add_primitive "String_mem" []
