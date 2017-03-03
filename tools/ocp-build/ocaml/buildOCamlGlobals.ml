@@ -111,8 +111,8 @@ in
 
     lib_byte_targets = [];
     lib_asm_targets = [];
-    lib_cmi_targets = [];
-    lib_a_targets = [];
+    lib_intf_targets = [];
+    lib_stub_targets = [];
 
 
     (*
@@ -129,7 +129,7 @@ in
     lib_a_objects = [];
     *)
 
-    lib_modules = ref StringMap.empty;
+    lib_modules = [];
     lib_internal_modules = StringsMap.empty;
     (* lib_dep_deps = IntMap.empty; *)
     lib_includes = None;
@@ -185,6 +185,13 @@ let make_build_targets lib cin =
       (if cin.cin_native then
           List.map fst lib.lib_asm_targets
        else []) @
+      (List.fold_left (fun list (file, kind) ->
+        match kind with
+        | CMI -> file :: list
+        | CMX when cin.cin_native -> file :: list
+        | _ -> list
+       ) [] lib.lib_intf_targets) @
+      (List.map fst lib.lib_stub_targets) @
       !(lib.lib_build_targets)
 
 let make_doc_targets lib _cin =

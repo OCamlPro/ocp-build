@@ -30,95 +30,78 @@ begin
 
 begin library "threads"
   dirname = [ "%{OCAMLLIB}%"; "threads" ]
-   link = [ "-thread" ]
-  generated = true
+  link = [ "-thread" ]
+
+  byte_targets = [ "threads.cma" ]
+  asm_targets = [ "threads.cmxa" ]
   requires = [ "unix" ]
 end
 
   begin library "unix"
-    has_byte = true
-    has_asm = true
-    files = [ "unix.ml" ]
+    byte_targets = [ "unix.cma" ]
+    asm_targets = [ "unix.cmxa" ]
   end
 
   begin library "str"
     requires = [ ]
-    has_byte = true
-    has_asm = true
-    files = [ "str.ml" ]
+    byte_targets = [ "str.cma" ]
+    asm_targets = [ "str.cmxa" ]
   end
 
   begin library "dynlink"
     has_byte = true
     has_asm = true
-    files = [ "dynlink.ml" ]
+    byte_targets = [ "dynlink.cma" ]
+    asm_targets = [ "dynlink.cmxa" ]
   end
 
   begin library "bigarray"
-    has_byte = true
-    has_asm  = true
     requires = [ "unix" ]
-    files = [ "bigarray.ml" ]
+    byte_targets = [ "bigarray.cma" ]
+    asm_targets = [ "bigarray.cmxa" ]
   end
 
   begin library "graphics"
-    has_byte = true
-    has_asm  = true
-    files = [ "graphics.ml" ]
+    byte_targets = [ "graphics.cma" ]
+    asm_targets = [ "graphics.cmxa" ]
   end
 
   begin library "nums"
-    has_byte = true
-    has_asm  = true
-    files = [ "num.ml" ]
+    byte_targets = [ "nums.cma" ]
+    asm_targets = [ "nums.cmxa" ]
   end
 
-  if ocaml_major_version = "4" then {
+  if ocaml_version >= "4" then {
 
     dirname = [ "%{OCAMLLIB}%/compiler-libs" ]
 
     begin library "compiler-libs.common"
+      byte_targets = [ "ocamlcommon.cma" ]
+      asm_targets = [ "ocamlcommon.cmxa" ]
           archive = "ocamlcommon"
     end
+
     begin library "compiler-libs.bytecomp"
+      byte_targets = [ "ocamlbytecomp.cma" ]
+      asm_targets = [ "ocamlbytecomp.cmxa" ]
       archive = "ocamlbytecomp"
       requires = [ "compiler-libs.common" ]
     end
+
     begin library "compiler-libs.optcomp"
       archive = "ocamloptcomp"
+      byte_targets = [ "ocamloptcomp.cma" ]
+      asm_targets = [ "ocamloptcomp.cmxa" ]
       requires = [ "compiler-libs.common" ]
     end
+
     begin library "compiler-libs.toplevel"
       archive = "ocamltoplevel"
+      byte_targets = [ "ocamltoplevel.cma" ]
+      asm_targets = [ "ocamltoplevel.cmxa" ]
       requires = [ "compiler-libs.bytecomp" ]
     end
 
-(* These projects are meta-packages, they don't contain anything, they
-   just add dependencies. They don't have generated=true, otherwise it
-   would mean they are actually installed and not meta. *)
-
-    meta = true
-    begin library "ocaml-bytecomp"
-        requires = [ "compiler-libs.bytecomp" ]
-    end
-
-    begin library "ocaml-typing"
-        requires = [ "compiler-libs.common" ]
-    end
-
-    begin library "ocaml-parsing"
-        requires = [ "compiler-libs.common" ]
-    end
-
-    begin library "ocaml-utils"
-        requires = [ "compiler-libs.common" ]
-    end
-
-    begin library "ocaml-driver"
-        requires = [ "compiler-libs.bytecomp" ]
-    end
-
   }
-
 
 end

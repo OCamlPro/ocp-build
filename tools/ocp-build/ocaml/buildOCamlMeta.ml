@@ -86,32 +86,31 @@ let add_META pj ocamllib meta_dirname meta_filename =
             String.lowercase name
             in  *)
         let fullname = path ^ name in
-        let has_asm = ref None in
-        let has_byte = ref None in
+        let has_asm = ref [] in
+        let has_byte = ref [] in
         let has_syntax = ref None in
 
         StringMap.iter (fun _ var ->
           match var.metavar_preds, var.metavar_value with
             (* TODO: handle multiple files (objects) *)
 
-          | [ "byte", true ], [ archive ]
-            when Filename.check_suffix archive ".cma"
-              ->
-            has_byte := Some (Filename.chop_suffix archive ".cma")
+          | [ "byte", true ], byte_targets ->
+            has_byte := byte_targets
 
+              (*
           | [ "syntax", true; "preprocessor", true ], [ archive ]
             when Filename.check_suffix archive ".cma"
               ->
             has_syntax := Some (Filename.chop_suffix archive ".cma")
+              *)
 
-          | [ "native", true ], [ archive ]
-            when Filename.check_suffix archive ".cmxa"
-              ->
-            has_asm := Some (Filename.chop_suffix archive ".cmxa")
+          | [ "native", true ], asm_targets ->
+            has_asm :=  asm_targets
 
           | _ -> ()
         ) meta.meta_archive;
 
+        (*
         let archive = match !has_asm, !has_byte with
             None, None -> None
           | Some asm_archive, Some byte_archive ->
@@ -124,6 +123,7 @@ let add_META pj ocamllib meta_dirname meta_filename =
           | archive, None
           | None , archive -> archive
         in
+        *)
 
         let requires = ref [] in
         StringMap.iter (fun _ var ->
@@ -147,7 +147,8 @@ let add_META pj ocamllib meta_dirname meta_filename =
           (* for objects, we should set   pk.package_sources <- source_files; *)
 
 
-        let create_package p_option fullname kind requires archive =
+        let create_package p_option fullname kind requires
+            byte_targets asm_targets =
 
           let options = BuildValue.empty_env in
 
@@ -185,14 +186,14 @@ let add_META pj ocamllib meta_dirname meta_filename =
               opk.opk_version <- version
           end;
 
-          begin
-            match archive with
-              None ->
-                opk.opk_options <- BuildValue.set_bool opk.opk_options "meta"  true ;
-                if verbose 4 then
-                  Printf.eprintf "Warning: package %S is meta\n%!" fullname
-            | Some archive ->
-              opk.opk_options <- BuildValue.set_string opk.opk_options "archive" archive;
+          if byte_targets = [] && asm_targets = [] then begin
+            opk.opk_options <- BuildValue.set_bool opk.opk_options
+              "meta" true
+          end else begin
+            opk.opk_options <- BuildValue.set_strings opk.opk_options
+              "asm_targets" asm_targets;
+            opk.opk_options <- BuildValue.set_strings opk.opk_options
+              "byte_targets" byte_targets;
           end;
 
           begin match p_option with
@@ -241,10 +242,12 @@ let add_META pj ocamllib meta_dirname meta_filename =
              might want to have a more aggressive behavior, based on
              using a combination of META and ocamlobjinfo, to fix
              information from META.  *)
-        begin match !has_syntax with
-        | None ->
+(*        begin match !has_syntax with
+          | None -> *)
           create_package (Some p) fullname BuildOCPTypes.LibraryPackage
-            (List.map (fun l -> (l,true)) !requires) archive;
+            (List.map (fun l -> (l,true)) !requires)
+            !has_byte !has_asm;
+        (*
         | Some syntax_archive ->
           match archive with
           | None ->
@@ -264,7 +267,7 @@ let add_META pj ocamllib meta_dirname meta_filename =
             create_package None (fullname ^ ".ocp-syntax")
               BuildOCPTypes.SyntaxPackage
               [fullname ^ ".ocp-syntax-library", true] None;
-        end;
+          end; *)
         List.iter (fun (name, pp) ->
           add_meta dirname pj (fullname ^ ".") name pp) p.p_packages
 

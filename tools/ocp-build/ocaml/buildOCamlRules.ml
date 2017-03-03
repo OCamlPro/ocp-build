@@ -127,7 +127,7 @@ type package_temp_variables = {
   cmo_files : build_file list ref;
   odoc_files : build_file list ref;
   cmx_files : build_file list ref;
-  cmxo_files : build_file list ref;
+  cmx_o_files : build_file list ref;
   o_files : build_file list ref;
 }
 
@@ -138,7 +138,7 @@ let new_package_temp_variables () = {
   cmo_files =  ref [];
   odoc_files =  ref [];
   cmx_files =  ref [];
-  cmxo_files = ref []; (* .o files generated with .cmx files *)
+  cmx_o_files = ref []; (* .o files generated with .cmx files *)
   o_files = ref [];
 }
 
@@ -617,7 +617,7 @@ let cross_update r list =
       Move (true, f1, f2)
      ) list)
 
-let add_cmx2cmxa_rule b lib cclib cmi_files cmx_files cmxo_files stubs_files =
+let add_cmx2cmxa_rule b lib cclib cmi_files cmx_files cmx_o_files stubs_files =
   let options = [lib.lib_opk.opk_options] in
   let src_dir = lib.lib.lib_src_dir in
   let dst_dir = lib.lib.lib_dst_dir in
@@ -632,7 +632,7 @@ let add_cmx2cmxa_rule b lib cclib cmi_files cmx_files cmxo_files stubs_files =
   let cmxs_file = add_dst_file b dst_dir basename_cmxs in
 
   let has_cmxs = cmxs_plugin.get options in
-  let cmxs_files = if has_cmxs then [cmxs_file] else [] in
+  let cmxs_files = if has_cmxs then [cmxs_file, CMXS] else [] in
 
   if not lib.lib_installed then begin
 
@@ -661,7 +661,7 @@ let add_cmx2cmxa_rule b lib cclib cmi_files cmx_files cmxo_files stubs_files =
     add_more_rule_sources lib r
       [ ocamlopt_deps; asmlink_deps; link_deps ] options;
     add_rule_sources r cmx_files;
-    add_rule_sources r cmxo_files;
+    add_rule_sources r cmx_o_files;
     add_rule_sources r cmi_files;
     cross_move r [ F temp_cmxa.file_file, F cmxa_file.file_file;
                    F temp_a.file_file, F a_file.file_file;
@@ -797,10 +797,10 @@ let add_cmo2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
           if not lib2.lib_autolink then
             List.iter (fun (obj, kind) ->
               match kind with
-              | C_A -> add_command_arg cmd (BF obj)
+              | STUB_A -> add_command_arg cmd (BF obj)
               (*     [S "-cclib"; S ("-l" ^ lib2.lib_stubarchive)] *)
               | _ -> ()
-            ) lib2.lib_a_targets;
+            ) lib2.lib_stub_targets;
         end;
       | SyntaxPackage -> ()
       | TestPackage -> ()
@@ -830,14 +830,14 @@ let add_cmo2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
       ) lib2.lib_byte_targets;
       List.iter (fun (obj, kind) ->
         match kind with
-        | C_A -> add_rule_source r obj
+        | STUB_A -> add_rule_source r obj
         | _ -> ()
-      ) lib2.lib_a_targets;
+      ) lib2.lib_stub_targets;
     ) lib.lib_linkdeps;
     add_rule_sources r bytelink_libs
 
 
-let add_cmx2asm_rule lib ptmp linkflags cclib cmx_files cmxo_files o_files opt_file =
+let add_cmx2asm_rule lib ptmp linkflags cclib cmx_files cmx_o_files o_files opt_file =
   if  not lib.lib_installed then
     let options = [lib.lib_opk.opk_options] in
     let cmd = new_command
@@ -868,10 +868,10 @@ let add_cmx2asm_rule lib ptmp linkflags cclib cmx_files cmxo_files o_files opt_f
           if not lib2.lib_autolink then
             List.iter (fun (obj, kind) ->
               match kind with
-              | C_A -> add_command_arg cmd (BF obj)
+              | STUB_A -> add_command_arg cmd (BF obj)
               (*     [S "-cclib"; S ("-l" ^ lib2.lib_stubarchive)] *)
               | _ -> ()
-            ) lib2.lib_a_targets;
+            ) lib2.lib_stub_targets;
         end;
       | SyntaxPackage -> ()
       | TestPackage -> ()
@@ -890,7 +890,7 @@ let add_cmx2asm_rule lib ptmp linkflags cclib cmx_files cmxo_files o_files opt_f
     add_more_rule_sources lib r [ ocamlopt_deps; asmlink_deps; link_deps ] options;
 
     add_rule_sources r cmx_files;
-    add_rule_sources r cmxo_files;
+    add_rule_sources r cmx_o_files;
     add_rule_sources r !(ptmp.cmi_files);
     add_rule_sources r o_files;
     List.iter (fun lib2 ->
@@ -902,9 +902,9 @@ let add_cmx2asm_rule lib ptmp linkflags cclib cmx_files cmxo_files o_files opt_f
       ) lib2.lib_asm_targets;
       List.iter (fun (obj, kind) ->
         match kind with
-        | C_A -> add_rule_source r obj
+        | STUB_A -> add_rule_source r obj
         | _ -> ()
-      ) lib2.lib_a_targets;
+      ) lib2.lib_stub_targets;
     ) lib.lib_linkdeps;
     add_rule_sources r asmlink_libs;
     ()
@@ -1033,7 +1033,7 @@ let copy_ml_objects_from b lib ptmp envs src_lib kernel_name =
     do_copy_objects_from b lib src_lib kernel_name ".cmo" ptmp.cmo_files;
   if lib.lib_has_asm then begin
     do_copy_objects_from b lib src_lib kernel_name ".cmx" ptmp.cmx_files;
-    do_copy_objects_from b lib src_lib kernel_name ".o" ptmp.cmxo_files;
+    do_copy_objects_from b lib src_lib kernel_name ".o" ptmp.cmx_o_files;
   end
 
 
@@ -1099,7 +1099,7 @@ let add_mli_source w b lib ptmp mli_file options =
       (* TODO: check that pack_for = [] *)
       (* TODO: check that src_lib is in requires *)
       do_copy_objects_from b lib src_lib kernel_name ".cmi" ptmp.cmi_files;
-(* TODO: do the same for .odoc files ! *)
+    (* TODO: do the same for .odoc files ! *)
 
     | None ->
       if IntMap.mem mli_file.file_id ptmp.src_files then begin
@@ -1197,18 +1197,16 @@ let add_mli_source w b lib ptmp mli_file options =
 
       (* TODO: we should actually rename all modules to fit
          their capitalized name in the _obuild directory *)
-      let lib_modules = match pack_for with
-          [] -> lib.lib_modules
-        | _ ->
-          let pack_for = List.rev pack_for in
-          try
-       let (_, map) = StringsMap.find pack_for lib.lib_internal_modules in
-       map
-          with Not_found ->
-       let map = ref StringMap.empty in
-       lib.lib_internal_modules <-
-              StringsMap.add pack_for (dst_dir, map) lib.lib_internal_modules;
-       map
+      let lib_modules =
+        let pack_for = List.rev pack_for in
+        try
+          let (_, map) = StringsMap.find pack_for lib.lib_internal_modules in
+          map
+        with Not_found ->
+          let map = ref StringMap.empty in
+          lib.lib_internal_modules <-
+            StringsMap.add pack_for (dst_dir, map) lib.lib_internal_modules;
+          map
       in
 
       begin
@@ -1217,13 +1215,13 @@ let add_mli_source w b lib ptmp mli_file options =
         try
           let (kind, basename) = StringMap.find modname !lib_modules in
           match kind with
-       MLI -> ()
-     | MLandMLI -> ()
-     | ML ->
-       lib_modules := StringMap.add modname (MLandMLI, basename) !lib_modules
+            MLI -> ()
+          | MLandMLI -> ()
+          | ML ->
+            lib_modules := StringMap.add modname (MLandMLI, basename) !lib_modules
         with Not_found ->
           if verbose 5 then
-       Printf.eprintf "Adding module %s to %s\n" modname lib.lib.lib_name;
+            Printf.eprintf "Adding module %s to %s\n" modname lib.lib.lib_name;
           lib_modules := StringMap.add modname (MLI, basename) !lib_modules
       end;
 
@@ -1542,7 +1540,7 @@ let add_ml_source w b lib ptmp ml_file options =
         ptmp.cmo_files := cmo_file :: !(ptmp.cmo_files);
       if has_asm then begin
         ptmp.cmx_files := cmx_file :: !(ptmp.cmx_files);
-        ptmp.cmxo_files := o_file :: !(ptmp.cmxo_files)
+        ptmp.cmx_o_files := o_file :: !(ptmp.cmx_o_files)
       end
     end
 
@@ -1730,9 +1728,7 @@ let add_ml_source w b lib ptmp ml_file options =
         | Some _ -> []
       in
 
-      let lib_modules = match pack_for with
-          [] -> lib.lib_modules
-        | _ ->
+      let lib_modules =
           let pack_for = List.rev pack_for in
           try
             let (_, map) = StringsMap.find pack_for lib.lib_internal_modules in
@@ -1907,7 +1903,7 @@ let add_ml_source w b lib ptmp ml_file options =
 
           if pack_for = [] then begin
             ptmp.cmx_files := cmx_file :: !(ptmp.cmx_files);
-            ptmp.cmxo_files := o_file :: !(ptmp.cmxo_files);
+            ptmp.cmx_o_files := o_file :: !(ptmp.cmx_o_files);
           end;
           Some cmx_file
         end else None
@@ -1987,7 +1983,7 @@ let add_mly_source w b lib ptmp mly_file options =
       add_ml_source w b lib ptmp ml_file options
 
 let rec process_source w b lib ptmp src_dir (basename, options) =
-  let bc = lib.lib.lib_builder_context in
+  let _bc = lib.lib.lib_builder_context in
   let envs = [ options; lib.lib_opk.opk_options ] in
 
   let (kernel_name, last_extension) = OcpString.rcut_at basename '.' in
@@ -2012,6 +2008,8 @@ let rec process_source w b lib ptmp src_dir (basename, options) =
   match last_extension with
     "c" ->
       add_c_source b lib ptmp src_file options
+
+        (*
   | "objects" ->
     let obj_lib =
       try
@@ -2028,7 +2026,7 @@ let rec process_source w b lib ptmp src_dir (basename, options) =
     | Some obj_lib ->
       ptmp.cmo_files := (List.rev obj_lib.lib_cmo_objects) @ !(ptmp.cmo_files);
       ptmp.cmx_files := (List.rev obj_lib.lib_cmx_objects) @ !(ptmp.cmx_files);
-      ptmp.cmxo_files := (List.rev obj_lib.lib_cmx_o_objects) @ !(ptmp.cmxo_files);
+      ptmp.cmx_o_files := (List.rev obj_lib.lib_cmx_o_objects) @ !(ptmp.cmx_o_files);
     ()
     end
 
@@ -2047,6 +2045,7 @@ let rec process_source w b lib ptmp src_dir (basename, options) =
       let src_dir = obj_lib.lib.lib_src_dir in
       List.iter (process_source w b lib ptmp src_dir) obj_lib.lib_sources
     end
+        *)
 
   | "ml" ->
     add_ml_source w b lib ptmp src_file options
@@ -2145,7 +2144,7 @@ let process_sources w b lib =
   ptmp.odoc_files := List.rev !(ptmp.odoc_files);
   lib.lib_doc_targets := !(ptmp.odoc_files) @ !(lib.lib_doc_targets);
   ptmp.cmx_files := List.rev !(ptmp.cmx_files);
-  ptmp.cmxo_files := List.rev !(ptmp.cmxo_files);
+  ptmp.cmx_o_files := List.rev !(ptmp.cmx_o_files);
   ptmp.cmi_files := List.rev !(ptmp.cmi_files);
   ptmp.o_files := List.rev !(ptmp.o_files);
   ptmp
@@ -2186,7 +2185,7 @@ let add_library w b lib =
     match a_file with
     | None -> cclib, []
     | Some a_file ->
-      lib.lib_a_objects <- a_file :: lib.lib_a_objects;
+      lib.lib_stub_targets <- (a_file, STUB_A) :: lib.lib_stub_targets;
       Printf.sprintf "-l%s %s" lib.lib_stubarchive cclib, [a_file]
 
   in
@@ -2195,20 +2194,25 @@ let add_library w b lib =
     (lib.lib_installed || !(ptmp.cmo_files) <> []) then begin
       let cma_file = add_dst_file b dst_dir (lib.lib_archive ^ ".cma") in
       add_cmo2cma_rule lib ptmp cclib !(ptmp.cmo_files) cma_file;
-      lib.lib_cmi_objects <- !(ptmp.cmi_files) @ lib.lib_cmi_objects;
-      lib.lib_cma_objects <- cma_file :: lib.lib_cma_objects;
-    (*      lib.lib_cmo_objects <- !(ptmp.cmo_files) @ lib.lib_cmo_objects; *)
+      lib.lib_intf_targets <-
+        (List.map (fun cmi -> cmi, CMI)
+           (!(ptmp.cmi_files))) @ lib.lib_intf_targets;
+      lib.lib_byte_targets <- (cma_file, CMA) :: lib.lib_byte_targets;
     end;
 
   if  asm_option.get envs &&
     (lib.lib_installed || !(ptmp.cmx_files) <> []) then begin
       let (cmxa_file, a_file, cmxs_files) =
         add_cmx2cmxa_rule b lib cclib !(ptmp.cmi_files)
-          !(ptmp.cmx_files) !(ptmp.cmxo_files) stubs_files in
-      lib.lib_cmi_objects <- !(ptmp.cmi_files) @ lib.lib_cmi_objects;
-      lib.lib_cmxa_objects <- cmxa_file :: lib.lib_cmxa_objects;
-      lib.lib_cmxa_a_objects <- a_file :: lib.lib_cmxa_a_objects;
-      lib.lib_cmxs_objects <- cmxs_files @ lib.lib_cmxs_objects;
+          !(ptmp.cmx_files) !(ptmp.cmx_o_files) stubs_files in
+      lib.lib_intf_targets <-
+        (List.map (fun cmi -> cmi, CMI) (!(ptmp.cmi_files))) @
+        (List.map (fun cmx -> cmx, CMX) (!(ptmp.cmx_files))) @
+        lib.lib_intf_targets;
+      lib.lib_asm_targets <-
+        (cmxa_file, CMXA) ::
+        (a_file, CMXA_A) ::
+        cmxs_files @ lib.lib_asm_targets
     end;
 
   if !(ptmp.odoc_files) <> [] then begin
@@ -2227,13 +2231,24 @@ let add_objects w b lib =
   let envs = [lib.lib_opk.opk_options] in
 
   if byte_option.get  envs  then begin
-    lib.lib_cmi_objects <- !(ptmp.cmi_files) @ lib.lib_cmi_objects;
-    lib.lib_cmo_objects <- !(ptmp.cmo_files) @ lib.lib_cmo_objects;
+    lib.lib_intf_targets <-
+      (List.map (fun cmi -> cmi, CMI) (!(ptmp.cmi_files))) @
+      lib.lib_intf_targets;
+    lib.lib_byte_targets <-
+        (List.map (fun cmo -> cmo, CMO)
+           (!(ptmp.cmo_files))) @ lib.lib_byte_targets;
   end;
   if asm_option.get envs then begin
-    lib.lib_cmi_objects <- !(ptmp.cmi_files) @ lib.lib_cmi_objects;
-    lib.lib_cmx_objects <- !(ptmp.cmx_files) @ lib.lib_cmx_objects;
-    lib.lib_cmx_o_objects <- !(ptmp.cmxo_files) @ lib.lib_cmx_o_objects;
+    lib.lib_intf_targets <-
+      (List.map  (fun cmi -> cmi, CMI) (!(ptmp.cmi_files))) @
+      (List.map  (fun cmx -> cmx, CMX) (!(ptmp.cmx_files))) @
+      lib.lib_intf_targets;
+    lib.lib_asm_targets <-
+      (List.map (fun cmx -> cmx, CMX)
+         (!(ptmp.cmx_files)))
+    @ (List.map (fun o -> o, CMX_O)
+         (!(ptmp.cmx_o_files)))
+    @ lib.lib_asm_targets;
   end;
   ()
 
@@ -2497,25 +2512,25 @@ let add_program w b lib =
         (*        | ProjectToplevel *)
           | ObjectsPackage
             -> ()
-          | RulesPackage -> ()
+          | RulesPackage
           | LibraryPackage ->
-            let modules = lib1.lib_modules in
-            let modules = !modules in
-            StringMap.iter (fun modname (kind1, _) ->
-              try
-                let (kind2, lib2) = StringMap.find modname !map in
-                match kind1, kind2 with
-                | (ML | MLandMLI), (ML | MLandMLI) ->
-                  Printf.eprintf
-                    "Warning: program %s, requirements %s and %s both\n"
-                    lib.lib.lib_name lib2.lib.lib_name lib1.lib.lib_name;
-                  Printf.eprintf "\tdefine a module name %s.\n" modname;
-                | _ -> ()
-              with Not_found ->
-                map := StringMap.add modname (kind1,lib1) !map
-            ) modules
+            StringsMap.iter (fun _ (_, modules) ->
+              StringMap.iter (fun modname (kind1, _) ->
+                try
+                  let (kind2, lib2) = StringMap.find modname !map in
+                  match kind1, kind2 with
+                  | (ML | MLandMLI), (ML | MLandMLI) ->
+                    Printf.eprintf
+                      "Warning: program %s, requirements %s and %s\n"
+                      lib.lib.lib_name lib2.lib.lib_name lib1.lib.lib_name;
+                    Printf.eprintf "\tboth define a module name %s.\n" modname;
+                  | _ -> ()
+                with Not_found ->
+                  map := StringMap.add modname (kind1,lib1) !map
+              ) !modules
+            ) lib1.lib_internal_modules
           | SyntaxPackage ->
-          (* Nothing to do ? *)
+            (* Nothing to do ? *)
             ()
     ) lib.lib_requires
   end;
@@ -2535,7 +2550,7 @@ let add_program w b lib =
     add_cmo2byte_rule lib ptmp linkflags cclib !(ptmp.cmo_files)
       !(ptmp.o_files) byte_file;
     if byte_option.get  lib_options  then begin
-      lib.lib_byte_objects <- byte_file :: lib.lib_byte_objects;
+      lib.lib_byte_targets <- (byte_file, RUN_BYTE) :: lib.lib_byte_targets;
     end
   end;
 
@@ -2546,9 +2561,9 @@ let add_program w b lib =
       else linkflags in
     let asm_file = add_dst_file b dst_dir (lib.lib_archive ^ asm_exe) in
     add_cmx2asm_rule lib ptmp linkflags cclib
-      !(ptmp.cmx_files) !(ptmp.cmxo_files) !(ptmp.o_files) asm_file;
+      !(ptmp.cmx_files) !(ptmp.cmx_o_files) !(ptmp.o_files) asm_file;
     if  asm_option.get lib_options && not is_toplevel then begin
-      lib.lib_asm_objects <- asm_file :: lib.lib_asm_objects;
+      lib.lib_asm_targets <- (asm_file, RUN_ASM) :: lib.lib_asm_targets;
     end
   end;
   ()
@@ -2670,122 +2685,121 @@ let create w cin cout bc state =
       lib.lib_linkdeps <- get_link_order lib;
 
       begin
-      match lib.lib.lib_type with
-        LibraryPackage -> add_library w b  lib
-      | ProgramPackage -> add_program w b  lib
-      | TestPackage ->
-        if lib.lib_sources <> [] then add_program w b  lib;
-        lib.lib_opk.opk_options <- BuildValue.set_bool
-          lib.lib_opk.opk_options "install" false
-      | ObjectsPackage -> add_objects w b  lib
-      | SyntaxPackage -> ()
-      | RulesPackage -> ()
+        if not lib.lib_installed then
+          match lib.lib.lib_type with
+            LibraryPackage -> add_library w b  lib
+          | ProgramPackage -> add_program w b  lib
+          | TestPackage ->
+            if lib.lib_sources <> [] then add_program w b  lib;
+            lib.lib_opk.opk_options <- BuildValue.set_bool
+              lib.lib_opk.opk_options "install" false
+          | ObjectsPackage -> add_objects w b  lib
+          | SyntaxPackage -> ()
+          | RulesPackage -> ()
       end;
 
       let options = [lib.lib_opk.opk_options] in
 
-      let set_objects lib name f =
+
+      let set_objects lib name kinds f =
         let objs = BuildValue.get_strings_with_default options name [] in
         if objs <> [] then
-          f (List.map (fun s ->
-            let s = subst global_subst s in
-            add_package_file lib s) objs)
+          f (
+            List.flatten (
+              List.map (fun s0 ->
+            let s = subst global_subst s0 in
+            let bf = add_package_file lib s in
+            let basename = bf.file_basename in
+            match List.rev (OcpString.split basename '.') with
+            | [] ->
+              Printf.eprintf
+                "Error: package %S, option %S contains a file %S\n"
+                lib.lib.lib_name name s0;
+              Printf.eprintf "  with no extension\n%!";
+              exit 2
+            | ext :: _ ->
+              match ext with
+              | "asm" when List.mem RUN_ASM kinds -> [ bf, RUN_ASM ]
+              | "byte"  when List.mem RUN_BYTE kinds -> [ bf, RUN_BYTE ]
+              | "cmxs" when List.mem CMXS kinds -> [ bf, CMXS ]
+              | "cmx" when List.mem CMX kinds ->
+                let s = Filename.chop_extension s ^ ".o" in
+                let bf2 = add_package_file lib s in
+                [ bf, CMX; bf2, CMX_O ]
+              | "cmxa" ->
+                let s = Filename.chop_extension s ^ ".a" in
+                let bf2 = add_package_file lib s in
+                [ bf, CMXA; bf2, CMXA_A ]
+              | "cmi" when List.mem CMI kinds -> [ bf, CMI ]
+              | "cmo" when List.mem CMO kinds -> [ bf, CMO ]
+              | "cma" when List.mem CMA kinds -> [ bf, CMA ]
+              | ".o" when List.mem STUB_A kinds -> [ bf, STUB_A ]
+              | ".a" when List.mem STUB_A kinds -> [ bf, STUB_A ]
+              | ext ->
+                Printf.eprintf
+                  "Error: package %S, option %S contains a file %S\n"
+                  lib.lib.lib_name name s0;
+                Printf.eprintf "  with unexpected extension %S\n%!" ext;
+                exit 2
+              ) objs))
       in
 
-      let set_double_objects lib name second_ext f =
-        let objs = BuildValue.get_strings_with_default options name [] in
-        if objs <> [] then
-          f (List.split (List.map (fun s ->
-            let s = subst global_subst s in
-            let bf1 = add_package_file lib s in
-            let s = Filename.chop_extension s ^ second_ext in
-            let bf2 = add_package_file lib s in
-            (bf1, bf2)
-          ) objs))
-      in
+      set_objects lib "intf_targets" [CMI; CMX]
+        (fun objs -> lib.lib_intf_targets <- objs);
 
-      begin match lib.lib.lib_type with
-      | LibraryPackage
-      | RulesPackage
-      | ObjectsPackage ->
-        set_objects lib "cmi_objs"
-          (fun objs -> lib.lib_cmi_objects <- objs);
+      set_objects lib "byte_targets" [CMO;CMA;RUN_BYTE]
+        (fun objs ->
+          lib.lib_byte_targets <- objs);
 
-        if lib.lib_has_byte then begin
-          set_objects lib "cmo_objs"
-            (fun objs -> lib.lib_cmo_objects <- objs);
-          set_objects lib "cma_objs"
-            (fun objs -> lib.lib_cma_objects <- objs);
-        end;
+      set_objects lib "asm_targets" [CMX;CMXA;CMXS;RUN_ASM]
+        (fun objs ->
+          lib.lib_asm_targets <- objs);
 
-        if lib.lib_has_asm then begin
-          set_double_objects lib "cmx_objs" ".o"
-            (fun (cmx, cmx_o) ->
-              lib.lib_cmx_objects <- cmx;
-              lib.lib_cmx_o_objects <- cmx_o;
-            );
-          set_double_objects lib "cmxa_objs" ".a"
-            (fun (cmxa, cmxa_a) ->
-              lib.lib_cmxa_objects <- cmxa;
-              lib.lib_cmxa_a_objects <- cmxa_a;
-            );
+      set_objects lib "stub_targets" [STUB_A]
+        (fun objs -> lib.lib_stub_targets <- objs);
 
-          set_objects lib "cmxs_objs"
-            (fun objs -> lib.lib_cmxs_objects <- objs);
-        end;
-
-        set_objects lib "a_objs"
-          (fun objs -> lib.lib_a_objects <- objs);
-      | ProgramPackage
-      | TestPackage
-      | SyntaxPackage -> ()
+      begin
+        try
+          lib.lib_modules <- [StringsMap.find [] lib.lib_internal_modules]
+        with Not_found ->
+          let objs =
+            let objs = BuildValue.get_strings_with_default
+              options "internal_targets" [] in
+            if objs = [] then
+              BuildValue.get_strings_with_default
+                options "intf_targets" []
+            else []
+          in
+          let dirs = ref [] in
+          List.iter (fun s0 ->
+             let s = subst global_subst s0 in
+             let bf = add_package_file lib s in
+             let dst_dir = bf.file_dir in
+             let (is_ml, modname, basename) =
+               BuildOCamldep.modname_of_file options Force_not
+                 bf.file_basename in
+             let map =
+               try
+                 List.assq dst_dir !dirs
+               with Not_found ->
+                 let map = ref StringMap.empty in
+                 dirs := (dst_dir, map) :: !dirs;
+                 map
+             in
+             try
+             match StringMap.find modname !map with
+             | (ML, _) when not is_ml ->
+               map := StringMap.add modname (MLandMLI, basename) !map
+             | (MLI, _) when is_ml ->
+               map := StringMap.add modname (MLandMLI, basename) !map
+             | (MLandMLI, _) -> ()
+             | _ -> raise Not_found
+             with Not_found ->
+               map := StringMap.add modname (
+                 (if is_ml then ML else MLI), basename) !map
+          ) objs;
+          lib.lib_modules <- !dirs
       end;
-      begin match lib.lib.lib_type with
-      | RulesPackage
-      | ProgramPackage ->
-        if lib.lib_has_byte then
-          set_objects lib "byte_objs"
-            (fun objs -> lib.lib_byte_objects <- objs);
-        if lib.lib_has_asm then
-          set_objects lib "asm_objs"
-            (fun objs -> lib.lib_asm_objects <- objs);
-      | LibraryPackage
-      | TestPackage
-      | ObjectsPackage
-      | SyntaxPackage -> ()
-      end;
-
-      let make_targets kind objs =
-        List.map (fun bf -> (bf, kind)) objs in
-
-(*
-      let add_target bf kind =
-        lib.lib_asm_targets <- (bf, kind) ::
-          lib.lib_asm_targets
-      in
-      List.iter (fun bf ->
-        let basename = bf.file_basename in
-        match List.rev (OcpString.split_at basename '.') with
-        | "asm" -> add_target bf RUN_ASM
-        | "cmxs" -> add_target bf CMXS
-        | "cmx" -> add_target bf CMX
-*)
-      lib.lib_asm_targets <-
-        make_targets  CMXS lib.lib_cmxs_objects @
-        make_targets  CMXA lib.lib_cmxa_objects @
-        make_targets  CMXA_A lib.lib_cmxa_a_objects @
-        make_targets  CMX lib.lib_cmx_objects @
-        (*        make_targets  CMX_O lib.lib_cmx_o_objects @ ? *)
-        make_targets  CMI lib.lib_cmi_objects @
-        make_targets  C_A lib.lib_a_objects @
-        make_targets  RUN_ASM lib.lib_asm_objects;
-
-      lib.lib_byte_targets <-
-        make_targets  CMA lib.lib_cma_objects @
-        make_targets  CMO lib.lib_cmo_objects @
-        make_targets  CMI lib.lib_cmi_objects @
-        make_targets  C_A lib.lib_a_objects @
-        make_targets  RUN_BYTE lib.lib_byte_objects;
 
     with Failure s ->
       Printf.eprintf "While preparing package %S:\n%!" lib.lib.lib_name;

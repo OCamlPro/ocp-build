@@ -252,7 +252,7 @@ let install where what lib installdir =
 
           | CMI when what.install_asm_lib || what.install_byte_lib ->
             Some (Filename.concat installdir file.file_basename)
-          | C_A when what.install_asm_lib || what.install_byte_lib ->
+          | STUB_A when what.install_asm_lib || what.install_byte_lib ->
             Some (Filename.concat installdir file.file_basename)
           | CMO when what.install_byte_lib ->
             Some (Filename.concat installdir file.file_basename)
@@ -287,7 +287,7 @@ let install where what lib installdir =
           | CMA
           | CMXA
           | CMXA_A
-          | C_A
+          | STUB_A
             -> None
 
         in
@@ -307,10 +307,11 @@ let install where what lib installdir =
       Printf.eprintf "\tfiles: %!";
       List.iter (fun (file, kind) ->
         install_file file kind
-      ) lib.lib_byte_targets;
-      List.iter (fun (file, kind) ->
-        install_file file kind
-      ) lib.lib_asm_targets;
+      )
+        (lib.lib_byte_targets
+         @ lib.lib_asm_targets
+         @ lib.lib_intf_targets
+         @ lib.lib_stub_targets);
 
       begin match  where.install_datadir with
         None -> ()
