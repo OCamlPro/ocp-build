@@ -119,9 +119,9 @@ BUILD_OCAMLFIND= $(OCP_BUILD_SRCDIR)/ocaml/metaTypes.ml			\
 
 BUILD_OCAML= $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlConfig.ml	\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlTypes.ml		\
-    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlGlobals.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlMisc.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlVariables.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlGlobals.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamldep.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlSyntaxes.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlInstall.ml		\

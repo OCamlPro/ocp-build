@@ -1,0 +1,11 @@
+
+try {
+    system[0];
+} catch("invalid-list-access",x){
+  message("");
+  message("Error: OCaml was not detected. If you are using OPAM, you should");
+  message("   call ' eval `opam env` '.");
+  message("Aborting.");
+  message("");
+  exit(2);
+}
