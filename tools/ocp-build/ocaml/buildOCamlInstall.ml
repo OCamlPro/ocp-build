@@ -257,6 +257,7 @@ let install where what lib installdir =
           | CMO when what.install_byte_lib ->
             Some (Filename.concat installdir file.file_basename)
           | CMX
+          | CMX_O
           | CMXA_A when what.install_asm_lib ->
             Some (Filename.concat installdir file.file_basename)
           | CMA when what.install_byte_lib ->
@@ -281,6 +282,7 @@ let install where what lib installdir =
           | CMI
           | CMO
           | CMX
+          | CMX_O
           | CMXS
           | CMA
           | CMXA

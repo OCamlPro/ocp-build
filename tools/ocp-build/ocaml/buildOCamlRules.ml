@@ -782,41 +782,27 @@ let add_cmo2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
     (*    Printf.eprintf "to_link for %S\n%!"  lib.lib_name; *)
     List.iter (fun lib2 ->
       match lib2.lib.lib_type with
-      | LibraryPackage ->
-        (*
-          Printf.eprintf "   -> %S (%s)\n%!"  lib2.lib_name
-          (lib2.lib_archive ^ ".cma"); *)
-        (*
-          List.iter (fun a_file ->
-          custom := true;
-          add_command_args cmd [file_filename a_file]
-          ) lib2.lib_clink_deps; *)
+      | LibraryPackage
+      | RulesPackage
+      | ObjectsPackage
+      | ProgramPackage ->
         add_command_args cmd (bytelinkflags lib2);
         if not lib2.lib_meta then begin
-          if lib2.lib_cma_objects <> [] then
-            add_command_args cmd
-              (List.map (fun f -> BF f) lib2.lib_cma_objects)
-          else
-            add_command_args cmd
-              [S "-cclib"; S ("-l" ^ lib2.lib_stubarchive)]
+          List.iter (fun (obj, kind) ->
+            match kind with
+            | CMA -> add_command_arg cmd (BF obj)
+            | CMO -> add_command_arg cmd (BF obj)
+            | _ -> ()
+          ) lib2.lib_byte_targets;
+          if not lib2.lib_autolink then
+            List.iter (fun (obj, kind) ->
+              match kind with
+              | C_A -> add_command_arg cmd (BF obj)
+              (*     [S "-cclib"; S ("-l" ^ lib2.lib_stubarchive)] *)
+              | _ -> ()
+            ) lib2.lib_a_targets;
         end;
-      | RulesPackage
-      | ObjectsPackage ->
-        add_command_args cmd (bytelinkflags lib2);
-        if lib2.lib_cma_objects <> [] then
-            add_command_args cmd
-              (List.map (fun f -> BF f) lib2.lib_cma_objects)
-        else begin
-          List.iter (fun a_file ->
-            custom := true;
-            add_command_args cmd [BF a_file]
-          ) lib2.lib_a_objects;
-          List.iter (fun cmo_file ->
-            add_command_arg cmd (BF cmo_file)
-          ) lib2.lib_cmo_objects;
-        end
       | SyntaxPackage -> ()
-      | ProgramPackage -> ()
       | TestPackage -> ()
     ) lib.lib_linkdeps;
     if !custom then add_command_string cmd "-custom";
@@ -825,7 +811,7 @@ let add_cmo2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
       List.map (fun s ->
         let s = subst global_subst s in
         add_package_file lib s
-    ) (bytelink_libs.get options) in
+      ) (bytelink_libs.get options) in
 
     List.iter (fun s -> add_command_arg cmd (BF s)) bytelink_libs;
 
@@ -836,13 +822,18 @@ let add_cmo2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
     add_rule_sources r cmo_files;
     add_rule_sources r !(ptmp.cmi_files);
     add_rule_sources r o_files;
-    List.iter (fun pd ->
-      if pd.dep_link then
-        let lib = pd.dep_project in
-          add_rule_sources r lib.lib_a_objects;
-          add_rule_sources r lib.lib_cmo_objects;
-          add_rule_sources r lib.lib_cma_objects;
-    ) lib.lib_requires;
+    List.iter (fun lib2 ->
+      List.iter (fun (obj, kind) ->
+        match kind with
+        | CMA | CMO -> add_rule_source r obj
+        | _ -> ()
+      ) lib2.lib_byte_targets;
+      List.iter (fun (obj, kind) ->
+        match kind with
+        | C_A -> add_rule_source r obj
+        | _ -> ()
+      ) lib2.lib_a_targets;
+    ) lib.lib_linkdeps;
     add_rule_sources r bytelink_libs
 
 
@@ -863,35 +854,27 @@ let add_cmx2asm_rule lib ptmp linkflags cclib cmx_files cmxo_files o_files opt_f
     List.iter (fun lib2 ->
       (*      Printf.eprintf "  Lib %S\n%!" lib2.lib_name; *)
       match lib2.lib.lib_type with
-      | TestPackage -> assert false
       | LibraryPackage
-        ->
+      | RulesPackage
+      | ObjectsPackage
+      | ProgramPackage ->
         add_command_args cmd (asmlinkflags lib2);
         if not lib2.lib_meta then begin
-          if lib2.lib_cmxa_objects <> [] then
-            add_command_args cmd (
-              List.map (fun f -> BF f) lib2.lib_cmxa_objects)
-          else begin
-            add_command_args cmd (
-              [S "-cclib"; S ("-l" ^ lib2.lib_stubarchive)])
-          end
+          List.iter (fun (obj, kind) ->
+            match kind with
+            | CMXA | CMX -> add_command_arg cmd (BF obj)
+            | _ -> ()
+          ) lib2.lib_asm_targets;
+          if not lib2.lib_autolink then
+            List.iter (fun (obj, kind) ->
+              match kind with
+              | C_A -> add_command_arg cmd (BF obj)
+              (*     [S "-cclib"; S ("-l" ^ lib2.lib_stubarchive)] *)
+              | _ -> ()
+            ) lib2.lib_a_targets;
         end;
-      | RulesPackage
-      | ObjectsPackage ->
-        add_command_args cmd (asmlinkflags lib2);
-        if lib2.lib_cmxa_objects <> [] then
-            add_command_args cmd (
-              List.map (fun f -> BF f) lib2.lib_cmxa_objects)
-        else begin
-          List.iter (fun a_file ->
-            add_command_arg cmd (BF a_file)
-          ) lib2.lib_a_objects;
-          List.iter (fun cmx_file ->
-            add_command_arg cmd (BF cmx_file)
-          ) lib2.lib_cmx_objects;
-        end
-      | ProgramPackage -> () (* dependency towards a preprocessor ? *)
       | SyntaxPackage -> ()
+      | TestPackage -> ()
     ) lib.lib_linkdeps;
 
     let asmlink_libs =
@@ -910,15 +893,19 @@ let add_cmx2asm_rule lib ptmp linkflags cclib cmx_files cmxo_files o_files opt_f
     add_rule_sources r cmxo_files;
     add_rule_sources r !(ptmp.cmi_files);
     add_rule_sources r o_files;
-    List.iter (fun pd ->
-      if pd.dep_link then
-        let lib2 = pd.dep_project in
-          add_rule_sources r lib2.lib_a_objects;
-          add_rule_sources r lib2.lib_cmx_objects;
-          add_rule_sources r lib2.lib_cmx_o_objects;
-          add_rule_sources r lib2.lib_cmxa_objects;
-          add_rule_sources r lib2.lib_cmxa_a_objects;
-    ) lib.lib_requires;
+    List.iter (fun lib2 ->
+      List.iter (fun (obj, kind) ->
+        match kind with
+        | CMXA | CMXA_A
+        | CMX | CMX_O -> add_rule_source r obj
+        | _ -> ()
+      ) lib2.lib_asm_targets;
+      List.iter (fun (obj, kind) ->
+        match kind with
+        | C_A -> add_rule_source r obj
+        | _ -> ()
+      ) lib2.lib_a_targets;
+    ) lib.lib_linkdeps;
     add_rule_sources r asmlink_libs;
     ()
 
@@ -2548,9 +2535,7 @@ let add_program w b lib =
     add_cmo2byte_rule lib ptmp linkflags cclib !(ptmp.cmo_files)
       !(ptmp.o_files) byte_file;
     if byte_option.get  lib_options  then begin
-      (*      lib.lib_byte_targets <- (byte_file, RUN_BYTE) :: lib.lib_byte_targets; *)
       lib.lib_byte_objects <- byte_file :: lib.lib_byte_objects;
-      lib.lib_cmo_objects <- !(ptmp.cmo_files) @ lib.lib_cmo_objects;
     end
   end;
 
@@ -2563,11 +2548,7 @@ let add_program w b lib =
     add_cmx2asm_rule lib ptmp linkflags cclib
       !(ptmp.cmx_files) !(ptmp.cmxo_files) !(ptmp.o_files) asm_file;
     if  asm_option.get lib_options && not is_toplevel then begin
-      lib.lib_asm_targets <- (asm_file, RUN_ASM) :: lib.lib_asm_targets;
-      (* lib.lib_asmlink_deps <- asm_file :: lib.lib_asmlink_deps; *)
       lib.lib_asm_objects <- asm_file :: lib.lib_asm_objects;
-      lib.lib_cmx_objects <- !(ptmp.cmx_files) @ lib.lib_cmx_objects;
-      lib.lib_cmx_o_objects <- !(ptmp.cmxo_files) @ lib.lib_cmx_o_objects;
     end
   end;
   ()
@@ -2632,13 +2613,6 @@ let add_package bc opk =
         let mut_dirname =
           Filename.concat dst_dir.dir_fullname "_temp"
         in
-        (*
-          let src_dirname = File.to_string src_dir.dir_file in
-          let mut_dirname =
-          Filename.concat
-          (Filename.concat b.build_dir_filename "_mutable_tree") src_dirname
-          in
-        *)
         if not (Sys.file_exists mut_dirname) then
           safe_mkdir mut_dirname;
         add_directory b mut_dirname
@@ -2784,6 +2758,18 @@ let create w cin cout bc state =
       let make_targets kind objs =
         List.map (fun bf -> (bf, kind)) objs in
 
+(*
+      let add_target bf kind =
+        lib.lib_asm_targets <- (bf, kind) ::
+          lib.lib_asm_targets
+      in
+      List.iter (fun bf ->
+        let basename = bf.file_basename in
+        match List.rev (OcpString.split_at basename '.') with
+        | "asm" -> add_target bf RUN_ASM
+        | "cmxs" -> add_target bf CMXS
+        | "cmx" -> add_target bf CMX
+*)
       lib.lib_asm_targets <-
         make_targets  CMXS lib.lib_cmxs_objects @
         make_targets  CMXA lib.lib_cmxa_objects @

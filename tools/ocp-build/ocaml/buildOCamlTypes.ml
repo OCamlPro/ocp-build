@@ -39,6 +39,7 @@ type target_kind =
 | CMI
 | CMO
 | CMX
+| CMX_O
 | CMXS
 | CMA
 | CMXA
@@ -66,10 +67,14 @@ type ocaml_package = {
   lib_doc_targets : BuildEngineTypes.build_file list ref;
   lib_test_targets : BuildEngineTypes.build_file list ref;
 
+  mutable lib_autolink : bool;
   mutable lib_byte_targets : (BuildEngineTypes.build_file * target_kind) list;
   mutable lib_asm_targets : (BuildEngineTypes.build_file * target_kind) list;
 
-  mutable lib_cmi_objects : BuildEngineTypes.build_file list;
+  mutable lib_cmi_targets : (BuildEngineTypes.build_file * target_kind) list;
+  mutable lib_a_targets : (BuildEngineTypes.build_file * target_kind) list;
+
+  (*
   mutable lib_cmo_objects : BuildEngineTypes.build_file list;
   mutable lib_cma_objects : BuildEngineTypes.build_file list;
   mutable lib_cmx_objects : BuildEngineTypes.build_file list; (* .cmx *)
@@ -77,9 +82,9 @@ type ocaml_package = {
   mutable lib_cmxa_objects : BuildEngineTypes.build_file list; (* .cmxa *)
   mutable lib_cmxa_a_objects : BuildEngineTypes.build_file list; (* .a *)
   mutable lib_cmxs_objects : BuildEngineTypes.build_file list; (* .cmxa *)
-  mutable lib_a_objects : BuildEngineTypes.build_file list;
   mutable lib_byte_objects : BuildEngineTypes.build_file list;
   mutable lib_asm_objects : BuildEngineTypes.build_file list;
+  *)
 
   mutable lib_includes : string list option;
   mutable lib_linkdeps : ocaml_package list;

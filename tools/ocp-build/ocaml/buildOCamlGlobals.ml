@@ -71,6 +71,17 @@ in
     ) &&
     BuildValue.get_bool_with_default envs "install" true in
 
+  let lib_autolink = match lib.lib_type with
+    | TestPackage
+    | ObjectsPackage
+    | RulesPackage
+      -> BuildValue.get_bool_with_default envs "autolink" false
+    | ProgramPackage
+    | LibraryPackage
+    | SyntaxPackage ->
+      BuildValue.get_bool_with_default envs "autolink" true
+  in
+
 
   let lib_ready =
     if lib_installed then [] else
@@ -94,12 +105,17 @@ in
     lib = lib;
     lib_opk = opk;
 
-    lib_has_byte = lib_has_byte;
-    lib_has_asm = lib_has_asm;
+    lib_has_byte;
+    lib_has_asm;
+    lib_autolink;
 
     lib_byte_targets = [];
     lib_asm_targets = [];
+    lib_cmi_targets = [];
+    lib_a_targets = [];
 
+
+    (*
     lib_byte_objects = [];
     lib_asm_objects = [];
     lib_cmi_objects = [];
@@ -111,6 +127,7 @@ in
     lib_cmxa_a_objects = [];
     lib_cmxs_objects = [];
     lib_a_objects = [];
+    *)
 
     lib_modules = ref StringMap.empty;
     lib_internal_modules = StringsMap.empty;

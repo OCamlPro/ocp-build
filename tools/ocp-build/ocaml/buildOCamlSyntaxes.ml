@@ -82,7 +82,11 @@ let execution_dependencies pk kind =
       [find_dst_file pk.lib.lib_dst_dir (pk_name ^ "." ^ ext)]
     | ObjectsPackage ->
       if kind = "byte" then
-        pk.lib_cmo_objects
+        List.fold_right (fun (obj,kind) cmos ->
+          match kind with
+          | CMO -> obj :: cmos
+          | _ -> cmos
+        ) pk.lib_byte_targets []
       else
         assert false (* TODO *)
     | RulesPackage -> assert false
@@ -330,7 +334,8 @@ let get_pp special w lib basename options =
                       | ProgramPackage -> assert false
                       | TestPackage -> assert false
                       | ObjectsPackage ->
-                        List.map (fun s -> BF s) plib.lib_cmo_objects
+                        List.map (fun s -> BF s)
+                          (execution_dependencies plib "byte")
                       | LibraryPackage ->
                         [ S (plib.lib_archive ^ ".cma") ]
                       | SyntaxPackage -> []

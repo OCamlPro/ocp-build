@@ -34,6 +34,7 @@ type target_kind =
 | CMI
 | CMO
 | CMX
+| CMX_O
 | CMXS
 | CMA
 | CMXA
@@ -61,6 +62,27 @@ type ocaml_package = {
   lib_doc_targets : BuildEngineTypes.build_file list ref;
   lib_test_targets : BuildEngineTypes.build_file list ref;
 
+  (* [true] if the stub files are declared in the OCaml files, or
+     [false] if they should be specified when linking this library. *)
+  mutable lib_autolink : bool;
+
+  (* The objects created by this library that should be used when
+     linking that library.
+     TODO: it should be a different set from the set of files
+     installed by the package (for example, .cmx files could be installed
+     together with a program. Thus, it should be possible to specify
+     a program package in requires for linking, if that package contains
+     objects files. In this case, the library is not for linking by
+     default, but the user can specify it should be linked in the requires.
+  *)
+  mutable lib_byte_targets : (BuildEngineTypes.build_file * target_kind) list;
+  mutable lib_asm_targets : (BuildEngineTypes.build_file * target_kind) list;
+
+  (* These 2 ones are merged in the 2 previous ones at the end *)
+  mutable lib_cmi_targets : (BuildEngineTypes.build_file * target_kind) list;
+  mutable lib_a_targets : (BuildEngineTypes.build_file * target_kind) list;
+
+  (*
   (* These fields are automatically populated from the lib_XXX_objects
      fields *)
   mutable lib_byte_targets : (BuildEngineTypes.build_file * target_kind) list;
@@ -78,6 +100,7 @@ type ocaml_package = {
   mutable lib_a_objects : BuildEngineTypes.build_file list;
   mutable lib_byte_objects : BuildEngineTypes.build_file list;
   mutable lib_asm_objects : BuildEngineTypes.build_file list;
+  *)
 
   (* Only used as a cached value, not exported to other packages *)
   mutable lib_includes : string list option;
