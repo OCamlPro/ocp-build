@@ -17,6 +17,8 @@ open BuildTypes
 open BuildOCPTypes
 open BuildOCamlTypes
 open BuildOptions
+open BuildOCamlVariables
+open BuildValue.TYPES
 
 let list_byte_targets_arg = ref false
 let list_asm_targets_arg = ref false
@@ -84,34 +86,45 @@ in
   in
   let lib_meta = BuildValue.get_bool_with_default envs "meta" false in
 
+  let lib_has_byte = byte_option.get envs in
+  let lib_has_asm = asm_option.get envs in
 
 
   let lib = {
     lib = lib;
     lib_opk = opk;
 
-      (* lib_package = pj; *)
+    lib_has_byte = lib_has_byte;
+    lib_has_asm = lib_has_asm;
+
     lib_byte_targets = [];
-    lib_doc_targets = ref [];
-    lib_test_targets = ref [];
-    lib_cmo_objects = [];
-    lib_bytecomp_deps = [];
-    lib_bytelink_deps = [];
     lib_asm_targets = [];
-    lib_asm_cmx_objects = [];
-    lib_asm_cmxo_objects = [];
-    lib_asmcomp_deps = [];
-    lib_asmlink_deps = [];
-    lib_clink_deps = [];
+
+    lib_byte_objects = [];
+    lib_asm_objects = [];
+    lib_cmi_objects = [];
+    lib_cmo_objects = [];
+    lib_cma_objects = [];
+    lib_cmx_objects = [];
+    lib_cmx_o_objects = [];
+    lib_cmxa_objects = [];
+    lib_cmxa_a_objects = [];
+    lib_cmxs_objects = [];
+    lib_a_objects = [];
+
     lib_modules = ref StringMap.empty;
     lib_internal_modules = StringsMap.empty;
-    lib_dep_deps = IntMap.empty;
+    (* lib_dep_deps = IntMap.empty; *)
     lib_includes = None;
     lib_linkdeps = [];
     lib_sources = BuildValue.get_local_prop_list_with_default envs "files" [];
     lib_tests = BuildValue.get_local_prop_list_with_default envs "tests" [];
 
+    lib_doc_targets = ref [];
+    lib_test_targets = ref [];
     lib_build_targets = ref [];
+
+
     lib_archive;
     lib_stubarchive;
 

@@ -83,8 +83,6 @@ let more_deps_option = BuildValue.new_strings_option "more_deps" []
    can be in a different directory. *)
 let libstubs = BuildValue.new_string_option "libstubs" ""
 
-let linkdeps_option = BuildValue.new_strings_option "linkdeps" []
-
 (* Whether we should generate a .cmxs for the current library. true by
    default. *)
 let cmxs_plugin = BuildValue.new_bool_option "cmxs_plugin" true

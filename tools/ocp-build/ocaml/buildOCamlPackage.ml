@@ -326,7 +326,16 @@ let update_deps pj =
     | SyntaxPackage ->
       dep.dep_syntax <- true;
       dep.dep_link <- false;
-    | RulesPackage
+
+    (* "rules" packages are not linked by default, but will be
+       linked if they contain "tolink=true;" in their description.
+       As for other packages, this can be overriden in the
+       'requires' by using "tolink=false;" there.  *)
+    | RulesPackage ->
+      dep.dep_link <- BuildValue.get_bool_with_default
+        [dep.dep_project.opk_options] "tolink" false;
+      dep.dep_link <- false;
+
     | ProgramPackage ->
       dep.dep_syntax <- false;
       dep.dep_link <- false;

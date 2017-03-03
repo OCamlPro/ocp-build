@@ -38,9 +38,9 @@ begin
   ocaml.files = [
     "buildOCamlConfig.ml";
     "buildOCamlTypes.ml";
-    "buildOCamlGlobals.ml";
     "buildOCamlMisc.ml";
     "buildOCamlVariables.ml";
+    "buildOCamlGlobals.ml";
     "buildOCamldep.ml";         (* Load dependencies from a file generated
                                      by ocamldep *)
     "buildOCamlSyntaxes.ml";    (* For preprocessing of OCaml files *)
