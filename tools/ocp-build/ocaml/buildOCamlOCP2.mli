@@ -10,22 +10,19 @@
 (*                                                                        *)
 (**************************************************************************)
 
-ocaml = {};
-begin
-  ocaml.files = [
-    "buildOCP2Tree.ml";
-    "buildOCP2Parser.mly";  (* (pp = []); *)
-    "buildOCP2Parse.ml";
-    "buildOCP2Prims.ml";
-    "buildOCP2Interp.ml"
-  ];
-  ocaml.requires = [ "ocplib-compat"; "ocplib-lang"; "ocp-build-misc"; "str" ];
-  new_package("ocp-build-lang-ocp2", "library", ocaml);
-end
+(* Specific function to create an OCaml package. Used to create packages
+   from META descriptions somewhere else. *)
+val add_ocaml_package :
+  BuildValue.TYPES.location ->
+  BuildOCP.state ->
+  BuildValue.TYPES.config ->
+  string ->
+  BuildOCPTypes.package_type ->
+  BuildOCamlTypes.ocaml_description
 
-begin
-   ocaml.install = false;
-   ocaml.files = [ "eval.ml" ];
-   ocaml.requires = [ "ocp-build-lang-ocp2" ];
-   new_package( "ocp2-eval", "program", ocaml);
-end
+(* Initialize 'packages' with all the packages available in the
+   environment *)
+val init_env: BuildOCPTypes.project -> unit
+
+(* Call to register the plugin in BuildOCP.plugin_verifiers *)
+val init : unit -> unit

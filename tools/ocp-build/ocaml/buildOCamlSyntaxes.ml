@@ -68,25 +68,25 @@ open BuildOCamlMisc
 
 let verbose = DebugVerbosity.verbose ["B"] "BuildOCamlSyntaxes"
 
-let execution_dependencies pk kind =
-  if pk.lib_installed then [] else
-  let pk_name = pk.lib.lib_name in
+let execution_dependencies lib kind =
+  if lib.lib_opk.opk_installed then [] else
+  let pk_name = lib.lib.lib_name in
   try
-    match pk.lib.lib_type with
+    match lib.lib.lib_type with
     | TestPackage -> assert false
     | ProgramPackage ->
       let exe_ext = if kind = "byte" then byte_exe else asm_exe in
-      [find_dst_file pk.lib.lib_dst_dir (pk_name ^ exe_ext)]
+      [find_dst_file lib.lib.lib_dst_dir (pk_name ^ exe_ext)]
     | LibraryPackage ->
       let ext = if kind = "byte" then "cma" else "cmxa" in
-      [find_dst_file pk.lib.lib_dst_dir (pk_name ^ "." ^ ext)]
+      [find_dst_file lib.lib.lib_dst_dir (pk_name ^ "." ^ ext)]
     | ObjectsPackage ->
       if kind = "byte" then
         List.fold_right (fun (obj,kind) cmos ->
           match kind with
           | CMO -> obj :: cmos
           | _ -> cmos
-        ) pk.lib_byte_targets []
+        ) lib.lib_byte_targets []
       else
         assert false (* TODO *)
     | RulesPackage -> assert false
@@ -179,7 +179,7 @@ let add_pp_requires r pp =
   List.iter (fun file -> add_rule_source r file) pp.pp_requires
 
 let get_pp special w lib basename options =
-  let options = [ options; lib.lib_opk.opk_options ] in
+  let options = options :: lib.lib_opk.opk_options in
 (*  Printf.eprintf "get_pp %S\n%!" lib.lib.lib_name; *)
   let pp_flags =
     List.map (fun s -> S s)
@@ -302,7 +302,7 @@ let get_pp special w lib basename options =
     let pp_option = ref [] in
     let pp_requires = ref [] in
 
-    if pp.lib_installed then
+    if pp.lib_opk.opk_installed then
       pp_option := [ pp.lib.lib_name ]
     else begin
       pp_requires := [ find_dst_file lib.lib.lib_dst_dir (pp.lib.lib_name ^ ".byte") ];
@@ -324,7 +324,7 @@ let get_pp special w lib basename options =
         if plib != pp
         && dep.dep_link
       && not (StringSet.mem plib.lib.lib_name !already_linked_map)
-        && (plib.lib_sources <> [] || plib.lib_installed)
+        && (plib.lib_sources <> [] || plib.lib_opk.opk_installed)
       then begin
         pp_requires := (execution_dependencies plib "byte") @ !pp_requires;
         if not plib.lib_meta then

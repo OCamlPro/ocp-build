@@ -347,6 +347,12 @@ let _ =
     | _ -> raise_bad_arity loc "notequal(any,any)" 2 args
   );
 
+  (* ------------------------------------------------------------
+
+     Pervasives module
+
+     ------------------------------------------------------------*)
+
   (* This primitive should be used as:
      List = module( "List" );
      to load a set of functions from a file. Since we have to interprete
@@ -414,6 +420,8 @@ let _ =
   add_primitive "packer" [
     "pack(string[,pack_env], list-of-strings)"
   ] (fun loc ctx config args ->
+    Printf.eprintf
+      "Warning: function 'packer' is deprecated. Use 'OCaml.pack' instead\n%!";
     let packmodname, pack_env, files =
       match args with
       | [VString (packmodname,_); files] ->
@@ -453,6 +461,33 @@ let _ =
         raise_bad_arity loc "version(string)" 1 args
     );
 
+  add_primitive "srcdir" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (s, _) ] ->
+        VString ("%{" ^ s ^ "_FULL_SRC_DIR}%", StringVersion)
+      | [ VString (pk, _); VString (file,_) ] ->
+        VString ("%{" ^ pk ^ "_FULL_SRC_DIR}%/" ^ file, StringVersion)
+      | _ ->
+        raise_bad_arity loc "srcdir(string[,file])" 1 args
+    );
+
+  add_primitive "dstdir" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (s, _) ] ->
+        VString ("%{" ^ s ^ "_FULL_DST_DIR}%", StringVersion)
+      | [ VString (pk, _); VString (file,_) ] ->
+        VString ("%{" ^ pk ^ "_FULL_DST_DIR}%/" ^ file, StringVersion)
+      | _ ->
+        raise_bad_arity loc "dstdir(string[,file])" 1 args
+    );
+
+  (* ------------------------------------------------------------
+
+     List module
+
+     ------------------------------------------------------------*)
 
   add_primitive "List_mem" []
     (fun loc ctx config args ->
@@ -487,6 +522,12 @@ let _ =
         raise_bad_arity loc "List.flatten(list)" 1 args
     );
 
+  (* ------------------------------------------------------------
+
+     String module
+
+     ------------------------------------------------------------*)
+
   add_primitive "String_mem" []
     (fun loc ctx config args ->
       match args with
@@ -497,6 +538,31 @@ let _ =
         raise_bad_arity loc "String.mem(ele, list)" 2 args
     );
 
+  add_primitive "String_concat" []
+    (fun loc ctx config args ->
+      let list, sep =
+        match args with
+        | [ VList list ] -> list, ""
+        | [ VList list; VString (sep,_) ] -> list, sep
+        | [ VString (sep,_); VList list  ] -> list, sep
+        | _ ->
+          raise_bad_arity loc "String.concat(list[, sep])" 2 args
+      in
+      let list = List.map (function
+        | VString (s,_) -> s
+        | _ ->
+          raise_bad_arity loc "String.concat(list of strings[, sep])" 2 args
+      ) list in
+      let s = String.concat sep list in
+      VString(s, StringRaw)
+    );
+
+  (* ------------------------------------------------------------
+
+     Sys module
+
+     ------------------------------------------------------------*)
+
   (* Only since 1.99.18-beta *)
   add_primitive "Sys_file_exists" []
     (fun loc ctx config args ->
@@ -505,6 +571,51 @@ let _ =
         VBool (Sys.file_exists file)
       | _ ->
         raise_bad_arity loc "Sys.file_exists(file)" 1 args
+    );
+
+  (* Warning: translate only '.', '*', and '?' to Str *)
+  let regexp_shell_to_str regexp =
+    let len = String.length regexp in
+    let b = Buffer.create len in
+    for i = 0 to len -1 do
+      match regexp.[i] with
+      | '.' -> Buffer.add_string b "\\."
+      | '*' -> Buffer.add_string b ".*"
+      | '?' -> Buffer.add_char b '.'
+      | c -> Buffer.add_char b c
+    done;
+    Buffer.add_string b "$";
+    Buffer.contents b
+  in
+
+  let readdir loc config dirname =
+    let dirname =
+      if Filename.is_relative dirname then
+        Filename.concat config.config_dirname dirname
+      else dirname
+    in
+    try
+      Sys.readdir dirname
+    with e ->
+      fatal_error loc "Sys.readdir failed on %S" dirname
+  in
+  add_primitive "Sys_readdir" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (dir,_) ] ->
+        let files = readdir loc config dir in
+        let files = Array.to_list files in
+        VList (List.map (fun s -> VString (s, StringRaw)) files)
+      | [ VString (dir,_); VString (regexp,_) ] ->
+        let files = readdir loc config dir in
+        let files = Array.to_list files in
+        let regexp = regexp_shell_to_str regexp in
+        let regexp = Str.regexp regexp in
+        let files = List.filter (fun file ->
+          Str.string_match regexp file 0) files in
+        VList (List.map (fun s -> VString (s, StringRaw)) files)
+      | _ ->
+        raise_bad_arity loc "Sys.readdir(dir)" 1 args
     );
 
   (*

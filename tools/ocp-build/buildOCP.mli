@@ -124,3 +124,5 @@ val new_package :
   BuildOCPTypes.pre_package
 
 val primitives_help : unit -> string list StringMap.t
+
+val conf_add_disabled_package : string -> unit

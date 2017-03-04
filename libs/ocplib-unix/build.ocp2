@@ -18,10 +18,11 @@ begin
   ocaml.version = autoconf.package_version;
   ocaml.files = [
     "minUnix.ml", { pp = ocp_pp;
-                    pp_requires = [ "ocp-pp:byte" ];
+                    pp_deps = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
      }; "minUnix_c.c";
     "onlyUnix.ml", { pp = ocp_pp;
-                    pp_requires = [ "ocp-pp:byte" ];
+                    pp_deps = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
+    (* pp_requires = [ "ocp-pp:byte" ]; *)
     }; "onlyUnix_c.c";
     "onlyWin32.ml"; "onlyWin32_c.c";
   ];
@@ -34,9 +35,8 @@ begin
     ocaml.requires = [ "unix" ] + string_compat;
   }
 
-  (*
   ocaml.requires += [ "ocp-pp" ];
-  ocaml.pp_deps = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
+  (*
 *)
    new_package( "ocplib-unix", "library", ocaml);
 end

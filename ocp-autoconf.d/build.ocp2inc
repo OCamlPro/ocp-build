@@ -1,3 +1,4 @@
+List = module("List", "1.0");
 
 try {
     system[0];
@@ -9,3 +10,24 @@ try {
   message("");
   exit(2);
 }
+
+(* We can use this kind of stuff to configure depending on the environment
+  in which we are built.
+
+message("Pre-installed packages:");
+List.map (function(pk){
+  name = pk[0];
+  version = pk[1];
+  dirname = pk[2];
+  message("  * " + name + "." + version + " in " + dirname);
+},packages);
+
+*)
+
+(*
+all_libs = Sys_readdir("libs");
+print(all_libs);
+
+unix_files = Sys_readdir("libs/ocplib-unix", "*.ml");
+print(unix_files);
+*)

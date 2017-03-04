@@ -43,9 +43,7 @@ type package_info = {
   lib_builder_context : builder_context;
   lib_loc : string * int * string;
 
-  (*  mutable lib_version : string; *)
   mutable lib_dirname : File.t;
-  mutable lib_provides : string;
   mutable lib_type : BuildOCPTypes.package_type;
   mutable lib_tag : string;
   (* true means that it should be ignored about objects *)
@@ -54,7 +52,6 @@ type package_info = {
 
   lib_node : LinearToposort.node;
 
-  (*  mutable lib_requires : package_info list; *)
   mutable lib_added : bool;
   lib_src_dir : BuildEngineTypes.build_directory;
   lib_dst_dir : BuildEngineTypes.build_directory;

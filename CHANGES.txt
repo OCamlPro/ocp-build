@@ -1,6 +1,11 @@
 Change log
 ==========
 
+2017-03-04:
+* ocp-build:
+  * new build option `-disable PKG` or `-disable PKG@DIR` to disable any
+     package from the command line
+
 2017-03-03:
 * OCaml plugin:
   * internal refactoring of generated files

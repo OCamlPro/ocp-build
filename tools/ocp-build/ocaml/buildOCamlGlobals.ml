@@ -29,7 +29,7 @@ let reset () =
   Hashtbl.clear ocaml_packages
 
 let create_package lib opk =
-  let envs = [ opk.opk_options ] in
+  let envs = opk.opk_options in
 
   let b = lib.lib_context in
   let bc = lib.lib_builder_context in
@@ -58,18 +58,6 @@ let create_package lib opk =
       { dep with dep_project = lib2 }
     ) opk.opk_requires
 in
-  let lib_installed = BuildValue.is_already_installed envs in
-  let lib_install =
-    not lib_installed &&
-    (match lib.lib_type with
-        TestPackage -> false
-      | ProgramPackage
-      | LibraryPackage
-      | ObjectsPackage
-      | RulesPackage
-      | SyntaxPackage -> true
-    ) &&
-    BuildValue.get_bool_with_default envs "install" true in
 
   let lib_autolink = match lib.lib_type with
     | TestPackage
@@ -84,7 +72,7 @@ in
 
 
   let lib_ready =
-    if lib_installed then [] else
+    if opk.opk_installed then [] else
       let file_ready =
         BuildEngineContext.add_virtual_file b lib.lib_dst_dir
           (lib.lib_name ^ " validated") in
@@ -97,37 +85,17 @@ in
   in
   let lib_meta = BuildValue.get_bool_with_default envs "meta" false in
 
-  let lib_has_byte = byte_option.get envs in
-  let lib_has_asm = asm_option.get envs in
-
 
   let lib = {
     lib = lib;
     lib_opk = opk;
 
-    lib_has_byte;
-    lib_has_asm;
     lib_autolink;
 
     lib_byte_targets = [];
     lib_asm_targets = [];
     lib_intf_targets = [];
     lib_stub_targets = [];
-
-
-    (*
-    lib_byte_objects = [];
-    lib_asm_objects = [];
-    lib_cmi_objects = [];
-    lib_cmo_objects = [];
-    lib_cma_objects = [];
-    lib_cmx_objects = [];
-    lib_cmx_o_objects = [];
-    lib_cmxa_objects = [];
-    lib_cmxa_a_objects = [];
-    lib_cmxs_objects = [];
-    lib_a_objects = [];
-    *)
 
     lib_modules = [];
     lib_internal_modules = StringsMap.empty;
@@ -145,8 +113,6 @@ in
     lib_archive;
     lib_stubarchive;
 
-    lib_installed;
-    lib_install;
     lib_ready;
     lib_meta ;
 

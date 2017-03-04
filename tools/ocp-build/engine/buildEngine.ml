@@ -226,8 +226,13 @@ let experimental =
   with Not_found -> true
 
 let init b targets =
-  if verbose 5 then
+
+  if verbose 5 then begin
     Printf.eprintf "BuildEngine.init, phase 1: init\n";
+    Printf.eprintf "   Targets:\n * %s\n End.\n%!"
+      (String.concat "\n * "
+         (List.map (fun file -> file_filename file) targets));
+  end;
   (* Phase 1: clean everything *)
   (* reset and initialize *)
   Hashtbl.iter (fun _ r ->

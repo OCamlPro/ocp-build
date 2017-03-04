@@ -88,7 +88,7 @@ let add_META pj ocamllib meta_dirname meta_filename =
         let fullname = path ^ name in
         let has_asm = ref [] in
         let has_byte = ref [] in
-        let has_syntax = ref None in
+        let _has_syntax = ref None in
 
         StringMap.iter (fun _ var ->
           match var.metavar_preds, var.metavar_value with
@@ -160,7 +160,32 @@ let add_META pj ocamllib meta_dirname meta_filename =
                       VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link)]
             ) requires)) in
           let options = BuildValue.set_bool options "generated" true in
-          let opk = BuildOCamlPackage.add_ocaml_package
+
+          let options =
+            if byte_targets = [] && asm_targets = [] then
+              BuildValue.set_bool options "meta" true
+            else
+              let options = BuildValue.set_strings options
+                "asm_targets" asm_targets in
+              BuildValue.set_strings options "byte_targets" byte_targets;
+          in
+
+          let options = match p_option with
+            | None -> options
+            | Some p ->
+              let env = ref BuildValue.empty_env in
+              StringMap.iter (fun var_name var ->
+                List.iter (fun (preds, value) ->
+                  set_field env var_name preds "value" value
+                ) var.var_assigns;
+                List.iter (fun (preds, value) ->
+                  set_field env var_name preds "append" value
+                ) var.var_additions;
+              ) p.p_variables;
+              BuildValue.set options "META" (VObject !env)
+          in
+
+          let opk = BuildOCamlOCP2.add_ocaml_package
             (BuildValue.noloc fullname)
             pj
             {
@@ -184,32 +209,6 @@ let add_META pj ocamllib meta_dirname meta_filename =
               None -> ()
             | Some version ->
               opk.opk_version <- version
-          end;
-
-          if byte_targets = [] && asm_targets = [] then begin
-            opk.opk_options <- BuildValue.set_bool opk.opk_options
-              "meta" true
-          end else begin
-            opk.opk_options <- BuildValue.set_strings opk.opk_options
-              "asm_targets" asm_targets;
-            opk.opk_options <- BuildValue.set_strings opk.opk_options
-              "byte_targets" byte_targets;
-          end;
-
-          begin match p_option with
-          | None -> ()
-          | Some p ->
-            let env = ref BuildValue.empty_env in
-            StringMap.iter (fun var_name var ->
-              List.iter (fun (preds, value) ->
-                set_field env var_name preds "value" value
-              ) var.var_assigns;
-              List.iter (fun (preds, value) ->
-                set_field env var_name preds "append" value
-              ) var.var_additions;
-            ) p.p_variables;
-            opk.opk_options <- BuildValue.set opk.opk_options "META"
-              (VObject !env);
           end;
 
 

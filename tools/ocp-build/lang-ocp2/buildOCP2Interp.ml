@@ -294,7 +294,7 @@ and eval_expression ctx config exp =
                 raise_type_error loc "%get-field(value,field)" 1 "object" value
         in
         get_fields (VObject env) fields
-      | VList list ->
+      | VList list | VTuple list ->
         let field = eval_expression ctx config field in
         begin
           match field with

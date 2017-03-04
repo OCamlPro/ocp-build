@@ -103,33 +103,6 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
                  pk.package_loc.BuildValue.TYPES.loc_begin.Lexing.pos_lnum,
                  pk.package_name) in
 
-  (*
-  let lib_installed = BuildValue.is_already_installed envs in
-  let lib_install =
-    not lib_installed &&
-    (match pk.package_type with
-        TestPackage -> false
-      | ProgramPackage
-      | LibraryPackage
-      | ObjectsPackage
-      | RulesPackage
-      | SyntaxPackage -> true
-    ) &&
-    BuildValue.get_bool_with_default [pk.package_options] "install" true in
-
-
-  let lib_ready =
-    if lib_installed then [] else
-      let file_ready = add_virtual_file b dst_dir (lib_name ^ " validated") in
-      let r = new_rule b lib_loc file_ready [] in
-      List.iter (fun filename ->
-        add_rule_source r (config_filename_validated bc lib_loc filename)
-      ) pk.package_filenames;
-      [file_ready]
-  in
-  let lib_meta = BuildValue.get_bool_with_default [pk.package_options] "meta" false in
-  *)
-
   let lib =
     {
       lib_builder_context = bc;
@@ -137,31 +110,12 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
       lib_id = pk.package_id;
       lib_name = pk.package_name;
       lib_loc;
-      (*      lib_options = pk.package_options; *)
       lib_source_kind = pk.package_source_kind;
-
-      (*      lib_version = pk.package_version; *)
       lib_dirname = File.of_string package_dirname;
-      lib_provides = pk.package_provides ;
       lib_type = pk.package_type ;
       lib_tag = "";
       lib_filename = pk.package_filename;
       lib_node = pk.package_node;
-      (*      lib_plugin = pk.package_plugin;
-      lib_requires = List.map (fun pd ->
-        let pd = try
-                 (* Printf.eprintf "Adding dep %d to %S (link = %b)\n%!"
-             dep.dep_project.package_id pk.package_name dep.dep_link; *)
-                   Hashtbl.find bc.all_projects pd.package_id
-          with Not_found ->
-            Printf.eprintf "Unknown dependency %d (%s) of package %S\n%!"
-              pd.package_id
-              pd.package_name
-              pk.package_name;
-            BuildMisc.clean_exit 2
-        in
-        pd
-              ) pk.package_requires_list; *)
       lib_added = not pk.package_disabled;
 
       lib_src_dir = src_dir;

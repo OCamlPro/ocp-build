@@ -55,9 +55,6 @@ type ocaml_package = {
   lib : BuildTypes.package_info;
   lib_opk : ocaml_description;
 
-  lib_has_byte : bool;
-  lib_has_asm : bool;
-
   mutable lib_modules :
     (BuildEngineTypes.build_directory *
        (module_origin * string) StringMap.t ref) list;
@@ -89,23 +86,38 @@ type ocaml_package = {
     ocaml_package BuildOCPTypes.package_dependency list;
 
   mutable lib_ready : BuildEngineTypes.build_file list;
-  mutable lib_installed : bool;
-  mutable lib_install : bool;
   mutable lib_meta : bool;
 }
 
 and ocaml_description = {
   opk_name : string;
   opk_package : unit BuildOCPTypes.package;
-  mutable opk_options : BuildValue.TYPES.env;
+  mutable opk_options : BuildValue.TYPES.env list;
   opk_dirname : string;
   mutable opk_version : string;
   opk_kind : package_type;
 
+  mutable opk_install : bool;
+  mutable opk_installed : bool;
+  mutable opk_has_byte : bool;
+  mutable opk_has_asm : bool;
+
+  mutable opk_tolink : bool;
+  mutable opk_program : bool;
+  mutable opk_library : bool;
+
+  mutable opk_build : bool;
+  mutable opk_test : bool;
+  mutable opk_syntax : bool;
+
   mutable opk_id : int; (* initialized only when sorting *)
-  mutable opk_deps_map : string BuildOCPTypes.package_dependency StringMap.t;
-  mutable opk_requires_map :
-    ocaml_description BuildOCPTypes.package_dependency IntMap.t;
   mutable opk_requires :
     ocaml_description BuildOCPTypes.package_dependency list;
+
+  mutable opk_requires_map :
+    ocaml_description BuildOCPTypes.package_dependency StringMap.t;
+  mutable opk_usedby_map :
+    ocaml_description BuildOCPTypes.package_dependency StringMap.t;
 }
+
+exception OCamlPackage of ocaml_description

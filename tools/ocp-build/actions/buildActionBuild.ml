@@ -373,6 +373,9 @@ let arg_list =
   ),
   " Print version information";
 
+  "-disable", Arg.String BuildOCP.conf_add_disabled_package,
+  "PKG@DIR Disable package PKG installed in DIR";
+
   ]
   @ BuildActionInit.arg_list
   @ arg_list1

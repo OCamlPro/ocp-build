@@ -10,22 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-ocaml = {};
-begin
-  ocaml.files = [
-    "buildOCP2Tree.ml";
-    "buildOCP2Parser.mly";  (* (pp = []); *)
-    "buildOCP2Parse.ml";
-    "buildOCP2Prims.ml";
-    "buildOCP2Interp.ml"
-  ];
-  ocaml.requires = [ "ocplib-compat"; "ocplib-lang"; "ocp-build-misc"; "str" ];
-  new_package("ocp-build-lang-ocp2", "library", ocaml);
-end
 
-begin
-   ocaml.install = false;
-   ocaml.files = [ "eval.ml" ];
-   ocaml.requires = [ "ocp-build-lang-ocp2" ];
-   new_package( "ocp2-eval", "program", ocaml);
-end
+val print_incomplete_packages : bool ref
+
+val verify_packages : BuildWarnings.set -> BuildOCP.state -> unit

@@ -130,8 +130,12 @@ let check_is_compiler prefix_sep ocamlc_prefixes args ocamlc =
 
 let ocamlc_prefixes = [
   "The Objective Caml compiler"; "The OCaml compiler"]
-let ocamldoc_prefixes = [
-  "OCamldoc"]
+let ocamldoc_version_prefixes = [
+  "OCamldoc";
+]
+let ocamldoc_v_prefixes = [
+  "The OCaml documentation generator";
+]
 let ocamlopt_prefixes = [
   "The Objective Caml native-code compiler";
   "The OCaml native-code compiler"
@@ -149,7 +153,9 @@ let ocamlmktop_prefixes =
   [ "ocamlmklib" ]
 
 let check_is_ocamlc = check_is_compiler ',' ocamlc_prefixes  [ "-v" ]
-let check_is_ocamldoc = check_is_compiler ' 'ocamldoc_prefixes  [ "-version" ]
+let check_is_ocamldoc file =
+  check_is_compiler ' 'ocamldoc_version_prefixes  [ "-version" ] file ||
+  check_is_compiler ','ocamldoc_v_prefixes  [ "-v" ] file
 let check_is_ocamlopt = check_is_compiler ',' ocamlopt_prefixes  [ "-v" ]
 let check_is_ocamllex = check_is_compiler ',' ocamllex_prefixes  [ "-version" ]
 let check_is_ocamldep = check_is_compiler ',' ocamldep_prefixes [ "-version" ]

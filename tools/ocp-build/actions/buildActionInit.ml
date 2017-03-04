@@ -482,7 +482,7 @@ let init_env () =
   BuildActions.time_step "Environment read and checked.";
   (* TODO: we could check that all the packages are indeed installed ! *)
 
-  BuildOCamlPackage.init_env env_pj;
+  BuildOCamlOCP2.init_env env_pj;
 
   BuildActionsWarnings.print_env_warnings p.project_dir w;
 

@@ -156,7 +156,7 @@ let copy_file where log src_file dst_file =
 
 let install_META log where installdir meta lib =
 
-  if BuildOCamlVariables.install_META.get [lib.lib_opk.opk_options] then
+  if BuildOCamlVariables.install_META.get lib.lib_opk.opk_options then
     let really_install_META meta_file =
       let meta_file_d = in_destdir where meta_file in
       safe_mkdir where log (Filename.dirname meta_file);
@@ -239,7 +239,7 @@ let install where what lib installdir =
 
       meta.meta_version <- Some opk.opk_version;
       meta.meta_description <- Some
-        (BuildValue.get_string_with_default [lib.lib_opk.opk_options] "description" lib.lib.lib_name);
+        (BuildValue.get_string_with_default lib.lib_opk.opk_options "description" lib.lib.lib_name);
       List.iter (fun dep ->
         let olib = dep.dep_project in
         if dep.dep_link then
@@ -324,7 +324,7 @@ let install where what lib installdir =
           let src_file = Filename.concat (File.to_string lib.lib.lib_dirname) file in
           copy_file where log src_file dst_file
         )
-          (BuildValue.get_strings_with_default [lib.lib_opk.opk_options] "data_files" []);
+          (BuildValue.get_strings_with_default lib.lib_opk.opk_options "data_files" []);
 
       end;
 
@@ -336,7 +336,7 @@ let install where what lib installdir =
         let src_file = Filename.concat (File.to_string lib.lib.lib_dirname) file in
         copy_file where log src_file dst_file
       )
-        (BuildValue.get_strings_with_default [lib.lib_opk.opk_options] "lib_files" []);
+        (BuildValue.get_strings_with_default lib.lib_opk.opk_options "lib_files" []);
 
       List.iter (fun file ->
         safe_mkdir where log installbin;
@@ -345,7 +345,7 @@ let install where what lib installdir =
         let src_file = Filename.concat (File.to_string lib.lib.lib_dirname) file in
         copy_file where log src_file dst_file
       )
-        (BuildValue.get_strings_with_default [lib.lib_opk.opk_options] "bin_files" []);
+        (BuildValue.get_strings_with_default lib.lib_opk.opk_options "bin_files" []);
       Printf.eprintf "\n%!";
 
       install_META log where installdir meta lib;
@@ -387,7 +387,8 @@ let find_installdir where lib =
   );
 
   let lib_name = lib.lib.lib_name in
-  let install_subdir = BuildOCamlVariables.install_subdir.get [lib.lib_opk.opk_options] in
+  let install_subdir = BuildOCamlVariables.install_subdir.get
+    lib.lib_opk.opk_options in
   let lib_name =
     if install_subdir = "" then lib_name else
       Filename.concat install_subdir lib_name

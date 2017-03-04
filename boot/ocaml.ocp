@@ -28,7 +28,7 @@ begin
   version = "[distributed with Ocaml]"
   dirname = [ "%{OCAMLLIB}%" ]
 
-begin library "threads"
+begin library "threads.posix"
   dirname = [ "%{OCAMLLIB}%"; "threads" ]
   link = [ "-thread" ]
 

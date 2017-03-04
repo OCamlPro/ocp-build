@@ -57,7 +57,7 @@ open BuildOCamlMisc
 open BuildOCamlInstall.TYPES
 
 let comp_deps w lib options =
-  let options = [ options; lib.lib_opk.opk_options ] in
+  let options = options :: lib.lib_opk.opk_options in
   let comp_requires =  comp_requires_option.get options in
   BuildOCamlSyntaxes.get_tool_requires w "comp" lib comp_requires
 
@@ -322,7 +322,7 @@ let add_c2o_rule b lib seq src_file target_file options =
 
 let add_mll2ml_rule lib src_file target_file options =
 
-  let envs = [ options; lib.lib_opk.opk_options ] in
+  let envs = options :: lib.lib_opk.opk_options in
 
   let r = new_rule lib target_file
     [Execute (new_command (ocamllex_cmd.get envs )
@@ -334,7 +334,7 @@ let add_mll2ml_rule lib src_file target_file options =
 
 let add_mly2ml_rule b lib src_file ml_target_file mli_target_file options =
 
-  let envs = [ options; lib.lib_opk.opk_options ] in
+  let envs = options :: lib.lib_opk.opk_options in
   let src_dir = src_file.file_dir in
   let temp_ml = BuildEngineContext.add_temp_file b src_dir ml_target_file.file_basename in
   let temp_mli = BuildEngineContext.add_temp_file b src_dir mli_target_file.file_basename in
@@ -376,7 +376,7 @@ let add_bytedebug_flag = add_flag bytedebug_option "-g"
 let add_debug_flag = add_flag debug_option "-g"
 
 let bytelinkflags lib =
-  let options = [lib.lib_opk.opk_options] in
+  let options = lib.lib_opk.opk_options in
   add_debug_flag options (
     add_bytedebug_flag options (
       add_nopervasives_flag options (
@@ -386,7 +386,7 @@ let bytelinkflags lib =
   )
 
 let asmlinkflags lib =
-  let options = [lib.lib_opk.opk_options] in
+  let options = lib.lib_opk.opk_options in
   add_debug_flag options (
     add_asmdebug_flag options (
       add_nopervasives_flag options (
@@ -421,7 +421,7 @@ let needs_odoc lib =
   | TestPackage | RulesPackage -> false
 
 let add_ml2mldep_rule lib dst_dir pack_for force src_file target_file needs_odoc options =
-  let envs = [ options; lib.lib_opk.opk_options ] in
+  let envs = options :: lib.lib_opk.opk_options in
   let b = lib.lib.lib_context in
   let cmd = new_command (ocamldep_cmd.get envs)
     (depflags envs) in
@@ -588,8 +588,8 @@ let add_files_to_link_to_command lib case cmd options cmx_files =
 
 
 let add_cmo2cma_rule lib ptmp cclib cmo_files cma_file =
-  if not lib.lib_installed then
-    let options = [lib.lib_opk.opk_options] in
+  if not lib.lib_opk.opk_installed then
+    let options = lib.lib_opk.opk_options in
     let cmd = new_command
       (ocamlc_command options ocamlc2cma_cmd ocamlc_cmd
       ) (bytelinkflags lib) in
@@ -618,7 +618,7 @@ let cross_update r list =
      ) list)
 
 let add_cmx2cmxa_rule b lib cclib cmi_files cmx_files cmx_o_files stubs_files =
-  let options = [lib.lib_opk.opk_options] in
+  let options = lib.lib_opk.opk_options in
   let src_dir = lib.lib.lib_src_dir in
   let dst_dir = lib.lib.lib_dst_dir in
 
@@ -634,7 +634,7 @@ let add_cmx2cmxa_rule b lib cclib cmi_files cmx_files cmx_o_files stubs_files =
   let has_cmxs = cmxs_plugin.get options in
   let cmxs_files = if has_cmxs then [cmxs_file, CMXS] else [] in
 
-  if not lib.lib_installed then begin
+  if not lib.lib_opk.opk_installed then begin
 
     (* Build the cmxa *)
     let temp_cmxa = add_temp_file b src_dir basename_cmxa in
@@ -716,8 +716,8 @@ let add_cmx2cmxa_rule b lib cclib cmi_files cmx_files cmx_o_files stubs_files =
 
 
 let add_odocs2html_rule lib odoc_files docdir html_file =
-  if not lib.lib_installed then
-    let options = [lib.lib_opk.opk_options] in
+  if not lib.lib_opk.opk_installed then
+    let options = lib.lib_opk.opk_options in
     let cmd = new_command (ocamldoc_cmd.get options ) [] in
     List.iter (fun odoc_file ->
       add_command_args cmd [S "-load"; BF odoc_file]
@@ -738,7 +738,7 @@ let get_link_order lib =
       lib.lib_requires []
   in
 
-  let link_order = link_order.get [lib.lib_opk.opk_options] in
+  let link_order = link_order.get lib.lib_opk.opk_options in
   if link_order = [] then tolink else
     let map = List.fold_left (fun map lib ->
       StringMap.add lib.lib.lib_name (lib, ref false) map
@@ -761,8 +761,8 @@ let get_link_order lib =
     tolink
 
 let add_cmo2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
-  if not lib.lib_installed then
-    let options = [lib.lib_opk.opk_options] in
+  if not lib.lib_opk.opk_installed then
+    let options = lib.lib_opk.opk_options in
     let ocamlc_command =
       if is_toplevel.get options then
         ocamlmktop_cmd.get options
@@ -838,8 +838,8 @@ let add_cmo2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
 
 
 let add_cmx2asm_rule lib ptmp linkflags cclib cmx_files cmx_o_files o_files opt_file =
-  if  not lib.lib_installed then
-    let options = [lib.lib_opk.opk_options] in
+  if  not lib.lib_opk.opk_installed then
+    let options = lib.lib_opk.opk_options in
     let cmd = new_command
       (ocamlc_command options ocamlopt2asm_cmd ocamlopt_cmd)
       linkflags in
@@ -910,12 +910,9 @@ let add_cmx2asm_rule lib ptmp linkflags cclib cmx_files cmx_o_files o_files opt_
     ()
 
 let add_os2a_rule lib o_files a_file =
-    let envs = [lib.lib_opk.opk_options] in
-  (*
-    let src_dir = lib.lib.lib_src_dir in
-    let dst_dir = lib.lib.lib_dst_dir in
-  *)
-  if not lib.lib_installed then
+  let envs = lib.lib_opk.opk_options in
+
+  if not lib.lib_opk.opk_installed then
     let target = a_file.file_basename in
     let ext_lib = BuildOCamlConfig.ocaml_config_ext_lib.get envs  in
     let target_without_ext = Filename.chop_suffix target ext_lib in
@@ -925,7 +922,7 @@ let add_os2a_rule lib o_files a_file =
       [S "-custom"; S "-o"; F target] in
     List.iter (fun s ->
       add_command_arg cmd (argument_of_string s))
-      (mklib_option.get [lib.lib_opk.opk_options] );
+      (mklib_option.get lib.lib_opk.opk_options );
     List.iter (fun o_file ->
       add_command_arg cmd (BF o_file)) o_files;
     let r = new_rule lib a_file
@@ -935,17 +932,14 @@ let add_os2a_rule lib o_files a_file =
     ()
 
 let add_c_source b lib ptmp c_file options =
-(*
-  let src_dir = lib.lib.lib_src_dir in
-*)
-  let envs = [ options; lib.lib_opk.opk_options ] in
+  let envs = options :: lib.lib_opk.opk_options in
   let dst_dir = lib.lib.lib_dst_dir in
 
   let basename = c_file.file_basename in
   let kernel_name = Filename.chop_suffix basename ".c" in
   let ext_obj  = BuildOCamlConfig.ocaml_config_ext_obj.get envs  in
   let o_file = add_dst_file b dst_dir (kernel_name ^ ext_obj) in
-  if not lib.lib_installed then
+  if not lib.lib_opk.opk_installed then
     add_c2o_rule b lib [] c_file o_file envs;
   ptmp.o_files := o_file :: !(ptmp.o_files)
 
@@ -1029,9 +1023,9 @@ let copy_ml_objects_from b lib ptmp envs src_lib kernel_name =
   (* TODO: check that pack_for = [] *)
   (* TODO: check that src_lib is in requires *)
   do_copy_objects_from b lib src_lib kernel_name ".cmi" ptmp.cmi_files;
-  if lib.lib_has_byte  then
+  if lib.lib_opk.opk_has_byte  then
     do_copy_objects_from b lib src_lib kernel_name ".cmo" ptmp.cmo_files;
-  if lib.lib_has_asm then begin
+  if lib.lib_opk.opk_has_asm then begin
     do_copy_objects_from b lib src_lib kernel_name ".cmx" ptmp.cmx_files;
     do_copy_objects_from b lib src_lib kernel_name ".o" ptmp.cmx_o_files;
   end
@@ -1084,10 +1078,10 @@ let mli2odoc lib ptmp kernel_name envs pack_for force mli_file seq_order =
 
 
 let add_mli_source w b lib ptmp mli_file options =
-  let envs = [ options; lib.lib_opk.opk_options ] in
+  let envs = options :: lib.lib_opk.opk_options in
 
 
-  if lib.lib_installed then () else
+  if lib.lib_opk.opk_installed then () else
     let _ = () in
 
     let basename = mli_file.file_basename in
@@ -1161,7 +1155,7 @@ let add_mli_source w b lib ptmp mli_file options =
       let cmi_file = add_dst_file b dst_dir cmi_basename in
 
       let cmd, cmd_deps =
-        if byte_option.get [lib.lib_opk.opk_options]  then
+        if byte_option.get lib.lib_opk.opk_options  then
           let cmd = new_command (ocamlc_cmd.get envs ) (bytecompflags envs) in
           add_bin_annot_argument cmd envs;
           add_command_args cmd [S "-c"; S "-o"; BF cmi_temp];
@@ -1280,7 +1274,7 @@ let rec find_source_with_extension b lib src_dir kernel_name exts =
 let standard_source_exts =        [ "mly"; "mll"; "ml"; "mli"; "c" ]
 
 let get_packed_objects lib r src_dir pack_of obj_ext =
-  let options = [ lib.lib_opk.opk_options ] in
+  let options = lib.lib_opk.opk_options in
   let packed_cmx_files = ref [] in
   let b = r.rule_context in
   List.iter (fun basename ->
@@ -1500,7 +1494,7 @@ let copy_mli_if_needed b mut_dir mll_file kernel_name =
 let add_ml_source w b lib ptmp ml_file options =
   let needs_odoc = needs_odoc lib in
 
-  let envs = [ options; lib.lib_opk.opk_options ] in
+  let envs = options :: lib.lib_opk.opk_options in
   let basename = ml_file.file_basename in
   (*  Printf.eprintf "basename = [%s]\n" basename; *)
   let kernel_name =
@@ -1513,7 +1507,7 @@ let add_ml_source w b lib ptmp ml_file options =
 
   let orig_ml_file = ml_file in
   let pack_for = BuildValue.get_strings_with_default envs "packed" []  in
-  if lib.lib_installed then begin
+  if lib.lib_opk.opk_installed then begin
 
     if pack_for = [] then begin
 
@@ -1924,11 +1918,11 @@ let add_ml_source w b lib ptmp ml_file options =
       end
 
 let add_mll_source w b lib ptmp mll_file options =
-  let envs = [ options; lib.lib_opk.opk_options ] in
+  let envs = options :: lib.lib_opk.opk_options in
   let basename = mll_file.file_basename in
   let kernel_name = Filename.chop_suffix basename ".mll" in
 
-  if lib.lib_installed then
+  if lib.lib_opk.opk_installed then
 
     let ml_file = add_file b lib.lib.lib_src_dir (kernel_name ^ ".ml") in
     add_ml_source w b lib ptmp ml_file options
@@ -1957,11 +1951,11 @@ let add_mll_source w b lib ptmp mll_file options =
     add_ml_source w b lib ptmp ml_file options
 
 let add_mly_source w b lib ptmp mly_file options =
-  let envs = [ options; lib.lib_opk.opk_options ] in
+  let envs = options :: lib.lib_opk.opk_options in
   let basename = mly_file.file_basename in
   let kernel_name = Filename.chop_suffix basename ".mly" in
 
-  if lib.lib_installed then
+  if lib.lib_opk.opk_installed then
     let ml_file = add_file b mly_file.file_dir (kernel_name ^ ".ml") in
     add_ml_source w b lib ptmp ml_file options
   else
@@ -1984,7 +1978,7 @@ let add_mly_source w b lib ptmp mly_file options =
 
 let rec process_source w b lib ptmp src_dir (basename, options) =
   let _bc = lib.lib.lib_builder_context in
-  let envs = [ options; lib.lib_opk.opk_options ] in
+  let envs = options :: lib.lib_opk.opk_options in
 
   let (kernel_name, last_extension) = OcpString.rcut_at basename '.' in
   let (basename, last_extension) =
@@ -2090,7 +2084,7 @@ let rec process_source w b lib ptmp src_dir (basename, options) =
 
 let process_source w b lib ptmp src_dir (basename, options) =
   let bc = lib.lib.lib_builder_context in
-  let envs = [ options; lib.lib_opk.opk_options ] in
+  let envs = options :: lib.lib_opk.opk_options in
   let src_dir =
     let package = package_option.get  envs  in
     if package = "" then src_dir else
@@ -2152,7 +2146,7 @@ let process_sources w b lib =
 let add_library w b lib =
   (*  let src_dir = lib.lib.lib_src_dir in *)
   let dst_dir = lib.lib.lib_dst_dir in
-  let envs = [lib.lib_opk.opk_options] in
+  let envs = lib.lib_opk.opk_options in
   let ptmp = process_sources w b lib in
 
 
@@ -2191,7 +2185,7 @@ let add_library w b lib =
   in
 
   if  byte_option.get envs &&
-    (lib.lib_installed || !(ptmp.cmo_files) <> []) then begin
+    (lib.lib_opk.opk_installed || !(ptmp.cmo_files) <> []) then begin
       let cma_file = add_dst_file b dst_dir (lib.lib_archive ^ ".cma") in
       add_cmo2cma_rule lib ptmp cclib !(ptmp.cmo_files) cma_file;
       lib.lib_intf_targets <-
@@ -2201,7 +2195,7 @@ let add_library w b lib =
     end;
 
   if  asm_option.get envs &&
-    (lib.lib_installed || !(ptmp.cmx_files) <> []) then begin
+    (lib.lib_opk.opk_installed || !(ptmp.cmx_files) <> []) then begin
       let (cmxa_file, a_file, cmxs_files) =
         add_cmx2cmxa_rule b lib cclib !(ptmp.cmi_files)
           !(ptmp.cmx_files) !(ptmp.cmx_o_files) stubs_files in
@@ -2228,7 +2222,7 @@ let add_library w b lib =
 
 let add_objects w b lib =
   let ptmp = process_sources w b lib in
-  let envs = [lib.lib_opk.opk_options] in
+  let envs = lib.lib_opk.opk_options in
 
   if byte_option.get  envs  then begin
     lib.lib_intf_targets <-
@@ -2261,7 +2255,7 @@ let local_subst (file, env) s =
   s
 
 let add_extra_rules bc lib target_name target_files =
-  let lib_options =  [lib.lib_opk.opk_options] in
+  let lib_options = lib.lib_opk.opk_options in
   let _b = bc.build_context in
   let dirname = lib.lib.lib_dirname in
   let files = BuildValue.get_strings_with_default lib_options "source_files" [] in
@@ -2287,7 +2281,7 @@ let add_extra_rules bc lib target_name target_files =
       Printf.eprintf "Adding rule to build %s/%s\n%!" (File.to_string dirname) file;
 *)
 
-      let envs = [ env; lib.lib_opk.opk_options ] in
+      let envs = env :: lib.lib_opk.opk_options in
 
       let uniq_rule = BuildValue.get_string_option_with_default envs "uniq_rule" None in
 
@@ -2497,7 +2491,7 @@ let add_extra_rules bc lib target_name target_files =
 
 
 let add_program w b lib =
-  let lib_options =  [lib.lib_opk.opk_options] in
+  let lib_options =  lib.lib_opk.opk_options in
   let dst_dir = lib.lib.lib_dst_dir in
   let ptmp = process_sources w b lib in
 
@@ -2595,7 +2589,7 @@ let add_package bc opk =
 
     let package_dirname =
       try
-        let list = BuildValue.strings_of_plist ( BuildValue.get_local [package_options] "dirname" ) in
+        let list = BuildValue.strings_of_plist ( BuildValue.get_local package_options "dirname" ) in
         BuildSubst.subst_global (String.concat Filename.dir_sep list)
       with Var_not_found _ ->
         package_dirname
@@ -2607,7 +2601,7 @@ let add_package bc opk =
     let src_dir = add_directory b (absolute_filename package_dirname) in
     if verbose 7 then Printf.eprintf "\tfrom %s\n" src_dir.dir_fullname;
 
-    let already_installed = BuildValue.is_already_installed [package_options]
+    let already_installed = BuildValue.is_already_installed package_options
     in
 
     let dst_dir =
@@ -2670,7 +2664,7 @@ let create w cin cout bc state =
   let libs =
     Array.map (fun pk ->
       match pk.BuildOCPTypes.package_plugin with
-      | BuildOCamlPackage.OCamlPackage opk ->
+      | OCamlPackage opk ->
         add_package bc opk
       | _ -> assert false
     ) state.BuildOCPTypes.project_sorted
@@ -2683,23 +2677,26 @@ let create w cin cout bc state =
       add_extra_rules bc lib "test" lib.lib_test_targets;
 
       lib.lib_linkdeps <- get_link_order lib;
+      (*
+      Printf.eprintf "linkdeps for %S : %s\n%!" lib.lib.lib_name
+        (String.concat " "
+           (List.map (fun lib -> lib.lib.lib_name) lib.lib_linkdeps));
+      *)
 
       begin
-        if not lib.lib_installed then
+        if not lib.lib_opk.opk_installed then
           match lib.lib.lib_type with
             LibraryPackage -> add_library w b  lib
           | ProgramPackage -> add_program w b  lib
           | TestPackage ->
             if lib.lib_sources <> [] then add_program w b  lib;
-            lib.lib_opk.opk_options <- BuildValue.set_bool
-              lib.lib_opk.opk_options "install" false
+            lib.lib_opk.opk_install <- false;
           | ObjectsPackage -> add_objects w b  lib
           | SyntaxPackage -> ()
           | RulesPackage -> ()
       end;
 
-      let options = [lib.lib_opk.opk_options] in
-
+      let options = lib.lib_opk.opk_options in
 
       let set_objects lib name kinds f =
         let objs = BuildValue.get_strings_with_default options name [] in
@@ -2848,7 +2845,19 @@ let create w cin cout bc state =
 
       let clean_targets () = assert false
       let build_targets () =
-        let targets = BuildOCamlGlobals.make_build_targets lib.lib cin in
+        (*        Printf.eprintf " (dir %s)\n" lib.lib_opk.opk_dirname; *)
+        if lib.lib_opk.opk_installed then begin
+          (*          Printf.eprintf "%s is already installed\n%!" name; *)
+          {
+          targets = [];
+          depends = [];
+          } end
+        else
+          let targets = BuildOCamlGlobals.make_build_targets lib.lib cin in
+(*          Printf.eprintf " %s.build_targets =\n * %s\n End\n"
+            name
+            (String.concat "\n * "
+            (List.map (fun f -> file_filename f) targets)); *)
         let depends =
           let depends = ref [] in
           List.iter (fun dep ->
@@ -2908,12 +2917,12 @@ let create w cin cout bc state =
         | None -> assert false
         | Some install_dir -> install_dir
 
-      let pre_installed () = lib.lib_installed
+      let pre_installed () = lib.lib_opk.opk_installed
 
-      let to_install () = lib.lib_install
+      let to_install () = lib.lib_opk.opk_install
 
       let install () =
-        if lib.lib_install then
+        if lib.lib_opk.opk_install then
           let installdir = install_dir () in
           BuildOCamlInstall.install
             install_where install_what
@@ -2928,4 +2937,4 @@ let create w cin cout bc state =
   pks
 
 let () =
-  BuildOCamlPackage.init ()
+  BuildOCamlOCP2.init ()
