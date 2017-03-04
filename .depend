@@ -528,14 +528,14 @@ tools/ocp-build/ocaml/buildOCamlConfig.cmx : libs/ocplib-lang/ocpString.cmx \
     tools/ocp-build/ocaml/buildOCamlConfig.cmi
 tools/ocp-build/ocaml/buildOCamlTypes.cmo : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/intMap.cmi tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildOCPTypes.cmi \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/buildTypes.cmi \
+    tools/ocp-build/buildOCPTypes.cmi \
     tools/ocp-build/engine/buildEngineTypes.cmi \
     tools/ocp-build/ocaml/buildOCamlTypes.cmi
 tools/ocp-build/ocaml/buildOCamlTypes.cmx : libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/intMap.cmx tools/ocp-build/buildValue.cmx \
-    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildOCPTypes.cmx \
+    tools/ocp-build/buildValue.cmx tools/ocp-build/buildTypes.cmx \
+    tools/ocp-build/buildOCPTypes.cmx \
     tools/ocp-build/engine/buildEngineTypes.cmx \
     tools/ocp-build/ocaml/buildOCamlTypes.cmi
 tools/ocp-build/ocaml/buildOCamlMisc.cmo : libs/ocplib-maxunix/minUnix.cmo \
@@ -650,41 +650,41 @@ tools/ocp-build/ocaml/buildOCamlInstall.cmx : \
     tools/ocp-build/buildMisc.cmx tools/ocp-build/engine/buildEngineTypes.cmx \
     tools/ocp-build/engine/buildEngineGlobals.cmx \
     tools/ocp-build/ocaml/buildOCamlInstall.cmi
-tools/ocp-build/ocaml/buildOCamlCheckPackages.cmo : \
+tools/ocp-build/ocaml/buildOCamlVerifyPackages.cmo : \
     libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/intMap.cmi libs/ocplib-file/file.cmi \
-    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildWarnings.cmi \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/ocaml/buildOCamlTypes.cmi \
+    libs/ocplib-lang/intMap.cmi libs/ocplib-debug/debugVerbosity.cmi \
+    tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/ocaml/buildOCamlTypes.cmi \
     tools/ocp-build/buildOCPTypes.cmi tools/ocp-build/buildOCP.cmi \
     tools/ocp-build/buildMisc.cmo \
-    tools/ocp-build/ocaml/buildOCamlCheckPackages.cmi
-tools/ocp-build/ocaml/buildOCamlCheckPackages.cmx : \
+    tools/ocp-build/ocaml/buildOCamlVerifyPackages.cmi
+tools/ocp-build/ocaml/buildOCamlVerifyPackages.cmx : \
     libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/intMap.cmx libs/ocplib-file/file.cmx \
-    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildWarnings.cmx \
-    tools/ocp-build/buildValue.cmx tools/ocp-build/ocaml/buildOCamlTypes.cmx \
+    libs/ocplib-lang/intMap.cmx libs/ocplib-debug/debugVerbosity.cmx \
+    tools/ocp-build/buildWarnings.cmx tools/ocp-build/buildValue.cmx \
+    tools/ocp-build/ocaml/buildOCamlTypes.cmx \
     tools/ocp-build/buildOCPTypes.cmx tools/ocp-build/buildOCP.cmx \
     tools/ocp-build/buildMisc.cmx \
-    tools/ocp-build/ocaml/buildOCamlCheckPackages.cmi
+    tools/ocp-build/ocaml/buildOCamlVerifyPackages.cmi
 tools/ocp-build/ocaml/buildOCamlOCP2.cmo : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/intMap.cmi libs/ocplib-debug/debugVerbosity.cmi \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/buildSubst.cmi \
+    libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/buildSubst.cmi \
+    tools/ocp-build/ocaml/buildOCamlVerifyPackages.cmi \
     tools/ocp-build/ocaml/buildOCamlVariables.cmo \
     tools/ocp-build/ocaml/buildOCamlTypes.cmi \
-    tools/ocp-build/ocaml/buildOCamlCheckPackages.cmi \
     tools/ocp-build/buildOCPTypes.cmi \
     tools/ocp-build/lang-ocp2/buildOCP2Prims.cmi tools/ocp-build/buildOCP.cmi \
     tools/ocp-build/buildGlobals.cmo tools/ocp-build/ocaml/buildOCamlOCP2.cmi
 tools/ocp-build/ocaml/buildOCamlOCP2.cmx : libs/ocplib-lang/stringMap.cmx \
     libs/ocplib-compat/string-compat/stringCompat.cmx \
-    libs/ocplib-lang/intMap.cmx libs/ocplib-debug/debugVerbosity.cmx \
-    tools/ocp-build/buildValue.cmx tools/ocp-build/buildSubst.cmx \
+    libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildValue.cmx \
+    tools/ocp-build/buildSubst.cmx \
+    tools/ocp-build/ocaml/buildOCamlVerifyPackages.cmx \
     tools/ocp-build/ocaml/buildOCamlVariables.cmx \
     tools/ocp-build/ocaml/buildOCamlTypes.cmx \
-    tools/ocp-build/ocaml/buildOCamlCheckPackages.cmx \
     tools/ocp-build/buildOCPTypes.cmx \
     tools/ocp-build/lang-ocp2/buildOCP2Prims.cmx tools/ocp-build/buildOCP.cmx \
     tools/ocp-build/buildGlobals.cmx tools/ocp-build/ocaml/buildOCamlOCP2.cmi
@@ -786,11 +786,11 @@ tools/ocp-build/ocaml/buildOasis.cmx : \
     tools/ocp-build/buildOCP.cmx tools/ocp-build/ocaml/buildOasis.cmi
 tools/ocp-build/ocaml/buildOCamlPlugin.cmo : \
     libs/ocplib-stdlib/stdlibArg.cmi \
-    tools/ocp-build/ocaml/buildOCamlCheckPackages.cmi \
+    tools/ocp-build/ocaml/buildOCamlVerifyPackages.cmi \
     tools/ocp-build/buildGlobals.cmo
 tools/ocp-build/ocaml/buildOCamlPlugin.cmx : \
     libs/ocplib-stdlib/stdlibArg.cmx \
-    tools/ocp-build/ocaml/buildOCamlCheckPackages.cmx \
+    tools/ocp-build/ocaml/buildOCamlVerifyPackages.cmx \
     tools/ocp-build/buildGlobals.cmx
 tools/ocp-build/actions/buildArgs.cmo : \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
@@ -1150,8 +1150,8 @@ tools/ocp-build/ocaml/buildOCamlConfig.cmi : \
     tools/ocp-build/buildOptions.cmi
 tools/ocp-build/ocaml/buildOCamlTypes.cmi : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
-    libs/ocplib-lang/intMap.cmi tools/ocp-build/buildValue.cmi \
-    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildOCPTypes.cmi \
+    tools/ocp-build/buildValue.cmi tools/ocp-build/buildTypes.cmi \
+    tools/ocp-build/buildOCPTypes.cmi \
     tools/ocp-build/engine/buildEngineTypes.cmi
 tools/ocp-build/ocaml/buildOCamldep.cmi : tools/ocp-build/buildValue.cmi \
     tools/ocp-build/ocaml/buildOCamlTypes.cmi \
@@ -1164,7 +1164,7 @@ tools/ocp-build/ocaml/buildOCamlInstall.cmi : tools/ocp-build/buildTypes.cmi \
     tools/ocp-build/buildOptions.cmi \
     tools/ocp-build/ocaml/buildOCamlTypes.cmi \
     tools/ocp-build/ocaml/buildOCamlConfig.cmi
-tools/ocp-build/ocaml/buildOCamlCheckPackages.cmi : \
+tools/ocp-build/ocaml/buildOCamlVerifyPackages.cmi : \
     tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildOCP.cmi
 tools/ocp-build/ocaml/buildOCamlOCP2.cmi : tools/ocp-build/buildValue.cmi \
     tools/ocp-build/ocaml/buildOCamlTypes.cmi \

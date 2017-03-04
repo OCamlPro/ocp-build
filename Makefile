@@ -191,7 +191,7 @@ $(OCP_BUILD_BOOTER): $(MAKE_CONFIG)
 	$(MAKE) partialclean
 
 create-booter: $(OCP_BUILD_MLS) $(OCP_BUILD_CMXS) $(OCP_BUILD_STUBS)
-	$(OCAMLOPT) -o $(OCP_BUILD_BOOTER) unix.cmxa $(OCP_BUILD_CMXS) $(OCP_BUILD_STUBS)
+	$(OCAMLOPT) -o $(OCP_BUILD_BOOTER) unix.cmxa str.cmxa $(OCP_BUILD_CMXS) $(OCP_BUILD_STUBS)
 
 byte: ocp-build.byte
 ocp-build.byte: $(OCP_BUILD_MLS) $(OCP_BUILD_CMOS) $(OCP_BUILD_STUBS)
