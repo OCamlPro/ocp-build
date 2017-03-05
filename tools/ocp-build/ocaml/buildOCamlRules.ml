@@ -1155,7 +1155,7 @@ let add_mli_source w b lib ptmp mli_file options =
       let cmi_file = add_dst_file b dst_dir cmi_basename in
 
       let cmd, cmd_deps =
-        if byte_option.get lib.lib_opk.opk_options  then
+        if lib.lib_opk.opk_has_byte  then
           let cmd = new_command (ocamlc_cmd.get envs ) (bytecompflags envs) in
           add_bin_annot_argument cmd envs;
           add_command_args cmd [S "-c"; S "-o"; BF cmi_temp];
@@ -1501,8 +1501,8 @@ let add_ml_source w b lib ptmp ml_file options =
     BuildValue.get_string_with_default envs "module"
       (Filename.chop_extension basename) in
 
-  let has_asm = asm_option.get envs in
-  let has_byte = byte_option.get envs in
+  let has_byte = lib.lib_opk.opk_has_byte in
+  let has_asm = lib.lib_opk.opk_has_asm in
 
 
   let orig_ml_file = ml_file in
@@ -2184,7 +2184,7 @@ let add_library w b lib =
 
   in
 
-  if  byte_option.get envs &&
+  if  lib.lib_opk.opk_has_byte &&
     (lib.lib_opk.opk_installed || !(ptmp.cmo_files) <> []) then begin
       let cma_file = add_dst_file b dst_dir (lib.lib_archive ^ ".cma") in
       add_cmo2cma_rule lib ptmp cclib !(ptmp.cmo_files) cma_file;
@@ -2194,7 +2194,7 @@ let add_library w b lib =
       lib.lib_byte_targets <- (cma_file, CMA) :: lib.lib_byte_targets;
     end;
 
-  if  asm_option.get envs &&
+  if  lib.lib_opk.opk_has_asm &&
     (lib.lib_opk.opk_installed || !(ptmp.cmx_files) <> []) then begin
       let (cmxa_file, a_file, cmxs_files) =
         add_cmx2cmxa_rule b lib cclib !(ptmp.cmi_files)
@@ -2222,9 +2222,8 @@ let add_library w b lib =
 
 let add_objects w b lib =
   let ptmp = process_sources w b lib in
-  let envs = lib.lib_opk.opk_options in
 
-  if byte_option.get  envs  then begin
+  if lib.lib_opk.opk_has_byte then begin
     lib.lib_intf_targets <-
       (List.map (fun cmi -> cmi, CMI) (!(ptmp.cmi_files))) @
       lib.lib_intf_targets;
@@ -2232,7 +2231,7 @@ let add_objects w b lib =
         (List.map (fun cmo -> cmo, CMO)
            (!(ptmp.cmo_files))) @ lib.lib_byte_targets;
   end;
-  if asm_option.get envs then begin
+  if lib.lib_opk.opk_has_asm then begin
     lib.lib_intf_targets <-
       (List.map  (fun cmi -> cmi, CMI) (!(ptmp.cmi_files))) @
       (List.map  (fun cmx -> cmx, CMX) (!(ptmp.cmx_files))) @
@@ -2543,7 +2542,7 @@ let add_program w b lib =
     let byte_file = add_dst_file b dst_dir (lib.lib_archive ^ byte_exe) in
     add_cmo2byte_rule lib ptmp linkflags cclib !(ptmp.cmo_files)
       !(ptmp.o_files) byte_file;
-    if byte_option.get  lib_options  then begin
+    if lib.lib_opk.opk_has_byte  then begin
       lib.lib_byte_targets <- (byte_file, RUN_BYTE) :: lib.lib_byte_targets;
     end
   end;
@@ -2556,7 +2555,7 @@ let add_program w b lib =
     let asm_file = add_dst_file b dst_dir (lib.lib_archive ^ asm_exe) in
     add_cmx2asm_rule lib ptmp linkflags cclib
       !(ptmp.cmx_files) !(ptmp.cmx_o_files) !(ptmp.o_files) asm_file;
-    if  asm_option.get lib_options && not is_toplevel then begin
+    if  lib.lib_opk.opk_has_asm && not is_toplevel then begin
       lib.lib_asm_targets <- (asm_file, RUN_ASM) :: lib.lib_asm_targets;
     end
   end;

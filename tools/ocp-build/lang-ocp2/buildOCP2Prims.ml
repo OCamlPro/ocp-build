@@ -461,7 +461,7 @@ let _ =
         raise_bad_arity loc "version(string)" 1 args
     );
 
-  add_primitive "srcdir" []
+  add_primitive "SRCDIR" []
     (fun loc ctx config args ->
       match args with
       | [ VString (s, _) ] ->
@@ -469,10 +469,10 @@ let _ =
       | [ VString (pk, _); VString (file,_) ] ->
         VString ("%{" ^ pk ^ "_FULL_SRC_DIR}%/" ^ file, StringVersion)
       | _ ->
-        raise_bad_arity loc "srcdir(string[,file])" 1 args
+        raise_bad_arity loc "SRCDIR(string[,file])" 1 args
     );
 
-  add_primitive "dstdir" []
+  add_primitive "DSTDIR" []
     (fun loc ctx config args ->
       match args with
       | [ VString (s, _) ] ->
@@ -480,7 +480,7 @@ let _ =
       | [ VString (pk, _); VString (file,_) ] ->
         VString ("%{" ^ pk ^ "_FULL_DST_DIR}%/" ^ file, StringVersion)
       | _ ->
-        raise_bad_arity loc "dstdir(string[,file])" 1 args
+        raise_bad_arity loc "DSTDIR(string[,file])" 1 args
     );
 
   (* ------------------------------------------------------------

@@ -222,12 +222,16 @@ let filter_deps options option modules =
 
 let load_modules_dependencies lib options force dst_dir pack_for needs_odoc filename =
   let envs = options :: lib.lib_opk.opk_options in
-  let has_asm = asm_option.get envs in
-  let has_byte = byte_option.get envs in
+  let has_asm = lib.lib_opk.opk_has_asm in
+  let has_byte = lib.lib_opk.opk_has_byte in
 
   if verbose 5 then
     Printf.eprintf "load_modules_dependencies %s\n" filename;
   let source, modules = load_ocamldep_modules filename in
+  if verbose 5 then begin
+    Printf.eprintf "  source: %s\n" source;
+    Printf.eprintf "  modules: %s\n" (String.concat " " modules);
+  end;
   let modules =
     if nopervasives.get envs then modules
     else "Pervasives" :: modules
@@ -280,7 +284,7 @@ let load_modules_dependencies lib options force dst_dir pack_for needs_odoc file
   let deps = add_internal_deps (List.rev pack_for) deps in
 
   if verbose 6  then begin
-    Printf.eprintf "load_modules_dependencies %s\n" filename;
+    Printf.eprintf "load_modules_dependencies path %s\n" filename;
     List.iter (fun (dst_dir, map) ->
       Printf.eprintf "   DIR: %S\n\t" dst_dir.dir_fullname;
       StringMap.iter (fun modname _ ->
@@ -307,7 +311,17 @@ let load_modules_dependencies lib options force dst_dir pack_for needs_odoc file
           let full_basename = Filename.concat dst_dir basename in
           match kind with
           | ML ->
-            dependencies := [ full_basename ^ ".cmo"; full_basename ^ ".cmx" ] :: !dependencies
+            (*
+            let deps = [] in
+            let deps = if has_asm then
+                (full_basename ^ ".cmx") :: deps else deps
+            in
+            let deps = if has_byte then
+                (full_basename ^ ".cmo") :: deps else deps
+            in
+            *)
+            let deps = [full_basename ^ ".cmo"; full_basename ^ ".cmx" ] in
+            dependencies := deps :: !dependencies
           | MLI ->
             dependencies := [ full_basename ^ ".cmi" ] :: !dependencies
           | MLandMLI ->
