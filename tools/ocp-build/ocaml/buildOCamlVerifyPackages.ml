@@ -48,6 +48,25 @@ module Warnings = struct
             \    (from %S)\n"
       dep_name opk.opk_name opk.opk_package.package_filename
 
+  let w_InstalledOnSourceDependency w opk dep_name =
+    BuildWarnings.wprintf w
+      "Warning: incorrect installed-on-source dependency on %S:\n\
+            \  Disabling package %S.\n\
+            \    (from %S)\n"
+      dep_name opk.opk_name opk.opk_package.package_filename
+
+  let w_ConflictingInstalledPackages w opk1 opk2 =
+    Printf.eprintf
+      "Warning: installed package %S has conflicting directories:\n"
+      opk1.opk_name;
+    Printf.eprintf "   first: %s@%s\n" opk2.opk_name opk2.opk_dirname;
+    Printf.eprintf "     (from %s)\n" opk2.opk_package.package_filename;
+    Printf.eprintf "   second: %s@%s\n" opk1.opk_name opk1.opk_dirname;
+    Printf.eprintf "     (from %s)\n" opk1.opk_package.package_filename;
+    Printf.eprintf
+      "Use the --disable-package PKG@DIR to disable one of them.\n%!";
+    Printf.eprintf "Choosing %S.\n%!" opk2.opk_name
+
 end
 
 let print_deps msg opk =
@@ -63,7 +82,7 @@ let print_deps msg opk =
       (if dep.dep_optional then "(optional)" else "")
   ) opk.opk_requires
 
-let is_better_installed_package opk1 opk2 =
+let is_better_installed_package w opk1 opk2 =
   if opk1.opk_dirname = opk2.opk_dirname then
     match
       opk1.opk_package.package_source_kind,
@@ -73,23 +92,15 @@ let is_better_installed_package opk1 opk2 =
     | _ -> false
 
   else begin
-    Printf.eprintf
-      "Error: installed package %S has conflicting directories:\n"
-      opk1.opk_name;
-    Printf.eprintf "   first: %s@%s\n" opk2.opk_name opk2.opk_dirname;
-    Printf.eprintf "     (from %s)\n" opk2.opk_package.package_filename;
-    Printf.eprintf "   second: %s@%s\n" opk1.opk_name opk1.opk_dirname;
-    Printf.eprintf "     (from %s)\n" opk1.opk_package.package_filename;
-    Printf.eprintf
-    "Use the --disable-package PKG@DIR to disable one of them. Aborting.\n%!";
-    exit 2
+    Warnings.w_ConflictingInstalledPackages w opk1 opk2;
+    false
   end
 
-let is_better_package opk1 opk2 =
+let is_better_package w opk1 opk2 =
   match opk1.opk_installed, opk2.opk_installed with
   | false, true -> true (* sources is better than installed *)
   | true, false -> false (* sources is better than installed *)
-  | true, true -> is_better_installed_package opk1 opk2
+  | true, true -> is_better_installed_package w opk1 opk2
   | false, false ->
     Printf.eprintf
       "Error: package %S is defined twice in the project sources:\n"
@@ -107,7 +118,7 @@ let get_uniq_ocaml_packages w state =
 
   IntMap.iter (fun i pk ->
     match pk.package_plugin with
-    | OCamlPackage opk when not pk.package_disabled ->
+    | OCamlPackage opk when not (package_disabled pk) ->
 
       if not ( BuildMisc.exists_as_directory opk.opk_dirname ) then begin
 
@@ -115,7 +126,7 @@ let get_uniq_ocaml_packages w state =
             ( opk.opk_dirname,
               opk.opk_name,
               pk.package_filename);
-          pk.package_disabled <- true;
+          pk.package_disabled <- Some "Directory does not exist";
 
         end else begin
 
@@ -123,9 +134,10 @@ let get_uniq_ocaml_packages w state =
 
             let opk2 = StringMap.find opk.opk_name !packages in
 
-            if is_better_package opk opk2 then begin
+            if is_better_package w opk opk2 then begin
               (* disable the installed package, and choose this one *)
-              opk2.opk_package.package_disabled <- true;
+              opk2.opk_package.package_disabled <-
+                Some "Superseeded by better package";
               raise Not_found
             end
 
@@ -157,12 +169,14 @@ let add_dep dep_project dep_link dep_syntax dep_options map =
       } in
     StringMap.add dep_project.opk_name dep map
 
-let rec disable_package w packages opk dep_name =
-  Warnings.w_MissingDependency w opk dep_name;
-  opk.opk_package.package_disabled <- true;
+let rec disable_package warning w packages opk dep_name =
+  warning w opk dep_name;
+  opk.opk_package.package_disabled <-
+    Some (Printf.sprintf "Missing dependency %S" dep_name);
   packages := StringMap.remove opk.opk_name !packages;
   StringMap.iter (fun _ dep ->
-    disable_package w packages dep.dep_project opk.opk_name
+    disable_package
+      Warnings.w_MissingDependency w packages dep.dep_project opk.opk_name
   ) opk.opk_usedby_map;
   opk.opk_usedby_map <- StringMap.empty
 
@@ -175,32 +189,37 @@ let build_dependency_graph w packages =
       with Var_not_found _ -> []
     in
 
-(*    Printf.eprintf "Packages  %s.requires = %s\n%!"
-      opk.opk_name
-      (String.concat " " (List.map fst requires)); *)
+    (*    Printf.eprintf "Packages  %s.requires = %s\n%!"
+          opk.opk_name
+          (String.concat " " (List.map fst requires)); *)
     List.iter (fun (dep_name, options) ->
       try
         let opk2 = StringMap.find dep_name !packages in
 
         (* An installed package should never depend on a source package ! *)
-        if opk.opk_installed && not opk2.opk_installed then
-          raise Not_found;
+        if opk.opk_installed && not opk2.opk_installed then begin
+          let optional =
+            BuildValue.get_bool_with_default [options] "optional" false in
+          if not optional then
+            disable_package Warnings.w_InstalledOnSourceDependency
+              w packages opk dep_name
+        end else
 
-        let tolink = BuildValue.get_bool_with_default [options] "tolink"
-          opk2.opk_tolink in
-        let syntax = BuildValue.get_bool_with_default [options] "syntax"
-          opk2.opk_syntax in
+          let tolink = BuildValue.get_bool_with_default [options] "tolink"
+            opk2.opk_tolink in
+          let syntax = BuildValue.get_bool_with_default [options] "syntax"
+            opk2.opk_syntax in
 
-        opk.opk_requires_map <-
-          add_dep opk2 tolink syntax options opk.opk_requires_map;
-        opk2.opk_usedby_map <-
-          add_dep opk tolink syntax options opk2.opk_usedby_map;
+          opk.opk_requires_map <-
+            add_dep opk2 tolink syntax options opk.opk_requires_map;
+          opk2.opk_usedby_map <-
+            add_dep opk tolink syntax options opk2.opk_usedby_map;
 
       with Not_found ->
         let optional =
           BuildValue.get_bool_with_default [options] "optional" false in
         if not optional then
-          disable_package w packages opk dep_name
+          disable_package Warnings.w_MissingDependency w packages opk dep_name
     ) requires
 
   ) !packages;
@@ -270,6 +289,7 @@ let verify_packages w state =
      dependency does not exist in bytecode or native.
   *)
   StringMap.iter (fun _ opk ->
+    opk.opk_requires <- [];
     StringMap.iter (fun _ dep ->
       opk.opk_requires <- dep :: opk.opk_requires;
       if dep.dep_link then begin

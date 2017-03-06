@@ -89,7 +89,7 @@ let add_finally action =
 
 let rec do_compile stage p ncores env_state arg_targets pre_w  =
 
-  let (bc, package_map) = BuildActionInit.load_initial_project pre_w p
+  let (bc, package_map, pj) = BuildActionInit.load_initial_project pre_w p
     (BuildOCP.copy_state env_state) in
 
   if !configure_arg then BuildMisc.clean_exit 0;
@@ -375,6 +375,9 @@ let arg_list =
 
   "-disable", Arg.String BuildOCP.conf_add_disabled_package,
   "PKG@DIR Disable package PKG installed in DIR";
+
+  "--html-report", Arg.Set BuildGlobals.html_report_arg,
+  " Create an HTML report in _obuild/_html";
 
   ]
   @ BuildActionInit.arg_list

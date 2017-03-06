@@ -36,7 +36,9 @@ type 'a package = {
 
   (*  mutable package_options : env; *)
   mutable package_plugin : exn;
-  mutable package_disabled : bool;
+
+  (* disabled = Some reason; enabled = None *)
+  mutable package_disabled : string option;
   mutable package_requires_list : 'a package list;
   mutable package_node : LinearToposort.node;
 }
@@ -59,3 +61,6 @@ and project = {
   mutable project_sorted : final_package array;
   mutable project_disabled : final_package array;
 }
+
+let package_disabled pk = pk.package_disabled != None
+let package_enabled pk = pk.package_disabled == None

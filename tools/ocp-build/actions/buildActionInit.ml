@@ -304,11 +304,12 @@ let do_init_project_building w p pj =
 
   let bc = BuildGlobals.new_builder_context b in
 
+  if !BuildGlobals.html_report_arg then BuildOCP.html_report pj;
   let packages = BuildOCamlRules.create w p.cin p.cout bc pj in
 
   if !print_build_context then
     BuildEngineDisplay.eprint_context b;
-  (bc, packages)
+  (bc, packages, pj)
 
 let load_initial_project pre_w p state =
   let w = BuildWarnings.empty_set () in
@@ -363,7 +364,7 @@ let load_initial_project pre_w p state =
   else
     do_print_project_info pj;
 
-  let (bc, packages) = do_init_project_building w p pj in
+  let (bc, packages,  pj) = do_init_project_building w p pj in
 
   let package_map =
     let h = ref StringMap.empty in
@@ -376,7 +377,7 @@ let load_initial_project pre_w p state =
 
   BuildActionsWarnings.print_pj_warnings p.project_dir (BuildWarnings.diff w pre_w);
 
-  (bc, package_map)
+  (bc, package_map, pj)
 
 let load_installed_ocp = ref true
 let arg_ocp_dirs = ref []
@@ -508,7 +509,7 @@ let action () =
 
   chdir_to_project p;
 
-  let (_bc, _package_map) = load_initial_project w p
+  let (_bc, _package_map, _pj) = load_initial_project w p
     (BuildOCP.copy_state env_state) in
   ()
 

@@ -37,7 +37,6 @@ let binannot_attr = "binannot"
 
 open StringCompat
 
-open BuildSubst
 open BuildMisc
 
 open BuildEngineTypes
@@ -270,13 +269,13 @@ let add_more_rule_sources lib r deps options =
   let more_rule_sources =  rule_sources_option.get options
     @  more_deps_option.get options  in
   List.iter (fun s ->
-    let s = subst global_subst s in
+    let s = BuildSubst.subst_global s in
     let s = add_package_file lib s in
     add_rule_source r s
   ) more_rule_sources;
   List.iter (fun option ->
     List.iter (fun s ->
-      let s = subst global_subst s in
+      let s = BuildSubst.subst_global s in
       let s = add_package_file lib s in
       add_rule_source r s
     ) (option.get options)
@@ -284,7 +283,7 @@ let add_more_rule_sources lib r deps options =
 
 let add_objects lib name_objs options =
   List.map (fun s ->
-    let s = subst global_subst s in
+    let s = BuildSubst.subst_global s in
     add_package_file lib s)
     (BuildValue.get_strings_with_default options name_objs [])
 
@@ -673,7 +672,7 @@ let add_cmx2cmxa_rule b lib cclib cmi_files cmx_files cmx_o_files stubs_files =
 
         let asmlink_libs =
           List.map (fun s ->
-            let s = subst global_subst s in
+            let s = BuildSubst.subst_global s in
             add_package_file lib s
           ) (asmlink_libs.get options) in
 
@@ -809,7 +808,7 @@ let add_cmo2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
 
     let bytelink_libs =
       List.map (fun s ->
-        let s = subst global_subst s in
+        let s = BuildSubst.subst_global s in
         add_package_file lib s
       ) (bytelink_libs.get options) in
 
@@ -879,7 +878,7 @@ let add_cmx2asm_rule lib ptmp linkflags cclib cmx_files cmx_o_files o_files opt_
 
     let asmlink_libs =
       List.map (fun s ->
-        let s = subst global_subst s in
+        let s = BuildSubst.subst_global s in
         add_package_file lib s
     ) (asmlink_libs.get options) in
 
@@ -2165,7 +2164,7 @@ let add_library w b lib =
         try
           let a_file = libstubs.get envs in
           if a_file = "" then raise (Var_not_found "libstubs");
-          let a_file = subst global_subst a_file in
+          let a_file = BuildSubst.subst_global a_file in
           if Filename.basename a_file <> libbasename then begin
             Printf.eprintf "%s\nError: %s=%S basename differs from %S^%s^%S=\"%s\"\n%!"
               (string_of_libloc lib)
@@ -2248,7 +2247,7 @@ let add_objects w b lib =
 let string_of_loc (x,y,z) = Printf.sprintf "%s:%d:%s" x y z
 
 let local_subst (file, env) s =
-  let s = subst global_subst s in
+  let s = BuildSubst.subst_global s in
   let s = BuildSubst.apply_substituter
       BuildOCP.filesubst s (file,env) in
   s
@@ -2269,7 +2268,7 @@ let add_extra_rules bc lib target_name target_files =
       (target_name ^ "_targets") [] in
 
   List.iter (fun (file, _env) ->
-      let file = subst global_subst file in
+      let file = BuildSubst.subst_global file in
       let target_file = add_package_file lib file in
       target_files := target_file :: !target_files
   ) build_targets;
@@ -2284,7 +2283,7 @@ let add_extra_rules bc lib target_name target_files =
 
       let uniq_rule = BuildValue.get_string_option_with_default envs "uniq_rule" None in
 
-      let file = subst global_subst file in
+      let file = BuildSubst.subst_global file in
       let target_file = add_package_file lib file in
 
       let to_build = BuildValue.get_bool_with_default envs "build_target" false in
@@ -2411,8 +2410,8 @@ let add_extra_rules bc lib target_name target_files =
               (string, with_string)
             ) substitutions in
           let subst = List.fold_left (fun subst (string, with_string) ->
-              StringSubst.add_to_subst subst string with_string; subst
-            ) (StringSubst.empty_subst()) substitutions
+              StringMap.add string with_string subst
+            ) StringMap.empty substitutions
           in
 
           let printer b =
@@ -2424,7 +2423,7 @@ let add_extra_rules bc lib target_name target_files =
           in
           let actor () =
             let s = FileString.string_of_file (file_filename from_file) in
-            let s = BuildSubst.subst subst s in
+            let s = BuildSubst.map_subst subst s in
             FileString.file_of_string (file_filename to_file) s
           in
           add_rule_source r from_file;
@@ -2703,7 +2702,7 @@ let create w cin cout bc state =
           f (
             List.flatten (
               List.map (fun s0 ->
-            let s = subst global_subst s0 in
+            let s = BuildSubst.subst_global s0 in
             let bf = add_package_file lib s in
             let basename = bf.file_basename in
             match List.rev (OcpString.split basename '.') with
@@ -2768,7 +2767,7 @@ let create w cin cout bc state =
           in
           let dirs = ref [] in
           List.iter (fun s0 ->
-             let s = subst global_subst s0 in
+             let s = BuildSubst.subst_global s0 in
              let bf = add_package_file lib s in
              let dst_dir = bf.file_dir in
              let (is_ml, modname, basename) =

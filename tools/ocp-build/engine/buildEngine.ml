@@ -134,7 +134,7 @@ let rule_need_execution =
             match cmd with
             | Execute cmd ->
               Printf.bprintf cmdbuf "#command: '%s' '%s'\n"
-                (String.concat "' '" (BuildEngineRules.command_of_command cmd))
+                (String.concat "' '" (BuildEngineRules.command_of_command r cmd))
                 (String.concat "' '" (List.map BuildEngineRules.string_of_argument cmd.cmd_args));
               commands
             | Move (_, f1, f2) ->
@@ -896,7 +896,8 @@ let execute_command b proc =
     | Some cmd -> cmd
   in
   let cmd_args =
-    (BuildEngineRules.command_of_command cmd) @ List.map (BuildEngineRules.argument_of_argument r) cmd.cmd_args
+    (BuildEngineRules.command_of_command r cmd) @
+      List.map (BuildEngineRules.argument_of_argument r) cmd.cmd_args
   in
   b.build_stats_running_rules <- IntMap.add
     r.rule_id (r, MinUnix.gettimeofday()) b.build_stats_running_rules;
@@ -1164,13 +1165,13 @@ let parallel_loop b ncores =
       | NeedTempDir ->
         let temp_dir = BuildEngineRules.rule_temp_dir r in
         if not (File.exists temp_dir) then
-          Dir.make_all temp_dir;
+          Dir.safe_mkdir temp_dir;
         execute_proc proc nslots
 
       | Execute cmd ->
         let temp_dir = BuildEngineRules.rule_temp_dir r in
         if not (File.exists temp_dir) then
-          Dir.make_all temp_dir;
+          Dir.safe_mkdir temp_dir;
         proc.proc_last <- Some cmd;
         if verbose 3 then
           Printf.eprintf "[%d.%d] new exec\n%!" proc.proc_rule.rule_id proc.proc_step;
@@ -1181,7 +1182,7 @@ let parallel_loop b ncores =
         | `EXN e ->
           b.fatal_errors <- [
             Printf.sprintf "Error while executing: '%s' '%s'\n"
-              (String.concat "' '" (BuildEngineRules.command_of_command cmd))
+              (String.concat "' '" (BuildEngineRules.command_of_command r cmd))
               (String.concat "' '" (List.map BuildEngineRules.string_of_argument cmd.cmd_args));
             Printf.sprintf "\tException %s" (Printexc.to_string e);
           ] :: b.fatal_errors;
@@ -1459,7 +1460,7 @@ let sanitize b delete_orphans is_ok =
             KeepOrphans
           | DeleteOrphanFiles -> ()
           | DeleteOrphanFilesAndDirectories ->
-            Dir.remove_all filename
+            (try Dir.remove_all filename with _ -> ())
       else
         try
           ignore (BuildEngineContext.find_file cdir basename : BuildEngineTypes.build_file)
@@ -1470,7 +1471,7 @@ let sanitize b delete_orphans is_ok =
           | DeleteOrphanFiles
           | DeleteOrphanFilesAndDirectories ->
             decr orphan_files;
-            File.remove filename
+            (try File.remove filename with _ -> ())
     ) dir
 
   in
@@ -1489,7 +1490,7 @@ let sanitize b delete_orphans is_ok =
             KeepOrphans
           | DeleteOrphanFiles -> ()
           | DeleteOrphanFilesAndDirectories ->
-            Dir.remove_all filename
+            (try Dir.remove_all filename with _ -> ())
         end
   ) dir;
   if !has_orphan_directories then begin

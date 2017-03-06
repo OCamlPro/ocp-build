@@ -19,7 +19,7 @@ module Eval(S: sig
     type context
 
     (* a substitution that can be applied *)
-    val filesubst : (string * env list) StringSubst.M.subst
+    val filesubst : (string * env list) BuildSubst.t
 
 
     val define_package :

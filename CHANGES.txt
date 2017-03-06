@@ -2,6 +2,11 @@ Change log
 ==========
 
 2017-03-04:
+  * simplification of package dependencies computation
+  * %{RULE_TEMP_DIR}% is replaced by the rule temporary directory
+  * New option `--html-report` to print `_obuild/packages.html`
+
+2017-03-04:
 * ocp-build:
   * new build option `-disable PKG` or `-disable PKG@DIR` to disable any
      package from the command line

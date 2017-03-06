@@ -71,7 +71,7 @@ module Init(S: sig
       kind:string ->
       unit
 
-    val filesubst : (string * env list) StringSubst.M.subst
+    val filesubst : (string * env list) BuildSubst.t
 
   end) = struct
 
@@ -95,93 +95,6 @@ let eprint_env indent env =
   let b = Buffer.create 1000 in
   BuildValue.bprint_env b indent env;
   Printf.eprintf "%s%!" (Buffer.contents b)
-
-(*
-let filesubst = S.filesubst
-
-let _ =
-  let subst_files envs to_file =
-
-    let files = BuildValue.prop_list (BuildValue.get_local envs "files") in
-    let from_ext = BuildValue.get_strings_with_default envs "from_ext" [] in
-    let keep = BuildValue.get_bool_with_default envs "keep_others" false in
-    let files = List.fold_left (fun files (file, env) ->
-      try
-        let pos = String.index file '.' in
-        if from_ext = [] || (
-          let ext = String.sub file pos (String.length file - pos) in
-          List.mem ext from_ext) then
-          let file = BuildSubst.apply_substituter filesubst
-            to_file (file,envs)
-          in
-          (* Printf.eprintf "subst to %S\n%!" file; *)
-          (file, env) :: files
-        else raise Not_found
-      with Not_found ->
-        if keep then
-          (file,env) :: files
-        else files
-    ) [] files in
-    BuildValue.value (List.rev files)
-  in
-
-  let subst_file envs ( _env : env) =
-    let to_ext = BuildValue.get_strings_with_default envs "to_ext" [] in
-    let to_file = match to_ext with
-        [ to_ext ] -> "%{dirname}%/%{basename}%" ^ to_ext
-      | _ ->
-        try
-          BuildValue.string_of_plist (BuildValue.get_local envs "to_file")
-        with Var_not_found _ ->
-          failwith "%subst_ext: to_ext must specify only one extension"
-    in
-
-    subst_files envs to_file
-  in
-  let subst_help =     [
-    "Perform a substitution on a list of files";
-    "ENV can contain:";
-    "- files: the list of files";
-    "- to_file: the destination, with substitutions";
-    "- to_ext: an extension, if only the extension should be changed";
-    "- from_ext: perform only on files ending with these extensions";
-    "- keep_others: true if non-substituted files should be kept";
-  ]  in
-  add_primitive "subst_ext" subst_help subst_file;
-  add_primitive "subst_file" subst_help subst_file;
-
-  add_primitive "basefiles" [] (fun envs _env ->
-    subst_files envs "%{basefile}%"
-  );
-
-  add_primitive "path" []
-    (fun envs env ->
-      let path = BuildValue.get_strings envs "path" in
-      let s =
-        match path with
-          [] -> ""
-        | dirname :: other_files ->
-          List.fold_left (fun path file ->
-            Filename.concat path file
-          ) dirname other_files
-      in
-      BuildValue.value [ s, env ]
-    );
-
-  add_primitive "string" [
-    "Returns the concatenation of a list of strings";
-    "ENV must contain:";
-    "- strings : the list of strings";
-    "ENV can contain:";
-    "- sep : a separator, to be added between strings";
-  ]
-    (fun envs env ->
-      let path = BuildValue.get_strings envs "strings" in
-      let sep = BuildValue.get_string_with_default envs "sep" "" in
-      BuildValue.value [ String.concat sep path, env ]
-    );
-
-*)
 
 let varargs = -1
 

@@ -240,11 +240,8 @@ let install where what lib installdir =
       meta.meta_version <- Some opk.opk_version;
       meta.meta_description <- Some
         (BuildValue.get_string_with_default lib.lib_opk.opk_options "description" lib.lib.lib_name);
-      List.iter (fun dep ->
-        let olib = dep.dep_project in
-        if dep.dep_link then
-          MetaFile.add_requires meta [] [olib.lib.lib_name]
-      ) lib.lib_requires;
+
+      let need_requires = ref false in
 
       let install_file file kind =
         let dst_file =
@@ -261,14 +258,17 @@ let install where what lib installdir =
           | CMXA_A when what.install_asm_lib ->
             Some (Filename.concat installdir file.file_basename)
           | CMA when what.install_byte_lib ->
+            need_requires := true;
             MetaFile.add_archive meta [ "byte", true ] [ file.file_basename ];
             MetaFile.add_plugin meta [ "byte", true ] [ file.file_basename ];
             meta.meta_exists_if <- file.file_basename :: meta.meta_exists_if;
             Some (Filename.concat installdir file.file_basename)
           | CMXA when what.install_asm_lib ->
+            need_requires := true;
             MetaFile.add_archive meta [ "native", true ] [ file.file_basename ];
             Some (Filename.concat installdir file.file_basename)
           | CMXS when what.install_asm_lib ->
+            need_requires := true;
             MetaFile.add_plugin meta [ "native", true ] [ file.file_basename ];
             Some (Filename.concat installdir file.file_basename)
           | RUN_ASM when  what.install_asm_bin ->
@@ -312,6 +312,15 @@ let install where what lib installdir =
          @ lib.lib_asm_targets
          @ lib.lib_intf_targets
          @ lib.lib_stub_targets);
+
+      (* Requires only if it can be linked *)
+      if !need_requires then
+        List.iter (fun dep ->
+          let olib = dep.dep_project in
+          if dep.dep_link then
+            MetaFile.add_requires meta [] [olib.lib.lib_name]
+        ) lib.lib_requires;
+
 
       begin match  where.install_datadir with
         None -> ()

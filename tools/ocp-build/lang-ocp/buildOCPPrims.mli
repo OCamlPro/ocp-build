@@ -16,7 +16,7 @@ open BuildOCPTree
 
 module Init(S: sig
 
-    val filesubst : (string * env list) StringSubst.M.subst
+    val filesubst : (string * env list) BuildSubst.t
 
   end) : sig
 

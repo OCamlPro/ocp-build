@@ -10,19 +10,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* open BuildBase *)
+open StringCompat
 
 val putenv : string -> string -> unit
 val add_to_global_subst : string -> string -> unit
-
-val subst : StringSubst.subst -> string -> string
 val subst_global : string -> string
 
-val global_subst : StringSubst.subst
-val add_to_local_subst : StringSubst.subst -> string -> string -> StringSubst.subst
+val global_subst : unit -> string StringMap.t
+val map_subst : string StringMap.t -> string -> string
 
+type 'a t
 
-val create_substituter :
-  (string * ('a -> string)) list -> 'a StringSubst.M.subst
-val apply_substituter :
-  'a StringSubst.M.subst -> string -> 'a -> string
+val create_substituter : (string * ('a -> string)) list -> 'a t
+val apply_substituter : 'a t -> string -> 'a -> string
+
+val substitute : ('context -> string -> string) -> 'context -> string -> string

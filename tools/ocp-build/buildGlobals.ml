@@ -47,6 +47,7 @@ let global_arg = ref false
 let no_global_arg = ref false
 let autogen_arg = ref false
 let list_ocp_files = ref false
+let html_report_arg = ref false
 
 let new_builder_context b = {
   build_context = b;
@@ -116,7 +117,7 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
       lib_tag = "";
       lib_filename = pk.package_filename;
       lib_node = pk.package_node;
-      lib_added = not pk.package_disabled;
+      lib_added = pk.package_disabled = None;
 
       lib_src_dir = src_dir;
       lib_dst_dir = dst_dir;

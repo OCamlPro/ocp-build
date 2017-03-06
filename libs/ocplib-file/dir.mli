@@ -13,8 +13,14 @@
 open StringCompat
 
 val mkdir : File.t -> int -> unit
+
+(* mkdir, with potentially any non-existing parent directory *)
+val safe_mkdir : ?mode:int -> File.t -> unit
+
+(* deprecated, use mkdir and mkdir_all *)
 val make : File.t -> unit
 val make_all : File.t -> unit
+
 val list : File.t -> string list
 val list_files : File.t -> File.t list
 val iter : (string -> unit) -> File.t -> unit

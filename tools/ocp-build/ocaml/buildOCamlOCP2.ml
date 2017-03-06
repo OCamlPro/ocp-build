@@ -102,7 +102,8 @@ let add_ocaml_package loc state config name kind =
     BuildValue.get_bool_with_default options "library" opk.opk_library;
 
   pk.package_plugin <- OCamlPackage opk;
-  if not ( is_enabled options ) then pk.package_disabled <- true;
+  if not ( is_enabled options ) then
+    pk.package_disabled <- Some "enabled=false in config";
   (*
   let s = BuildOCPPrinter.string_of_package (fun _ _ _ -> ()) pk in
   Printf.eprintf "New OCaml Description:\n";

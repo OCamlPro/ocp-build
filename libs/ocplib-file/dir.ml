@@ -15,7 +15,7 @@ open StringCompat
 let mkdir dir perm = MinUnix.mkdir (File.to_string dir) perm
 let make dir = mkdir dir 0o755
 
-let rec make_all dir =
+let rec safe_mkdir ?(mode=0o755) dir =
   if File.exists dir then begin
     if not (File.is_directory dir) then
       Printf.kprintf failwith "File.Dir.make_all: %s not a directory"
@@ -28,14 +28,16 @@ let rec make_all dir =
       (File.to_string dir)
   else begin
     let predir = File.dirname dir in
-    if predir != dir then make_all predir;
+    if predir != dir then safe_mkdir ~mode predir;
     if not (File.exists dir) then
       try
-        mkdir dir 0o775
+        mkdir dir mode
       with e ->
         failwith (Printf.sprintf "File.Dir.make_all: mkdir [%s] raised %s"
                     (File.to_string dir) (Printexc.to_string e))
   end
+
+let make_all dir = safe_mkdir dir
 
 let list filename = Array.to_list (Sys.readdir (File.to_string filename))
 

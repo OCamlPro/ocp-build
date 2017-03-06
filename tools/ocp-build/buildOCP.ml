@@ -113,8 +113,10 @@ let new_package package_loc state name dirname filename filenames kind options =
     package_dirname;
     package_plugin = Not_found;
     package_disabled =
-      StringSet.mem dir_and_name !conf_disabled_packages ||
-      StringSet.mem name !conf_disabled_packages;
+      (if StringSet.mem dir_and_name !conf_disabled_packages ||
+        StringSet.mem name !conf_disabled_packages then
+        Some "Disabled by --disable"
+      else None);
     package_requires_list = [];
     package_node = LinearToposort.new_node ();
   } in
@@ -316,7 +318,101 @@ let requires_keep_order_option =
 
 let plugin_verifiers = ref ([] : (BuildWarnings.set -> state -> unit) list)
 
+let html_header oc title =
+  Printf.fprintf oc
+"<!doctype html>\n\
+<html xml:lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\" lang=\"en\">\n\
+<head>\n\
+  <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\"/>\n\
+  <link rel=\"stylesheet\" href=\"style.css\"/>\n\
+  <title>%s</title></head><body>" title;
+  Printf.fprintf oc
+"<style type=\"text/css\" media=\"screen\">\
+.enabled  { color: green; }\n\
+.disabled  { color: red; }\n\
+</style>"
+
+type html_node = {
+  dirs : html_node StringMap.t ref;
+  pks: unit BuildOCPTypes.package list ref;
+}
+
+let html_report pj =
+  let oc = open_out "_obuild/packages.html" in
+  html_header oc "ocp-build: log of packages";
+  Printf.fprintf oc "<h1>Project %s</h1>\n" (Sys.getcwd ());
+
+  let html_report_package pk =
+    Printf.fprintf oc "<a name='%s-%d'/>\n" pk.package_name pk.package_id;
+    Printf.fprintf oc "<h3 class='%s'>Package %s</h3>\n"
+      (if package_disabled pk then "disabled" else "enabled")
+      pk.package_name;
+    Printf.fprintf oc "(from <a href='%s'>%s</a>)\n"
+      pk.package_filename pk.package_filename;
+    match pk.package_disabled with
+    | Some reason ->
+      Printf.fprintf oc "<p>Disabled: %s</p>\n" reason
+    | None ->
+      Printf.fprintf oc "<p>Requires:\n";
+      List.iter (fun pk ->
+        Printf.fprintf oc "<a href='#%s-%d'>%s</a> "
+          pk.package_name pk.package_id pk.package_name;
+      ) pk.package_requires_list;
+      Printf.fprintf oc "</p>\n";
+  in
+
+  let html_report_packages pks =
+    let map = { dirs = ref StringMap.empty; pks = ref [] } in
+    Array.iter (fun pk ->
+      let dirname = pk.package_dirname in
+      let path = OcpString.split dirname '/' in
+      let rec iter path map =
+        match path with
+          [] -> map.pks := pk :: !(map.pks)
+        | dir :: path ->
+          let map =
+            try
+              StringMap.find dir !(map.dirs)
+            with Not_found ->
+              let map2 = { dirs = ref StringMap.empty; pks = ref [] } in
+              map.dirs := StringMap.add dir map2 !(map.dirs);
+              map2
+          in
+          iter path map
+      in
+      iter path map
+    ) pks;
+
+    let rec iter map =
+      List.iter html_report_package !(map.pks);
+      if not (StringMap.is_empty !(map.dirs)) then begin
+        Printf.fprintf oc "<ul>\n";
+        StringMap.iter (fun name map ->
+          Printf.fprintf oc "<li>%s\n" name;
+          iter map;
+          Printf.fprintf oc "</li>\n";
+        ) !(map.dirs);
+        Printf.fprintf oc "</ul>\n";
+      end
+    in
+    iter map;
+
+  in
+
+  Printf.fprintf oc "<h2>Enabled Packages</h2>\n";
+
+  html_report_packages pj.project_sorted;
+
+  Printf.fprintf oc "<h2>Disabled Packages</h2>\n";
+
+  html_report_packages pj.project_disabled;
+
+  close_out oc
+
 let verify_packages w state =
+  IntMap.iter (fun _ pk ->
+    pk.package_requires_list <- [];
+  ) state.packages;
 
 (* Each plugin can verify and order its packages. For that, it can iter on
 the state plugins `BuildOCP.get_packages state`, extract the specific
@@ -340,7 +436,7 @@ and it can modify:
   IntMap.iter (fun _ pk ->
 (*    Printf.eprintf "  %b %s@%s\n" pk.package_disabled
       pk.package_name pk.package_dirname; *)
-    if pk.package_disabled then
+    if package_disabled pk then
       disabled_packages := pk :: !disabled_packages
     else
       sorted_packages := pk :: !sorted_packages
