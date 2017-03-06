@@ -115,27 +115,36 @@ let rule_temp_dir r =
     r.rule_temp_dir <- Some dir;
     dir
 
+let rule_subst r s =
+  BuildSubst.substitute (fun r s ->
+    match s with
+    | "RULE_TEMP_DIR" -> File.to_string (rule_temp_dir r)
+    | _ ->
+      try
+        StringMap.find s (BuildSubst.global_subst ())
+      with Not_found ->
+        Printf.sprintf "%%{%s}%%" s) r s
 
 let file_of_argument r arg =
   match arg with
-    S s -> File.of_string (BuildSubst.subst_global s)
-  | T s -> File.add_basename (rule_temp_dir r) (BuildSubst.subst_global s)
+    S s -> File.of_string (rule_subst r s)
+  | T s -> File.add_basename (rule_temp_dir r) (rule_subst r s)
   | F f -> f
   | BF f -> f.file_file
   | BD d -> d.dir_file
 
 let argument_of_argument r arg =
   match arg with
-    S s -> BuildSubst.subst_global s
+    S s -> rule_subst r s
   | T s -> File.to_string (
-    File.add_basename (rule_temp_dir r) (BuildSubst.subst_global s))
+    File.add_basename (rule_temp_dir r) (rule_subst r s))
   | F f -> File.to_string f
   | BF f -> File.to_string f.file_file
   | BD d -> d.dir_fullname
 
 
-let command_of_command cmd =
-  List.map BuildSubst.subst_global cmd.cmd_command
+let command_of_command r cmd =
+  List.map (rule_subst r) cmd.cmd_command
 
 let argument_of_string s = S s
 

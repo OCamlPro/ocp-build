@@ -41,7 +41,7 @@ module Init(S: sig
       kind:string ->
       unit
 
-    val filesubst : (string * env list) StringSubst.M.subst
+    val filesubst : (string * env list) BuildSubst.t
 
   end) : sig
   val primitives :

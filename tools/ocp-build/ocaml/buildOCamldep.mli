@@ -25,6 +25,9 @@ val load_modules_dependencies :
 
 val modname_of_file : BuildValue.TYPES.env list ->
   BuildOCamlTypes.force_kind ->
-  string -> bool * string * string
+  string ->
+  bool * (* is_ml *)
+    string * (* modname *)
+    string   (* basename *)
 
 val load_make_dependencies : string -> (string * string list) list

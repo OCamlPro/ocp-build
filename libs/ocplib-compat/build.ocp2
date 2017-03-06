@@ -14,46 +14,35 @@ String = module("String");
 
 ocaml.version = autoconf.package_version;
 
+(*
 function set_default(env, varname, default){
     try { return env[varname]; }
     catch("unknown-field", arg){ return default; }
 }
 
 generated = set_default(., "generated", false);
-(* try { generated; } catch("unknown-variable", arg){ generated = false; } *)
 
 ocaml = { pp_requires = [] } + ocaml;
 
-(*
-if(  String.mem("+ocp", ocaml_version) )
-  begin
-    ocaml.files = [];
-    ocaml.requires = [];
-    new_package( "ocplib-compat", "library", ocaml);
-  end
-else {
-*)
   if( generated ) begin
         new_package("ocp-pp","program",{
             generated = true;
             files = [];
             requires = [] });
       end
+*)
 
   begin
     ocaml.files = [ "stringCompat.ml" ];
     ocaml.pp = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
     ocaml.requires = [ "ocp-pp" ];
-    ocaml.pp_requires += [ "ocp-pp:byte" ];
+    ocaml.pp_requires = [ "ocp-pp:byte" ];
     ocaml.pp_deps = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
-    new_package( "ocplib-compat", "library", ocaml);
+    OCaml.library( "ocplib-compat", ocaml);
   end
 
   begin
       ocaml.is_toplevel = true;
       ocaml.requires = [ "ocplib-compat" ];
-      new_package( "ocplib-compat-top", "program", ocaml);
+      OCaml.library( "ocplib-compat-top", ocaml);
   end
-  (*
-}
-*)

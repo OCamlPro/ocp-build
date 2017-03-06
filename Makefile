@@ -119,13 +119,14 @@ BUILD_OCAMLFIND= $(OCP_BUILD_SRCDIR)/ocaml/metaTypes.ml			\
 
 BUILD_OCAML= $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlConfig.ml	\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlTypes.ml		\
-    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlGlobals.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlMisc.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlVariables.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlGlobals.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamldep.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlSyntaxes.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlInstall.ml		\
-    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlPackage.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlVerifyPackages.ml		\
+    $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlOCP2.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlRules.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlMeta.ml		\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlTest.ml		\
@@ -190,7 +191,7 @@ $(OCP_BUILD_BOOTER): $(MAKE_CONFIG)
 	$(MAKE) partialclean
 
 create-booter: $(OCP_BUILD_MLS) $(OCP_BUILD_CMXS) $(OCP_BUILD_STUBS)
-	$(OCAMLOPT) -o $(OCP_BUILD_BOOTER) unix.cmxa $(OCP_BUILD_CMXS) $(OCP_BUILD_STUBS)
+	$(OCAMLOPT) -o $(OCP_BUILD_BOOTER) unix.cmxa str.cmxa $(OCP_BUILD_CMXS) $(OCP_BUILD_STUBS)
 
 byte: ocp-build.byte
 ocp-build.byte: $(OCP_BUILD_MLS) $(OCP_BUILD_CMOS) $(OCP_BUILD_STUBS)
@@ -295,7 +296,10 @@ publish-opam:
 	cd $(HOME)/.opam/opamer/opam-repository; git add packages/ocp-build/ocp-build.$(PACKAGE_VERSION)
 
 
-
+bootstrap:
+	cp -f _obuild/ocp-build/ocp-build.asm $(OCP_BUILD_BOOTER)
+	$(OCP_BUILD_BOOTER) clean
+	$(OCP_BUILD_BOOTER)
 
 include .depend
 

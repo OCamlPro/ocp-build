@@ -17,6 +17,8 @@ open BuildTypes
 open BuildOCPTypes
 open BuildOCamlTypes
 open BuildOptions
+open BuildOCamlVariables
+open BuildValue.TYPES
 
 let list_byte_targets_arg = ref false
 let list_asm_targets_arg = ref false
@@ -27,7 +29,7 @@ let reset () =
   Hashtbl.clear ocaml_packages
 
 let create_package lib opk =
-  let envs = [ opk.opk_options ] in
+  let envs = opk.opk_options in
 
   let b = lib.lib_context in
   let bc = lib.lib_builder_context in
@@ -56,22 +58,21 @@ let create_package lib opk =
       { dep with dep_project = lib2 }
     ) opk.opk_requires
 in
-  let lib_installed = BuildValue.is_already_installed envs in
-  let lib_install =
-    not lib_installed &&
-    (match lib.lib_type with
-        TestPackage -> false
-      | ProgramPackage
-      | LibraryPackage
-      | ObjectsPackage
-      | RulesPackage
-      | SyntaxPackage -> true
-    ) &&
-    BuildValue.get_bool_with_default envs "install" true in
+
+  let lib_autolink = match lib.lib_type with
+    | TestPackage
+    | ObjectsPackage
+    | RulesPackage
+      -> BuildValue.get_bool_with_default envs "autolink" false
+    | ProgramPackage
+    | LibraryPackage
+    | SyntaxPackage ->
+      BuildValue.get_bool_with_default envs "autolink" true
+  in
 
 
   let lib_ready =
-    if lib_installed then [] else
+    if opk.opk_installed then [] else
       let file_ready =
         BuildEngineContext.add_virtual_file b lib.lib_dst_dir
           (lib.lib_name ^ " validated") in
@@ -85,38 +86,33 @@ in
   let lib_meta = BuildValue.get_bool_with_default envs "meta" false in
 
 
-
   let lib = {
     lib = lib;
     lib_opk = opk;
 
-      (* lib_package = pj; *)
+    lib_autolink;
+
     lib_byte_targets = [];
-    lib_doc_targets = ref [];
-    lib_test_targets = ref [];
-    lib_cmo_objects = [];
-    lib_bytecomp_deps = [];
-    lib_bytelink_deps = [];
     lib_asm_targets = [];
-    lib_asm_cmx_objects = [];
-    lib_asm_cmxo_objects = [];
-    lib_asmcomp_deps = [];
-    lib_asmlink_deps = [];
-    lib_clink_deps = [];
-    lib_modules = ref StringMap.empty;
+    lib_intf_targets = [];
+    lib_stub_targets = [];
+
+    lib_modules = [];
     lib_internal_modules = StringsMap.empty;
-    lib_dep_deps = IntMap.empty;
+    (* lib_dep_deps = IntMap.empty; *)
     lib_includes = None;
     lib_linkdeps = [];
     lib_sources = BuildValue.get_local_prop_list_with_default envs "files" [];
     lib_tests = BuildValue.get_local_prop_list_with_default envs "tests" [];
 
+    lib_doc_targets = ref [];
+    lib_test_targets = ref [];
     lib_build_targets = ref [];
+
+
     lib_archive;
     lib_stubarchive;
 
-    lib_installed;
-    lib_install;
     lib_ready;
     lib_meta ;
 
@@ -155,6 +151,13 @@ let make_build_targets lib cin =
       (if cin.cin_native then
           List.map fst lib.lib_asm_targets
        else []) @
+      (List.fold_left (fun list (file, kind) ->
+        match kind with
+        | CMI -> file :: list
+        | CMX when cin.cin_native -> file :: list
+        | _ -> list
+       ) [] lib.lib_intf_targets) @
+      (List.map fst lib.lib_stub_targets) @
       !(lib.lib_build_targets)
 
 let make_doc_targets lib _cin =

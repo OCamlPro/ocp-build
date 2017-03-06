@@ -84,7 +84,8 @@ let begin_command b proc =
     | Some cmd -> cmd
   in
   let cmd_args =
-    (BuildEngineRules.command_of_command cmd) @ List.map (BuildEngineRules.argument_of_argument r) cmd.cmd_args
+    (BuildEngineRules.command_of_command r cmd) @
+      List.map (BuildEngineRules.argument_of_argument r) cmd.cmd_args
   in
   if verbose 1 && term.esc_ansi then print_stat_line b proc else
     if verbose 2 then begin
@@ -141,7 +142,7 @@ let end_command b proc time status =
   | Some cmd ->
     let r = proc.proc_rule in
     let cmd_args =
-      (BuildEngineRules.command_of_command cmd)
+      (BuildEngineRules.command_of_command r cmd)
       @ List.map (BuildEngineRules.argument_of_argument r) cmd.cmd_args
     in
     let has_stderr = (MinUnix.stat (temp_stderr b r)).MinUnix.st_size > 0 in

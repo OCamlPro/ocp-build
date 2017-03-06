@@ -95,11 +95,6 @@ let package package_info b indent p =
     BuildValue.bprint_env b indent4 p.package_options; *)
   Printf.bprintf b "  %s}};\n" indent;
   Printf.bprintf b "%s  package_source_kind = %S;\n" indent p.package_source_kind;
-  if p.package_provides <> p.package_name then
-    Printf.bprintf b "%s  package_provides = %S;\n" indent p.package_provides;
-
-(*  if p.package_version <> "[distributed with Ocaml]" then
-    Printf.bprintf b "%s  package_version = %S;\n" indent p.package_version; *)
   Printf.bprintf b "%s  package_loc = %s;\n" indent
     (BuildValue.string_of_location p.package_loc);
   Printf.bprintf b "%s  package_filename = %S;\n" indent p.package_filename;

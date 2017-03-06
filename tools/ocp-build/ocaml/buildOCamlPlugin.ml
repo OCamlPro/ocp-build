@@ -26,7 +26,7 @@ let init subcommand_name =
   add_args ["SUBCOMMAND"; "build"]
     [
       "--print-incomplete-packages", Arg.Set
-        BuildOCamlPackage.print_incomplete_packages,
+        BuildOCamlVerifyPackages.print_incomplete_packages,
       " Print incomplete packages";
 
     ];

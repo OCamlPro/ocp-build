@@ -110,7 +110,7 @@ val continue_on_ocp_error : bool ref
 val initial_state : unit -> state
 val copy_state : state -> state
 val final_state : state -> final_package array
-val filesubst : (string * env list) StringSubst.M.subst
+val filesubst : (string * env list) BuildSubst.t
 
 val new_package :
   location ->
@@ -124,3 +124,7 @@ val new_package :
   BuildOCPTypes.pre_package
 
 val primitives_help : unit -> string list StringMap.t
+
+val conf_add_disabled_package : string -> unit
+
+val html_report : BuildOCPTypes.project -> unit

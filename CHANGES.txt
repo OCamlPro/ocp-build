@@ -1,6 +1,27 @@
 Change log
 ==========
 
+2017-03-04:
+  * simplification of package dependencies computation
+  * %{RULE_TEMP_DIR}% is replaced by the rule temporary directory
+  * New option `--html-report` to print `_obuild/packages.html`
+
+2017-03-04:
+* ocp-build:
+  * new build option `-disable PKG` or `-disable PKG@DIR` to disable any
+     package from the command line
+
+2017-03-03:
+* OCaml plugin:
+  * internal refactoring of generated files
+  * "rules" packages can export objects for linking:
+    * Set ocaml.tolink = true;
+    * Define ocaml.asm_targets (.cmx/.cmxa to link and install)
+             ocaml.byte_targets  (.cmo/.cma to link and install)
+             ocaml.intf_targets for interfaces to install (.cmx and .cmi)
+             ocaml.internal_targets for internal deps
+             ocaml.stub_targets (.a/.o stubs to link)
+
 2017-02-28:
 * ocp-build OCP2:
   * new variable `ocpbuild_version` of type StringVersion

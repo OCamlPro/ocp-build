@@ -10,6 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open StringCompat
+
 open BuildValue.TYPES
 open BuildEngineTypes
 open BuildTypes
@@ -47,7 +49,7 @@ let check_output options subst output  option_name output_name =
     let expected_output_file =
       (String.concat "/" output_check) in
     let expected_output_file =
-      BuildSubst.subst subst expected_output_file in
+      BuildSubst.map_subst subst expected_output_file in
     let expected_output =
       try FileString.string_of_file expected_output_file
       with _ ->
@@ -84,9 +86,9 @@ let serial_workqueue = Queue.create ()
 
 let find_binaries b cwd lib =
   let has_asm =
-    BuildValue.get_bool_with_default [lib.lib_opk.opk_options] "asm" true in
+    BuildValue.get_bool_with_default lib.lib_opk.opk_options "asm" true in
   let has_byte = BuildValue.get_bool_with_default
-    [lib.lib_opk.opk_options] "byte" true in
+    lib.lib_opk.opk_options "byte" true in
   let get_binary ext =
     let binary_basename =
       lib.lib.lib_name ^ ext
@@ -132,7 +134,8 @@ let test_package b stats lib only_benchmarks =
           begin
             match !program with
               None ->
-              let cmd = BuildValue.get_strings_with_default [lib.lib_opk.opk_options]
+                let cmd = BuildValue.get_strings_with_default
+                  lib.lib_opk.opk_options
                   "test_cmd" [] in
               if cmd = [] then begin
                 Printf.eprintf "Error: test %S has no source files.\n%!"
@@ -170,8 +173,9 @@ let test_package b stats lib only_benchmarks =
       in
       let tests_result_dir = Filename.concat cwd (File.to_string tests_dir) in
       List.iter (fun (test, options) ->
-        let options = [ options; lib.lib_opk.opk_options ] in
-        let test_asm = BuildValue.get_bool_with_default options "test_asm" true in
+        let options = options :: lib.lib_opk.opk_options in
+        let test_asm = BuildValue.get_bool_with_default
+          options "test_asm" true in
         let test_byte = BuildValue.get_bool_with_default options "test_byte" true in
         let do_test =
           match kind with
@@ -191,19 +195,19 @@ let test_package b stats lib only_benchmarks =
 
         let test_name = Printf.sprintf "%s/tests/%s" lib.lib.lib_name test_basename
         in
-        let subst = BuildSubst.global_subst in
-        let subst = StringSubst.add_to_copy subst "%{variant}%" variant in
-        let subst = StringSubst.add_to_copy subst "%{kind}%" kind in
-        let subst = StringSubst.add_to_copy subst "%{test}%" test in
-        let subst = StringSubst.add_to_copy subst "%{binary}%" binary in
-        let subst = StringSubst.add_to_copy subst "%{tests}%"
+        let subst = BuildSubst.global_subst () in
+        let subst = StringMap.add "variant" variant subst in
+        let subst = StringMap.add "kind" kind subst in
+        let subst = StringMap.add "test" test subst in
+        let subst = StringMap.add "binary" binary subst in
+        let subst = StringMap.add "tests"
             (File.to_string
                (File.add_basename lib.lib.lib_src_dir.dir_file "tests"))
+            subst
         in
-        let subst = StringSubst.add_to_copy subst "%{sources}%"
-            (File.to_string lib.lib.lib_src_dir.dir_file) in
-        let subst = StringSubst.add_to_copy subst "%{results}%"
-            test_result_dir in
+        let subst = StringMap.add "sources"
+            (File.to_string lib.lib.lib_src_dir.dir_file) subst in
+        let subst = StringMap.add "results" test_result_dir subst in
         let cmd = BuildValue.get_strings_with_default options
             "test_cmd" [ "%{binary}%" ]
         in
@@ -211,7 +215,7 @@ let test_package b stats lib only_benchmarks =
             "test_args" []
         in
         let cmd_args = cmd @ cmd_args in
-        let cmd_args = List.map (BuildSubst.subst subst) cmd_args in
+        let cmd_args = List.map (BuildSubst.map_subst subst) cmd_args in
         if verbose 2 then
           Printf.eprintf "Starting test '%s'\n%!"
             (String.concat "' '" cmd_args);
@@ -222,11 +226,11 @@ let test_package b stats lib only_benchmarks =
         let test_stdin = match test_stdin with
             [] -> None
           | stdin ->
-            Some ( BuildSubst.subst subst (String.concat "/" stdin) ) in
+            Some ( BuildSubst.map_subst subst (String.concat "/" stdin) ) in
 
         let test_rundir = BuildValue.get_strings_with_default options "test_dir" [ "." ] in
         let test_rundir = String.concat "/" test_rundir in
-        let test_rundir = BuildSubst.subst subst test_rundir in
+        let test_rundir = BuildSubst.map_subst subst test_rundir in
         let expected_status = BuildValue.get_string_with_default options
             "test_exit" "0"
         in
@@ -248,7 +252,7 @@ let test_package b stats lib only_benchmarks =
                BuildValue.get_string_with_default options "test_benchmarked"
                   test_name
               in
-              let test_name = BuildSubst.subst subst test_name in
+              let test_name = BuildSubst.map_subst subst test_name in
               try
                 List.mem test_name list
               with Not_found -> false

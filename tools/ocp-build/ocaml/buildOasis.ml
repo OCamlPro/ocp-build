@@ -184,19 +184,19 @@ Custom: Create custom bytecode executable.
 *)
 
 type oasis_package = {
-  opk_filename : string;
-  opk_archive : string;
-  opk_type : BuildOCPTypes.package_type;
-  opk_dirname : string;
-  opk_modules : string list;
-  opk_internal_modules : string list;
-  opk_build_depends : string list;
-  opk_main_is : string list;
-  opk_install : bool;
-  opk_asm : bool;
-  opk_byte : bool;
-  opk_findlib_name : string option;
-  opk_findlib_parent : string option;
+  oasis_filename : string;
+  oasis_archive : string;
+  oasis_type : BuildOCPTypes.package_type;
+  oasis_dirname : string;
+  oasis_modules : string list;
+  oasis_internal_modules : string list;
+  oasis_build_depends : string list;
+  oasis_main_is : string list;
+  oasis_install : bool;
+  oasis_asm : bool;
+  oasis_byte : bool;
+  oasis_findlib_name : string option;
+  oasis_findlib_parent : string option;
 }
 
 type oasis_project = {
@@ -205,19 +205,19 @@ type oasis_project = {
   opj_build_depends : string list;
 }
 
-let parse_package opk lines =
-  Printf.fprintf stderr "parse_package %s\n%!" opk.opk_archive;
+let parse_package oasis lines =
+  Printf.fprintf stderr "parse_package %s\n%!" oasis.oasis_archive;
   try
-    let opk_modules = ref [] in
-    let opk_internal_modules = ref [] in
-    let opk_build_depends = ref [] in
-    let opk_dirname = ref opk.opk_dirname in
-    let opk_main_is = ref [] in
-    let opk_install = ref true in
-    let opk_byte = ref true in
-    let opk_asm = ref true in
-    let opk_findlib_name = ref None in
-    let opk_findlib_parent = ref None in
+    let oasis_modules = ref [] in
+    let oasis_internal_modules = ref [] in
+    let oasis_build_depends = ref [] in
+    let oasis_dirname = ref oasis.oasis_dirname in
+    let oasis_main_is = ref [] in
+    let oasis_install = ref true in
+    let oasis_byte = ref true in
+    let oasis_asm = ref true in
+    let oasis_findlib_name = ref None in
+    let oasis_findlib_parent = ref None in
 
     List.iter (fun line ->
       let Line (s, lines) = line in
@@ -226,127 +226,127 @@ let parse_package opk lines =
 
       | "mainis" ->
         let line = merge_line content lines in
-        Printf.eprintf  "[%s] MainIs = %S\n%!" opk.opk_archive line;
+        Printf.eprintf  "[%s] MainIs = %S\n%!" oasis.oasis_archive line;
         let modules = split_words line in
         List.iter (fun s -> Printf.eprintf "MODULE %S\n" s) modules;
         Printf.eprintf "\n%!";
-        opk_main_is := !opk_main_is @ modules
+        oasis_main_is := !oasis_main_is @ modules
 
       | "modules" ->
         let line = merge_line content lines in
-        Printf.eprintf  "[%s] modules = %S\n%!" opk.opk_archive line;
+        Printf.eprintf  "[%s] modules = %S\n%!" oasis.oasis_archive line;
         let modules = split_words line in
         List.iter (fun s -> Printf.eprintf "MODULE %S\n" s) modules;
         Printf.eprintf "\n%!";
-        opk_modules := !opk_modules @ modules
+        oasis_modules := !oasis_modules @ modules
 
       | "internalmodules" ->
         let line = merge_line content lines in
-        Printf.eprintf "[%s] internalmodules = %S\n%!" opk.opk_archive line;
+        Printf.eprintf "[%s] internalmodules = %S\n%!" oasis.oasis_archive line;
         let modules = split_words line in
-        opk_internal_modules := !opk_internal_modules @ modules
+        oasis_internal_modules := !oasis_internal_modules @ modules
 
       | "path" ->
         let line = merge_line content lines in
-        Printf.eprintf "[%s] path = %S\n%!" opk.opk_archive line;
+        Printf.eprintf "[%s] path = %S\n%!" oasis.oasis_archive line;
         begin match split_words line with
-          [ subdir ] -> opk_dirname := Filename.concat !opk_dirname subdir
+          [ subdir ] -> oasis_dirname := Filename.concat !oasis_dirname subdir
           | _ ->
             failwith "Error 'path'\n%!";
         end
 
       | "findlibname" ->
         let line = merge_line content lines in
-        Printf.eprintf "[%s] findlibname = %S\n%!" opk.opk_archive line;
+        Printf.eprintf "[%s] findlibname = %S\n%!" oasis.oasis_archive line;
         begin match split_words line with
-          [ name ] -> opk_findlib_name := Some name
+          [ name ] -> oasis_findlib_name := Some name
           | _ ->
             failwith "Error 'findlibname'\n%!";
         end
 
       | "findlibparent" ->
         let line = merge_line content lines in
-        Printf.eprintf "[%s] findlibparent = %S\n%!" opk.opk_archive line;
+        Printf.eprintf "[%s] findlibparent = %S\n%!" oasis.oasis_archive line;
         begin match split_words line with
-          [ name ] -> opk_findlib_parent := Some name
+          [ name ] -> oasis_findlib_parent := Some name
           | _ ->
             failwith "Error 'findlibparent'\n%!";
         end
 
       | "install" ->
         let line = merge_line content lines in
-        Printf.eprintf "[%s] install = %S\n%!" opk.opk_archive line;
+        Printf.eprintf "[%s] install = %S\n%!" oasis.oasis_archive line;
         begin match split_words_lowercase line with
-          [ "true" ] -> opk_install := true
-          | [ "false" ] -> opk_install := false
+          [ "true" ] -> oasis_install := true
+          | [ "false" ] -> oasis_install := false
           | _ ->
             failwith "Error 'install'\n%!";
         end
 
       | "compiledobject" ->
         let line = merge_line content lines in
-        Printf.eprintf "[%s] compiledobject = %S\n%!" opk.opk_archive line;
+        Printf.eprintf "[%s] compiledobject = %S\n%!" oasis.oasis_archive line;
         begin match split_words_lowercase line with
             [ "best" ] -> ()
-          | [ "byte" ] -> opk_asm := false
-          | [ "native" ] -> opk_byte := false
+          | [ "byte" ] -> oasis_asm := false
+          | [ "native" ] -> oasis_byte := false
           | _ ->
             failwith "Error compiledobject\n%!";
         end
 
       | "builddepends" ->
         let line = merge_line content lines in
-        Printf.eprintf "[%s] REQUIRES = %s\n%!" opk.opk_archive line;
-        opk_build_depends := !opk_build_depends @ split_words line
+        Printf.eprintf "[%s] REQUIRES = %s\n%!" oasis.oasis_archive line;
+        oasis_build_depends := !oasis_build_depends @ split_words line
 
       | _ ->
-        Printf.eprintf "[%s]Discarding line [%s]\n%!" opk.opk_archive s
+        Printf.eprintf "[%s]Discarding line [%s]\n%!" oasis.oasis_archive s
     ) (List.rev lines);
-    List.iter (fun s -> Printf.eprintf "MODULE1 %S\n" s) !opk_modules;
-    let opk = {
-      opk with
-      opk_modules = !opk_modules;
-      opk_internal_modules = !opk_internal_modules;
-      opk_build_depends = !opk_build_depends;
-      opk_dirname = !opk_dirname;
-      opk_main_is = !opk_main_is;
-      opk_install = !opk_install;
-      opk_byte = !opk_byte;
-      opk_asm = !opk_asm;
-      opk_findlib_parent = !opk_findlib_parent;
-      opk_findlib_name = !opk_findlib_name;
+    List.iter (fun s -> Printf.eprintf "MODULE1 %S\n" s) !oasis_modules;
+    let oasis = {
+      oasis with
+      oasis_modules = !oasis_modules;
+      oasis_internal_modules = !oasis_internal_modules;
+      oasis_build_depends = !oasis_build_depends;
+      oasis_dirname = !oasis_dirname;
+      oasis_main_is = !oasis_main_is;
+      oasis_install = !oasis_install;
+      oasis_byte = !oasis_byte;
+      oasis_asm = !oasis_asm;
+      oasis_findlib_parent = !oasis_findlib_parent;
+      oasis_findlib_name = !oasis_findlib_name;
 
     }
     in
-    List.iter (fun s -> Printf.eprintf "MODULE2 %S\n" s) opk.opk_modules;
-    Some opk
+    List.iter (fun s -> Printf.eprintf "MODULE2 %S\n" s) oasis.oasis_modules;
+    Some oasis
   with Failure s ->
-    Printf.eprintf "Warning: in package %S, error:\n" opk.opk_archive;
+    Printf.eprintf "Warning: in package %S, error:\n" oasis.oasis_archive;
     Printf.eprintf "  %s\n%!" s;
     None
 
-let empty_opk = {
-  opk_filename = "";
-  opk_archive = "";
-  opk_dirname = "";
-  opk_type = LibraryPackage;
-  opk_modules = [];
-  opk_internal_modules = [];
-  opk_build_depends = [];
-  opk_main_is = [];
-  opk_install = true;
-  opk_byte = true;
-  opk_asm = true;
-  opk_findlib_name = None;
-  opk_findlib_parent = None;
+let empty_oasis = {
+  oasis_filename = "";
+  oasis_archive = "";
+  oasis_dirname = "";
+  oasis_type = LibraryPackage;
+  oasis_modules = [];
+  oasis_internal_modules = [];
+  oasis_build_depends = [];
+  oasis_main_is = [];
+  oasis_install = true;
+  oasis_byte = true;
+  oasis_asm = true;
+  oasis_findlib_name = None;
+  oasis_findlib_parent = None;
 }
 
-let parse_oasis opk_filename lines =
+let parse_oasis oasis_filename lines =
   let open Genlex in
-  let empty_opk = {
-    empty_opk with
-    opk_filename;
-    opk_dirname = Filename.dirname opk_filename;
+  let empty_oasis = {
+    empty_oasis with
+    oasis_filename;
+    oasis_dirname = Filename.dirname oasis_filename;
   } in
 
   let opj_name = ref "" in
@@ -357,7 +357,7 @@ let parse_oasis opk_filename lines =
     let Line (s, lines) = line in
     try
       let tokens = OcpGenlex.tokens_of_string_exn oasis_lexer s in
-      let opk =
+      let oasis =
         match tokens with
           [ Ident "Name" ; Kwd ":" ; (String name | Ident name) ] ->
           opj_name := name;
@@ -366,32 +366,32 @@ let parse_oasis opk_filename lines =
 (*
       | Ident "BuildDepends"; Kwd ":"; tail ->
         let line = merge_line content lines in
-        Printf.eprintf "[%s] REQUIRES = %s\n%!" opk.opk_archive line;
-        opk_build_depends := !opk_build_depends @ split_words line
+        Printf.eprintf "[%s] REQUIRES = %s\n%!" oasis.oasis_archive line;
+        oasis_build_depends := !oasis_build_depends @ split_words line
 *)
 
 
-        | [ Kwd "Library"; (String opk_archive | Ident opk_archive) ] ->
-          let opk = {
-            empty_opk with
-            opk_archive;
-            opk_type = LibraryPackage;
+        | [ Kwd "Library"; (String oasis_archive | Ident oasis_archive) ] ->
+          let oasis = {
+            empty_oasis with
+            oasis_archive;
+            oasis_type = LibraryPackage;
           } in
-          parse_package opk !lines
-        | [ Kwd "Executable"; (String opk_archive | Ident opk_archive) ] ->
-          let opk = {
-            empty_opk with
-            opk_archive;
-            opk_type = ProgramPackage;
+          parse_package oasis !lines
+        | [ Kwd "Executable"; (String oasis_archive | Ident oasis_archive) ] ->
+          let oasis = {
+            empty_oasis with
+            oasis_archive;
+            oasis_type = ProgramPackage;
           } in
-          parse_package opk !lines
+          parse_package oasis !lines
 
         | _ -> None
       in
-      match opk with
+      match oasis with
         None -> ()
-      | Some opk ->
-        opj_packages := opk :: !opj_packages
+      | Some oasis ->
+        opj_packages := oasis :: !opj_packages
     with _ ->
       Printf.fprintf stderr "Discarding line [%s]\n%!" s
   ) (List.rev lines);
@@ -414,32 +414,32 @@ let load_project pj filename =
 
 (*  let _local_packages = ref StringMap.empty in *)
 (*
-  List.iter (fun opk ->
-    if not opk.opk_install then
-      let name = opk_name opj opk in
+  List.iter (fun oasis ->
+    if not oasis.oasis_install then
+      let name = oasis_name opj oasis in
       let uniq_name = Printf.eprintf
   ) opj.opj_packages;
 *)
 
-  List.iter (fun opk ->
-    Printf.eprintf "opk_archive = %S\n%!" opk.opk_archive;
+  List.iter (fun oasis ->
+    Printf.eprintf "oasis_archive = %S\n%!" oasis.oasis_archive;
 
-    if opk.opk_modules <> [] || opk.opk_internal_modules <> [] ||
-       opk.opk_main_is <> [] then
+    if oasis.oasis_modules <> [] || oasis.oasis_internal_modules <> [] ||
+       oasis.oasis_main_is <> [] then
 
       let name =
-        if opk.opk_install then
-          match opk.opk_findlib_parent, opk.opk_findlib_name with
-            None, None -> opk.opk_archive
+        if oasis.oasis_install then
+          match oasis.oasis_findlib_parent, oasis.oasis_findlib_name with
+            None, None -> oasis.oasis_archive
           | None, Some name -> name
           | Some parent, Some name -> Printf.sprintf "%s.%s" parent name
           | Some _, None -> assert false
         else
-          match opk.opk_type with
+          match oasis.oasis_type with
           | LibraryPackage ->
-            Printf.sprintf "%s-library-%s" opj.opj_name opk.opk_archive
+            Printf.sprintf "%s-library-%s" opj.opj_name oasis.oasis_archive
           | ProgramPackage ->
-            Printf.sprintf "%s-program-%s" opj.opj_name opk.opk_archive
+            Printf.sprintf "%s-program-%s" opj.opj_name oasis.oasis_archive
           | TestPackage -> assert false
           | ObjectsPackage -> assert false
           | SyntaxPackage -> assert false
@@ -448,7 +448,7 @@ let load_project pj filename =
       Printf.eprintf "  name = %S\n%!" name;
 
       let requires =
-        opk.opk_build_depends @ opj.opj_build_depends in
+        oasis.oasis_build_depends @ opj.opj_build_depends in
       let po = BuildValue.set po "requires"
         (VList (List.map (fun s ->
           let link =
@@ -457,10 +457,10 @@ let load_project pj filename =
                   VObject (BuildValue.set_bool BuildValue.empty_env "tolink" link)]
          ) requires)) in
 
-      let pk = BuildOCP.new_package (BuildValue.noloc opk.opk_filename)
-        pj name opk.opk_dirname
-          opk.opk_filename [opk.opk_filename, None (* matters only for non-installed packages *)
-                           ] opk.opk_type po in
+      let pk = BuildOCP.new_package (BuildValue.noloc oasis.oasis_filename)
+        pj name oasis.oasis_dirname
+          oasis.oasis_filename [oasis.oasis_filename, None (* matters only for non-installed packages *)
+                           ] oasis.oasis_type po in
       pk.package_source_kind <- "oasis";
 
 (* TODO
@@ -469,14 +469,14 @@ let load_project pj filename =
         (OptionBoolSet ("install", false)) ::
           external_options in
       pk.package_raw_files <-
-        List.map (fun s -> (s, external_options)) opk.opk_modules @
-          List.map (fun s -> (s, internal_options)) opk.opk_internal_modules @
-          List.map (fun s -> (s, external_options)) opk.opk_main_is;
+        List.map (fun s -> (s, external_options)) oasis.oasis_modules @
+          List.map (fun s -> (s, internal_options)) oasis.oasis_internal_modules @
+          List.map (fun s -> (s, external_options)) oasis.oasis_main_is;
       assert false;
-      let po = StringMap.add "install" (OptionBool opk.opk_install) po in
-      let po = StringMap.add "has_byte" (OptionBool opk.opk_byte) po in
-      let po = StringMap.add "has_asm" (OptionBool opk.opk_asm) po in
-      let po = StringMap.add "archive" (OptionList [ opk.opk_archive]) po in
+      let po = StringMap.add "install" (OptionBool oasis.oasis_install) po in
+      let po = StringMap.add "has_byte" (OptionBool oasis.oasis_byte) po in
+      let po = StringMap.add "has_asm" (OptionBool oasis.oasis_asm) po in
+      let po = StringMap.add "archive" (OptionList [ oasis.oasis_archive]) po in
 *)
 
   ) opj.opj_packages;

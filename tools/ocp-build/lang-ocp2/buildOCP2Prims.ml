@@ -71,7 +71,7 @@ module Init(S: sig
       kind:string ->
       unit
 
-    val filesubst : (string * env list) StringSubst.M.subst
+    val filesubst : (string * env list) BuildSubst.t
 
   end) = struct
 
@@ -95,93 +95,6 @@ let eprint_env indent env =
   let b = Buffer.create 1000 in
   BuildValue.bprint_env b indent env;
   Printf.eprintf "%s%!" (Buffer.contents b)
-
-(*
-let filesubst = S.filesubst
-
-let _ =
-  let subst_files envs to_file =
-
-    let files = BuildValue.prop_list (BuildValue.get_local envs "files") in
-    let from_ext = BuildValue.get_strings_with_default envs "from_ext" [] in
-    let keep = BuildValue.get_bool_with_default envs "keep_others" false in
-    let files = List.fold_left (fun files (file, env) ->
-      try
-        let pos = String.index file '.' in
-        if from_ext = [] || (
-          let ext = String.sub file pos (String.length file - pos) in
-          List.mem ext from_ext) then
-          let file = BuildSubst.apply_substituter filesubst
-            to_file (file,envs)
-          in
-          (* Printf.eprintf "subst to %S\n%!" file; *)
-          (file, env) :: files
-        else raise Not_found
-      with Not_found ->
-        if keep then
-          (file,env) :: files
-        else files
-    ) [] files in
-    BuildValue.value (List.rev files)
-  in
-
-  let subst_file envs ( _env : env) =
-    let to_ext = BuildValue.get_strings_with_default envs "to_ext" [] in
-    let to_file = match to_ext with
-        [ to_ext ] -> "%{dirname}%/%{basename}%" ^ to_ext
-      | _ ->
-        try
-          BuildValue.string_of_plist (BuildValue.get_local envs "to_file")
-        with Var_not_found _ ->
-          failwith "%subst_ext: to_ext must specify only one extension"
-    in
-
-    subst_files envs to_file
-  in
-  let subst_help =     [
-    "Perform a substitution on a list of files";
-    "ENV can contain:";
-    "- files: the list of files";
-    "- to_file: the destination, with substitutions";
-    "- to_ext: an extension, if only the extension should be changed";
-    "- from_ext: perform only on files ending with these extensions";
-    "- keep_others: true if non-substituted files should be kept";
-  ]  in
-  add_primitive "subst_ext" subst_help subst_file;
-  add_primitive "subst_file" subst_help subst_file;
-
-  add_primitive "basefiles" [] (fun envs _env ->
-    subst_files envs "%{basefile}%"
-  );
-
-  add_primitive "path" []
-    (fun envs env ->
-      let path = BuildValue.get_strings envs "path" in
-      let s =
-        match path with
-          [] -> ""
-        | dirname :: other_files ->
-          List.fold_left (fun path file ->
-            Filename.concat path file
-          ) dirname other_files
-      in
-      BuildValue.value [ s, env ]
-    );
-
-  add_primitive "string" [
-    "Returns the concatenation of a list of strings";
-    "ENV must contain:";
-    "- strings : the list of strings";
-    "ENV can contain:";
-    "- sep : a separator, to be added between strings";
-  ]
-    (fun envs env ->
-      let path = BuildValue.get_strings envs "strings" in
-      let sep = BuildValue.get_string_with_default envs "sep" "" in
-      BuildValue.value [ String.concat sep path, env ]
-    );
-
-*)
 
 let varargs = -1
 
@@ -347,6 +260,12 @@ let _ =
     | _ -> raise_bad_arity loc "notequal(any,any)" 2 args
   );
 
+  (* ------------------------------------------------------------
+
+     Pervasives module
+
+     ------------------------------------------------------------*)
+
   (* This primitive should be used as:
      List = module( "List" );
      to load a set of functions from a file. Since we have to interprete
@@ -414,6 +333,8 @@ let _ =
   add_primitive "packer" [
     "pack(string[,pack_env], list-of-strings)"
   ] (fun loc ctx config args ->
+    Printf.eprintf
+      "Warning: function 'packer' is deprecated. Use 'OCaml.pack' instead\n%!";
     let packmodname, pack_env, files =
       match args with
       | [VString (packmodname,_); files] ->
@@ -453,6 +374,33 @@ let _ =
         raise_bad_arity loc "version(string)" 1 args
     );
 
+  add_primitive "SRCDIR" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (s, _) ] ->
+        VString ("%{" ^ s ^ "_FULL_SRC_DIR}%", StringVersion)
+      | [ VString (pk, _); VString (file,_) ] ->
+        VString ("%{" ^ pk ^ "_FULL_SRC_DIR}%/" ^ file, StringVersion)
+      | _ ->
+        raise_bad_arity loc "SRCDIR(string[,file])" 1 args
+    );
+
+  add_primitive "DSTDIR" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (s, _) ] ->
+        VString ("%{" ^ s ^ "_FULL_DST_DIR}%", StringVersion)
+      | [ VString (pk, _); VString (file,_) ] ->
+        VString ("%{" ^ pk ^ "_FULL_DST_DIR}%/" ^ file, StringVersion)
+      | _ ->
+        raise_bad_arity loc "DSTDIR(string[,file])" 1 args
+    );
+
+  (* ------------------------------------------------------------
+
+     List module
+
+     ------------------------------------------------------------*)
 
   add_primitive "List_mem" []
     (fun loc ctx config args ->
@@ -487,6 +435,12 @@ let _ =
         raise_bad_arity loc "List.flatten(list)" 1 args
     );
 
+  (* ------------------------------------------------------------
+
+     String module
+
+     ------------------------------------------------------------*)
+
   add_primitive "String_mem" []
     (fun loc ctx config args ->
       match args with
@@ -497,6 +451,31 @@ let _ =
         raise_bad_arity loc "String.mem(ele, list)" 2 args
     );
 
+  add_primitive "String_concat" []
+    (fun loc ctx config args ->
+      let list, sep =
+        match args with
+        | [ VList list ] -> list, ""
+        | [ VList list; VString (sep,_) ] -> list, sep
+        | [ VString (sep,_); VList list  ] -> list, sep
+        | _ ->
+          raise_bad_arity loc "String.concat(list[, sep])" 2 args
+      in
+      let list = List.map (function
+        | VString (s,_) -> s
+        | _ ->
+          raise_bad_arity loc "String.concat(list of strings[, sep])" 2 args
+      ) list in
+      let s = String.concat sep list in
+      VString(s, StringRaw)
+    );
+
+  (* ------------------------------------------------------------
+
+     Sys module
+
+     ------------------------------------------------------------*)
+
   (* Only since 1.99.18-beta *)
   add_primitive "Sys_file_exists" []
     (fun loc ctx config args ->
@@ -505,6 +484,51 @@ let _ =
         VBool (Sys.file_exists file)
       | _ ->
         raise_bad_arity loc "Sys.file_exists(file)" 1 args
+    );
+
+  (* Warning: translate only '.', '*', and '?' to Str *)
+  let regexp_shell_to_str regexp =
+    let len = String.length regexp in
+    let b = Buffer.create len in
+    for i = 0 to len -1 do
+      match regexp.[i] with
+      | '.' -> Buffer.add_string b "\\."
+      | '*' -> Buffer.add_string b ".*"
+      | '?' -> Buffer.add_char b '.'
+      | c -> Buffer.add_char b c
+    done;
+    Buffer.add_string b "$";
+    Buffer.contents b
+  in
+
+  let readdir loc config dirname =
+    let dirname =
+      if Filename.is_relative dirname then
+        Filename.concat config.config_dirname dirname
+      else dirname
+    in
+    try
+      Sys.readdir dirname
+    with e ->
+      fatal_error loc "Sys.readdir failed on %S" dirname
+  in
+  add_primitive "Sys_readdir" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (dir,_) ] ->
+        let files = readdir loc config dir in
+        let files = Array.to_list files in
+        VList (List.map (fun s -> VString (s, StringRaw)) files)
+      | [ VString (dir,_); VString (regexp,_) ] ->
+        let files = readdir loc config dir in
+        let files = Array.to_list files in
+        let regexp = regexp_shell_to_str regexp in
+        let regexp = Str.regexp regexp in
+        let files = List.filter (fun file ->
+          Str.string_match regexp file 0) files in
+        VList (List.map (fun s -> VString (s, StringRaw)) files)
+      | _ ->
+        raise_bad_arity loc "Sys.readdir(dir)" 1 args
     );
 
   (*

@@ -21,7 +21,8 @@ val load_initial_project :
   BuildActions.project_info ->
   BuildOCP.state ->
   BuildTypes.builder_context *
-    (module BuildTypes.Package) StringCompat.StringMap.t
+    (module BuildTypes.Package) StringCompat.StringMap.t *
+    BuildOCPTypes.project
 
 val init_env :
   unit ->

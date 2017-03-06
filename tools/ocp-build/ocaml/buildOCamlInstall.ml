@@ -156,7 +156,7 @@ let copy_file where log src_file dst_file =
 
 let install_META log where installdir meta lib =
 
-  if BuildOCamlVariables.install_META.get [lib.lib_opk.opk_options] then
+  if BuildOCamlVariables.install_META.get lib.lib_opk.opk_options then
     let really_install_META meta_file =
       let meta_file_d = in_destdir where meta_file in
       safe_mkdir where log (Filename.dirname meta_file);
@@ -239,12 +239,9 @@ let install where what lib installdir =
 
       meta.meta_version <- Some opk.opk_version;
       meta.meta_description <- Some
-        (BuildValue.get_string_with_default [lib.lib_opk.opk_options] "description" lib.lib.lib_name);
-      List.iter (fun dep ->
-        let olib = dep.dep_project in
-        if dep.dep_link then
-          MetaFile.add_requires meta [] [olib.lib.lib_name]
-      ) lib.lib_requires;
+        (BuildValue.get_string_with_default lib.lib_opk.opk_options "description" lib.lib.lib_name);
+
+      let need_requires = ref false in
 
       let install_file file kind =
         let dst_file =
@@ -252,22 +249,26 @@ let install where what lib installdir =
 
           | CMI when what.install_asm_lib || what.install_byte_lib ->
             Some (Filename.concat installdir file.file_basename)
-          | C_A when what.install_asm_lib || what.install_byte_lib ->
+          | STUB_A when what.install_asm_lib || what.install_byte_lib ->
             Some (Filename.concat installdir file.file_basename)
           | CMO when what.install_byte_lib ->
             Some (Filename.concat installdir file.file_basename)
           | CMX
+          | CMX_O
           | CMXA_A when what.install_asm_lib ->
             Some (Filename.concat installdir file.file_basename)
           | CMA when what.install_byte_lib ->
+            need_requires := true;
             MetaFile.add_archive meta [ "byte", true ] [ file.file_basename ];
             MetaFile.add_plugin meta [ "byte", true ] [ file.file_basename ];
             meta.meta_exists_if <- file.file_basename :: meta.meta_exists_if;
             Some (Filename.concat installdir file.file_basename)
           | CMXA when what.install_asm_lib ->
+            need_requires := true;
             MetaFile.add_archive meta [ "native", true ] [ file.file_basename ];
             Some (Filename.concat installdir file.file_basename)
           | CMXS when what.install_asm_lib ->
+            need_requires := true;
             MetaFile.add_plugin meta [ "native", true ] [ file.file_basename ];
             Some (Filename.concat installdir file.file_basename)
           | RUN_ASM when  what.install_asm_bin ->
@@ -281,11 +282,12 @@ let install where what lib installdir =
           | CMI
           | CMO
           | CMX
+          | CMX_O
           | CMXS
           | CMA
           | CMXA
           | CMXA_A
-          | C_A
+          | STUB_A
             -> None
 
         in
@@ -305,10 +307,20 @@ let install where what lib installdir =
       Printf.eprintf "\tfiles: %!";
       List.iter (fun (file, kind) ->
         install_file file kind
-      ) lib.lib_byte_targets;
-      List.iter (fun (file, kind) ->
-        install_file file kind
-      ) lib.lib_asm_targets;
+      )
+        (lib.lib_byte_targets
+         @ lib.lib_asm_targets
+         @ lib.lib_intf_targets
+         @ lib.lib_stub_targets);
+
+      (* Requires only if it can be linked *)
+      if !need_requires then
+        List.iter (fun dep ->
+          let olib = dep.dep_project in
+          if dep.dep_link then
+            MetaFile.add_requires meta [] [olib.lib.lib_name]
+        ) lib.lib_requires;
+
 
       begin match  where.install_datadir with
         None -> ()
@@ -321,7 +333,7 @@ let install where what lib installdir =
           let src_file = Filename.concat (File.to_string lib.lib.lib_dirname) file in
           copy_file where log src_file dst_file
         )
-          (BuildValue.get_strings_with_default [lib.lib_opk.opk_options] "data_files" []);
+          (BuildValue.get_strings_with_default lib.lib_opk.opk_options "data_files" []);
 
       end;
 
@@ -333,7 +345,7 @@ let install where what lib installdir =
         let src_file = Filename.concat (File.to_string lib.lib.lib_dirname) file in
         copy_file where log src_file dst_file
       )
-        (BuildValue.get_strings_with_default [lib.lib_opk.opk_options] "lib_files" []);
+        (BuildValue.get_strings_with_default lib.lib_opk.opk_options "lib_files" []);
 
       List.iter (fun file ->
         safe_mkdir where log installbin;
@@ -342,7 +354,7 @@ let install where what lib installdir =
         let src_file = Filename.concat (File.to_string lib.lib.lib_dirname) file in
         copy_file where log src_file dst_file
       )
-        (BuildValue.get_strings_with_default [lib.lib_opk.opk_options] "bin_files" []);
+        (BuildValue.get_strings_with_default lib.lib_opk.opk_options "bin_files" []);
       Printf.eprintf "\n%!";
 
       install_META log where installdir meta lib;
@@ -384,7 +396,8 @@ let find_installdir where lib =
   );
 
   let lib_name = lib.lib.lib_name in
-  let install_subdir = BuildOCamlVariables.install_subdir.get [lib.lib_opk.opk_options] in
+  let install_subdir = BuildOCamlVariables.install_subdir.get
+    lib.lib_opk.opk_options in
   let lib_name =
     if install_subdir = "" then lib_name else
       Filename.concat install_subdir lib_name

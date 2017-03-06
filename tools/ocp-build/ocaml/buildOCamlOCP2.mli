@@ -10,18 +10,19 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+(* Specific function to create an OCaml package. Used to create packages
+   from META descriptions somewhere else. *)
+val add_ocaml_package :
+  BuildValue.TYPES.location ->
+  BuildOCP.state ->
+  BuildValue.TYPES.config ->
+  string ->
+  BuildOCPTypes.package_type ->
+  BuildOCamlTypes.ocaml_description
 
-val putenv : string -> string -> unit
-val add_to_global_subst : string -> string -> unit
-val subst_global : string -> string
+(* Initialize 'packages' with all the packages available in the
+   environment *)
+val init_env: BuildOCPTypes.project -> unit
 
-val global_subst : unit -> string StringMap.t
-val map_subst : string StringMap.t -> string -> string
-
-type 'a t
-
-val create_substituter : (string * ('a -> string)) list -> 'a t
-val apply_substituter : 'a t -> string -> 'a -> string
-
-val substitute : ('context -> string -> string) -> 'context -> string -> string
+(* Call to register the plugin in BuildOCP.plugin_verifiers *)
+val init : unit -> unit
