@@ -87,10 +87,12 @@ let add_finally action =
 
 
 
-let rec do_compile stage p ncores env_state arg_targets pre_w  =
+let rec do_compile stage p ncores env_state arg_targets pre_w
+    config_state =
 
-  let (bc, package_map, pj) = BuildActionInit.load_initial_project pre_w p
-    (BuildOCP.copy_state env_state) in
+  let (bc, package_map, pj) =
+    BuildActionInit.load_initial_project pre_w p
+    (BuildOCP.copy_state env_state) config_state in
 
   if !configure_arg then BuildMisc.clean_exit 0;
 
@@ -259,7 +261,7 @@ let rec do_compile stage p ncores env_state arg_targets pre_w  =
     end else begin
       Printf.eprintf "Some configuration files were changed. Restarting build\n%!";
 
-      do_compile (stage+1) p ncores  env_state arg_targets pre_w
+      do_compile (stage+1) p ncores  env_state arg_targets pre_w config_state
     end else
     (p, bc, projects, package_map)
 
@@ -274,7 +276,8 @@ let get_ncores cin =
 (* Also called from BuildActionTests.action () *)
 let do_build () =
 
-  let (env_w, p, env_state, env_pj) = BuildActionInit.init_env () in
+  let (env_w, p, env_state, env_pj, config_state) =
+    BuildActionInit.init_env () in
 
   if !query_global then move_to_project := false;
 
@@ -319,7 +322,7 @@ let do_build () =
 
   BuildActionInit.chdir_to_project p;
 
-  do_compile 0 p (get_ncores p.cin) env_state targets env_w
+  do_compile 0 p (get_ncores p.cin) env_state targets env_w config_state
 
 
 let action () =

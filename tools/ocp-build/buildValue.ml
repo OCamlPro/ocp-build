@@ -47,10 +47,24 @@ module TYPES = struct
   exception Var_not_found of string
   exception NotAPropertyList
 
+  (* To avoid dealing with dependencies, modules can be declared lazily
+     by provides("Mod", function(){...}), in which case the function will
+     only be executed on demand. When doing so, we set the module to
+     Computing to avoid a recursion. *)
+  type module_desc =
+  | Declared of value
+  | Computing
+  | Computed of value
+
+  type config_state = {
+    mutable cfs_modules : (module_desc ref * Versioning.version) StringMap.t;
+    mutable cfs_store : value StringMap.t;
+  }
+
   (* The configuration at a package definition site *)
   type config = {
     config_env : env;
-    config_modules : (value * Versioning.version) StringMap.t ref;
+    config_state : config_state;
     config_dirname : string;
     config_filename : string;
     config_filenames : (string * Digest.t option) list;
@@ -298,9 +312,13 @@ let new_path_option name v =
   }
     *)
 
+let empty_config_state () =
+  { cfs_modules = StringMap.empty;
+    cfs_store = StringMap.empty; }
+
 let empty_config () = {
   config_env = empty_env;
-  config_modules = ref StringMap.empty;
+  config_state = empty_config_state ();
   config_dirname = "";
   config_filename = "";
   config_filenames = [];

@@ -10,7 +10,36 @@
 (*                                                                        *)
 (**************************************************************************)
 
-Sys = { file_exists = Sys_file_exists };
+function OCamlMaker(){
 
-provides("Sys", "1.0", Sys);
+    List = module("ocp-build:List", "1.0");
+    Store = module("ocp-build:Store", "1.0");
 
+    function rule(sources, commands){
+        return {
+            build_target = true;
+            sources = sources;
+            commands = commands;
+        };
+    }
+
+    counter = Store.counter();
+    function make(targets, sources, commands){
+
+        rule = {
+            build_target = true;
+            uniq_rule = "make-rule-" + counter.get();
+            sources = sources;
+            commands = List.map(function(command){
+                    return OCaml.system(command);
+                }, commands);
+        };
+
+        return List.map(function(target){ return (target,rule); }, targets);
+    }
+
+    OCaml += { rule = rule; make = make };
+    return OCaml;
+}
+
+provides("ocp-build:OCaml", "1.0", OCamlMaker);

@@ -253,7 +253,15 @@ let load_ocp_files config packages files =
         let (_config : config) = EvalOCP2.read_ocamlconf file packages config in
         let modname = String.capitalize
           (Filename.chop_suffix basename ".ocp2") in
-        if not (StringMap.mem modname !(config.config_modules)) then begin
+        if not (StringMap.mem modname config.config_state.cfs_modules)
+          &&
+            (let prefixed_modname =
+               let dirname = Filename.basename (Filename.dirname file) in
+               Printf.sprintf "%s:%s" dirname modname
+             in
+             not (StringMap.mem prefixed_modname
+                    config.config_state.cfs_modules))
+        then begin
           Printf.eprintf "Error: file %S did not define module %S\n%!"
             file modname;
           exit 2
