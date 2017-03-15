@@ -338,8 +338,27 @@ and eval_expression ctx config exp =
   | ExprFunction (arg_names, body) ->
     let arity = List.length arg_names in
     let f loc arg_values =
-      if arity <> List.length arg_values then
-        BuildOCP2Prims.raise_bad_arity loc "function" arity arg_values;
+      let arg_values =
+        if arity <> List.length arg_values then
+          match List.rev arg_names with
+            ".." :: var_arg :: strict_args ->
+              let strict = List.length strict_args in
+              let rec split_args strict strict_args args =
+                if strict = 0 then
+                  (List.rev strict_args) @ [VList args; VList args]
+                else
+                  match args with
+                  | [] ->
+                    BuildOCP2Prims.raise_bad_arity loc "function"
+                      (arity-2) arg_values
+                  | arg :: args ->
+                    split_args (strict - 1) (arg :: strict_args) args
+              in
+              split_args strict [] arg_values
+          | _ ->
+            BuildOCP2Prims.raise_bad_arity loc "function" arity arg_values
+        else arg_values
+      in
       let config = List.fold_left2 (fun config name v ->
           BuildValue.config_set config name v
         ) config arg_names arg_values in

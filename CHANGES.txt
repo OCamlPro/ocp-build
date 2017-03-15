@@ -1,6 +1,20 @@
 Change log
 ==========
 
+2017-03-15:
+  * OCP2:
+    * new store can be used to save values during computation, for re-use
+      during the same run (used by counters, for e.g.)
+    * `provides` should take a function as argument, to defer the need for
+      other dependencies.
+    * site-ocp2 is installed, new modules OCaml.ocp2 and Store.ocp2
+    * List: new functions List.length, List.tail
+    * Store: new functions Store.get, Store.set, Store.counter
+    * OCaml: new functions OCaml.rule, OCaml.make, not in the predefined
+       OCaml module, should use `OCaml = module("ocp-build:OCaml", "1.0")`
+    * functions can take varargs `function(a,b,c,x,..)` where `x` becomes
+      the list of arguments provided after `c`.
+
 2017-03-04:
   * simplification of package dependencies computation
   * %{RULE_TEMP_DIR}% is replaced by the rule temporary directory

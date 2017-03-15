@@ -14,6 +14,8 @@ open StringCompat
 open BuildValue.TYPES
 open BuildOCP2Tree
 
+let vstring s = VString (s, StringRaw)
+
 let fatal_error loc =
   Printf.kprintf (fun s ->
       Printf.eprintf "File %S, line %d:\n"
@@ -33,9 +35,9 @@ let warning loc =
 
 let raise_type_error loc prim_name arg_num type_expected value_received =
   raise (OCPExn (loc, "type-error",
-                 VTuple [VString (prim_name, StringRaw);
+                 VTuple [vstring prim_name;
                          VInt arg_num;
-                         VString (type_expected, StringRaw);
+                         vstring type_expected;
                          value_received]))
 
 let raise_bad_arity loc prim_name nargs_expected args =
@@ -271,6 +273,9 @@ let _ =
      to load a set of functions from a file. Since we have to interprete
      the content of the file, it can only be implemented in Interp.ml
   *)
+
+
+
   add_primitive "module" [] (fun loc ctx config args ->
     let modname, required_version =
       match args with
@@ -281,7 +286,8 @@ let _ =
       | _ -> raise_bad_arity loc "module(string)" 1 args
     in
     try
-      let (v, version) = StringMap.find modname !(config.config_modules) in
+      let (module_desc, version) =
+        StringMap.find modname config.config_state.cfs_modules in
       begin
         match required_version with
         | None -> ()
@@ -293,7 +299,18 @@ let _ =
               (Versioning.string_of_version required_version)
               (Versioning.string_of_version version)
       end;
-      v
+      match !module_desc with
+      | Computed v -> v
+      | Computing ->
+        fatal_error loc "module recursion in module %S" modname
+      | Declared v ->
+        let v =
+          match v with
+          | VFunction f -> f loc []
+          | _ -> v
+        in
+        module_desc := Computed v;
+        v
     with Not_found ->
       fatal_error loc "could not find module %S" modname
   );
@@ -305,12 +322,13 @@ let _ =
       begin
         try
           let (_old_value, old_version) =
-            StringMap.find s !(config.config_modules) in
+            StringMap.find s config.config_state.cfs_modules in
           if Versioning.compare old_version version >= 0 then
             raise Not_found
         with Not_found ->
-          config.config_modules :=
-            StringMap.add s (value, version) !(config.config_modules)
+          config.config_state.cfs_modules <-
+            StringMap.add s (ref (Declared value), version)
+            config.config_state.cfs_modules
       end;
       VList []
     | _ -> raise_bad_arity loc "provides(string, version, value)" 2 args
@@ -364,6 +382,39 @@ let _ =
                         [ packmodname ^ ".ml", pack_env ])
   );
 
+  add_primitive "value_length"
+    [
+      "[length(v)] returns the length of [v], if it is a string, list or tuple"
+    ]
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (s, _) ] -> VInt (String.length s)
+      | [ VList l | VTuple l ] -> VInt (List.length l)
+      | _ ->
+        raise_bad_arity loc "length([string|list|tuple])" 1 args
+    );
+
+  add_primitive "value_type"
+    [
+      "[typeof(v)] returns the type of [v], as a string."
+    ]
+    (fun loc ctx config args ->
+      match args with
+      | [ arg ] ->
+        vstring (match arg with
+        | VString _ -> "string"
+        | VList _  ->  "list"
+        | VTuple _ -> "tuple"
+        | VObject _ -> "object"
+        | VBool _ -> "bool"
+        | VInt _ -> "int"
+        | VFunction _ -> "function"
+        | VPrim _ -> "prim"
+        )
+      | _ ->
+        raise_bad_arity loc "version(string)" 1 args
+    );
+
   add_primitive "version"
     [ "version(STRING) translates its argument into a version,";
       "so that later comparisons will use version comparison.";]
@@ -396,6 +447,36 @@ let _ =
         raise_bad_arity loc "DSTDIR(string[,file])" 1 args
     );
 
+  add_primitive "store_set" [
+    "[store_set(name,v)] associates [name] with [v] in the";
+    "semi-persistent store."
+  ]
+(fun loc ctx config args ->
+      match args with
+      | [ VString (name, _); v ] ->
+        config.config_state.cfs_store <-
+          StringMap.add name v config.config_state.cfs_store;
+        BuildValue.unit
+      | _ ->
+        raise_bad_arity loc "store_set(string,v)" 1 args
+    );
+  add_primitive "store_get" [
+    "[store_get(name)] retrieves the value associateed with [name] in the";
+    "semi-persistent store."
+  ]
+(fun loc ctx config args ->
+      match args with
+      | [ VString (name, _) ] ->
+          begin try
+                  StringMap.find name config.config_state.cfs_store
+            with Not_found ->
+              raise (OCPExn (loc, "not-found",
+                 vstring name))
+          end
+      | _ ->
+        raise_bad_arity loc "store_get(string)" 1 args
+    );
+
   (* ------------------------------------------------------------
 
      List module
@@ -409,6 +490,19 @@ let _ =
         VBool (List.mem ele list )
       | _ ->
         raise_bad_arity loc "List.mem(ele, list)" 2 args
+    );
+
+  add_primitive "List_tail" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VList list ] -> begin
+        match list with
+        | [] ->
+          raise (OCPExn (loc, "failure", vstring "List.tail"))
+        | _ :: list -> VList list
+      end
+      | _ ->
+        raise_bad_arity loc "List.tail(list)" 1 args
     );
 
   add_primitive "List_map" []
@@ -467,7 +561,7 @@ let _ =
           raise_bad_arity loc "String.concat(list of strings[, sep])" 2 args
       ) list in
       let s = String.concat sep list in
-      VString(s, StringRaw)
+      vstring s
     );
 
   (* ------------------------------------------------------------
@@ -518,7 +612,7 @@ let _ =
       | [ VString (dir,_) ] ->
         let files = readdir loc config dir in
         let files = Array.to_list files in
-        VList (List.map (fun s -> VString (s, StringRaw)) files)
+        VList (List.map (fun s -> vstring s) files)
       | [ VString (dir,_); VString (regexp,_) ] ->
         let files = readdir loc config dir in
         let files = Array.to_list files in
@@ -526,7 +620,7 @@ let _ =
         let regexp = Str.regexp regexp in
         let files = List.filter (fun file ->
           Str.string_match regexp file 0) files in
-        VList (List.map (fun s -> VString (s, StringRaw)) files)
+        VList (List.map (fun s -> vstring s) files)
       | _ ->
         raise_bad_arity loc "Sys.readdir(dir)" 1 args
     );

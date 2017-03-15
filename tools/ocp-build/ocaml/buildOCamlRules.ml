@@ -1029,11 +1029,20 @@ let copy_ml_objects_from b lib ptmp envs src_lib kernel_name =
     do_copy_objects_from b lib src_lib kernel_name ".o" ptmp.cmx_o_files;
   end
 
+let object_dst_dir b lib pack_for =
+  let dst_dir = lib.lib.lib_dst_dir in
+  match pack_for with
+    [] -> dst_dir
+  | modnames ->
+    let name = String.concat "/" modnames in
+    let full_dirname = Filename.concat dst_dir.dir_fullname name in
+    safe_mkdir full_dirname;
+    add_directory b full_dirname
 
 let ml2odoc lib ptmp kernel_name envs before_cmd pack_for force temp_ml_file ml_file seq_order =
   if needs_odoc lib then
     let b = lib.lib.lib_context in
-    let dst_dir = lib.lib.lib_dst_dir in
+    let dst_dir = object_dst_dir b lib pack_for in
 
     let odoc_basename = kernel_name ^ ".odoc" in
     let odoc_file = add_dst_file b dst_dir odoc_basename in
@@ -1056,7 +1065,7 @@ let ml2odoc lib ptmp kernel_name envs before_cmd pack_for force temp_ml_file ml_
 let mli2odoc lib ptmp kernel_name envs pack_for force mli_file seq_order =
   if needs_odoc lib then
     let b = lib.lib.lib_context in
-    let dst_dir = lib.lib.lib_dst_dir in
+    let dst_dir = object_dst_dir b lib pack_for in
 
     let odoc_basename = kernel_name ^ ".odoc" in
     let odoc_file = add_dst_file b dst_dir odoc_basename in
@@ -1101,16 +1110,8 @@ let add_mli_source w b lib ptmp mli_file options =
         clean_exit 2
       end;
 
-      let dst_dir = lib.lib.lib_dst_dir in
       let pack_for = BuildValue.get_strings_with_default envs "packed" []  in
-      let dst_dir = match pack_for with
-          [] -> dst_dir
-        | modnames ->
-          let name = String.concat "/" modnames in (* TODO : should be Filename.concat *)
-          let full_dirname = Filename.concat dst_dir.dir_fullname name in
-          safe_mkdir full_dirname;
-          add_directory b full_dirname
-      in
+      let dst_dir = object_dst_dir b lib pack_for in
 
       ptmp.src_files <- IntMap.add mli_file.file_id mli_file ptmp.src_files;
 
@@ -1641,15 +1642,7 @@ let add_ml_source w b lib ptmp ml_file options =
       end;
 
 
-      let dst_dir = lib.lib.lib_dst_dir in
-      let dst_dir = match pack_for with
-          [] -> dst_dir
-        | modnames ->
-          let name = String.concat "/" modnames in (* TODO : should be Filename.concat *)
-          let full_dirname = Filename.concat dst_dir.dir_fullname name in
-          safe_mkdir full_dirname;
-          add_directory b full_dirname
-      in
+      let dst_dir = object_dst_dir b lib pack_for in
       let pack_of = pack_option.get envs  in
 
       (*

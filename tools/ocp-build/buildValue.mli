@@ -49,10 +49,24 @@ module TYPES : sig
   exception Var_not_found of string
   exception NotAPropertyList
 
+  (* To avoid dealing with dependencies, modules can be declared lazily
+     by provides("Mod", function(){...}), in which case the function will
+     only be executed on demand. When doing so, we set the module to
+     Computing to avoid a recursion. *)
+  type module_desc =
+  | Declared of value
+  | Computing
+  | Computed of value
+
+  type config_state = {
+    mutable cfs_modules : (module_desc ref * Versioning.version) StringMap.t;
+    mutable cfs_store : value StringMap.t;
+  }
+
   (* The configuration at a package definition site *)
   type config = {
     config_env : env;
-    config_modules : (value * Versioning.version) StringMap.t ref;
+    config_state : config_state;
     config_dirname : string;
     config_filename : string;
     config_filenames : (string * Digest.t option) list;
@@ -151,3 +165,4 @@ val set_deep_field : TYPES.env -> string list -> TYPES.value -> TYPES.env
 
 val new_object : (string * value) list -> value
 val compare_values : value -> value -> int
+val empty_config_state : unit -> TYPES.config_state

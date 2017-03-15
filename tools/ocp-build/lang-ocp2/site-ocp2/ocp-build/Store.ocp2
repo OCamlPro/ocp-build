@@ -1,0 +1,49 @@
+(**************************************************************************)
+(*                                                                        *)
+(*   Typerex Tools                                                        *)
+(*                                                                        *)
+(*   Copyright 2011-2017 OCamlPro SAS                                     *)
+(*                                                                        *)
+(*   All rights reserved.  This file is distributed under the terms of    *)
+(*   the GNU General Public License version 3 described in the file       *)
+(*   LICENSE.                                                             *)
+(*                                                                        *)
+(**************************************************************************)
+
+function StoreMaker(){
+
+    List = module("ocp-build:List", "1.0");
+
+    store_counter_name = "ocp-build:Store.counter";
+    store_set(store_counter_name, 0);
+    function counter(counter_name,..){
+
+        if( List.length(counter_name) = 0 ){
+            counter = store_get(store_counter_name);
+            store_set(store_counter_name, counter+1);
+            counter_name = store_counter_name + counter;
+        } else {
+            counter_name = counter_name[0];
+        }
+        store_set(counter_name, 0);
+
+        get = function(){
+            counter = store_get(counter_name);
+            store_set(counter_name, counter+1);
+            return counter;
+        };
+
+        reset = function(){ store_set(counter_name, counter); };
+
+        return { get=get; reset=reset; };
+    }
+
+    Store = {
+        get = store_get;
+        set = store_set;
+        counter = counter;
+    };
+
+    return Store;
+}
+provides("ocp-build:Store", "1.0", StoreMaker);

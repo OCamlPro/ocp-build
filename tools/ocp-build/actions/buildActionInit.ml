@@ -29,7 +29,7 @@ open StdlibArg
 
 let verbose = DebugVerbosity.verbose ["B"] "BuildActionInit"
 
-let do_load_project_files cin project_dir state =
+let do_load_project_files cin project_dir state config_state =
   let open BuildOptions.ProjectOptions in
 
   let force_scan = ref cin.cin_autoscan in
@@ -79,6 +79,10 @@ let do_load_project_files cin project_dir state =
       BuildActions.time_step "Loading project .ocp files...";
       let nerrors =
         let config = BuildOCP.empty_config () in
+        let config_state = { config_state with
+          cfs_modules = config_state.cfs_modules
+        } in
+        let config = { config with config_state } in
         BuildOCP.load_ocp_files config state !!root_files
       in
       BuildActions.time_step "   Done loading project .ocp files";
@@ -311,9 +315,9 @@ let do_init_project_building w p pj =
     BuildEngineDisplay.eprint_context b;
   (bc, packages, pj)
 
-let load_initial_project pre_w p state =
+let load_initial_project pre_w p state config_state =
   let w = BuildWarnings.empty_set () in
-  do_load_project_files p.cin p.project_dir state;
+  do_load_project_files p.cin p.project_dir state config_state;
 
   (*    end; *)
 
@@ -437,14 +441,12 @@ let do_read_env p =
 
   BuildActions.time_step "Loading .ocp files from env...";
 
-  let _nerrors1 =
-    let config = BuildOCP.generated_config () in
-    BuildOCP.load_ocp_files config state  !env_ocp_files
-  in
+  let config = BuildOCP.generated_config () in
+  let _nerrors = BuildOCP.load_ocp_files config state  !env_ocp_files in
 
   BuildActions.time_step "   Done Loading .ocp files from env";
 
-  state
+  state, config.config_state
 
 let chdir_to_project p =
   let dir = File.to_string p.project_dir in
@@ -473,7 +475,7 @@ let init_env () =
 
   let w = BuildWarnings.empty_set () in
   let p = BuildActions.load_project w in
-  let env_state = do_read_env p in
+  let env_state, config_state = do_read_env p in
   let env_pj = BuildOCP.verify_packages w env_state in
 
   if !print_env_arg then begin
@@ -487,7 +489,7 @@ let init_env () =
 
   BuildActionsWarnings.print_env_warnings p.project_dir w;
 
-  (w, p, env_state, env_pj)
+  (w, p, env_state, env_pj, config_state)
 
 let action () =
   BuildActionsWarnings.set_default_is_always ();
@@ -505,12 +507,12 @@ let action () =
   end else begin
     BuildMisc.safe_mkdir BuildOptions.project_build_dirname
   end;
-  let (w, p, env_state, env_pj) = init_env () in
+  let (w, p, env_state, env_pj, config_state) = init_env () in
 
   chdir_to_project p;
 
   let (_bc, _package_map, _pj) = load_initial_project w p
-    (BuildOCP.copy_state env_state) in
+    (BuildOCP.copy_state env_state) config_state in
   ()
 
 let arg_list = [

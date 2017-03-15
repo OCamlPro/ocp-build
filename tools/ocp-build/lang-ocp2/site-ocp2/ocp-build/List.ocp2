@@ -10,12 +10,19 @@
 (*                                                                        *)
 (**************************************************************************)
 
-List = {};
+function ListMaker(){
 
-try { List.mem = List_mem; } catch("unknown-variable", x){}
-try { List.map = List_map; } catch("unknown-variable", x){}
-try { List.flatten = List_flatten; } catch("unknown-variable", x){}
+    List = {};
 
-provides("List", "1.0", List);
+    try { List.length = value_length; } catch("unknown-variable", x){}
+    try { List.mem = List_mem; } catch("unknown-variable", x){}
+    try { List.map = List_map; } catch("unknown-variable", x){}
+    try { List.flatten = List_flatten; } catch("unknown-variable", x){}
+    try { List.tail = List_tail; } catch("unknown-variable", x){}
+
+    return List;
+}
+
+provides("ocp-build:List", "1.0", ListMaker);
 
 

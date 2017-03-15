@@ -1,4 +1,4 @@
-List = module("List", "1.0");
+List = module("ocp-build:List", "1.0");
 
 try {
     system[0];

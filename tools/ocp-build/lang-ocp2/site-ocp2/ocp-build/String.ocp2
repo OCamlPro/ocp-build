@@ -10,8 +10,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
-String = { mem = String_mem };
+function StringMaker(){
 
-provides("String", "1.0", String);
+    String = {
+        mem = String_mem;
+        length = value_length;
+    };
+    return String;   
+}
+
+provides("ocp-build:String", "1.0", StringMaker);
 
 

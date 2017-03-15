@@ -123,7 +123,7 @@ let do_list_packages pj =
   ()
 
 let action () =
-  let (_env_w, p, state, pj) = BuildActionInit.init_env () in
+  let (_env_w, p, state, pj, config_state) = BuildActionInit.init_env () in
 
   if !list_arg then
     do_list_packages pj
