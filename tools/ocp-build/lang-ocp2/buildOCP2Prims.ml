@@ -483,6 +483,9 @@ let _ =
 
      ------------------------------------------------------------*)
 
+  let failure loc msg =
+    raise (OCPExn (loc, "failure", vstring msg))
+  in
   add_primitive "List_mem" []
     (fun loc ctx config args ->
       match args with
@@ -497,8 +500,7 @@ let _ =
       match args with
       | [ VList list ] -> begin
         match list with
-        | [] ->
-          raise (OCPExn (loc, "failure", vstring "List.tail"))
+        | [] -> failure loc "List.tail on empty list"
         | _ :: list -> VList list
       end
       | _ ->
@@ -626,39 +628,6 @@ let _ =
     );
 
   (*
-    add_function "dstdir" [
-    "Replaced by %{package_FULL_DST_DIR}%";
-    "ENV must contain:";
-    "- p : the package";
-    "ENV can contain:";
-    "- file : a filename that will be appended";
-    ] (fun envs _env ->
-    let p = BuildValue.get_local_string envs "p" in
-    let s = Printf.sprintf "%%{%s_FULL_DST_DIR}%%" p in
-    let s = try
-    let file = BuildValue.get_local_string envs "file" in
-    Filename.concat s file
-    with Var_not_found _ -> s
-    in
-    VString s
-    );
-
-    add_function "srcdir" [
-    "Replaced by %{package_FULL_SRC_DIR}%";
-    "ENV must contain:";
-    "- p : the package";
-    "ENV can contain:";
-    "- file : a filename that will be appended";
-    ] (fun envs _env ->
-    let p = BuildValue.get_local_string envs "p" in
-    let s = Printf.sprintf "%%{%s_FULL_SRC_DIR}%%" p in
-    let s =try
-    let file = BuildValue.get_local_string envs "file" in
-    Filename.concat s file
-    with Var_not_found _ -> s
-    in
-    VString s
-    );
 
     add_function "byte_exe" [] (fun envs _env ->
     let p = BuildValue.get_local_string envs "p" in
@@ -672,46 +641,78 @@ let _ =
     VString s
     );
 
-    add_function "split" [
-    "Cut a string into a list of strings, at a given char,";
-    "  empty strings are kept.";
-    "ENV must contain:";
-    "- s : the string to be cut";
-    "ENV can contain:";
-    "- sep : a string, whose first char will be the separator";
-    "    (default to space)";
-    ]
-    (fun envs _env ->
-    let s = BuildValue.get_string envs "s" in
-    let sep = BuildValue.get_string_with_default envs "sep" " " in
-    let sep = if sep = "" then ' ' else sep.[0] in
-    VList (List.map (fun s -> VString s) (OcpString.split s sep))
-    );
-
-    add_function "split_simplify" [
-    "Cut a string into a list of strings, at a given char,";
-    "  empty strings are removed.";
-    "ENV must contain:";
-    "- s : the string to be cut";
-    "ENV can contain:";
-    "- sep : a string, whose first char will be the separator";
-    "    (default to space)";
-    ] (fun envs _env ->
-    let s = BuildValue.get_string envs "s" in
-    let sep = BuildValue.get_string_with_default envs "sep" " " in
-    let sep = if sep = "" then ' ' else sep.[0] in
-    VList (List.map (fun s -> VString s) (OcpString.split_simplify s sep))
-    );
-
-    let uniq_counter = ref 0 in
-    add_function "uniq" [
-    "Returns a uniq string, to be used as a uniq identifier";
-    ] (fun _ _ ->
-    incr uniq_counter;
-    VString (Printf.sprintf ".id_%d" !uniq_counter));
-    ()
-
   *)
+
+  add_primitive "String_split" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (s,_); VString (sep,_) ] ->
+        if String.length sep <> 1 then
+          failure loc "String_split with separator length <> 1";
+        VList (List.map vstring (OcpString.split s sep.[0]))
+      | _ ->
+        raise_bad_arity loc "String_split(s,sep)" 2 args
+    );
+
+  add_primitive "String_split_simplify" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (s,_); VString (sep,_) ] ->
+        if String.length sep <> 1 then
+          failure loc "String_split_simplify with separator length <> 1";
+        VList (List.map vstring (OcpString.split_simplify s sep.[0]))
+      | _ ->
+        raise_bad_arity loc "String_split(s,sep)" 2 args
+    );
+
+  add_primitive "String_subst_suffix" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (s,_) as v;
+          VString (old_suffix,_); VString (new_suffix,_) ] ->
+        if Filename.check_suffix s old_suffix then
+          vstring (Filename.chop_suffix s old_suffix ^ new_suffix)
+        else v
+      | [ VList list;
+          VString (old_suffix,_); VString (new_suffix,_) ] ->
+        VList (List.map (function
+        | VString (s,_) as v ->
+          if Filename.check_suffix s old_suffix then
+            vstring (Filename.chop_suffix s old_suffix ^ new_suffix)
+          else v
+        | v -> v) list)
+      | _ ->
+        raise_bad_arity loc "String_subst_suffix(string|list,src,dst)" 3 args
+    );
+
+  add_primitive "String_filter_by_suffix" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VList list; VString (suffix,_) ] ->
+        VList (List.filter (function
+        | VString (s,_) -> Filename.check_suffix s suffix
+        | v -> false) list)
+      | _ ->
+        raise_bad_arity loc "String_filter_by_suffix(list,suffix)" 2 args
+    );
+
+  add_primitive "String_subst" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (s,_); VList assocs ] ->
+        let rec iter assocs id =
+          match assocs with
+          | [] -> failure loc (Printf.sprintf "String_subst cannot subst %S" id)
+          | VTuple [ VString (s, _); rep ] :: _ when s = id ->
+            BuildValue.string_of_value rep
+          | _ :: assocs -> iter assocs id
+        in
+        let b = Buffer.create (String.length s) in
+        Buffer.add_substitute b (iter assocs) s;
+        vstring (Buffer.contents b)
+      | _ ->
+        raise_bad_arity loc "String_subst(s,assoc)" 2 args
+    );
 
   ()
 

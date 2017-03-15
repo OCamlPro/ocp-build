@@ -11,7 +11,8 @@
 (**************************************************************************)
 
 function SysMaker(){
-    Sys = { file_exists = Sys_file_exists };
+  Sys = { file_exists = Sys_file_exists };
+  return Sys;
 }
 
 provides("ocp-build:Sys", "1.0", SysMaker);
