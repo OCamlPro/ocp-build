@@ -10,14 +10,17 @@
 
 include autoconf/Makefile.config
 
-all: ocp-build-build
+all: build
 
-install: ocp-build-install
+-include ocp-autoconf.d/Makefile
 
-clean: ocp-build-clean
+build: ocp-build-build $(PROJECT_BUILD)
 
-distclean: clean ocp-distclean
+install: ocp-build-install $(PROJECT_INSTALL)
+
+clean: ocp-build-clean $(PROJECT_CLEAN)
+
+distclean: clean ocp-distclean $(PROJECT_DISTCLEAN)
 	find . -name '*~' -exec rm -f {} \;
 
 include autoconf/Makefile.rules
--include ocp-autoconf.d/Makefile

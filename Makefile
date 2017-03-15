@@ -227,9 +227,14 @@ OCPBUILD_INSTALL=./_obuild/ocp-build/ocp-build.asm install		\
   -install-lib $(ocamldir) -install-meta $(metadir)                    \
   -install-bin $(bindir)
 
+DST_SITE_OCP2 := ${ocamldir}/site-ocp2/ocp-build
+SRC_SITE_OCP2 := ${OCP_BUILD_SRCDIR}/lang-ocp2/site-ocp2/ocp-build
+
 install-ocp-build:
 	mkdir -p ${ocamldir}/ocp-build
 	cp -f boot/camlp4.ocp boot/ocaml.ocp ${ocamldir}/ocp-build
+	mkdir -p ${DST_SITE_OCP2}
+	cp -f ${SRC_SITE_OCP2}/*.ocp2 ${DST_SITE_OCP2}
 	echo "generated = true" > ${ocamldir}/installed.ocp
 	$(OCPBUILD_INSTALL) ocp-build
 	$(OCPBUILD_INSTALL) $(OCPLIB_LIBS)

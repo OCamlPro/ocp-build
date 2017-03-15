@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-String = module("String");
+String = module("ocp-build:String");
 
 ocaml.version = autoconf.package_version;
 

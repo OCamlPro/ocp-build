@@ -190,7 +190,7 @@ let add_META pj ocamllib meta_dirname meta_filename =
             pj
             {
               config_dirname = dirname;
-              config_modules = ref StringMap.empty;
+              config_state = BuildValue.empty_config_state ();
               config_filename = meta_filename;
                 (* matters only for non-installed packages *)
               config_filenames = [meta_filename, None];
