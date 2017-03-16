@@ -1,0 +1,7 @@
+
+OCaml.program("hello_lwt",
+  {
+    files = [ "hello_lwt.ml" ];
+    requires = [ "lwt.unix" ];
+  });
+  

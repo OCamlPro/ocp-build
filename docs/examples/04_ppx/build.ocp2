@@ -1,0 +1,19 @@
+
+
+(* "ppx_js" is not in bin/, but in js_of_ocaml's dir *)
+ppx_js = [ "-ppx"; DSTDIR("js_of_ocaml.ppx","ppx_js") ];
+
+OCaml.program("hello_ppx",
+        {
+          has_asm = false; (* no bytecode for js_of_ocaml *)
+
+          (* activate ppx for all files *)
+          asmcomp = ppx_js;
+          bytecomp = ppx_js;
+
+          files = [ "hello_ppx.ml" ];
+          requires = [
+                   "js_of_ocaml.ppx"; (* needed for ppx_js *)
+                   "js_of_ocaml"      (* needed for linking *)
+                   ];
+        });
