@@ -1,0 +1,14 @@
+(* Two variants *)
+
+OCaml.program("hello_cppo",
+        {
+          files = [
+                   (* Applies only to this file *)
+                "hello_cppo.ml", { pp = [ "cppo" ] } ];
+        });
+
+OCaml.program("hello_cppo2",
+        {
+          pp = [ "cppo" ]; (* apply to all files *)
+          files = [ "hello_cppo.ml" ];
+        });

@@ -14,6 +14,7 @@ Change log
        OCaml module, should use `OCaml = module("ocp-build:OCaml", "1.0")`
     * functions can take varargs `function(a,b,c,x,..)` where `x` becomes
       the list of arguments provided after `c`.
+    * new function String.subst_suffix, String.subst
 
 2017-03-04:
   * simplification of package dependencies computation

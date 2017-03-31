@@ -699,7 +699,10 @@ let rule_executed b r execution_status =
           with
           | _e ->
             BuildEngineDisplay.add_error b
-              [Printf.sprintf "Target %s not built" (file_filename f);]
+              [
+                Printf.sprintf "rule %d: target %s not built"
+                  r.rule_id
+                  (file_filename f);]
       end;
       if f.file_exists then
         List.iter (fun r2 ->

@@ -15,6 +15,9 @@ open BuildOCPTypes
 
 open BuildValue.TYPES
 
+(* Should be set to false in the future, when .ocp files become obsolete *)
+let arg_load_ocp = ref true
+
 let continue_on_ocp_error = ref false
 
 type state = {
@@ -284,7 +287,7 @@ let load_ocp_files config packages files =
             Printf.eprintf "Reading %s with context from %s\n%!" file filename;
           let config =
             try
-              if Filename.check_suffix file ".ocp" then
+              if Filename.check_suffix file ".ocp" && !arg_load_ocp then
                 EvalOCP1.read_ocamlconf file packages config
               else
                 if Filename.basename file = "build.ocp2" then
@@ -537,7 +540,7 @@ let scan_root root_dir =
             match basename.[0] with
             | 'a'..'z' | 'A'..'Z' | '0'..'9' ->
               if not (StringSet.mem filename !blacklist) then begin
-                if Filename.check_suffix filename ".ocp" then
+                if Filename.check_suffix filename ".ocp" && !arg_load_ocp then
                   let file = File.of_string filename in
                   ocp_files := file :: !ocp_files
                 else

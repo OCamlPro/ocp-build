@@ -15,6 +15,8 @@ open StringCompat
 open BuildOCPTypes
 open BuildValue.TYPES
 
+val arg_load_ocp : bool ref
+
 val w_MissingDirectory : (string * string * string) BuildWarnings.warning
 val w_PackageConflict :
     (BuildOCPTypes.pre_package * BuildOCPTypes.pre_package *

@@ -28,6 +28,10 @@ let init subcommand_name =
       "--print-incomplete-packages", Arg.Set
         BuildOCamlVerifyPackages.print_incomplete_packages,
       " Print incomplete packages";
+      "--ocp2-only", Arg.Clear BuildOCP.arg_load_ocp,
+      " Do not load .ocp files (no backward compatibility)";
+      "--load-ocp", Arg.Set BuildOCP.arg_load_ocp,
+      " Load .ocp files (no backward compatibility)";
 
     ];
 
