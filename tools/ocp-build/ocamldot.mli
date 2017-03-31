@@ -10,6 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+module TYPES : sig
 type graph =
   { graph_name: string;
     mutable graph_nodes: node list;
@@ -52,6 +53,8 @@ and shape =
   | Polygon of int * polygon_options list
   | Epsf of string
 and polygon_options = | Skew of float | Distortion of float
+end
+open TYPES
 val create : string -> graph_attributes list -> graph
 val node : graph -> string -> node_attributes list -> node
 val edge : node -> node -> edge_attributes list -> edge

@@ -15,6 +15,8 @@ This file generate a .dot file to be processed by "dot" to generate a
 .ps file.
 *)
 
+module TYPES = struct
+
 type graph = {
     graph_name : string;
     mutable graph_nodes : node list;
@@ -79,6 +81,10 @@ and shape =
 and polygon_options =
   Skew of float
 | Distortion of float
+
+end
+
+open TYPES
 
 let create name graph_attributes = {
     graph_name = name;
@@ -241,5 +247,3 @@ let dot2pdf file_dot file_ps =
   let e = Sys.command (
       Printf.sprintf "dot -Tpdf < %s > %s" file_dot file_ps) in
   if e <> 0 then failwith "Ocamldot: error while dot was processing file"
-
-

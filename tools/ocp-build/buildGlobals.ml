@@ -48,6 +48,7 @@ let no_global_arg = ref false
 let autogen_arg = ref false
 let list_ocp_files = ref false
 let html_report_arg = ref false
+let dot_report_arg = ref false
 
 let new_builder_context b = {
   build_context = b;

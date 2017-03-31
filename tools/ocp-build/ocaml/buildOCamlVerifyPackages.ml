@@ -229,7 +229,12 @@ let build_dependency_graph w packages =
 (* The main function ! *)
 let verify_packages w state =
 
+  (* remove duplicates packages and packages without corresponding
+     directory *)
   let packages = get_uniq_ocaml_packages w state in
+
+  if !BuildGlobals.dot_report_arg then
+    BuildOCamlDotReport.report packages;
 
   let packages =  build_dependency_graph w packages in
 

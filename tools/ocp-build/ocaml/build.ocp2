@@ -45,6 +45,7 @@ begin
                                      by ocamldep *)
     "buildOCamlSyntaxes.ml";    (* For preprocessing of OCaml files *)
     "buildOCamlInstall.ml";
+    "buildOCamlDotReport.ml";
     "buildOCamlVerifyPackages.ml";
     "buildOCamlOCP2.ml";
     "buildOCamlRules.ml";       (* Initialisation of the build Engine *)

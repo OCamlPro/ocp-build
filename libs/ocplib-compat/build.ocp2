@@ -10,8 +10,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-String = module("ocp-build:String");
-
 ocaml.version = autoconf.package_version;
 
 (*
@@ -34,10 +32,12 @@ ocaml = { pp_requires = [] } + ocaml;
 
   begin
     ocaml.files = [ "stringCompat.ml" ];
-    ocaml.pp = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
+    ocaml.pp = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ]; 
     ocaml.requires = [ "ocp-pp" ];
     ocaml.pp_requires = [ "ocp-pp:byte" ];
-    ocaml.pp_deps = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ];
+(*  Wrong on windows, as it should set .byte.exe instead of .byte
+
+     ocaml.pp_deps = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ]; *)
     OCaml.library( "ocplib-compat", ocaml);
   end
 
