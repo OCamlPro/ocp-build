@@ -40,6 +40,10 @@ and edge = {
 
 and graph_attributes =
   GraphSize of float * float
+| Ratio of graph_ratio
+
+and graph_ratio =
+  RatioFill
 
 and node_attributes =
   NodeColor of string |
@@ -138,7 +142,10 @@ open Printf
 let save_in graph oc =
   let graph_attribute attr =
     match attr with
-      GraphSize (f1,f2) -> fprintf oc "  size=\"%f,%f\";\n" f1 f2
+      GraphSize (f1,f2) -> fprintf oc "  size=\"%f,%f!\";\n" f1 f2
+    | Ratio ratio ->
+      fprintf oc "  ratio=\"%s\";\n" (match ratio with
+        RatioFill -> "fill")
 
   and edge_attribute attr =
     match attr with

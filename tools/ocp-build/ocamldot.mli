@@ -26,7 +26,12 @@ and edge =
   { edge_from: node;
     edge_to: node;
     edge_attributes: edge_attributes list }
-and graph_attributes = | GraphSize of float * float
+and graph_attributes =
+| GraphSize of float * float
+| Ratio of graph_ratio
+
+and graph_ratio =
+  RatioFill
 and node_attributes =
   | NodeColor of string
   | NodeFontColor of string

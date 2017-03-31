@@ -31,7 +31,7 @@ let init subcommand_name =
       "--ocp2-only", Arg.Clear BuildOCP.arg_load_ocp,
       " Do not load .ocp files (no backward compatibility)";
       "--load-ocp", Arg.Set BuildOCP.arg_load_ocp,
-      " Load .ocp files (no backward compatibility)";
+      " Load .ocp files (set backward compatibility)";
 
     ];
 
