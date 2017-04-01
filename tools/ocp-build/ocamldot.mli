@@ -10,6 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+module TYPES : sig
 type graph =
   { graph_name: string;
     mutable graph_nodes: node list;
@@ -25,7 +26,12 @@ and edge =
   { edge_from: node;
     edge_to: node;
     edge_attributes: edge_attributes list }
-and graph_attributes = | GraphSize of float * float
+and graph_attributes =
+| GraphSize of float * float
+| Ratio of graph_ratio
+
+and graph_ratio =
+  RatioFill
 and node_attributes =
   | NodeColor of string
   | NodeFontColor of string
@@ -52,6 +58,8 @@ and shape =
   | Polygon of int * polygon_options list
   | Epsf of string
 and polygon_options = | Skew of float | Distortion of float
+end
+open TYPES
 val create : string -> graph_attributes list -> graph
 val node : graph -> string -> node_attributes list -> node
 val edge : node -> node -> edge_attributes list -> edge
