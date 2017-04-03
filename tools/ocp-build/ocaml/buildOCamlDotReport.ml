@@ -83,7 +83,6 @@ let report packages =
       ) n.node_requires;
 
       StringMap.iter (fun name2 n2 ->
-        let already_included = ref false in
         StringMap.iter (fun name3 n3 ->
           if StringMap.mem name2 n3.node_requires_all then
             n.node_requires <- StringMap.remove name2 n.node_requires

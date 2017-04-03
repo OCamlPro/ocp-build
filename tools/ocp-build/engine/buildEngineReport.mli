@@ -3,12 +3,6 @@
 
 val output_graph_report : bool ref
 
-type vertex = {
-  vertex_file: BuildEngineTypes.build_file;
-  mutable vertex_to : vertex IntMap.t;
-  mutable vertex_from : vertex IntMap.t;
-}
-
 val report : BuildEngineTypes.build_context -> unit
 
 

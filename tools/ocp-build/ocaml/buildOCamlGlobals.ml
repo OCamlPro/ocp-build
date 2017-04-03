@@ -32,6 +32,7 @@ let create_package lib opk =
   let envs = opk.opk_options in
 
   let b = lib.lib_context in
+  let p = lib.lib_package in
   let bc = lib.lib_builder_context in
   let pk = opk.opk_package in
 
@@ -74,7 +75,7 @@ in
   let lib_ready =
     if opk.opk_installed then [] else
       let file_ready =
-        BuildEngineContext.add_virtual_file b lib.lib_dst_dir
+        BuildEngineContext.add_virtual_file p lib.lib_dst_dir
           (lib.lib_name ^ " validated") in
       let r = BuildEngineRules.new_rule b lib.lib_loc file_ready [] in
       List.iter (fun filename ->
