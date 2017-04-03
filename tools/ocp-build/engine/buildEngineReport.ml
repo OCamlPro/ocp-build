@@ -275,7 +275,7 @@ let report b =
 
       let create name get_edges =
 
-        let t = Ocamldot.create p.package_name
+        let t = Ocamldot.create p.package_package
           [ GraphSize (11.7, 8.3); Ratio RatioFill ]
         in
         let nodes = ref IntMap.empty in
@@ -302,7 +302,7 @@ let report b =
           with Not_found ->
             let node = Ocamldot.node t
               (Printf.sprintf "%s:%s"
-                 v.vertex_package.package_name
+                 v.vertex_package.package_package
                  v.vertex_name) [] in
             nodes := IntMap.add v.vertex_id node !nodes;
             node
@@ -319,7 +319,7 @@ let report b =
 
         Ocamldot.save t
           (Printf.sprintf "_obuild/_reports/package_%s_%s.dot"
-             name p.package_name)
+             name p.package_package)
       in
       create "from" (fun v -> v.vertex_from);
       create "to" (fun v -> v.vertex_to);

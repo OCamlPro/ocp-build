@@ -416,7 +416,7 @@ let new_package b package_name =
   b.build_next_package_id <- b.build_next_package_id + 1;
   let p = {
     package_id;
-    package_name;
+    package_package = package_name;
     package_context = b;
     package_files = IntMap.empty;
   } in

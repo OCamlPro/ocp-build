@@ -105,7 +105,7 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
   (*  let lib_name = pk.package_name in *)
   let lib_loc = (pk.package_filename,
                  pk.package_loc.BuildValue.TYPES.loc_begin.Lexing.pos_lnum,
-                 pk.BuildOCPTypes.package_name) in
+                 pk.package_name) in
 
   let lib_package = BuildEngineContext.new_package b pk.package_name in
   let lib =

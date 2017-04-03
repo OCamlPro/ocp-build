@@ -120,7 +120,7 @@ and  build_directory = {
 
 and build_package = {
   package_context : build_context;
-  package_name : string;
+  package_package : string;
   package_id : int;
   mutable package_files : build_file IntMap.t;
 }
