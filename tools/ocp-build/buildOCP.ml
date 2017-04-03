@@ -349,7 +349,8 @@ type html_node = {
 }
 
 let html_report pj =
-  let oc = open_out "_obuild/packages.html" in
+  BuildMisc.safe_mkdir "_obuild/_reports";
+  let oc = open_out "_obuild/_reports/packages.html" in
   html_header oc "ocp-build: log of packages";
   Printf.fprintf oc "<h1>Project %s</h1>\n" (Sys.getcwd ());
 

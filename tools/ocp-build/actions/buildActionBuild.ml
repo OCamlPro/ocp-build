@@ -201,7 +201,7 @@ let rec do_compile stage p ncores env_state arg_targets pre_w
     let orphans = BuildEngine.sanitize b !delete_orphans_arg
         (fun basename ->
           match basename with
-            "_tests" | "_html" -> true
+            "_tests" | "_reports" -> true
           | _ -> false)
     in
     if orphans > 0 then begin
@@ -380,10 +380,16 @@ let arg_list =
   "PKG@DIR Disable package PKG installed in DIR";
 
   "--html-report", Arg.Set BuildGlobals.html_report_arg,
-  " Create an HTML report in _obuild/_html";
+  " Create an HTML report in _obuild/_reports";
 
   "--dot-report", Arg.Set BuildGlobals.dot_report_arg,
-  " Create a DOT report in _obuild/_html";
+  " Create a DOT report in _obuild/_reports";
+
+  "--replay-script", Arg.Set BuildEngineReport.output_replay_script,
+  " Generates _obuild/_reports/build-replay.sh";
+
+  "--graph-report", Arg.Set BuildEngineReport.output_graph_report,
+  " Generates _obuild/_reports/graph.dot";
 
   ]
   @ BuildActionInit.arg_list

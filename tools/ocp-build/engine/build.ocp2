@@ -18,6 +18,7 @@ begin
   "buildEngineRules.ml";      (* Functions to create compilation rules *)
   "buildEngineContext.ml";    (* Initialisation of the build Engine *)
   "buildEngineDisplay.ml";
+  "buildEngineReport.ml";
   "buildEngine.ml";           (* The generic parallel build engine *)
   ];
 

@@ -97,6 +97,9 @@ libs/ocplib-file/fileString.cmi : \
 libs/ocplib-lang/intMap.cmo : libs/ocplib-lang/intMap.cmi
 libs/ocplib-lang/intMap.cmx : libs/ocplib-lang/intMap.cmi
 libs/ocplib-lang/intMap.cmi :
+libs/ocplib-lang/intSet.cmo : libs/ocplib-lang/intSet.cmi
+libs/ocplib-lang/intSet.cmx : libs/ocplib-lang/intSet.cmi
+libs/ocplib-lang/intSet.cmi :
 libs/ocplib-lang/linearToposort.cmo : libs/ocplib-lang/intMap.cmi \
     libs/ocplib-lang/linearToposort.cmi
 libs/ocplib-lang/linearToposort.cmx : libs/ocplib-lang/intMap.cmx \
@@ -172,6 +175,7 @@ tools/ocp-build/actions/buildActionBuild.cmo : \
     tools/ocp-build/buildMisc.cmo tools/ocp-build/buildGlobals.cmo \
     tools/ocp-build/engine/buildEngineTypes.cmi \
     tools/ocp-build/engine/buildEngineRules.cmo \
+    tools/ocp-build/engine/buildEngineReport.cmi \
     tools/ocp-build/engine/buildEngineDisplay.cmi \
     tools/ocp-build/engine/buildEngine.cmi tools/ocp-build/buildConfig.cmi \
     tools/ocp-build/actions/buildArgs.cmo \
@@ -192,6 +196,7 @@ tools/ocp-build/actions/buildActionBuild.cmx : \
     tools/ocp-build/buildMisc.cmx tools/ocp-build/buildGlobals.cmx \
     tools/ocp-build/engine/buildEngineTypes.cmx \
     tools/ocp-build/engine/buildEngineRules.cmx \
+    tools/ocp-build/engine/buildEngineReport.cmx \
     tools/ocp-build/engine/buildEngineDisplay.cmx \
     tools/ocp-build/engine/buildEngine.cmx tools/ocp-build/buildConfig.cmx \
     tools/ocp-build/actions/buildArgs.cmx \
@@ -615,6 +620,7 @@ tools/ocp-build/engine/buildEngine.cmo : \
     libs/ocplib-debug/debugVerbosity.cmi tools/ocp-build/buildMtime.cmi \
     tools/ocp-build/buildMisc.cmo tools/ocp-build/engine/buildEngineTypes.cmi \
     tools/ocp-build/engine/buildEngineRules.cmo \
+    tools/ocp-build/engine/buildEngineReport.cmi \
     tools/ocp-build/engine/buildEngineGlobals.cmi \
     tools/ocp-build/engine/buildEngineDisplay.cmi \
     tools/ocp-build/engine/buildEngineContext.cmi \
@@ -627,6 +633,7 @@ tools/ocp-build/engine/buildEngine.cmx : \
     libs/ocplib-debug/debugVerbosity.cmx tools/ocp-build/buildMtime.cmx \
     tools/ocp-build/buildMisc.cmx tools/ocp-build/engine/buildEngineTypes.cmx \
     tools/ocp-build/engine/buildEngineRules.cmx \
+    tools/ocp-build/engine/buildEngineReport.cmx \
     tools/ocp-build/engine/buildEngineGlobals.cmx \
     tools/ocp-build/engine/buildEngineDisplay.cmx \
     tools/ocp-build/engine/buildEngineContext.cmx \
@@ -684,6 +691,16 @@ tools/ocp-build/engine/buildEngineGlobals.cmx : libs/ocplib-file/file.cmx \
     tools/ocp-build/engine/buildEngineTypes.cmx \
     tools/ocp-build/engine/buildEngineGlobals.cmi
 tools/ocp-build/engine/buildEngineGlobals.cmi : \
+    tools/ocp-build/engine/buildEngineTypes.cmi
+tools/ocp-build/engine/buildEngineReport.cmo : libs/ocplib-lang/intSet.cmi \
+    libs/ocplib-lang/intMap.cmi tools/ocp-build/buildMisc.cmo \
+    tools/ocp-build/engine/buildEngineTypes.cmi \
+    tools/ocp-build/engine/buildEngineReport.cmi
+tools/ocp-build/engine/buildEngineReport.cmx : libs/ocplib-lang/intSet.cmx \
+    libs/ocplib-lang/intMap.cmx tools/ocp-build/buildMisc.cmx \
+    tools/ocp-build/engine/buildEngineTypes.cmx \
+    tools/ocp-build/engine/buildEngineReport.cmi
+tools/ocp-build/engine/buildEngineReport.cmi : libs/ocplib-lang/intMap.cmi \
     tools/ocp-build/engine/buildEngineTypes.cmi
 tools/ocp-build/engine/buildEngineRules.cmo : libs/ocplib-lang/stringMap.cmi \
     libs/ocplib-compat/string-compat/stringCompat.cmo \
@@ -853,11 +870,19 @@ tools/ocp-build/ocaml/buildOCamlConfig.cmx : libs/ocplib-lang/ocpString.cmx \
 tools/ocp-build/ocaml/buildOCamlConfig.cmi : \
     tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildValue.cmi \
     tools/ocp-build/buildOptions.cmi
-tools/ocp-build/ocaml/buildOCamlDotReport.cmo : tools/ocp-build/ocamldot.cmi \
-    tools/ocp-build/buildMisc.cmo \
+tools/ocp-build/ocaml/buildOCamlDotReport.cmo : \
+    libs/ocplib-lang/stringMap.cmi \
+    libs/ocplib-compat/string-compat/stringCompat.cmo \
+    tools/ocp-build/ocamldot.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/ocaml/buildOCamlTypes.cmi \
+    tools/ocp-build/buildOCPTypes.cmi tools/ocp-build/buildMisc.cmo \
     tools/ocp-build/ocaml/buildOCamlDotReport.cmi
-tools/ocp-build/ocaml/buildOCamlDotReport.cmx : tools/ocp-build/ocamldot.cmx \
-    tools/ocp-build/buildMisc.cmx \
+tools/ocp-build/ocaml/buildOCamlDotReport.cmx : \
+    libs/ocplib-lang/stringMap.cmx \
+    libs/ocplib-compat/string-compat/stringCompat.cmx \
+    tools/ocp-build/ocamldot.cmx tools/ocp-build/buildValue.cmx \
+    tools/ocp-build/ocaml/buildOCamlTypes.cmx \
+    tools/ocp-build/buildOCPTypes.cmx tools/ocp-build/buildMisc.cmx \
     tools/ocp-build/ocaml/buildOCamlDotReport.cmi
 tools/ocp-build/ocaml/buildOCamlDotReport.cmi : \
     libs/ocplib-lang/stringMap.cmi \
@@ -996,6 +1021,7 @@ tools/ocp-build/ocaml/buildOCamlRules.cmo : libs/ocplib-lang/stringSubst.cmi \
     tools/ocp-build/buildMisc.cmo tools/ocp-build/buildGlobals.cmo \
     tools/ocp-build/engine/buildEngineTypes.cmi \
     tools/ocp-build/engine/buildEngineRules.cmo \
+    tools/ocp-build/engine/buildEngineReport.cmi \
     tools/ocp-build/engine/buildEngineGlobals.cmi \
     tools/ocp-build/engine/buildEngineContext.cmi \
     tools/ocp-build/ocaml/buildOCamlRules.cmi
@@ -1020,6 +1046,7 @@ tools/ocp-build/ocaml/buildOCamlRules.cmx : libs/ocplib-lang/stringSubst.cmx \
     tools/ocp-build/buildMisc.cmx tools/ocp-build/buildGlobals.cmx \
     tools/ocp-build/engine/buildEngineTypes.cmx \
     tools/ocp-build/engine/buildEngineRules.cmx \
+    tools/ocp-build/engine/buildEngineReport.cmx \
     tools/ocp-build/engine/buildEngineGlobals.cmx \
     tools/ocp-build/engine/buildEngineContext.cmx \
     tools/ocp-build/ocaml/buildOCamlRules.cmi
