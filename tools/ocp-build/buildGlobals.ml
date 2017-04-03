@@ -29,8 +29,8 @@ let homedir = try Sys.getenv "HOME" with Not_found -> "."
 
 let time_arg = ref false
 (*
-let byte_arg = ref false
-let asm_arg = ref false
+  let byte_arg = ref false
+  let asm_arg = ref false
 *)
 let clean_arg = ref false
 
@@ -52,6 +52,7 @@ let dot_report_arg = ref false
 
 let new_builder_context b = {
   build_context = b;
+  build_config_package = BuildEngineContext.new_package b "PROJECT_DESCRIPTION";
   packages_by_name = StringMap.empty;
   all_projects = Hashtbl.create 113;
   config_filename_validated_table = Hashtbl.create 113;
@@ -66,9 +67,10 @@ let config_filename_validated bc lib_loc (filename, digest_o) =
     let basename = Filename.basename filename in
     let dirname = Filename.dirname filename in
     let dir = add_directory b dirname in
-    let file = add_file b dir basename in
-    let file_checked = add_virtual_file b dir (basename ^ " checked") in
-    let file_validated = add_virtual_file b dir (basename ^ " validated") in
+    let p = bc.build_config_package in
+    let file = add_file p dir basename in
+    let file_checked = add_virtual_file p dir (basename ^ " checked") in
+    let file_validated = add_virtual_file p dir (basename ^ " validated") in
     let r_checker = new_rule b lib_loc file_checked [] in
     let r_validator = new_rule b lib_loc file_validated [] in
     add_rule_source r_checker file;
@@ -105,10 +107,12 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
                  pk.package_loc.BuildValue.TYPES.loc_begin.Lexing.pos_lnum,
                  pk.package_name) in
 
+  let lib_package = BuildEngineContext.new_package b pk.package_name in
   let lib =
     {
       lib_builder_context = bc;
       lib_context = b;
+      lib_package;
       lib_id = pk.package_id;
       lib_name = pk.package_name;
       lib_loc;

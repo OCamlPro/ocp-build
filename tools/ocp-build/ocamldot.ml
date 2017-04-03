@@ -204,7 +204,7 @@ let save_in graph oc =
         )
 
   in
-  fprintf oc "digraph %s {\n" graph.graph_name;
+  fprintf oc "digraph %S {\n" graph.graph_name;
   List.iter graph_attribute graph.graph_attributes;
   List.iter (fun node ->
       fprintf oc "  node%d [ label=\"%s\"" node.node_id node.node_name;

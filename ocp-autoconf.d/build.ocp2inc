@@ -24,6 +24,15 @@ List.map (function(pk){
 
 *)
 
+ocaml.bytecomp = [
+  "-strict-sequence"; 
+  "-principal"; 
+(*  "-absname"; *)
+  "-w"; "+a-4-9-41-42-44-45-48-3-33" (* -3 no-deprecated *)
+  ];
+
+ocaml.asmcomp = ocaml.bytecomp;
+
 (*
 all_libs = Sys_readdir("libs");
 print(all_libs);

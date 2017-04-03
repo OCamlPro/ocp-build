@@ -37,25 +37,23 @@ val find_dir : build_directory -> string -> build_directory
 *)
 
 val add_file :
-  build_context ->
-  build_directory ->
-  string -> build_file
-
-val add_filename :
-  build_context ->
+  build_package ->
   build_directory ->
   string -> build_file
 
 val add_temp_file :
-  build_context ->
+  build_package ->
   build_directory ->
   string -> build_file
 
 val add_virtual_file :
-  build_context ->
+  build_package ->
   build_directory ->
   string -> build_file
 
 val make_virtual_file : BuildEngineTypes.build_file -> unit
 
 val create : string -> string -> build_context
+
+val new_package : BuildEngineTypes.build_context ->
+  string -> BuildEngineTypes.build_package

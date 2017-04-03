@@ -104,6 +104,7 @@ and  build_file = {
   mutable file_mtime : BuildMtime.t;
   mutable file_target_of :  build_rule list;
   mutable file_source_for :  build_rule list;
+  file_package : build_package;
 }
 
 and  build_directory = {
@@ -117,11 +118,19 @@ and  build_directory = {
   mutable dir_fullname : string;
 }
 
+and build_package = {
+  package_context : build_context;
+  package_package : string;
+  package_uid : int;
+  mutable package_files : build_file IntMap.t;
+}
+
 and build_context = {
   mutable build_should_restart : bool;
 
   mutable build_rules : (int, build_rule) Hashtbl.t;
   mutable build_files : (int, build_file) Hashtbl.t;
+  mutable build_packages : build_package IntMap.t;
 
   mutable build_stats_to_execute : int;
   mutable build_stats_executed : int;
@@ -133,6 +142,7 @@ and build_context = {
   mutable build_next_file_id : int;
   mutable build_next_rule_id : int;
   mutable build_next_process_id : int;
+  mutable build_next_package_id : int;
 
   mutable cross_arg : string option;
   mutable stop_on_error_arg : bool;

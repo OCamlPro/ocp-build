@@ -23,7 +23,7 @@ open BuildOCamlInstall.TYPES
 let uninstall_only = ref false
 let print_only = ref false
 
-let do_install bc dest_dir _install_what projects _package_map =
+let do_install dest_dir _install_what projects _package_map =
 
   let install_dirs = ref StringSet.empty in
   List.iter (fun p ->
@@ -141,11 +141,11 @@ let arg_list =
 
 let action () =
   BuildActionBuild.make_build_targets := true;
-  let (p, bc, projects, package_map) = BuildActionBuild.do_build () in
+  let (p, _bc, projects, package_map) = BuildActionBuild.do_build () in
 
   let install_where = BuildOCamlInstall.install_where p.cin p.cout in
   let install_what = BuildOCamlInstall.install_what () in
-  do_install bc install_where.install_destdir
+  do_install install_where.install_destdir
     install_what projects package_map;
   ()
 

@@ -35,6 +35,7 @@ type 'a package_dependency = 'a BuildOCPTypes.package_dependency =
 
 type package_info = {
   lib_context : BuildEngineTypes.build_context;
+  lib_package : BuildEngineTypes.build_package;
   lib_id : int;
   lib_name : string;
   lib_builder_context : builder_context;
@@ -66,6 +67,7 @@ type package_info = {
 
 and builder_context = {
   build_context : build_context;
+  build_config_package : build_package;
   mutable packages_by_name : package_info StringMap.t;
   all_projects : (int, package_info) Hashtbl.t;
   config_filename_validated_table : (string, build_file) Hashtbl.t;

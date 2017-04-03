@@ -668,8 +668,10 @@ let rule_executed b r execution_status =
     Printf.eprintf "rule %d <- STATE EXECUTED\n" r.rule_id;
   r.rule_state <- RULE_EXECUTED;
   let temp_dir = BuildEngineRules.rule_temp_dir r in
-  if File.exists temp_dir then
+  if File.exists temp_dir then begin
+    BuildEngineReport.cmd_rmdir (File.to_string temp_dir);
     Dir.remove_all temp_dir;
+  end;
   begin
     match execution_status with
       EXECUTION_SUCCESS ->
@@ -1444,6 +1446,7 @@ let parallel_loop b ncores =
     end;
     BuildMisc.clean_exit 2
   end;
+  BuildEngineReport.flush ();
   BuildEngineReport.report b;
   BuildEngineDisplay.finish ();
   match raised_exn with
