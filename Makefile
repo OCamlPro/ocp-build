@@ -43,6 +43,7 @@ OCPLIB_DEBUG= $(debug_SRCDIR)/debugVerbosity.ml	\
 
 OCPLIB_LANG= $(lang_SRCDIR)/ocpList.ml $(lang_SRCDIR)/ocpString.ml	\
     $(lang_SRCDIR)/ocpArray.ml $(lang_SRCDIR)/intMap.ml			\
+    $(lang_SRCDIR)/intSet.ml \
     $(lang_SRCDIR)/ocpDigest.ml $(lang_SRCDIR)/linearToposort.ml	\
     $(lang_SRCDIR)/ocamllexer.ml $(lang_SRCDIR)/ocpGenlex.ml		\
     $(lang_SRCDIR)/stringSubst.ml $(lang_SRCDIR)/reentrantBuffers.ml \
@@ -100,6 +101,7 @@ BUILD_ENGINE= $(OCP_BUILD_SRCDIR)/engine/buildEngineTypes.ml	\
     $(OCP_BUILD_SRCDIR)/engine/buildEngineRules.ml		\
     $(OCP_BUILD_SRCDIR)/engine/buildEngineContext.ml		\
     $(OCP_BUILD_SRCDIR)/engine/buildEngineDisplay.ml		\
+    $(OCP_BUILD_SRCDIR)/engine/buildEngineReport.ml 		\
     $(OCP_BUILD_SRCDIR)/engine/buildEngine.ml
 
 BUILD_OCAML_OBJS= $(OCP_BUILD_SRCDIR)/ocaml/buildObjectInspector.ml

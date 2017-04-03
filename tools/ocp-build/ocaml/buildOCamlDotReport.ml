@@ -5,7 +5,7 @@ open BuildValue.TYPES
 open BuildOCPTypes
 open Ocamldot.TYPES
 
-let report_dir = "_obuild/_html"
+let report_dir = "_obuild/_reports"
 let report_dot = "project.dot"
 let report_pdf = "project.pdf"
 

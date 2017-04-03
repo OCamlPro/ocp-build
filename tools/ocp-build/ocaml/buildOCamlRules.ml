@@ -55,6 +55,12 @@ open BuildOCamlVariables
 open BuildOCamlMisc
 open BuildOCamlInstall.TYPES
 
+let safe_mkdir (dir : string) =
+  BuildEngineReport.cmd_mkdir dir;
+  BuildMisc.safe_mkdir dir
+let safe_make_dir (dir : File.t) =
+  safe_mkdir (File.to_string dir)
+
 let comp_deps w lib options =
   let options = options :: lib.lib_opk.opk_options in
   let comp_requires =  comp_requires_option.get options in
@@ -79,10 +85,9 @@ let copy_dir lib src_file =
   let b = lib.lib.lib_context in
   let mut_dirname =
     Filename.concat b.build_dir_filename "_mutable_tree" in
-  if not (Sys.file_exists mut_dirname) then
-    BuildMisc.safe_mkdir mut_dirname;
+  safe_mkdir mut_dirname;
   let mut_dir = add_directory b mut_dirname in
-
+(*
   let rec iter mut_dir file_dir =
     (*
     Printf.eprintf "src_dir = %S\n%!" lib.lib.lib_src_dir.dir_fullname;
@@ -97,12 +102,17 @@ let copy_dir lib src_file =
       let mut_dir = iter mut_dir parent_dir in
       let subdir = Filename.concat mut_dir.dir_fullname file_dir.dir_basename
       in
-      if not (Sys.file_exists subdir) then
-        BuildMisc.safe_mkdir subdir;
+      safe_mkdir subdir;
       add_directory lib.lib.lib_context subdir
   in
+*)
   try
-    let copy_dir = iter mut_dir  src_file.file_dir in
+    let subdir = Filename.concat mut_dir.dir_fullname
+      src_file.file_dir.dir_basename in
+      safe_mkdir subdir;
+    let copy_dir = add_directory lib.lib.lib_context subdir in
+
+    (*    let copy_dir = iter mut_dir  src_file.file_dir in *)
 (*    Printf.eprintf "COPY DIR of %S is %S\n%!"
       (File.to_string src_file.file_file) copy_dir.dir_fullname; *)
     copy_dir
@@ -1036,7 +1046,8 @@ let object_dst_dir b lib pack_for =
   | modnames ->
     let name = String.concat "/" modnames in
     let full_dirname = Filename.concat dst_dir.dir_fullname name in
-    safe_mkdir full_dirname;
+    if not lib.lib_opk.opk_installed then
+      safe_mkdir full_dirname;
     add_directory b full_dirname
 
 let ml2odoc lib ptmp kernel_name envs before_cmd pack_for force temp_ml_file ml_file seq_order =
@@ -1435,6 +1446,9 @@ let create_ml_file_if_needed b lib mut_dir options ml_file =
 
     let ml_content = Buffer.contents b in
 
+    BuildEngineReport.cmd_file_from_content
+      (File.to_string tmp_ml_file) ml_content;
+
     if File.exists tmp_ml_file then begin
       let old_ml_content = File.read_file tmp_ml_file in
       if ml_content <> old_ml_content then begin
@@ -1464,24 +1478,26 @@ let copy_mli_if_needed b mut_dir mll_file kernel_name =
       let mli_content = File.read_file mli_file in
       let tmp_mli = add_file b mut_dir (kernel_name ^ ".mli") in
       let tmp_mli_file = tmp_mli.file_file in
+      BuildEngineReport.cmd_copy (File.to_string mli_file)
+        (File.to_string tmp_mli_file);
       if File.exists tmp_mli_file then
         let old_mli_content = File.read_file tmp_mli_file in
         if mli_content <> old_mli_content then begin
-     if verbose 2 then
-       Printf.fprintf stderr "cp %s %s [outdated]\n%!"
-         (File.to_string mli_file) (File.to_string tmp_mli_file);
-            File.write_file tmp_mli_file mli_content
-   end else
-     ()
+          if verbose 2 then
+            Printf.fprintf stderr "cp %s %s [outdated]\n%!"
+              (File.to_string mli_file) (File.to_string tmp_mli_file);
+          File.write_file tmp_mli_file mli_content
+        end else
+          ()
       else begin
-   if verbose 2 then
-     Printf.fprintf stderr "cp %s %s [unexisting] \n%!"
-       (File.to_string mli_file) (File.to_string tmp_mli_file);
+        if verbose 2 then
+          Printf.fprintf stderr "cp %s %s [unexisting] \n%!"
+            (File.to_string mli_file) (File.to_string tmp_mli_file);
         File.write_file tmp_mli_file mli_content;
       end
     end (* else
-      Printf.eprintf "MLI FILE %S does not exist\n%!"
-        (File.to_string mli_file); *)
+           Printf.eprintf "MLI FILE %S does not exist\n%!"
+           (File.to_string mli_file); *)
 
   with e ->
     Printf.eprintf "copy_mli_if_needed error %s\n%!" (Printexc.to_string e);
@@ -1602,8 +1618,10 @@ let add_ml_source w b lib ptmp ml_file options =
                             file (FileString.string_of_file (file_filename src_file))
                         ) sources;
                         Printf.bprintf b "  ]\n";
-                        FileString.file_of_string (file_filename new_ml_file)
-                          (Buffer.contents b);
+                        let content = Buffer.contents b in
+                        let file = file_filename new_ml_file in
+                        BuildEngineReport.cmd_file_from_content file content;
+                        FileString.file_of_string file content;
                         ())));
           new_ml_file
       in
@@ -2203,7 +2221,7 @@ let add_library w b lib =
 
   if !(ptmp.odoc_files) <> [] then begin
     let doc_dirname = Filename.concat dst_dir.dir_fullname "_doc" in
-    if not (Sys.file_exists doc_dirname) then safe_mkdir doc_dirname;
+    safe_mkdir doc_dirname;
     let docdir = add_directory b doc_dirname in
     let html_file = add_file b dst_dir "_doc/index.html" in
     add_odocs2html_rule lib !(ptmp.odoc_files) docdir html_file;
@@ -2601,8 +2619,7 @@ let add_package bc opk =
           Filename.concat b.build_dir_filename package_name
      (*     Filename.concat src_dir.dir_fullname build_dir_basename *)
         in
-        if not (Sys.file_exists dirname) then
-          safe_mkdir dirname;
+        safe_mkdir dirname;
         add_directory b dirname
     in
     if verbose 7 then Printf.eprintf "\tto %s\n" dst_dir.dir_fullname;
@@ -2613,8 +2630,7 @@ let add_package bc opk =
         let mut_dirname =
           Filename.concat dst_dir.dir_fullname "_temp"
         in
-        if not (Sys.file_exists mut_dirname) then
-          safe_mkdir mut_dirname;
+        safe_mkdir mut_dirname;
         add_directory b mut_dirname
     in
 
@@ -2662,7 +2678,8 @@ let create w cin cout bc state =
   in
   Array.iter (fun lib ->
     try
-      safe_mkdir lib.lib.lib_dst_dir.dir_fullname;
+      if not lib.lib_opk.opk_installed then
+        safe_mkdir lib.lib.lib_dst_dir.dir_fullname;
       add_extra_rules bc lib "build" lib.lib_build_targets;
       add_extra_rules bc lib "doc" lib.lib_doc_targets;
       add_extra_rules bc lib "test" lib.lib_test_targets;

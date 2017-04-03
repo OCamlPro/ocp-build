@@ -23,6 +23,15 @@ open StringCompat
 open BuildEngineTypes
 open BuildEngineGlobals
 
+let safe_mkdir (dir : string) =
+  BuildEngineReport.cmd_mkdir dir;
+  BuildMisc.safe_mkdir dir
+let safe_make_dir (dir : File.t) =
+  safe_mkdir (File.to_string dir)
+let rename_file f1 f2 =
+  BuildEngineReport.cmd_rename f1 f2;
+  BuildMisc.rename f1 f2
+
 let verbose =
   DebugVerbosity.add_submodules "B" [ "BE" ];
   DebugVerbosity.verbose [ "BE" ] "BuildEngine"
@@ -659,7 +668,8 @@ let rule_executed b r execution_status =
     Printf.eprintf "rule %d <- STATE EXECUTED\n" r.rule_id;
   r.rule_state <- RULE_EXECUTED;
   let temp_dir = BuildEngineRules.rule_temp_dir r in
-  if File.exists temp_dir then Dir.remove_all temp_dir;
+  if File.exists temp_dir then
+    Dir.remove_all temp_dir;
   begin
     match execution_status with
       EXECUTION_SUCCESS ->
@@ -913,6 +923,8 @@ let execute_command b proc =
     (match cmd.cmd_stdout_pipe with
       None -> ""
     | Some filename -> Printf.sprintf "> %s" filename);
+  BuildEngineReport.cmd_exec cmd_args  cmd.cmd_move_to_dir
+    cmd.cmd_stdin_pipe cmd.cmd_stdout_pipe cmd.cmd_stderr_pipe;
   let pid = BuildMisc.create_process cmd_args  cmd.cmd_move_to_dir
     cmd.cmd_stdin_pipe
     (Some (temp_stdout b r)) (Some (temp_stderr b r))
@@ -1168,13 +1180,13 @@ let parallel_loop b ncores =
       | NeedTempDir ->
         let temp_dir = BuildEngineRules.rule_temp_dir r in
         if not (File.exists temp_dir) then
-          Dir.safe_mkdir temp_dir;
+          safe_make_dir temp_dir;
         execute_proc proc nslots
 
       | Execute cmd ->
         let temp_dir = BuildEngineRules.rule_temp_dir r in
         if not (File.exists temp_dir) then
-          Dir.safe_mkdir temp_dir;
+          safe_make_dir temp_dir;
         proc.proc_last <- Some cmd;
         if verbose 3 then
           Printf.eprintf "[%d.%d] new exec\n%!" proc.proc_rule.rule_id proc.proc_step;
@@ -1248,13 +1260,13 @@ let parallel_loop b ncores =
                 if
                   (not only_if_changed) ||
                     (not (Sys.file_exists fa2)) then
-                  BuildMisc.rename fa1 fa2
+                  rename_file fa1 fa2
                 else begin
                   if different_digests fa1 fa2 then begin
                     if verbose 10 then
                       Printf.eprintf "[CHANGED] %s changed.\n%!" fa2;
                (* rename with override *)
-                    BuildMisc.rename fa1 fa2;
+                    rename_file fa1 fa2;
                   end else begin
                     if verbose 10 then
                       Printf.eprintf "[CHANGED] %s did not change.\n%!" fa2
@@ -1289,7 +1301,7 @@ let parallel_loop b ncores =
 
                   Printf.fprintf b.build_log "mv? %s %s\n" fa1 fa2;
 
-                  BuildMisc.rename fa1 fa2;
+                  rename_file fa1 fa2;
                   match link with
                   | None -> ()
                   | Some f3 ->
@@ -1432,6 +1444,7 @@ let parallel_loop b ncores =
     end;
     BuildMisc.clean_exit 2
   end;
+  BuildEngineReport.report b;
   BuildEngineDisplay.finish ();
   match raised_exn with
     None -> ()

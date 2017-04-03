@@ -111,7 +111,7 @@ let rule_temp_dir r =
         (Digest.string
            (file_filename r.rule_main_target)) in
     let dir =
-      File.add_basename r.rule_context.build_dir hash in
+      File.add_basename r.rule_context.build_dir ("rule-" ^ hash) in
     r.rule_temp_dir <- Some dir;
     dir
 
