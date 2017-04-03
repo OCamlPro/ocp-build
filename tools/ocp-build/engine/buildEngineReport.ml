@@ -157,8 +157,8 @@ let report b =
           with
           | _ ->  basename
         in
-        let package_id = file.file_package.package_id in
-        let key = (package_id, basename) in
+        let package_uid = file.file_package.package_uid in
+        let key = (package_uid, basename) in
         let v =
           try
             Hashtbl.find vertices key
@@ -178,10 +178,10 @@ let report b =
 
             let (p,vertices_in_package) =
               try
-                IntMap.find file.file_package.package_id !packages
+                IntMap.find file.file_package.package_uid !packages
               with Not_found ->
                 let r = ref [] in
-                packages := IntMap.add file.file_package.package_id
+                packages := IntMap.add file.file_package.package_uid
                   (file.file_package,r) !packages;
                 (file.file_package, r)
             in
@@ -271,7 +271,7 @@ let report b =
 
     BuildMisc.safe_mkdir report_dir;
 
-    IntMap.iter (fun package_id (p, vertices_in_package) ->
+    IntMap.iter (fun package_uid (p, vertices_in_package) ->
 
       let create name get_edges =
 

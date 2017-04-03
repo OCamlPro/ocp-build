@@ -412,13 +412,13 @@ let create current_dir_filename build_dir_filename =
 ;;
 
 let new_package b package_name =
-  let package_id = b.build_next_package_id in
+  let package_uid = b.build_next_package_id in
   b.build_next_package_id <- b.build_next_package_id + 1;
   let p = {
-    package_id;
+    package_uid;
     package_package = package_name;
     package_context = b;
     package_files = IntMap.empty;
   } in
-  b.build_packages <- IntMap.add package_id p b.build_packages;
+  b.build_packages <- IntMap.add package_uid p b.build_packages;
   p
