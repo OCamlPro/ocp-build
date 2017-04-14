@@ -282,7 +282,12 @@ let add_META pj ocamllib meta_dirname meta_filename =
 let load_META_files pj ocamllib top_dirname =
   if verbose 4 then
     Printf.eprintf "Loading METAs from %S\n%!" top_dirname;
-  let files = Sys.readdir top_dirname in
+    let files = try Sys.readdir top_dirname 
+  with _ -> 
+    Printf.eprintf "Warning: could not read files from META dir %S\n%!"
+         top_dirname;
+  [||]
+  in
   Array.iter (fun basename ->
     let filename = Filename.concat top_dirname basename in
     if OcpString.starts_with basename "META." then

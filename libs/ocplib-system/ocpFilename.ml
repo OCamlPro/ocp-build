@@ -12,8 +12,6 @@
 
 include Filename
 
-open OcpLang
-
 module Op = struct
   let (/) = concat
 end
@@ -22,7 +20,7 @@ let get_extension filename =
   let filename = basename filename in
   try
     let n = String.rindex filename '.' in
-    Some (String.after filename n)
+    Some (OcpString.after filename n)
   with Not_found ->
     None
 

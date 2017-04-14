@@ -14,10 +14,10 @@ begin
   ocaml.version = autoconf.package_version;
 
   ocaml.files = [
-    "date.ml";
+    "ocpDate.ml";
     "ocpUnix.ml";
     "ocpFilename.ml";
-    "debug.ml";
+    "ocpDebug.ml";
     "fileTemplate.ml"
    ];
 

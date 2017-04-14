@@ -20,18 +20,21 @@ begin
     "ocpHashtbl.ml";
     "ocpDigest.ml";
     "ocpArray.ml";
-    "option.ml";
+    "ocpOption.ml";
+    
     "intMap.ml";
     "intSet.ml";
     "stringMap.ml";
     "stringSet.ml";
+
+    "ocpManpage.ml";
+
     "toposort.ml";
     "linearToposort.ml";
     "ocamllexer.mll", { pp = [] };
 (*    "trie.ml"; *)
-    "ocpLang.ml";
+(*    "ocpLang.ml"; *)
     "stringSubst.ml";
-    "manpage.ml";
     "stringTemplate.ml";
     "reentrantBuffers.ml";
   ];
