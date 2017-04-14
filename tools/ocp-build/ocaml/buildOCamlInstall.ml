@@ -112,7 +112,7 @@ let rec safe_mkdir where log filename =
       MinUnix.S_DIR -> ()
     | _ ->
       failwith (Printf.sprintf
-                  "File.safe_mkdir: %S exists, but is not a directory"
+                  "FileAbs.safe_mkdir: %S exists, but is not a directory"
                   filename)
   with MinUnix.Unix_error (MinUnix.ENOENT, _, _) ->
 (*    Printf.eprintf "safe_mkdir: %S doesnot exist\n%!" filename_d; *)
@@ -142,7 +142,7 @@ let rec copy_rec where log src dst =
     MinUnix.chmod dst_d st.MinUnix.st_perm
   | _ ->
     failwith (Printf.sprintf
-                "File.copy_rec: cannot copy unknown kind file %S"
+                "FileAbs.copy_rec: cannot copy unknown kind file %S"
                 src)
 
 let copy_file where log src_file dst_file =
@@ -330,7 +330,7 @@ let install where what lib installdir =
           safe_mkdir where log datadir;
           let basename = Filename.basename file in
           let dst_file = Filename.concat datadir basename in
-          let src_file = Filename.concat (File.to_string lib.lib.lib_dirname) file in
+          let src_file = Filename.concat (FileAbs.to_string lib.lib.lib_dirname) file in
           copy_file where log src_file dst_file
         )
           (BuildValue.get_strings_with_default lib.lib_opk.opk_options "data_files" []);
@@ -342,7 +342,7 @@ let install where what lib installdir =
         safe_mkdir where log installdir;
         let basename = Filename.basename file in
         let dst_file = Filename.concat installdir basename in
-        let src_file = Filename.concat (File.to_string lib.lib.lib_dirname) file in
+        let src_file = Filename.concat (FileAbs.to_string lib.lib.lib_dirname) file in
         copy_file where log src_file dst_file
       )
         (BuildValue.get_strings_with_default lib.lib_opk.opk_options "lib_files" []);
@@ -351,7 +351,7 @@ let install where what lib installdir =
         safe_mkdir where log installbin;
         let basename = Filename.basename file in
         let dst_file = Filename.concat installbin basename in
-        let src_file = Filename.concat (File.to_string lib.lib.lib_dirname) file in
+        let src_file = Filename.concat (FileAbs.to_string lib.lib.lib_dirname) file in
         copy_file where log src_file dst_file
       )
         (BuildValue.get_strings_with_default lib.lib_opk.opk_options "bin_files" []);

@@ -33,9 +33,9 @@ let arg_list = [
 
 let action () =
   let project_root = BuildOptions.find_project_root () in
-  let obuild_dir = File.add_basenames project_root
+  let obuild_dir = FileAbs.add_basenames project_root
         [ project_build_dirname ] in
-  let obuild_dir = File.to_string obuild_dir in
+  let obuild_dir = FileAbs.to_string obuild_dir in
   if !distclean_arg then begin
     Printf.eprintf "Removing _obuild directory\n%!";
     BuildActions.delete_file_or_directory obuild_dir;

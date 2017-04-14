@@ -24,7 +24,6 @@ begin
     "fileChannel.ml";
 
     "fileString.ml";
-    (*    "dirString.ml"; *)
 
     "fileLabels.mli";
     "fileLabels.ml", { asmcomp = ocaml.asmcomp + [ "-nolabels" ];
@@ -32,10 +31,11 @@ begin
                      };
     "fileLines.ml";
 
-    "file.ml";
-    "dir.ml";
+    "fileAbs.ml";
 
-    "dirPath.ml";
+    "fileDir.ml";
+
+    "filePath.ml";
    ];
 
   ocaml.requires = [

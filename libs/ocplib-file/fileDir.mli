@@ -12,18 +12,18 @@
 
 open StringCompat
 
-val mkdir : File.t -> int -> unit
+val mkdir : FileAbs.t -> int -> unit
 
 (* mkdir, with potentially any non-existing parent directory *)
-val safe_mkdir : ?mode:int -> File.t -> unit
+val safe_mkdir : ?mode:int -> FileAbs.t -> unit
 
 (* deprecated, use mkdir and mkdir_all *)
-val make : File.t -> unit
-val make_all : File.t -> unit
+val make : FileAbs.t -> unit
+val make_all : FileAbs.t -> unit
 
-val list : File.t -> string list
-val list_files : File.t -> File.t list
-val iter : (string -> unit) -> File.t -> unit
-val iter_files : (File.t -> unit) -> File.t -> unit
-val remove : File.t -> unit
-val remove_all : File.t -> unit
+val list : FileAbs.t -> string list
+val list_files : FileAbs.t -> FileAbs.t list
+val iter : (string -> unit) -> FileAbs.t -> unit
+val iter_files : (FileAbs.t -> unit) -> FileAbs.t -> unit
+val remove : FileAbs.t -> unit
+val remove_all : FileAbs.t -> unit

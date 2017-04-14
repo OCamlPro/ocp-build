@@ -26,7 +26,7 @@ open StringCompat
 
 type config_file
 
-val create_config_file : File.t -> config_file
+val create_config_file : FileAbs.t -> config_file
 
 
 
@@ -38,7 +38,7 @@ val load : config_file -> unit
 
 (* [append file filename] loads the specified option file. All options whose
 value is specified in this file are updated. *)
-val append : config_file -> File.t -> unit
+val append : config_file -> FileAbs.t -> unit
 
 (*d [save ()] saves all the options values to the option file. *)
 val save : config_file -> unit
@@ -47,8 +47,8 @@ val save : config_file -> unit
 with the help provided for each option. *)
 val save_with_help : config_file -> unit
 
-val config_file : config_file -> File.t
-val set_config_file : config_file -> File.t -> unit
+val config_file : config_file -> FileAbs.t
+val set_config_file : config_file -> FileAbs.t -> unit
 
 (* Loading and saving Hooks *)
 
@@ -82,7 +82,7 @@ val with_option : bool option_class
 val enable_option : bool option_class
 val float_option : float option_class
 val string2_option : (string * string) option_class
-val file_option : File.t option_class
+val file_option : FileAbs.t option_class
 
 (* parameterized options *)
 val list_option : 'a option_class -> 'a list option_class
@@ -234,8 +234,8 @@ val tuple2_to_value :
   ('a -> option_value * option_value) -> 'a -> option_value
 
 
-val filename_to_value : File.t -> option_value
-val value_to_filename : option_value -> File.t
+val filename_to_value : FileAbs.t -> option_value
+val value_to_filename : option_value -> FileAbs.t
 
 val set_simple_option : config_file -> string list -> string -> unit
 val get_simple_option : config_file -> string list -> string
@@ -308,12 +308,12 @@ type load_error =
   | FileDoesNotExist
   | FileCannotBeRead
   | ParseError of int * string
-  | FileHasTempBackup of File.t
+  | FileHasTempBackup of FileAbs.t
   | SetOptionFailed of string * string
 
-exception LoadError of File.t * load_error
+exception LoadError of FileAbs.t * load_error
 
-val string_of_load_error : File.t -> load_error -> string
+val string_of_load_error : FileAbs.t -> load_error -> string
 
 module Op : sig
 

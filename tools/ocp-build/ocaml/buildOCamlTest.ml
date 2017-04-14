@@ -94,7 +94,7 @@ let find_binaries b cwd lib =
       lib.lib.lib_name ^ ext
     in
     let binary =
-      File.to_string (File.add_basenames b.build_dir
+      FileAbs.to_string (FileAbs.add_basenames b.build_dir
           [lib.lib.lib_name; binary_basename])
     in
     Filename.concat cwd binary
@@ -168,10 +168,10 @@ let test_package b stats lib only_benchmarks =
   let ntests = ref 0 in
 
     List.iter (fun (kind, binary) ->
-      let tests_dir = File.add_basenames b.build_dir
+      let tests_dir = FileAbs.add_basenames b.build_dir
           [ "_tests"; lib.lib.lib_name; "tests" ]
       in
-      let tests_result_dir = Filename.concat cwd (File.to_string tests_dir) in
+      let tests_result_dir = Filename.concat cwd (FileAbs.to_string tests_dir) in
       List.iter (fun (test, options) ->
         let options = options :: lib.lib_opk.opk_options in
         let test_asm = BuildValue.get_bool_with_default
@@ -201,12 +201,12 @@ let test_package b stats lib only_benchmarks =
         let subst = StringMap.add "test" test subst in
         let subst = StringMap.add "binary" binary subst in
         let subst = StringMap.add "tests"
-            (File.to_string
-               (File.add_basename lib.lib.lib_src_dir.dir_file "tests"))
+            (FileAbs.to_string
+               (FileAbs.add_basename lib.lib.lib_src_dir.dir_file "tests"))
             subst
         in
         let subst = StringMap.add "sources"
-            (File.to_string lib.lib.lib_src_dir.dir_file) subst in
+            (FileAbs.to_string lib.lib.lib_src_dir.dir_file) subst in
         let subst = StringMap.add "results" test_result_dir subst in
         let cmd = BuildValue.get_strings_with_default options
             "test_cmd" [ "%{binary}%" ]

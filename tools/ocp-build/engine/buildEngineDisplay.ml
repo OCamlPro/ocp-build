@@ -35,8 +35,8 @@ let string_limit n s =
 
 let pretty_rule_name rule len =
   let f = rule.rule_main_target.file_file in
-  let base = File.basename f in
-  let dir = File.to_string (File.dirname f) in
+  let base = FileAbs.basename f in
+  let dir = FileAbs.to_string (FileAbs.dirname f) in
   let dir =
     try (* rm first directory (_obuild/) *)
       let i = String.index dir Filename.dir_sep.[0] in
@@ -51,8 +51,8 @@ let pretty_rule_name rule len =
   let pad = if len > curlen then String.make (len - curlen) ' ' else "" in
   String.concat ""
     [ dir; Filename.dir_sep;
-      term_bold (File.basename (File.chop_extension f)); ".";
-      String.concat "." (File.extensions f) ; pad ]
+      term_bold (FileAbs.basename (FileAbs.chop_extension f)); ".";
+      String.concat "." (FileAbs.extensions f) ; pad ]
 
 let print_stat_line b _proc =
   let npar = IntMap.cardinal b.build_stats_running_rules in
@@ -269,7 +269,7 @@ and eprint_directory indent dir =
 
 and eprint_file indent file =
   Printf.eprintf "%sFILE DEF F%d %s:\n" indent file.file_id
-    (File.to_string file.file_file);
+    (FileAbs.to_string file.file_file);
   ()
 
 and eprint_rule indent r =

@@ -51,7 +51,7 @@ type config_input = {
 val arg_list : unit -> (string * Arg.spec * string) list
 val arg_list1 : (string * Arg.spec * string) list
 
-val load : File.t  -> config_input
+val load : FileAbs.t  -> config_input
 val maybe_save : unit -> unit
 
 val must_save_project : unit -> unit
@@ -78,7 +78,7 @@ module ProjectOptions : sig
   val project_ocpbuild_version : string SimpleConfig.config_option
   val project_external_dirs_option :
     string list SimpleConfig.config_option
-  val root_files : File.t list SimpleConfig.config_option
+  val root_files : FileAbs.t list SimpleConfig.config_option
 
 end
 
@@ -94,7 +94,7 @@ module UserOptions : sig
   val native_option : bool SimpleConfig.config_option
 end
 
-val load_config : SimpleConfig.config_file -> File.t -> unit
+val load_config : SimpleConfig.config_file -> FileAbs.t -> unit
 val apply_arguments : unit -> unit
 val save_config : SimpleConfig.config_file -> unit
 
@@ -118,7 +118,7 @@ val arg_set_true_option :
 val arg_set_false_option :
   bool option SimpleConfig.config_option -> string * Arg.spec * string
 
-val find_project_root : unit -> File.t
+val find_project_root : unit -> FileAbs.t
 val project_build_dirname : string
 val project_config_basename : string
 

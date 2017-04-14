@@ -117,7 +117,7 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
       lib_name = pk.package_name;
       lib_loc;
       lib_source_kind = pk.package_source_kind;
-      lib_dirname = File.of_string package_dirname;
+      lib_dirname = FileAbs.of_string package_dirname;
       lib_type = pk.package_type ;
       lib_tag = "";
       lib_filename = pk.package_filename;

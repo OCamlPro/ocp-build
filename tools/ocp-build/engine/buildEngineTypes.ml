@@ -50,7 +50,7 @@ type only_if_changed = bool
 type build_rule = {
   rule_id : int;
   rule_main_target : build_file;
-  mutable rule_temp_dir : File.t option;
+  mutable rule_temp_dir : FileAbs.t option;
   mutable rule_forced : bool;
   mutable rule_commands :  build_action list;
   rule_loc : loc; (* project_info *)
@@ -94,7 +94,7 @@ and build_command = {
 and command_argument =
     S of string (* string *)
   | T of string  (* temporary file in rule temporary directory *)
-  | F of File.t (* File.t *)
+  | F of FileAbs.t (* FileAbs.t *)
   | BF of build_file (* build_file type *)
   | BD of build_directory (* build_file type *)
 
@@ -104,7 +104,7 @@ and  build_file = {
   mutable file_kind : file_kind; (* mutable because we sometimes discover that
                                     a file is virtual afterwards. *)
   file_dir :  build_directory;
-  file_file : File.t;
+  file_file : FileAbs.t;
   file_basename : string;
   mutable file_exists : bool;
   mutable file_mtime : BuildMtime.t;
@@ -117,7 +117,7 @@ and  build_directory = {
   dir_key : int * int64; (* (st_dev, st_ino) *)
   dir_id : int;
   dir_basename : string;
-  mutable dir_file : File.t;
+  mutable dir_file : FileAbs.t;
   dir_parent :  build_directory;
   mutable dir_files :  build_file StringMap.t;
   mutable dir_dirs :  build_directory StringMap.t;
@@ -155,7 +155,7 @@ and build_context = {
 
   mutable build_dir_basename : string;
   mutable build_dir_filename : string;
-  mutable build_dir : File.t;
+  mutable build_dir : FileAbs.t;
 
   mutable build_log : out_channel;
 

@@ -70,7 +70,7 @@ let package_option =
     )
 
 
-let config_file = File.of_string  "ocp-autoconf.config"
+let config_file = FileAbs.of_string  "ocp-autoconf.config"
 let config = SimpleConfig.create_config_file config_file
 
 let project_name = SimpleConfig.create_option config
@@ -414,7 +414,7 @@ let save () =
   global_to_project ();
 
   Printf.eprintf "Saving template file %S\n%!"
-    (File.to_string config_file);
+    (FileAbs.to_string config_file);
   SimpleConfig.save_with_help config;
   ()
 
@@ -422,7 +422,7 @@ let load () =
   begin
     try
       Printf.eprintf "Loading project: %s ...%!"
-        (File.to_string config_file);
+        (FileAbs.to_string config_file);
       SimpleConfig.load config;
       Printf.eprintf "ok\n%!";
     with
@@ -432,7 +432,7 @@ let load () =
         match error with
         | SimpleConfig.FileDoesNotExist ->
           Printf.eprintf "Error: %S does not exist.\n%!"
-            (File.to_string config_file);
+            (FileAbs.to_string config_file);
           if !arg_save_template then begin
             format_version =:= initial_format_version;
             save ()

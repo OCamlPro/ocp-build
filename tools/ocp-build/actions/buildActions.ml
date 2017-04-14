@@ -67,7 +67,7 @@ let print_deleted () =
    [] -> ()
       |  _ ->
 
-   let _, ext = File.cut_last_extension file.file_basename in
+   let _, ext = FileAbs.cut_last_extension file.file_basename in
 (*   Printf.eprintf "Testing generated file %s[%s]\n" filename ext; *)
 
    match ext with
@@ -119,7 +119,7 @@ let do_distclean () =
 (* let list_of_ocp_files_filename = "ocp-build.root" *)
 
 type project_info = {
-  project_dir : File.t;
+  project_dir : FileAbs.t;
   cin : BuildOptions.config_input;
   cout : BuildOCamlConfig.TYPES.config_output;
 }

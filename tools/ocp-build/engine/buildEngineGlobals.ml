@@ -35,8 +35,6 @@ let new_process_id b =
 
 
 
-let file_filename file = File.to_string file.file_file
+let file_filename file = FileAbs.to_string file.file_file
 (*  Printf.eprintf "File dir = %d\n" file.file_dir.dir_id; *)
 (*  Filename.concat file.file_dir.dir_fullname file.file_basename *)
-
-

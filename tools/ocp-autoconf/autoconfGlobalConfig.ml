@@ -15,9 +15,9 @@ open StringCompat
 let (!!) = SimpleConfig.(!!)
 let (=:=) = SimpleConfig.(=:=)
 
-let homedir = File.of_string AutoconfCommon.homedir
+let homedir = FileAbs.of_string AutoconfCommon.homedir
 
-let config_file = File.add_basenames homedir
+let config_file = FileAbs.add_basenames homedir
     [ ".ocp"; "ocp-autoconf"; "ocp-autoconf.conf" ]
 let config = SimpleConfig.create_config_file config_file
 
@@ -54,7 +54,7 @@ let format_version = SimpleConfig.create_option config
 let current_format_version = 2
 
 let save () =
-  File.safe_mkdir (File.dirname config_file);
+  FileAbs.safe_mkdir (FileAbs.dirname config_file);
   SimpleConfig.save_with_help config
 
 let load () =
@@ -62,7 +62,7 @@ let load () =
   begin
     try
       Printf.eprintf "Loading user config: %s ...%!"
-        (File.to_string config_file);
+        (FileAbs.to_string config_file);
       SimpleConfig.load config;
       Printf.eprintf "ok\n%!";
     with
@@ -72,7 +72,7 @@ let load () =
         match error with
         | SimpleConfig.FileDoesNotExist ->
           Printf.eprintf "Warning: %S does not exist.\n%!"
-            (File.to_string config_file);
+            (FileAbs.to_string config_file);
           Printf.eprintf "Generating a default version.\n%!";
           save ()
         | _ -> raise exn
@@ -85,6 +85,6 @@ let load () =
   if !!format_version < current_format_version then begin
     format_version =:= current_format_version;
     Printf.eprintf "Updating %S to version %d\n%!"
-      (File.to_string config_file) current_format_version;
+      (FileAbs.to_string config_file) current_format_version;
     save ()
   end

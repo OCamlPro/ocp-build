@@ -26,8 +26,8 @@ open BuildEngineGlobals
 let safe_mkdir (dir : string) =
   BuildEngineReport.cmd_mkdir dir;
   BuildMisc.safe_mkdir dir
-let safe_make_dir (dir : File.t) =
-  safe_mkdir (File.to_string dir)
+let safe_make_dir (dir : FileAbs.t) =
+  safe_mkdir (FileAbs.to_string dir)
 let rename_file f1 f2 =
   BuildEngineReport.cmd_rename f1 f2;
   BuildMisc.rename f1 f2
@@ -163,7 +163,7 @@ let rule_need_execution =
             information ?
 
             Printf.bprintf cmdbuf "#move? %s %s\n"
-            (File.to_string f1) (File.to_string f2);
+            (FileAbs.to_string f1) (FileAbs.to_string f2);
 
          *)
               commands
@@ -574,11 +574,11 @@ let check_temporary b r file =
 let lock_temporary b r file =
   if IntMap.mem file.file_id b.temp_files then begin
     Printf.eprintf "Error: lock_temporary: file %S is already locked"
-      (File.to_string file.file_file);
+      (FileAbs.to_string file.file_file);
     BuildMisc.clean_exit 2
   end;
   (*    Printf.eprintf "LOCKING FILE %d %S\n%!" file.file_id
-        (File.to_string file.file_file);
+        (FileAbs.to_string file.file_file);
   *)
   b.temp_files <- IntMap.add file.file_id (r, ref []) b.temp_files
 
@@ -606,7 +606,7 @@ let check_temporaries b r =
 let release_temporaries b r =
   let release_temporary file =
     (*    Printf.eprintf "UNLOCKING FILE %d %S\n%!" file.file_id
-          (File.to_string file.file_file); *)
+          (FileAbs.to_string file.file_file); *)
     let _, rules = IntMap.find file.file_id b.temp_files in
     b.temp_files <- IntMap.remove file.file_id b.temp_files;
     List.iter (fun r ->
@@ -668,9 +668,9 @@ let rule_executed b r execution_status =
     Printf.eprintf "rule %d <- STATE EXECUTED\n" r.rule_id;
   r.rule_state <- RULE_EXECUTED;
   let temp_dir = BuildEngineRules.rule_temp_dir r in
-  if File.exists temp_dir then begin
-    BuildEngineReport.cmd_rmdir (File.to_string temp_dir);
-    Dir.remove_all temp_dir;
+  if FileAbs.exists temp_dir then begin
+    BuildEngineReport.cmd_rmdir (FileAbs.to_string temp_dir);
+    FileDir.remove_all temp_dir;
   end;
   begin
     match execution_status with
@@ -965,7 +965,7 @@ let print_file message filename =
 let s = Bytes.create 32768
     *)
 
-(* TODO: Use File.copy Copy line-oriented file *)
+(* TODO: Use FileAbs.copy Copy line-oriented file *)
 let copy_file b src dst =
   if verbose 7 then Printf.eprintf "copy_file from %s to %s\n%!" src dst;
   try
@@ -1016,7 +1016,7 @@ let command_executed b proc status =
             [
             Printf.sprintf "[%d.%d] '%s'" r.rule_id proc.proc_step
             (BuildEngineDisplay.term_escape (String.concat "' '" cmd_args));
-            File.string_of_file (temp_stderr b r)
+            FileAbs.string_of_file (temp_stderr b r)
             ];
             end; *)
     MinUnix.unlink (temp_stdout b r);
@@ -1181,13 +1181,13 @@ let parallel_loop b ncores =
 
       | NeedTempDir ->
         let temp_dir = BuildEngineRules.rule_temp_dir r in
-        if not (File.exists temp_dir) then
+        if not (FileAbs.exists temp_dir) then
           safe_make_dir temp_dir;
         execute_proc proc nslots
 
       | Execute cmd ->
         let temp_dir = BuildEngineRules.rule_temp_dir r in
-        if not (File.exists temp_dir) then
+        if not (FileAbs.exists temp_dir) then
           safe_make_dir temp_dir;
         proc.proc_last <- Some cmd;
         if verbose 3 then
@@ -1232,13 +1232,13 @@ let parallel_loop b ncores =
             fa1 fa2;
         Printf.fprintf b.build_log "cp %s %s\n" fa1 fa2;
         begin try
-                File.copy_file ff1 ff2
+                FileAbs.copy_file ff1 ff2
           with e ->
             Printf.eprintf "Error copying %s to %s: %s\n%!" fa1 fa2
               (Printexc.to_string e);
-            if not (File.exists ff1) then
+            if not (FileAbs.exists ff1) then
               Printf.eprintf "\tSource file %s does not exist\n%!" fa1;
-            if not (File.exists (File.dirname ff2)) then
+            if not (FileAbs.exists (FileAbs.dirname ff2)) then
               Printf.eprintf
                 "\tDestination directory of %s does not exist\n%!"
                 fa2;
@@ -1278,10 +1278,10 @@ let parallel_loop b ncores =
             Printf.eprintf "Error moving %s to %s: %s\n%!"
               (fa1)
               (fa2) (Printexc.to_string e);
-            if not (File.exists (ff1)) then
+            if not (FileAbs.exists (ff1)) then
               Printf.eprintf "\tSource file %s does not exist\n%!"
                 (fa1);
-            if not (File.exists (File.dirname (ff2))) then
+            if not (FileAbs.exists (FileAbs.dirname (ff2))) then
               Printf.eprintf "\tDestination directory %s does not exist\n%!"
                 (fa2);
             BuildMisc.clean_exit 2
@@ -1294,7 +1294,7 @@ let parallel_loop b ncores =
         let ff1 = BuildEngineRules.file_of_argument r f1 in
         let ff2 = BuildEngineRules.file_of_argument r f2 in
 
-        if File.exists ff1 then
+        if FileAbs.exists ff1 then
           begin try
                   if verbose 2 then
                     Printf.eprintf "[%d.%d] mv? %s %s\n%!"
@@ -1307,9 +1307,9 @@ let parallel_loop b ncores =
                   match link with
                   | None -> ()
                   | Some f3 ->
-                    let src_file = File.to_string ff2 in
+                    let src_file = FileAbs.to_string ff2 in
                     let dst_file =
-                      File.to_string (BuildEngineRules.file_of_argument r f3) in
+                      FileAbs.to_string (BuildEngineRules.file_of_argument r f3) in
                     try
                       if Sys.file_exists dst_file then begin
                         let ic = open_in dst_file in
@@ -1329,12 +1329,12 @@ let parallel_loop b ncores =
             with e ->
               Printf.eprintf "Error moving %s to %s: %s\n%!"
                 fa1 fa2 (Printexc.to_string e);
-              if not (File.exists (ff1)) then
+              if not (FileAbs.exists (ff1)) then
                 Printf.eprintf "\tSource file %s does not exist\n%!"
                   (fa1);
-              if not (File.exists (File.dirname (ff2))) then
+              if not (FileAbs.exists (FileAbs.dirname (ff2))) then
                 Printf.eprintf "\tDestination directory %s does not exist\n%!"
-                  (File.to_string (File.dirname (ff2)));
+                  (FileAbs.to_string (FileAbs.dirname (ff2)));
               exit2 ();
           end;
         execute_proc proc nslots
@@ -1460,13 +1460,13 @@ let fatal_errors b = b.fatal_errors
 let sanitize b delete_orphans is_ok =
   let has_orphan_directories = ref false in
   (*  Printf.fprintf stderr "BuildEngine.sanitize %s\n%!" b.build_dir_filename; *)
-  let dir = File.of_string b.build_dir_filename in
+  let dir = FileAbs.of_string b.build_dir_filename in
   let cdir = BuildEngineContext.add_directory b b.build_dir_filename in
   let orphan_files = ref 0 in
   let rec iter dir cdir =
-    Dir.iter (fun basename ->
-      let filename = File.add_basename dir basename in
-      if File.is_directory filename then
+    FileDir.iter (fun basename ->
+      let filename = FileAbs.add_basename dir basename in
+      if FileAbs.is_directory filename then
         try
           let cdir = BuildEngineContext.find_dir cdir basename in
           iter filename cdir
@@ -1479,7 +1479,7 @@ let sanitize b delete_orphans is_ok =
             KeepOrphans
           | DeleteOrphanFiles -> ()
           | DeleteOrphanFilesAndDirectories ->
-            (try Dir.remove_all filename with _ -> ())
+            (try FileDir.remove_all filename with _ -> ())
       else
         try
           ignore (BuildEngineContext.find_file cdir basename : BuildEngineTypes.build_file)
@@ -1490,13 +1490,13 @@ let sanitize b delete_orphans is_ok =
           | DeleteOrphanFiles
           | DeleteOrphanFilesAndDirectories ->
             decr orphan_files;
-            (try File.remove filename with _ -> ())
+            (try FileAbs.remove filename with _ -> ())
     ) dir
 
   in
-  Dir.iter (fun basename ->
-    let filename = File.add_basename dir basename in
-    if File.is_directory filename then
+  FileDir.iter (fun basename ->
+    let filename = FileAbs.add_basename dir basename in
+    if FileAbs.is_directory filename then
       try
         let cdir = BuildEngineContext.find_dir cdir basename in
         iter filename cdir
@@ -1509,7 +1509,7 @@ let sanitize b delete_orphans is_ok =
             KeepOrphans
           | DeleteOrphanFiles -> ()
           | DeleteOrphanFilesAndDirectories ->
-            (try Dir.remove_all filename with _ -> ())
+            (try FileDir.remove_all filename with _ -> ())
         end
   ) dir;
   if !has_orphan_directories then begin

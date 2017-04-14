@@ -53,8 +53,8 @@ let arg_list = [
 
 let action () =
   let project_root = BuildOptions.find_project_root () in
-(*  Printf.eprintf "project_root = %S\n" (File.to_string project_root); *)
-  let filename = File.add_basenames project_root
+(*  Printf.eprintf "project_root = %S\n" (FileAbs.to_string project_root); *)
+  let filename = FileAbs.add_basenames project_root
       [ project_build_dirname; project_config_basename ] in
 
   BuildOptions.load_config ProjectOptions.config_file filename;

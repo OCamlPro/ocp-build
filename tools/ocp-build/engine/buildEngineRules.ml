@@ -99,8 +99,8 @@ let string_of_argument arg =
   match arg with
     S s -> BuildSubst.subst_global s
   | T s -> "${temp}/" ^ BuildSubst.subst_global s
-  | F f -> File.to_string f
-  | BF f -> File.to_string f.file_file
+  | F f -> FileAbs.to_string f
+  | BF f -> FileAbs.to_string f.file_file
   | BD d -> d.dir_fullname
 
 let rule_temp_dir r =
@@ -111,14 +111,14 @@ let rule_temp_dir r =
         (Digest.string
            (file_filename r.rule_main_target)) in
     let dir =
-      File.add_basename r.rule_context.build_dir ("RULE-" ^ hash) in
+      FileAbs.add_basename r.rule_context.build_dir ("RULE-" ^ hash) in
     r.rule_temp_dir <- Some dir;
     dir
 
 let rule_subst r s =
   BuildSubst.substitute (fun r s ->
     match s with
-    | "RULE_TEMP_DIR" -> File.to_string (rule_temp_dir r)
+    | "RULE_TEMP_DIR" -> FileAbs.to_string (rule_temp_dir r)
     | _ ->
       try
         StringMap.find s (BuildSubst.global_subst ())
@@ -127,8 +127,8 @@ let rule_subst r s =
 
 let file_of_argument r arg =
   match arg with
-    S s -> File.of_string (rule_subst r s)
-  | T s -> File.add_basename (rule_temp_dir r) (rule_subst r s)
+    S s -> FileAbs.of_string (rule_subst r s)
+  | T s -> FileAbs.add_basename (rule_temp_dir r) (rule_subst r s)
   | F f -> f
   | BF f -> f.file_file
   | BD d -> d.dir_file
@@ -136,10 +136,10 @@ let file_of_argument r arg =
 let argument_of_argument r arg =
   match arg with
     S s -> rule_subst r s
-  | T s -> File.to_string (
-    File.add_basename (rule_temp_dir r) (rule_subst r s))
-  | F f -> File.to_string f
-  | BF f -> File.to_string f.file_file
+  | T s -> FileAbs.to_string (
+    FileAbs.add_basename (rule_temp_dir r) (rule_subst r s))
+  | F f -> FileAbs.to_string f
+  | BF f -> FileAbs.to_string f.file_file
   | BD d -> d.dir_fullname
 
 

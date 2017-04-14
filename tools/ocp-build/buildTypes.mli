@@ -41,7 +41,7 @@ type package_info = {
   lib_builder_context : builder_context;
 
   lib_loc : string * int * string;
-  mutable lib_dirname : File.t;
+  mutable lib_dirname : FileAbs.t;
   mutable lib_type : BuildOCPTypes.package_type;
   mutable lib_tag : string;
 
