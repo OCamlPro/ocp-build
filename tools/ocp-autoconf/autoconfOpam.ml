@@ -260,8 +260,14 @@ let () =
       !!AutoconfGlobalConfig.opam_repo = "" then begin
 
         Printf.eprintf
-          "Warning: options 'download_url' (ocp-autoconf.config) and 'opam_repo' (~/.ocp/ocp-autoconf/) need to be set for\n";
-        Printf.eprintf "  'push-opam.sh' to be generated.\n%!";
+          "Warning: 'push-opam.sh' is not generated because:\n";
+        if !!AutoconfProjectConfig.download_url_prefix = "" &&
+             !!AutoconfProjectConfig.github_project = "" then
+          Printf.eprintf "  * both 'download_url' and 'github_project' are empty (ocp-autoconf.config)\n";
+        if !!AutoconfGlobalConfig.opam_repo = ""then
+          Printf.eprintf "  * option 'opam_repo' is empty (~/.ocp/ocp-autoconf/)\n";
+
+        Printf.eprintf "%!"
 
       end else begin
 
