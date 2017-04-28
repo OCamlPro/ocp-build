@@ -1,1 +1,6 @@
-Project manager for OCaml
+Project builder for OCaml
+
+ocp-build main features are:
+* simple library/program description
+* detection of ocamlfind libraries (parsing of META)
+* incremental and parallel compilation of OCaml projects
