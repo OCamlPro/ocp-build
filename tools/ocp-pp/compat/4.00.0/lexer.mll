@@ -14,7 +14,7 @@
 
 {
 
-open StringCompat
+open OcpCompat
 open Lexing
 open Misc
 open Parser
