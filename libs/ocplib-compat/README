@@ -1,0 +1,11 @@
+
+Depending on the current version of OCaml, the ./configure will set
+the variable HAS_BYTES to one of the 3 available implementations of
+stringCompat.ml.
+
+$(HAS_BYTES)/stringCompat.ml will then be copied
+into string-compat/ to be used by the Makefile to build the initial
+(bootstrap) version of ocp-build.
+
+Later, the version of stringCompat.ml in the current directory will
+be used, using ocp-pp to decide what to export.

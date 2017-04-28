@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 open BuildEngineTypes
 open BuildEngineGlobals
 
@@ -166,7 +166,7 @@ let rec add_directory b filename =
             dir_id = new_dir_id b;
             dir_basename = basename;
             dir_parent = dir;
-            dir_file = FileAbs.of_string (if on_Windows then dirname else "/");
+            dir_file = FileGen.of_string (if on_Windows then dirname else "/");
             dir_files = StringMap.empty;
             dir_dirs = StringMap.empty;
             dir_fullname = filename;
@@ -220,7 +220,7 @@ let rec add_directory b filename =
                 let dir = {
                   dir_basename = basename;
                   dir_parent = parent_dir;
-                  dir_file = FileAbs.add_basename parent_dir.dir_file basename;
+                  dir_file = FileGen.add_basename parent_dir.dir_file basename;
                   dir_key = key;
                   dir_id = new_dir_id b;
                   dir_files = StringMap.empty;
@@ -291,7 +291,7 @@ let add_any_file file_package dir filename file_kind =
       file_kind = file_kind;
       file_basename = basename;
       file_dir = dir;
-      file_file = FileAbs.add_basename dir.dir_file basename;
+      file_file = FileGen.add_basename dir.dir_file basename;
       file_exists = false; (* shall we do that now ? *)
       file_mtime = BuildMtime.zero;
       file_target_of = [];
@@ -370,7 +370,7 @@ let create current_dir_filename build_dir_filename =
 
       build_dir_filename = build_dir_filename;                   (* "/..../_obuild" *)
       build_dir_basename = Filename.basename build_dir_filename; (* "_obuild" *)
-      build_dir = FileAbs.of_string build_dir_filename;
+      build_dir = FileGen.of_string build_dir_filename;
 
       build_log = build_log;
 
@@ -405,7 +405,7 @@ let create current_dir_filename build_dir_filename =
     (*  Printf.eprintf "add_directory MASTER: %s\n" current_dir_filename; *)
   let dir = add_directory b current_dir_filename in
   dir.dir_fullname <- ".";
-  dir.dir_file <- FileAbs.of_string ".";
+  dir.dir_file <- FileGen.of_string ".";
   let dir2 = add_directory b current_dir_filename in
   assert (dir == dir2);
   b

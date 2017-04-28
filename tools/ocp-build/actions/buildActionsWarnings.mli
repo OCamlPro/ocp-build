@@ -20,5 +20,5 @@ val set_default_is_always : unit -> unit
    using [filename] as a reminder of former warnings, and update
    [filename] consequently. [kind] is a simple string to characterize
    these warnings, typically "env" or "project" *)
-val print_env_warnings : FileAbs.t -> BuildWarnings.set -> unit
-val print_pj_warnings : FileAbs.t -> BuildWarnings.set -> unit
+val print_env_warnings : FileGen.t -> BuildWarnings.set -> unit
+val print_pj_warnings : FileGen.t -> BuildWarnings.set -> unit

@@ -10,7 +10,31 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+(* This module implements operations on filenames, represented by an
+   abstract type, so that manipulations of filenames are better checked. *)
 
-val get : int -> bytes
-val free : bytes -> unit
+open OcpCompat
+
+include (FileSig.FILE_OPERATIONS)
+
+val equal : t -> t -> bool
+
+(* conversions to and from filenames *)
+val to_string : t -> string
+val of_string : string -> t
+
+(* OS specific versions *)
+val of_unix_string : string -> t
+val of_win32_string : string -> t
+
+(* Force either /absolute_path or ./implicit_path *)
+val to_rooted_string : t -> string
+
+val of_path : string -> string list -> t
+
+module Op : sig
+
+  (* concatenate ('/' must be the only file separator in the string) *)
+  val (//) : t -> string -> t
+
+  end

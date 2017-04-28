@@ -22,7 +22,7 @@ option = long
 
 *)
 
-open StringCompat
+open OcpCompat
 
 type t
 
@@ -57,5 +57,5 @@ val remove_section : t -> string -> unit
 (* TODO: Python does some interpolation, i.e. %x is replaced by the value
 of option "x" at that point. *)
 
-val write : FileAbs.t -> t -> unit
-val read : FileAbs.t -> t
+val write : FileGen.t -> t -> unit
+val read : FileGen.t -> t

@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 module type CONTENT_OPERATIONS = sig
 

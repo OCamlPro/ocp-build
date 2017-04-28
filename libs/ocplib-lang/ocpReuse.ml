@@ -21,7 +21,7 @@
    Buffer sizes should be between 4kB and 1MB.
 *)
 
-open StringCompat
+open OcpCompat
 
 let sizes = Array.init 10 (fun _ -> Queue.create ())
 

@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 module TYPES = struct
 

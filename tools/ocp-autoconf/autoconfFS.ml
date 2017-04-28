@@ -10,9 +10,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
-type oc = string * StringCompat.Buffer.t
+type oc = string * OcpCompat.Buffer.t
 
 let post_commit_hooks = ref []
 let add_post_commit_hook (f : unit -> string list) =

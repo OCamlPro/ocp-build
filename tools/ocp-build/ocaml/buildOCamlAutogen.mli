@@ -11,4 +11,4 @@
 (**************************************************************************)
 
 (* open BuildBase *)
-val create_package : string -> BuildOCPTypes.package_type -> FileAbs.t -> unit
+val create_package : string -> BuildOCPTypes.package_type -> FileGen.t -> unit

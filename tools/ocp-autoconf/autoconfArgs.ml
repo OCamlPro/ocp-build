@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 let arg_force = ref false
 let arg_git_add = ref false

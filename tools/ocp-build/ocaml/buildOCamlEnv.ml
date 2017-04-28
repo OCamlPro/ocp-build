@@ -28,7 +28,7 @@
      they can be defined as common subsets
 *)
 
-open StringCompat
+open OcpCompat
 
 open BuildObjectInspector
 

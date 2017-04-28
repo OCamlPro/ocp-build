@@ -11,7 +11,7 @@
 (**************************************************************************)
 
 (*
-open StringCompat
+open OcpCompat
 open BuildMisc
 type unused
 

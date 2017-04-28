@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 type out_file = out_channel
 
@@ -18,15 +18,15 @@ let output_line chan string =
   output_string chan (string ^ FileOS.line_separator)
 
 let copy_file ic oc =
-  let s = ReentrantBuffers.get FileOS.default_buffer_size in
+  let s = OcpReuse.get FileOS.default_buffer_size in
   let rec copy s ic oc =
     let n = input ic s 0 FileOS.default_buffer_size in
     if n = 0 then () else (output oc s 0 n; copy s ic oc)
   in copy s ic oc;
-  ReentrantBuffers.free s
+  OcpReuse.free s
 
 let iter_blocks f ic =
-  let s = ReentrantBuffers.get FileOS.default_buffer_size in
+  let s = OcpReuse.get FileOS.default_buffer_size in
   let rec iter f ic s =
     let nread = input ic s 0 FileOS.default_buffer_size in
     if nread > 0 then begin
@@ -35,11 +35,11 @@ let iter_blocks f ic =
     end
   in
   iter f ic s;
-  ReentrantBuffers.free s
+  OcpReuse.free s
 
 
 let read_file ic =
-  let s = ReentrantBuffers.get FileOS.default_buffer_size in
+  let s = OcpReuse.get FileOS.default_buffer_size in
   let b = Buffer.create 1000 in
   let rec iter ic b s =
     let nread = input ic s 0 FileOS.default_buffer_size in
@@ -49,7 +49,7 @@ let read_file ic =
     end
   in
   iter ic b s;
-  ReentrantBuffers.free s;
+  OcpReuse.free s;
   Buffer.contents b
 let string_of_file = read_file
 

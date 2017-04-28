@@ -21,7 +21,7 @@
 *)
 
 
-val parse : FileAbs.t -> in_channel -> SimpleConfigTypes.option_module
+val parse : FileGen.t -> in_channel -> SimpleConfigTypes.option_module
 
 val reset : unit -> unit
 val save_module :

@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 val putenv : string -> string -> unit
 val add_to_global_subst : string -> string -> unit

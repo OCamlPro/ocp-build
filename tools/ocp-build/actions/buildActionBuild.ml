@@ -24,7 +24,7 @@
    in a particular compilation scheme.
 *)
 
-open StringCompat
+open OcpCompat
 
 open SimpleConfig
 
@@ -44,7 +44,7 @@ open BuildOCamlInstall.TYPES
 
 open StdlibArg
 
-let verbose = DebugVerbosity.verbose ["B"] "BuildActionBuild"
+let verbose = OcpDebug.verbose_function ["B"; "BuildActionBuild"]
 
   (*
   if

@@ -12,7 +12,7 @@
 
 %{
 
-open StringCompat
+open OcpCompat
 
 open BuildOCPTree
 (* open BuildOCPTypes *)

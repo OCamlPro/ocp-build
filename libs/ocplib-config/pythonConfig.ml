@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 type t = {
   mutable sections : section StringMap.t;
@@ -198,7 +198,7 @@ let add_option_lines t section lines =
 
 let read filename =
 (*  Printf.fprintf stderr "ConfigParser.read\n%!"; *)
-  let lines = Array.to_list (FileAbs.read_lines filename) in
+  let lines = Array.to_list (FileGen.read_lines filename) in
   let rec iter t section lines =
     match lines with
         [] -> ()
@@ -264,4 +264,4 @@ let write file t =
   let b = Buffer.create 1000 in
   write_section b t default_section_name;
   List.iter (write_section b t) (sections t);
-  FileAbs.write_file file (Buffer.contents b)
+  FileGen.write_file file (Buffer.contents b)

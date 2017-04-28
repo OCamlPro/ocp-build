@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 open BuildValue.TYPES
 open BuildOCP2Tree
 open BuildOCP2Prims

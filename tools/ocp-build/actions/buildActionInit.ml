@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 open BuildArgs
 
@@ -27,7 +27,7 @@ open BuildTypes
 
 open StdlibArg
 
-let verbose = DebugVerbosity.verbose ["B"] "BuildActionInit"
+let verbose = OcpDebug.verbose_function ["B"; "BuildActionInit"]
 
 let do_load_project_files cin project_dir state config_state =
   let open BuildOptions.ProjectOptions in
@@ -66,7 +66,7 @@ let do_load_project_files cin project_dir state config_state =
           let files = BuildOCP.scan_root dir in
           root_files =:= !!root_files @ files
         ) (project_dir ::
-            (List.map FileAbs.of_string !!project_external_dirs_option));
+            (List.map FileGen.of_string !!project_external_dirs_option));
         BuildActions.time_step "   Done scanning project for .ocp files";
       end;
 
@@ -293,11 +293,11 @@ let do_init_project_building w p pj =
 
   BuildActions.time_step "Saving raw project info...";
   BuildOCP.save_project_state pj
-    (FileAbs.add_basename (FileAbs.of_string build_dir_filename) "ocp.ocpx");
+    (FileGen.add_basename (FileGen.of_string build_dir_filename) "ocp.ocpx");
   BuildActions.time_step "   Done saving raw project info";
 
   let b =
-    BuildEngineContext.create (FileAbs.to_string p.project_dir)
+    BuildEngineContext.create (FileGen.to_string p.project_dir)
       build_dir_filename in
 
   begin match p.cout.cout_ocamlbin with
@@ -421,13 +421,13 @@ let do_read_env p =
         List.iter (fun dir ->
           if verbose 3 then
             Printf.eprintf "Scanning installed .ocp files in %S\n%!" dir;
-          let dir = FileAbs.of_string dir in
+          let dir = FileGen.of_string dir in
           env_ocp_files := ( BuildOCP.scan_root dir) @ !env_ocp_files
         ) (!env_ocp_dirs @ cout.cout_meta_dirnames);
         List.iter (fun dir ->
           if verbose 3 then
             Printf.eprintf "Scanning installed .ocp files in %S\n%!" dir;
-          let dir = FileAbs.of_string dir in
+          let dir = FileGen.of_string dir in
           env_ocp_files := ( BuildOCP.scan_root dir) @ !env_ocp_files
         ) !arg_ocp_dirs;
       BuildActions.time_step "   Done scanning env for .ocp files";
@@ -449,11 +449,11 @@ let do_read_env p =
   state, config.config_state
 
 let chdir_to_project p =
-  let dir = FileAbs.to_string p.project_dir in
+  let dir = FileGen.to_string p.project_dir in
   if MinUnix.getcwd () <> dir then begin
     BuildMisc.chdir dir;
     Printf.fprintf stdout "ocp-build: Entering directory `%s'\n%!"
-      (FileAbs.to_string p.project_dir);
+      (FileGen.to_string p.project_dir);
 (* TODO: move at_exit to add_finally *)
     let final_handler_executed = ref false in
     let final_handler () =
@@ -461,7 +461,7 @@ let chdir_to_project p =
         final_handler_executed := true;
         Printf.printf
           "ocp-build: Leaving directory `%s'\n%!"
-          (FileAbs.to_string p.project_dir)
+          (FileGen.to_string p.project_dir)
       end
     in
     (*    add_finally final_handler; *)

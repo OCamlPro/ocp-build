@@ -30,5 +30,5 @@ val file_of_package : string -> MetaTypes.meta_package -> unit
 val variable_of_package :
   MetaTypes.meta_package ->    (* META *)
   string ->                    (* wanted variable *)
-  StringCompat.StringSet.t ->  (* predicates *)
+  OcpCompat.StringSet.t ->  (* predicates *)
   string list                  (* result *)

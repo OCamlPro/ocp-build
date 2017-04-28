@@ -31,11 +31,13 @@ begin
                      };
     "fileLines.ml";
 
-    "fileAbs.ml";
+    "fileGen.ml";
 
     "fileDir.ml";
 
     "filePath.ml";
+
+    "file.ml"; (* For backward compatibility. To be removed soon. *)
    ];
 
   ocaml.requires = [

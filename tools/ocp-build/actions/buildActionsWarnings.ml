@@ -12,7 +12,7 @@
 
 open StdlibArg
 
-open StringCompat
+open OcpCompat
 open BuildOCPTypes
 
 
@@ -63,7 +63,7 @@ let print_warning w = Printf.eprintf "%s%!" w
 
 let print_warnings project_dir arg_print_warnings warnings_kind w =
   let warnings_filename =
-    Printf.sprintf warnings_filename_fmt (FileAbs.to_string project_dir)
+    Printf.sprintf warnings_filename_fmt (FileGen.to_string project_dir)
       warnings_kind in
   let count = BuildWarnings.count w in
   if count = 0 then begin

@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 (* Simplified/partial pre-interpreted version of META files, as used
    by ocp-build 1.X: *)

@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 open BuildValue.TYPES
 
 type package_type =
@@ -39,7 +39,7 @@ type 'a package = {
   (* disabled = Some reason; enabled = None *)
   mutable package_disabled : string option;
   mutable package_requires_list : 'a package list;
-  mutable package_node : LinearToposort.node;
+  mutable package_node : OcpToposort.node;
 }
 
 and pre_package = unit package

@@ -30,7 +30,7 @@ other files. For now, it is better to declare all options here.
 *)
 
 
-open StringCompat
+open OcpCompat
 
 open SimpleConfig
 (* 3 configuration files:
@@ -171,33 +171,33 @@ let arg_set_string_option option =
     ), "STRING " ^ LowLevel.get_help option)
 
 let load_config config filename =
-  if not (FileAbs.exists filename) then begin
+  if not (FileGen.exists filename) then begin
     try
       Printf.eprintf
         "Warning: file %S does not exist. Creating with default values.\n%!"
-        (FileAbs.to_string filename);
-      FileDir.safe_mkdir (FileAbs.dirname filename);
+        (FileGen.to_string filename);
+      FileDir.safe_mkdir (FileGen.dirname filename);
 
       SimpleConfig.set_config_file config filename;
       SimpleConfig.save_with_help config
     with
     | _e ->
       Printf.eprintf "Warning: could not save file %S\n%!"
-        (FileAbs.to_string filename)
+        (FileGen.to_string filename)
   end else
     try
       SimpleConfig.append config filename
     with e ->
       Printf.eprintf
         "Warning: Exception %S while loading config file %S\n%!"
-        (Printexc.to_string e) (FileAbs.to_string filename)
+        (Printexc.to_string e) (FileGen.to_string filename)
 
 let save_config config =
   try SimpleConfig.save_with_help config
   with e ->
     Printf.eprintf "Warning: exception %S while saving config %S\n%!"
       (Printexc.to_string e)
-      (FileAbs.to_string (SimpleConfig.config_file config))
+      (FileGen.to_string (SimpleConfig.config_file config))
 
 
 
@@ -205,7 +205,7 @@ let apply_arguments () =
   List.iter (fun arg_action ->
     match arg_action with
     | LoadFile (config, filename) ->
-      load_config config (FileAbs.of_string filename)
+      load_config config (FileGen.of_string filename)
     | SaveFile (config, filename) ->
       save_configs := (config, filename) :: !save_configs
     | SetInt (option,n) -> option =:= n
@@ -221,7 +221,7 @@ let apply_arguments () =
   ) (List.rev !arguments);
 
   List.iter (fun (config, filename) ->
-    SimpleConfig.set_config_file config (FileAbs.of_string filename);
+    SimpleConfig.set_config_file config (FileGen.of_string filename);
     SimpleConfig.save_with_help config) !save_configs
 
 (********    Startup code     *********)
@@ -249,7 +249,7 @@ module UserOptions = struct
   let default_filename = user_config_filename
 
   let must_save_config = ref false
-  let user_config_file = FileAbs.of_string user_config_filename
+  let user_config_file = FileGen.of_string user_config_filename
   let user_config = SimpleConfig.create_config_file user_config_file
   let config_file = user_config
 
@@ -314,7 +314,7 @@ end
 module OCamlOptions = struct
 
   let must_save_config = ref false
-  let ocaml_config_file = FileAbs.of_string ocaml_config_filename
+  let ocaml_config_file = FileGen.of_string ocaml_config_filename
   let ocaml_config = SimpleConfig.create_config_file ocaml_config_file
 
   let ocamlbin_option =
@@ -380,12 +380,12 @@ module OCamlOptions = struct
 
   let load () =
     try
-      if FileAbs.exists ocaml_config_file then
+      if FileGen.exists ocaml_config_file then
         SimpleConfig.load ocaml_config
     with e ->
       Printf.eprintf
         "Warning: Exception %S while loading OCaml config file %S\n%!"
-        (Printexc.to_string e) (FileAbs.to_string ocaml_config_file)
+        (Printexc.to_string e) (FileGen.to_string ocaml_config_file)
 
 
   let maybe_save () =
@@ -404,7 +404,7 @@ end
 module ProjectOptions = struct
 
   let must_save_config = ref false
-  let project_config = SimpleConfig.create_config_file (FileAbs.of_string "")
+  let project_config = SimpleConfig.create_config_file (FileGen.of_string "")
   let config_file = project_config
 
   (*** First, lets override user's preferences *****)
@@ -508,17 +508,17 @@ module ProjectOptions = struct
 
 
   let load project_config_dir =
-    let project_config_file = FileAbs.add_basename project_config_dir
+    let project_config_file = FileGen.add_basename project_config_dir
         project_config_basename in
     try
-      if FileAbs.exists project_config_file then begin
+      if FileGen.exists project_config_file then begin
         SimpleConfig.set_config_file project_config project_config_file;
         SimpleConfig.load project_config
       end
     with e ->
       Printf.eprintf
         "Warning: Exception %S while loading Project config file %S\n%!"
-        (Printexc.to_string e) (FileAbs.to_string project_config_file)
+        (Printexc.to_string e) (FileGen.to_string project_config_file)
 
 
   let maybe_save () =
@@ -981,7 +981,7 @@ let rec shortcut_arg new_name old_name list =
 
 let find_project_root () =
   try
-    BuildOCP.find_root (FileAbs.getcwd()) [ project_build_dirname ]
+    BuildOCP.find_root (FileGen.getcwd()) [ project_build_dirname ]
   with  Not_found ->
     Printf.eprintf "Error: could not find project root (%s/ directory)\n"
       project_build_dirname;

@@ -17,8 +17,8 @@ begin
     "ocpDate.ml";
     "ocpUnix.ml";
     "ocpFilename.ml";
-    "ocpDebug.ml";
-    "fileTemplate.ml"
+    (* "ocpDebug.ml"; *)
+    (* "fileTemplate.ml" *)
    ];
 
 

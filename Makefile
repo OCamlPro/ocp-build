@@ -34,28 +34,26 @@ OCPLIB_LIBS=$(foreach lib, $(OCPLIB_NAMES), ocplib-$(lib))
 
 OCP_BUILD_BOOTER=boot/ocp-build.asm
 
-STRING_COMPAT=$(compat_SRCDIR)/stringCompat.ml
+STRING_COMPAT=\
+	$(compat_SRCDIR)/ocpCompat.ml
 
 OCPLIB_STDLIB=$(stdlib_SRCDIR)/stdlibArg.ml
 
-OCPLIB_DEBUG= $(debug_SRCDIR)/debugVerbosity.ml	\
-    $(debug_SRCDIR)/debugTyperex.ml
+OCPLIB_DEBUG= $(debug_SRCDIR)/ocpDebug.ml
 
 OCPLIB_LANG= $(lang_SRCDIR)/ocpList.ml $(lang_SRCDIR)/ocpString.ml	\
-    $(lang_SRCDIR)/ocpArray.ml $(lang_SRCDIR)/intMap.ml			\
-    $(lang_SRCDIR)/intSet.ml \
-    $(lang_SRCDIR)/ocpDigest.ml $(lang_SRCDIR)/linearToposort.ml	\
+    $(lang_SRCDIR)/ocpArray.ml $(lang_SRCDIR)/ocpMap.ml			\
+    $(lang_SRCDIR)/ocpSet.ml \
+    $(lang_SRCDIR)/ocpDigest.ml $(lang_SRCDIR)/ocpToposort.ml	\
     $(lang_SRCDIR)/ocamllexer.ml $(lang_SRCDIR)/ocpGenlex.ml		\
-    $(lang_SRCDIR)/stringSubst.ml $(lang_SRCDIR)/reentrantBuffers.ml \
-    $(lang_SRCDIR)/stringMap.ml \
-    $(lang_SRCDIR)/stringSet.ml
+    $(lang_SRCDIR)/ocpSubst.ml $(lang_SRCDIR)/ocpReuse.ml 
 
 OCPLIB_UNIX= $(unix_SRCDIR)/minUnix.ml $(unix_SRCDIR)/onlyUnix.ml	\
     $(unix_SRCDIR)/onlyWin32.ml
 
 OCPLIB_FILE= $(file_SRCDIR)/fileSig.ml $(file_SRCDIR)/fileOS.ml	\
     $(file_SRCDIR)/fileChannel.ml $(file_SRCDIR)/fileString.ml	\
-    $(file_SRCDIR)/fileLines.ml $(file_SRCDIR)/fileAbs.ml	\
+    $(file_SRCDIR)/fileLines.ml $(file_SRCDIR)/fileGen.ml	\
     $(file_SRCDIR)/fileDir.ml 
 
 OCPLIB_SYSTEM=
@@ -173,7 +171,7 @@ OCP_BUILD_STUBS= $(OCP_BUILD_CS:.c=.o)
 OCP_BUILD_TMPS= $(OCP_BUILD_MLYS:.mly=.mli) $(OCP_BUILD_MLYS:.mly=.ml) \
 	$(OCP_BUILD_MLLS:.mll=.ml) $(OCP_BUILD_ML4S:.ml4=.ml) \
 	$(OCP_BUILD_SRCDIR)/buildVersion.ml \
-	$(compat_SRCDIR)/stringCompat.ml
+	$(compat_SRCDIR)/ocpCompat.ml
 
 OCP_BUILD_OS= $(OCP_BUILD_STUBS) $(OCP_BUILD_CMXS:.cmx=.o)
 
@@ -208,7 +206,7 @@ clean: partialclean
 	rm -rf _obuild
 
 distclean: clean ocp-distclean
-	rm -f $(compat_SRCDIR)/stringCompat.ml
+	rm -f $(compat_SRCDIR)/ocpCompat.ml
 
 #  "buildVersion.ml" (ocp2ml ; env_strings = [ "datadir" ])
 $(OCP_BUILD_SRCDIR)/buildVersion.ml: Makefile $(MAKE_CONFIG)
@@ -251,9 +249,9 @@ configure: autoconf/configure.ac autoconf/m4/*.m4
 		autoconf; \
 		./configure $(CONFIGURE_ARGS)
 
-$(compat_SRCDIR)/stringCompat.ml: $(STRcompat_SRCDIR)/$(HAS_BYTES)/stringCompat.ml
-	cp -f $(STRcompat_SRCDIR)/$(HAS_BYTES)/stringCompat.ml \
-		$(compat_SRCDIR)/stringCompat.ml
+$(compat_SRCDIR)/ocpCompat.ml: $(STRcompat_SRCDIR)/$(HAS_BYTES)/ocpCompat.ml
+	cp -f $(STRcompat_SRCDIR)/$(HAS_BYTES)/ocpCompat.ml \
+		$(compat_SRCDIR)/ocpCompat.ml
 
 ###########################################################################
 #

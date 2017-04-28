@@ -22,21 +22,16 @@ begin
     "ocpArray.ml";
     "ocpOption.ml";
     
-    "intMap.ml";
-    "intSet.ml";
-    "stringMap.ml";
-    "stringSet.ml";
-
     "ocpManpage.ml";
 
-    "toposort.ml";
-    "linearToposort.ml";
+    "ocpToposort.ml";
     "ocamllexer.mll", { pp = [] };
 (*    "trie.ml"; *)
 (*    "ocpLang.ml"; *)
-    "stringSubst.ml";
-    "stringTemplate.ml";
-    "reentrantBuffers.ml";
+    "ocpSubst.ml";
+
+(* "stringTemplate.ml"; *)
+     "ocpReuse.ml"; 
   ];
 
   ocaml.requires = [ "ocplib-debug" ] +  string_compat ;

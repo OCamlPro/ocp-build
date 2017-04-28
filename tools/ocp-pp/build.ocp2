@@ -28,7 +28,7 @@ begin
       "compat/4.00.0/syntaxerr.ml";
       "compat/4.00.0/longident.ml";
 
-      "compat/4.00.0/stringCompat.ml";
+      "compat/4.00.0/ocpCompat.ml";
       "compat/4.00.0/parser.ml";
       "compat/4.00.0/lexer.mll", { pp = [] };
       "compat/4.00.0/compat.ml";

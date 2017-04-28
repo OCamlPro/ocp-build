@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 let find_in_path path name =
   if not (Filename.is_implicit name) then

@@ -35,7 +35,7 @@ let file2string_attr = "file2string"
 let binannot_attr = "binannot"
 
 
-open StringCompat
+open OcpCompat
 
 open BuildMisc
 
@@ -127,16 +127,16 @@ let copy_dir lib src_file =
 
     (*    let copy_dir = iter mut_dir  src_file.file_dir in *)
 (*    Printf.eprintf "COPY DIR of %S is %S\n%!"
-      (FileAbs.to_string src_file.file_file) copy_dir.dir_fullname; *)
+      (FileGen.to_string src_file.file_file) copy_dir.dir_fullname; *)
     copy_dir
   with Stack_overflow ->
     Printf.eprintf "Error: Stack_overflow while computing mut_dir\n";
     Printf.eprintf "  of source file %S of package %S \n%!"
-      (FileAbs.to_string src_file.file_file)
+      (FileGen.to_string src_file.file_file)
       lib.lib.lib_name;
     clean_exit 2
 
-let verbose = DebugVerbosity.verbose ["B"] "BuildOCamlRules"
+let verbose = OcpDebug.verbose_function ["B"; "BuildOCamlRules"]
 
 let chop_prefix s prefix =
   let prefix_len = String.length prefix in
@@ -506,16 +506,16 @@ let add_ml2mldep_rule lib dst_dir pack_for force src_file target_file needs_odoc
 type 'a to_sort =
     {
       to_sort_value : 'a;
-      to_sort_node : LinearToposort.node;
+      to_sort_node : OcpToposort.node;
       mutable to_sort_deps : 'a to_sort list;
     }
 
-module FileSorter = LinearToposort.Make(struct
+module FileSorter = OcpToposort.Make(struct
   type t = build_file to_sort
   let node to_sort = to_sort.to_sort_node
   let iter_edges f to_sort = List.iter f to_sort.to_sort_deps
   let name to_sort = file_filename to_sort.to_sort_value
-  let debug = ref false
+  let verbose = OcpDebug.verbose_function [ "BuildOCamlRules.FileSorter" ]
 end)
 
 (* We use the graph of build rules to sort topologically the object files *)
@@ -535,7 +535,7 @@ let sort_ocaml_files lib cmo_files =
     let modname = String.capitalize modname in
     let to_sort =  {
       to_sort_value = file;
-      to_sort_node = LinearToposort.new_node();
+      to_sort_node = OcpToposort.new_node();
       to_sort_deps = [];
     } in
     map := StringMap.add modname to_sort !map;
@@ -939,7 +939,7 @@ let add_os2a_rule lib o_files a_file =
     let ext_lib = BuildOCamlConfig.ocaml_config_ext_lib.get envs  in
     let target_without_ext = Filename.chop_suffix target ext_lib in
     let target_without_prefix = chop_prefix target_without_ext "lib" in
-    let target = FileAbs.add_basename a_file.file_dir.dir_file target_without_prefix in
+    let target = FileGen.add_basename a_file.file_dir.dir_file target_without_prefix in
     let cmd = new_command (ocamlmklib_cmd.get envs)
       [S "-custom"; S "-o"; F target] in
     List.iter (fun s ->
@@ -978,8 +978,8 @@ let move_compilation_garbage r copy_dir temp_dir kernel_name lib =
     let dst_dir = dst_dir_virt.dir_file in
     List.iter (fun ext ->
       let basename = kernel_name ^ ext in
-      let src_file = FileAbs.add_basename temp_dir basename in
-      let dst_file = FileAbs.add_basename dst_dir basename in
+      let src_file = FileGen.add_basename temp_dir basename in
+      let dst_file = FileGen.add_basename dst_dir basename in
       let _maybe_file = add_file lib lib.lib.lib_mut_dir basename in
       add_rule_command r (MoveIfExists (F src_file, F dst_file, None))
     ) exts
@@ -989,7 +989,7 @@ let move_compilation_garbage r copy_dir temp_dir kernel_name lib =
   let move_to_build exts =
     List.iter (fun ext ->
       let basename = kernel_name ^ ext in
-      let src_file = FileAbs.add_basename temp_dir basename in
+      let src_file = FileGen.add_basename temp_dir basename in
       let dst_file = add_file lib lib.lib.lib_dst_dir basename in
       let link_file = add_file lib copy_dir (basename ^ ".link") in
       add_rule_command r (MoveIfExists
@@ -1154,7 +1154,7 @@ let add_mli_source w b lib ptmp mli_file options =
           in
 
           let cmd = new_command pp (ppv.pp_flags @ [ BF mli_file ])  in
-          add_command_pipe cmd (FileAbs.to_string new_mli_file.file_file);
+          add_command_pipe cmd (FileGen.to_string new_mli_file.file_file);
 
           let r = new_rule lib new_mli_file [] in
           add_more_rule_sources lib r [] envs;
@@ -1284,13 +1284,13 @@ let rec find_source_with_extension b lib src_dir kernel_name exts =
     clean_exit 2
   | ext :: rem_exts ->
     let basename1 = kernel_name ^ "." ^ ext in
-    let test1 = FileAbs.add_basename src_dir.dir_file basename1 in
-    if FileAbs.exists test1 then
+    let test1 = FileGen.add_basename src_dir.dir_file basename1 in
+    if FileGen.exists test1 then
       (basename1, ext)
     else
     let basename2 = invert_capital (kernel_name ^ "." ^ ext) in
-    let test2 = FileAbs.add_basename src_dir.dir_file basename2 in
-    if FileAbs.exists test2 then
+    let test2 = FileGen.add_basename src_dir.dir_file basename2 in
+    if FileGen.exists test2 then
       (basename2, ext)
     else
       find_source_with_extension b lib src_dir kernel_name rem_exts
@@ -1460,21 +1460,21 @@ let create_ml_file_if_needed lib mut_dir options ml_file =
     let ml_content = Buffer.contents b in
 
     BuildEngineReport.cmd_file_from_content
-      (FileAbs.to_string tmp_ml_file) ml_content;
+      (FileGen.to_string tmp_ml_file) ml_content;
 
-    if FileAbs.exists tmp_ml_file then begin
-      let old_ml_content = FileAbs.read_file tmp_ml_file in
+    if FileGen.exists tmp_ml_file then begin
+      let old_ml_content = FileGen.read_file tmp_ml_file in
       if ml_content <> old_ml_content then begin
      if verbose 2 then
        Printf.fprintf stderr "create %s [outdated]\n%!"
-         (FileAbs.to_string tmp_ml_file);
-            FileAbs.write_file tmp_ml_file ml_content
+         (FileGen.to_string tmp_ml_file);
+            FileGen.write_file tmp_ml_file ml_content
       end
     end else begin
       if verbose 2 then
      Printf.fprintf stderr "create %s [unexisting] \n%!"
-       (FileAbs.to_string tmp_ml_file);
-        FileAbs.write_file tmp_ml_file ml_content;
+       (FileGen.to_string tmp_ml_file);
+        FileGen.write_file tmp_ml_file ml_content;
     end;
     tmp_ml
   end else ml_file
@@ -1486,31 +1486,31 @@ let create_ml_file_if_needed lib mut_dir options ml_file =
 
 let copy_mli_if_needed lib mut_dir mll_file kernel_name =
   try
-    let mli_file = FileAbs.add_basename mll_file.file_dir.dir_file (kernel_name ^ ".mli") in
-    if FileAbs.exists mli_file  then begin
-      let mli_content = FileAbs.read_file mli_file in
+    let mli_file = FileGen.add_basename mll_file.file_dir.dir_file (kernel_name ^ ".mli") in
+    if FileGen.exists mli_file  then begin
+      let mli_content = FileGen.read_file mli_file in
       let tmp_mli = add_file lib mut_dir (kernel_name ^ ".mli") in
       let tmp_mli_file = tmp_mli.file_file in
-      BuildEngineReport.cmd_copy (FileAbs.to_string mli_file)
-        (FileAbs.to_string tmp_mli_file);
-      if FileAbs.exists tmp_mli_file then
-        let old_mli_content = FileAbs.read_file tmp_mli_file in
+      BuildEngineReport.cmd_copy (FileGen.to_string mli_file)
+        (FileGen.to_string tmp_mli_file);
+      if FileGen.exists tmp_mli_file then
+        let old_mli_content = FileGen.read_file tmp_mli_file in
         if mli_content <> old_mli_content then begin
           if verbose 2 then
             Printf.fprintf stderr "cp %s %s [outdated]\n%!"
-              (FileAbs.to_string mli_file) (FileAbs.to_string tmp_mli_file);
-          FileAbs.write_file tmp_mli_file mli_content
+              (FileGen.to_string mli_file) (FileGen.to_string tmp_mli_file);
+          FileGen.write_file tmp_mli_file mli_content
         end else
           ()
       else begin
         if verbose 2 then
           Printf.fprintf stderr "cp %s %s [unexisting] \n%!"
-            (FileAbs.to_string mli_file) (FileAbs.to_string tmp_mli_file);
-        FileAbs.write_file tmp_mli_file mli_content;
+            (FileGen.to_string mli_file) (FileGen.to_string tmp_mli_file);
+        FileGen.write_file tmp_mli_file mli_content;
       end
     end (* else
            Printf.eprintf "MLI FILE %S does not exist\n%!"
-           (FileAbs.to_string mli_file); *)
+           (FileGen.to_string mli_file); *)
 
   with e ->
     Printf.eprintf "copy_mli_if_needed error %s\n%!" (Printexc.to_string e);
@@ -1542,7 +1542,7 @@ let add_ml_source w b lib ptmp ml_file options =
 
       (*
         Printf.eprintf "add_ml_source: %s is already installed in %s\n%!"
-        basename (FileAbs.to_string dst_dir.dir_file);
+        basename (FileGen.to_string dst_dir.dir_file);
         Printf.eprintf "ml_file %s\n%!" (file_filename ml_file);
       *)
 
@@ -1651,7 +1651,7 @@ let add_ml_source w b lib ptmp ml_file options =
           in
 
           let cmd = new_command pp (ppv.pp_flags @ [ BF ml_file ])  in
-          add_command_pipe cmd (FileAbs.to_string new_ml_file.file_file);
+          add_command_pipe cmd (FileGen.to_string new_ml_file.file_file);
 
           let r = new_rule lib new_ml_file [] in
           add_more_rule_sources lib r [] envs;
@@ -1800,8 +1800,8 @@ let add_ml_source w b lib ptmp ml_file options =
           add_rule_sources r comp_deps;
 
           (*    let temp_dir = BuildEngineRules.rule_temp_dir r in
-                let cmo_temp = FileAbs.add_basename temp_dir cmo_basename in
-                let cmi_temp = FileAbs.add_basename temp_dir cmi_basename in *)
+                let cmo_temp = FileGen.add_basename temp_dir cmo_basename in
+                let cmi_temp = FileGen.add_basename temp_dir cmi_basename in *)
 
           add_bin_annot_argument cmd envs;
 
@@ -1868,9 +1868,9 @@ let add_ml_source w b lib ptmp ml_file options =
           add_bin_annot_argument cmd envs;
           (*
             let temp_dir = BuildEngineRules.rule_temp_dir r in
-            let o_temp = FileAbs.add_basename temp_dir o_basename in
-            let cmx_temp = FileAbs.add_basename temp_dir cmx_basename in
-            let cmi_temp = FileAbs.add_basename temp_dir cmi_basename in
+            let o_temp = FileGen.add_basename temp_dir o_basename in
+            let cmx_temp = FileGen.add_basename temp_dir cmx_basename in
+            let cmi_temp = FileGen.add_basename temp_dir cmi_basename in
           *)
 
           if pack_of = [] then begin
@@ -1961,7 +1961,7 @@ let add_mll_source w b lib ptmp mll_file options =
 (*    let tmp_dirname =
       Filename.concat
         (Filename.concat b.build_dir_filename "_temp_tree")
-        (FileAbs.to_string mll_file.file_dir.dir_file) in
+        (FileGen.to_string mll_file.file_dir.dir_file) in
     if not (Sys.file_exists tmp_dirname) then safe_mkdir tmp_dirname;
     let tmp_dir = add_directory b tmp_dirname in *)
 (*    let copy_dir = copy_dir lib mll_file in *)
@@ -2128,10 +2128,10 @@ let process_source w b lib ptmp src_dir (basename, options) =
         [] -> basename
       | subdir ->
 (* Since basename can be a relative filename, we use both
-  FileAbs.t and strings. Clearly, it is not good, and we should
-  convert basename to FileAbs.t earlier *)
-        let subdir = FileAbs.add_basenames (FileAbs.of_string "") subdir in
-        Filename.concat (FileAbs.to_string subdir) basename
+  FileGen.t and strings. Clearly, it is not good, and we should
+  convert basename to FileGen.t earlier *)
+        let subdir = FileGen.add_basenames (FileGen.of_string "") subdir in
+        Filename.concat (FileGen.to_string subdir) basename
   in
   process_source w b lib ptmp src_dir (basename, options)
 
@@ -2302,7 +2302,7 @@ let add_extra_rules bc lib target_name target_files =
   if build_rules <> [] then
     List.iter (fun (file, env) ->
 (*
-      Printf.eprintf "Adding rule to build %s/%s\n%!" (FileAbs.to_string dirname) file;
+      Printf.eprintf "Adding rule to build %s/%s\n%!" (FileGen.to_string dirname) file;
 *)
 
       let envs = env :: lib.lib_opk.opk_options in
@@ -2348,7 +2348,7 @@ let add_extra_rules bc lib target_name target_files =
       end;
 
       let sources = List.map (add_package_file lib) sources in
-      let dirname_s = FileAbs.to_string dirname in
+      let dirname_s = FileGen.to_string dirname in
 
       List.iter (fun (cmd_name, cmd_env) ->
         let envs = cmd_env :: envs in
@@ -2472,14 +2472,14 @@ let add_extra_rules bc lib target_name target_files =
           in
           let actor () =
             Printf.eprintf "Loading %S\n" (file_filename from_file);
-            let make_subst = StringSubst.empty_subst () in
-            StringSubst.add_to_subst make_subst "\\ " " ";
+            let make_subst = OcpSubst.empty_subst () in
+            OcpSubst.add_to_subst make_subst "\\ " " ";
             let vars = ref [] in
-            FileAbs.iter_lines (fun line ->
-              let _, line = StringSubst.iter_subst make_subst line in
+            FileGen.iter_lines (fun line ->
+              let _, line = OcpSubst.iter_subst make_subst line in
               if String.length line > 0 && line.[0] <> '#' then
                 let var, value = OcpString.cut_at line '=' in
-                StringSubst.add_to_subst make_subst
+                OcpSubst.add_to_subst make_subst
                   (Printf.sprintf "$(%s)" var) value;
                 vars := (var, value) :: !vars
             ) from_file.file_file;

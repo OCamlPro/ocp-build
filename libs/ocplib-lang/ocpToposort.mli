@@ -10,11 +10,27 @@
 (*                                                                        *)
 (**************************************************************************)
 
-include Map.S with type key = int
+(** Abstract type for a node *)
+type node
 
-val to_list: 'a t -> (int * 'a) list
-val to_list1: 'a t -> int list
-val to_list2: 'a t -> 'a list
+(** Node creation *)
+val new_node : unit -> node
 
-exception MinElt
-val min_elt: 'a t -> (key * 'a) option
+module Make :
+  functor
+    (M : sig
+       type t
+       val node : t -> node
+       val iter_edges : (t -> unit) -> t -> unit
+
+       (* associate a name with a value, useful for debugging *)
+       val name : t -> string
+       val verbose : int -> bool
+     end) ->
+      sig
+        val sort : M.t list ->
+                   M.t list * (* sorted list *)
+                     (M.t * M.t list * M.t list) list *  (* a cycle *)
+                       M.t list (* other non-sorted nodes *)
+
+      end

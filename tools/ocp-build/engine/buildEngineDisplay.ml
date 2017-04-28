@@ -10,15 +10,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 open BuildEngineTypes
 open BuildTerm
 open BuildEngineGlobals
 open BuildEngineRules
 
 let verbose =
-  DebugVerbosity.add_submodules "B" [ "BED" ];
-  DebugVerbosity.verbose [ "BED" ] "BuildEngineDisplay"
+  OcpDebug.verbose_function [ "B"; "BED"; "BuildEngineDisplay"]
 
 let init _b = ()
 
@@ -35,8 +34,8 @@ let string_limit n s =
 
 let pretty_rule_name rule len =
   let f = rule.rule_main_target.file_file in
-  let base = FileAbs.basename f in
-  let dir = FileAbs.to_string (FileAbs.dirname f) in
+  let base = FileGen.basename f in
+  let dir = FileGen.to_string (FileGen.dirname f) in
   let dir =
     try (* rm first directory (_obuild/) *)
       let i = String.index dir Filename.dir_sep.[0] in
@@ -51,8 +50,8 @@ let pretty_rule_name rule len =
   let pad = if len > curlen then String.make (len - curlen) ' ' else "" in
   String.concat ""
     [ dir; Filename.dir_sep;
-      term_bold (FileAbs.basename (FileAbs.chop_extension f)); ".";
-      String.concat "." (FileAbs.extensions f) ; pad ]
+      term_bold (FileGen.basename (FileGen.chop_extension f)); ".";
+      String.concat "." (FileGen.extensions f) ; pad ]
 
 let print_stat_line b _proc =
   let npar = IntMap.cardinal b.build_stats_running_rules in
@@ -269,7 +268,7 @@ and eprint_directory indent dir =
 
 and eprint_file indent file =
   Printf.eprintf "%sFILE DEF F%d %s:\n" indent file.file_id
-    (FileAbs.to_string file.file_file);
+    (FileGen.to_string file.file_file);
   ()
 
 and eprint_rule indent r =

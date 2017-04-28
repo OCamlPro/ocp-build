@@ -16,7 +16,7 @@
  *)
 
 
-open StringCompat
+open OcpCompat
 
 module LowLevel = struct
   include SimpleConfigTypes
@@ -57,7 +57,7 @@ and 'a config_option =
   }
 
 and config_file =
-    { mutable file_name : FileAbs.t;
+    { mutable file_name : FileGen.t;
       mutable file_sections : config_section list;
       mutable file_rc : option_module;
       mutable file_pruned : bool;
@@ -219,29 +219,29 @@ let string_of_load_error file error =
     match error with
     | FileHasTempBackup temp_file ->
       Printf.sprintf "Temporary backup file %s exists"
-        (FileAbs.to_string temp_file)
+        (FileGen.to_string temp_file)
     | FileDoesNotExist ->
-      Printf.sprintf "File %s does not exist" (FileAbs.to_string file)
+      Printf.sprintf "File %s does not exist" (FileGen.to_string file)
     | FileCannotBeRead ->
-      Printf.sprintf "File %s cannot be read" (FileAbs.to_string file)
+      Printf.sprintf "File %s cannot be read" (FileGen.to_string file)
     | ParseError (pos, msg) ->
       Printf.sprintf "Parse error in file %s at pos %d: %s"
-        (FileAbs.to_string file) pos msg
+        (FileGen.to_string file) pos msg
     | SetOptionFailed (o, error) ->
       Printf.sprintf "Setting option %s failed with %s" o
          error
 
 let really_load filename sections =
-  let temp_file = FileAbs.add_suffix filename ".tmp" in
-  if FileAbs.exists temp_file then
+  let temp_file = FileGen.add_suffix filename ".tmp" in
+  if FileGen.exists temp_file then
     raise (LoadError (filename, FileHasTempBackup temp_file));
 
   let ic = try
-      FileAbs.open_in filename
+      FileGen.open_in filename
     with _ ->
       raise (LoadError (filename,
                         try
-                          if FileAbs.exists filename then raise Exit;
+                          if FileGen.exists filename then raise Exit;
                           FileDoesNotExist
                         with _ -> FileCannotBeRead
                        ))
@@ -265,7 +265,7 @@ let really_load filename sections =
           begin
             Printf.fprintf stderr "Option ";
             List.iter (fun s -> Printf.fprintf stderr "%s " s) o.option_name;
-            Printf.fprintf stderr "not found in %s\n" (FileAbs.to_string filename);
+            Printf.fprintf stderr "not found in %s\n" (FileGen.to_string filename);
           end
       | e ->
         raise (LoadError (filename,
@@ -276,7 +276,7 @@ let really_load filename sections =
             (Printexc.to_string e);
           List.iter (fun s -> Printf.fprintf stderr "%s " s) o.option_name;
           Printf.fprintf stderr "\n";
-          Printf.fprintf stderr "  in %s\n" (FileAbs.to_string filename);
+          Printf.fprintf stderr "  in %s\n" (FileGen.to_string filename);
           Printf.fprintf stderr "Aborting\n.";
           exit 2 *)
     in
@@ -313,7 +313,7 @@ let append opfile filename =
       really_load filename opfile.file_sections @
         opfile.file_rc
   with
-    Not_found -> Printf.fprintf stderr "No %s found\n" (FileAbs.to_string filename)
+    Not_found -> Printf.fprintf stderr "No %s found\n" (FileGen.to_string filename)
 
 let rec value_to_string v =
   match v with
@@ -549,7 +549,7 @@ let rec value_to_listiter v2c v =
 
 
 let value_to_path v =
-  List.map FileAbs.of_string
+  List.map FileGen.of_string
     (let rec iter v =
        match v with
          StringValue s -> Filepath.string_to_colonpath s
@@ -558,7 +558,7 @@ let value_to_path v =
            List.map
              (fun v ->
                 match v with
-                  StringValue s -> FileAbs.of_string s
+                  StringValue s -> FileGen.of_string s
                 | _ -> failwith "Options: not a path option")
              l
        | _ -> failwith "Options: not path bool option"
@@ -566,7 +566,7 @@ let value_to_path v =
      iter v)
 
 let path_to_value list =
-  StringValue (Filepath.colonpath_to_string (List.map FileAbs.to_string list))
+  StringValue (Filepath.colonpath_to_string (List.map FileGen.to_string list))
   *)
 
 let string_option =
@@ -684,13 +684,13 @@ let title_opfile = ref true;;
 let save opfile =
   exec_weighted_hooks "before_save" opfile.file_before_save_hooks ();
   let filename = opfile.file_name in
-  let temp_file = FileAbs.add_suffix filename ".tmp" in
+  let temp_file = FileGen.add_suffix filename ".tmp" in
   let old_file =
-    let old_file = FileAbs.add_suffix filename ".old" in
-    let old_old_file = FileAbs.add_suffix old_file ".old" in
-    if FileAbs.exists old_old_file then Sys.remove (FileAbs.to_string old_old_file);
-    if FileAbs.exists old_file then
-      Sys.rename (FileAbs.to_string old_file) (FileAbs.to_string old_old_file);
+    let old_file = FileGen.add_suffix filename ".old" in
+    let old_old_file = FileGen.add_suffix old_file ".old" in
+    if FileGen.exists old_old_file then Sys.remove (FileGen.to_string old_old_file);
+    if FileGen.exists old_file then
+      Sys.rename (FileGen.to_string old_file) (FileGen.to_string old_old_file);
     old_file in
   let oc = Buffer.create 1000 in
   (*  let oc = open_out temp_file in *)
@@ -779,13 +779,13 @@ let save opfile =
         opfile.file_rc <- !rem
       end;
     SimpleConfigOCaml.reset ();
-    FileAbs.write_file temp_file (Buffer.contents oc);
-    begin try FileAbs.rename filename old_file with  _ -> () end;
-    begin try FileAbs.rename temp_file filename with _ -> () end;
+    FileGen.write_file temp_file (Buffer.contents oc);
+    begin try FileGen.rename filename old_file with  _ -> () end;
+    begin try FileGen.rename temp_file filename with _ -> () end;
     exec_hooks "after_save" opfile.file_after_save_hooks ();
   with
       e ->
-        FileAbs.write_file temp_file (Buffer.contents oc);
+        FileGen.write_file temp_file (Buffer.contents oc);
         exec_hooks "after_save" opfile.file_after_save_hooks ();
         raise e
 
@@ -904,12 +904,12 @@ let tuple5_option p =
 
 
 let value_to_filename v =
-  FileAbs.of_string
+  FileGen.of_string
     (match v with
        StringValue s -> s
      | _ -> failwith "Options: not a filename option")
 
-let filename_to_value v = StringValue (FileAbs.to_string v)
+let filename_to_value v = StringValue (FileGen.to_string v)
 
 let file_option =
   define_option_class "Filename" value_to_filename filename_to_value
@@ -960,7 +960,7 @@ let get_option opfile name =
           [] ->
             prerr_endline
               (Printf.sprintf "option [%s] not_found in %s"
-                (String.concat ";" name) (FileAbs.to_string opfile.file_name));
+                (String.concat ";" name) (FileGen.to_string opfile.file_name));
             raise Not_found
         | s :: tail ->
             iter name s.section_options tail
@@ -1295,6 +1295,6 @@ let () =
       match exn with
       | LoadError (file, error) ->
         Some (Printf.sprintf "LoadError(%S, %s)"
-                (FileAbs.to_string file)
+                (FileGen.to_string file)
                 (string_of_load_error file error))
       | _ -> None)

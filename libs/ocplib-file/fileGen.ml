@@ -15,7 +15,7 @@
 *)
 
 
-open StringCompat
+open OcpCompat
 
 
 (* IMPORTANT OS specificities (from the JDK):
@@ -524,6 +524,6 @@ let safe_basename s =
 
 module Op = struct
 
-  let (//) = add_basename
+  let (//) t s = add_basenames t (OcpString.split s '/')
 
 end

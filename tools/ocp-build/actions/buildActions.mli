@@ -16,7 +16,7 @@ val time_step : string -> unit
 val time_steps : (string * float) list ref
 
 type project_info = {
-  project_dir : FileAbs.t;
+  project_dir : FileGen.t;
   cin : BuildOptions.config_input;
   cout : BuildOCamlConfig.TYPES.config_output;
 }

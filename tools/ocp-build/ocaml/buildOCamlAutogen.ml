@@ -10,13 +10,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 
 open BuildOCPTypes
 
 let create_package name ptype dirname_t =
-  let file_t = FileAbs.add_basename dirname_t (name ^ ".ocp") in
+  let file_t = FileGen.add_basename dirname_t (name ^ ".ocp") in
 
   let map = ref StringMap.empty in
   let files = FileDir.list dirname_t in
@@ -53,7 +53,7 @@ let create_package name ptype dirname_t =
   ) map;
   let source_files = !files in
 
-  let oc = FileAbs.open_out file_t in
+  let oc = FileGen.open_out file_t in
   Printf.fprintf oc "begin %s \"%s\"\n"
     (match ptype with
     | ProgramPackage -> "program"

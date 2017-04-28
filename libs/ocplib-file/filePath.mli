@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 (** [find_in_path path filename] searches a file in a list of directories. *)
 val find_in_path: string list -> string -> string

@@ -12,6 +12,9 @@
 
 begin   
   ocaml.version = autoconf.package_version;
-  ocaml.files = [ "debugVerbosity.ml"; "debugTyperex.ml" ];
+  ocaml.files = [
+    "ocpDebug.ml";
+    ];
+  ocaml.requires = [ "ocplib-compat" ];
   new_package( "ocplib-debug", "library", ocaml);
 end

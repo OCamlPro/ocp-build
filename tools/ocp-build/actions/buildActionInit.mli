@@ -23,7 +23,7 @@ val load_initial_project :
   BuildValue.TYPES.config_state ->
 
   BuildTypes.builder_context *
-    (module BuildTypes.Package) StringCompat.StringMap.t *
+    (module BuildTypes.Package) OcpCompat.StringMap.t *
     BuildOCPTypes.project
 
 val init_env :

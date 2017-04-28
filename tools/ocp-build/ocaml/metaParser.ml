@@ -10,12 +10,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 open MetaTypes
 open MetaLexer
 
-let verbose = DebugVerbosity.verbose ["B"] "MetaParser"
+let verbose = OcpDebug.verbose_function ["B"; "MetaParser"]
 
 let string_of_token = function
   | STRING s -> Printf.sprintf "STRING %S" s

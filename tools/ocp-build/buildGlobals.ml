@@ -12,7 +12,7 @@
 
 open StdlibArg
 
-open StringCompat
+open OcpCompat
 open BuildTypes
 open BuildOCPTypes
 
@@ -22,7 +22,7 @@ open BuildEngineTypes
 
 open BuildValue.TYPES
 
-let verbose = DebugVerbosity.verbose ["B"] "BuildGlobals"
+let verbose = OcpDebug.verbose_function ["B"; "BuildGlobals"]
 
 (* Under Windows, we cannot use dot-prefixed directories *)
 let homedir = try Sys.getenv "HOME" with Not_found -> "."
@@ -117,7 +117,7 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
       lib_name = pk.package_name;
       lib_loc;
       lib_source_kind = pk.package_source_kind;
-      lib_dirname = FileAbs.of_string package_dirname;
+      lib_dirname = FileGen.of_string package_dirname;
       lib_type = pk.package_type ;
       lib_tag = "";
       lib_filename = pk.package_filename;

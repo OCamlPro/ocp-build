@@ -11,7 +11,7 @@
 (**************************************************************************)
 
 {
-  open StringCompat
+  open OcpCompat
 
 type token =
     Kwd of string

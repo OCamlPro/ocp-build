@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 open BuildValue.TYPES
 open BuildOCP2Tree
 
@@ -56,6 +56,6 @@ module Init(S: sig
             BuildValue.TYPES.config ->
             BuildValue.TYPES.value list -> BuildValue.TYPES.value) ->
            unit
-  val primitives_help : unit -> string list StringCompat.StringMap.t
+  val primitives_help : unit -> string list OcpCompat.StringMap.t
 
   end

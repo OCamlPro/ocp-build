@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 (* open BuildOCPTypes (* for package_type *) *)
 
 type camlpN =

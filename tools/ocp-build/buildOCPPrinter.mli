@@ -12,7 +12,7 @@
 
 val string_of_project : BuildOCPTypes.project -> string
 val string_of_package :
-  (StringCompat.Buffer.t -> string -> 'a -> unit) ->
+  (OcpCompat.Buffer.t -> string -> 'a -> unit) ->
   'a BuildOCPTypes.package -> string
 val eprint_project : string -> BuildOCPTypes.project -> unit
 (*

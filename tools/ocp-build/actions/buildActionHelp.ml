@@ -18,7 +18,7 @@
 
 open StdlibArg
 
-open StringCompat
+open OcpCompat
 open BuildArgs
 
 

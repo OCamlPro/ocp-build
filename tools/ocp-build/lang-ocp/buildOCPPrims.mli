@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 open BuildValue.TYPES
 open BuildOCPTree
 
@@ -21,6 +21,6 @@ module Init(S: sig
   end) : sig
 
   val primitives : ((env list -> env -> plist) * string list) StringMap.t ref
-  val primitives_help : unit -> string list StringCompat.StringMap.t
+  val primitives_help : unit -> string list StringMap.t
 
 end
