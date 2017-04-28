@@ -42,8 +42,7 @@ OCPLIB_STDLIB=$(stdlib_SRCDIR)/stdlibArg.ml
 OCPLIB_DEBUG= $(debug_SRCDIR)/ocpDebug.ml
 
 OCPLIB_LANG= $(lang_SRCDIR)/ocpList.ml $(lang_SRCDIR)/ocpString.ml	\
-    $(lang_SRCDIR)/ocpArray.ml $(lang_SRCDIR)/ocpMap.ml			\
-    $(lang_SRCDIR)/ocpSet.ml \
+    $(lang_SRCDIR)/ocpArray.ml \
     $(lang_SRCDIR)/ocpDigest.ml $(lang_SRCDIR)/ocpToposort.ml	\
     $(lang_SRCDIR)/ocamllexer.ml $(lang_SRCDIR)/ocpGenlex.ml		\
     $(lang_SRCDIR)/ocpSubst.ml $(lang_SRCDIR)/ocpReuse.ml 
