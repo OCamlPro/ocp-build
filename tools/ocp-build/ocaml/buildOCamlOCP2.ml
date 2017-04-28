@@ -10,12 +10,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 open BuildOCPTypes
 open BuildOCamlTypes
 open BuildValue.TYPES
 
-let verbose = DebugVerbosity.verbose [ "B"; "BP" ] "BuildOCamlPackage"
+let verbose = OcpDebug.verbose_function [ "B"; "BP"; "BuildOCamlPackage"]
 
 let add_primitive name prim_help prim =
   let prim_name = "OCaml_" ^ name in

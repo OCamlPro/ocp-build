@@ -28,7 +28,7 @@ open StdlibArg
   in a particular compilation scheme.
 *)
 
-open StringCompat
+open OcpCompat
 
 
 
@@ -50,12 +50,10 @@ type subcommand = {
 }
 
 
-let _ = DebugVerbosity.add_submodules "B" [ "BuildMain" ]
+let verbose = OcpDebug.verbose_function ["B"; "BuildMain" ]
 
 let initial_verbosity =
-  try
-    Some (int_of_string (Sys.getenv "OCPBUILD_VERBOSITY"))
-  with _ -> None
+  OcpDebug.set_verbosity_env "OCPBUILD_VERBOSITY"
 
 let version = BuildVersion.version
 

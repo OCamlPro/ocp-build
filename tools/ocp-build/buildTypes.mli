@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 open BuildEngineTypes
 
@@ -41,7 +41,7 @@ type package_info = {
   lib_builder_context : builder_context;
 
   lib_loc : string * int * string;
-  mutable lib_dirname : File.t;
+  mutable lib_dirname : FileGen.t;
   mutable lib_type : BuildOCPTypes.package_type;
   mutable lib_tag : string;
 
@@ -49,7 +49,7 @@ type package_info = {
   lib_filename : string;
   lib_source_kind : string;
 
-  lib_node : LinearToposort.node;
+  lib_node : OcpToposort.node;
   mutable lib_added : bool;
   lib_src_dir : BuildEngineTypes.build_directory;
   lib_dst_dir : BuildEngineTypes.build_directory;

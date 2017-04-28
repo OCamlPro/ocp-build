@@ -13,7 +13,7 @@
 (* Génération et lecture du fichier de configuration *)
 
 
-open StringCompat
+open OcpCompat
 
 (* let verbose = DebugVerbosity.verbose [ "B" ] "BuildConfig" *)
 

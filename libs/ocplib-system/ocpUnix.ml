@@ -11,11 +11,11 @@
 (**************************************************************************)
 
 open MinUnix
-open OcpLang
+(* open OcpLang *)
 
 let assoc_of_env env =
   let el = Array.to_list env in
-  let el = List.map (fun s -> String.splitn 2 s '=') el in
+  let el = List.map (fun s -> OcpString.splitn 2 s '=') el in
   List.map (function [k] -> (k, "") | [k;v] -> (k,v) | _ -> assert false) el
 
         (*
@@ -38,7 +38,7 @@ let expand_in env s =
   let rec aux str =
     try
       let n = String.index str '$' in
-      let prefix, rest = String.cut str n in
+      let prefix, rest = OcpString.cut str n in
       let rec find i =
         if i < String.length rest && rest.[i] >= 'A' && rest.[i] <= 'Z' then
           find (i+1)
@@ -48,9 +48,9 @@ let expand_in env s =
       if i = n - 1 then
         [prefix ; get rest]
       else begin
-        let k, rest = String.cut ~keep:true rest i in
+        let k, rest = OcpString.cut ~keep:true rest i in
         if i = 0 && String.length rest > 0 && rest.[0] = '$' then
-          prefix :: get k :: "$" :: aux (String.after rest 0)
+          prefix :: get k :: "$" :: aux (OcpString.after rest 0)
         else
           prefix :: get k :: aux rest
       end
@@ -103,7 +103,7 @@ let safe_mkdir dir perm =
   with Unix_error (EEXIST, _, _) -> ()
 
 let safe_rec_mkdir dir perm =
-  let dirs = String.split dir Filename.dir_sep.[0] in
+  let dirs = OcpString.split dir Filename.dir_sep.[0] in
   let (_ : string) = List.fold_left
     (fun p d ->
       let path = Filename.concat p d in

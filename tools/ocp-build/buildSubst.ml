@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringSubst
+open OcpSubst
 
   (*
 let global_subst = empty_subst ()
@@ -140,7 +140,7 @@ let () =
   assert (sub "%%" = "%");
   ()
 
-open StringCompat
+open OcpCompat
 
 let map_subst map s =
   substitute (fun map s ->

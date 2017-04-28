@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 open BuildOCPTypes
 open BuildOCamlTypes
 open BuildValue.TYPES
@@ -28,7 +28,7 @@ open BuildValue.TYPES
   * it prefers sources packages to install packages
 *)
 
-let verbose = DebugVerbosity.verbose [ "B"; "BP" ] "BuildOCamlCheckPackages"
+let verbose = OcpDebug.verbose_function [ "B"; "BP"; "BuildOCamlCheckPackages"]
 let print_incomplete_packages = ref false
 
 module Warnings = struct

@@ -1,5 +1,5 @@
 
-open StringCompat
+open OcpCompat
 open BuildOCamlTypes
 open BuildValue.TYPES
 open BuildOCPTypes

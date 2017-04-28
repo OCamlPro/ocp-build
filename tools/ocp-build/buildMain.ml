@@ -25,13 +25,13 @@
 *)
 
 open StdlibArg
-open StringCompat
+open OcpCompat
 
 open BuildActions
 open BuildGlobals
 open BuildArgs
 
-let _ = DebugVerbosity.add_submodules "B" [ "BuildMain" ]
+let verbose = OcpDebug.verbose_function ["B";  "BuildMain" ]
 
 
 let finally () =
@@ -95,8 +95,10 @@ let _ =
 
   Printexc.record_backtrace true;
 
+  (*
   begin match initial_verbosity with None -> () | Some v ->
     DebugVerbosity.increase_verbosity "B"  v end;
+   *)
 
   let s =
     try

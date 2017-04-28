@@ -10,8 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* open BuildBase *)
-(* open Stdlib2 *)
+open OcpCompat
 open BuildOCPTypes
 
 let root_dir = ref (Sys.getcwd ())
@@ -76,11 +75,11 @@ let _ =
   Arg.parse arg_list arg_anon arg_usage;
   let packages = List.rev !packages in
 
-  let root_dir = File.of_string !root_dir in
+  let root_dir = FileGen.of_string !root_dir in
   let files = BuildOCP.scan_root root_dir in
   if !list_ocp_files then
     List.iter (fun file ->
-      Printf.printf "%S\n%!" (File.to_string file)
+      Printf.printf "%S\n%!" (FileGen.to_string file)
     ) files;
   let state = BuildOCP.init_packages () in
   let config = BuildOCP.empty_config () in

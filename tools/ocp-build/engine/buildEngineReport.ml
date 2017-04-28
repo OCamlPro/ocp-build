@@ -2,7 +2,7 @@
    * try to define variables for prefixes, to share as much path in one variable
 *)
 
-open StringCompat (* for StringMap *)
+open OcpCompat (* for StringMap *)
 open BuildEngineTypes
 
 
@@ -114,7 +114,6 @@ let flush () =
     output_string oc (Buffer.contents b);
     close_out oc
   | None -> ()
-
 
 
 

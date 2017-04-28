@@ -17,7 +17,7 @@ let verbose = ref false
 let log key fmt =
   let fn str =
     if !verbose then
-      let date = Date.string_of_iso8601 (Date.iso8601 ()) in
+      let date = OcpDate.string_of_iso8601 (OcpDate.iso8601 ()) in
       Printf.printf "[%s] %-10s %s\n%!" date key str in
   Printf.kprintf fn fmt
 
@@ -61,28 +61,28 @@ end) : S = struct
   let debug f =
     match X.debug_channel () with
       | Some c ->
-        Option.iter (Printf.fprintf c "%s") (X.prefix ());
+        OcpOption.iter (Printf.fprintf c "%s") (X.prefix ());
         Printf.kfprintf flush c f
       | None -> Printf.ifprintf stderr f
 
   let debugln f =
     match X.debug_channel () with
       | Some c ->
-        Option.iter (Printf.fprintf c "%s") (X.prefix ());
+        OcpOption.iter (Printf.fprintf c "%s") (X.prefix ());
         Printf.kfprintf (function c -> Printf.fprintf c "\n%!") c f
       | None -> Printf.ifprintf stderr f
 
   let fdebug f =
     match X.debug_channel () with
       | Some _c ->
-        Option.iter (pp_print_string debug_formatter) (X.prefix ());
+        OcpOption.iter (pp_print_string debug_formatter) (X.prefix ());
         kfprintf (fun fmt -> pp_print_flush fmt ()) debug_formatter f
       | None -> Format.ifprintf Format.err_formatter f
 
   let fdebugln f =
     match X.debug_channel () with
       | Some _c ->
-        Option.iter (pp_print_string debug_formatter) (X.prefix ());
+        OcpOption.iter (pp_print_string debug_formatter) (X.prefix ());
         kfprintf (fun fmt -> pp_print_newline fmt () ; pp_print_flush fmt ())
           debug_formatter f
       | None -> Format.ifprintf Format.err_formatter f

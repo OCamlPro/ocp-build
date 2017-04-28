@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 open BuildOCPTypes
 
 open BuildValue.TYPES
@@ -97,7 +97,7 @@ let conf_add_disabled_package dir_and_name =
   conf_disabled_packages := StringSet.add dir_and_name !conf_disabled_packages
 
 let normalized_dir dir =
-  File.to_string (File.of_string dir)
+  FileGen.to_string (FileGen.of_string dir)
 
 let new_package package_loc state name dirname filename filenames kind options =
   let package_id = state.npackages in
@@ -121,7 +121,7 @@ let new_package package_loc state name dirname filename filenames kind options =
         Some "Disabled by --disable"
       else None);
     package_requires_list = [];
-    package_node = LinearToposort.new_node ();
+    package_node = OcpToposort.new_node ();
   } in
   state.packages <- IntMap.add pk.package_id pk state.packages;
   pk
@@ -233,7 +233,7 @@ module EvalOCP2 = BuildOCP2Interp.Eval(OCP_arg)
 let add_primitive = EvalOCP2.add_primitive
 let primitives_help = EvalOCP1.primitives_help
 
-let verbose = DebugVerbosity.verbose ["B";"BP"] "BuildOCP"
+let verbose = OcpDebug.verbose_function ["B";"BP"; "BuildOCP"]
 
 let print_missing_deps = ref false
 
@@ -247,7 +247,7 @@ let print_package_deps = ref false
 let load_ocp_files config packages files =
 
   List.iter (fun file ->
-    let file = File.to_string file in
+    let file = FileGen.to_string file in
     let basename = Filename.basename file in
     if Filename.check_suffix file ".ocp2" &&
       String.lowercase basename <> "build.ocp2" then begin
@@ -280,7 +280,7 @@ let load_ocp_files config packages files =
       match parents with
         [] -> assert false
       | (parent, filename, config) :: next_parents ->
-        let file = File.to_string file in
+        let file = FileGen.to_string file in
         if OcpString.starts_with file parent then
           let dirname = Filename.dirname file in
           if verbose 5 || !print_loaded_ocp_files then
@@ -308,13 +308,13 @@ let load_ocp_files config packages files =
 let is_enabled options =
   BuildValue.get_bool_with_default options "enabled" true
 
-module PackageSorter = LinearToposort.Make(struct
+module PackageSorter = OcpToposort.Make(struct
   type t = pre_package
   let node pd = pd.package_node
   let iter_edges f pk =
     List.iter (fun pk2 -> f pk2) pk.package_requires_list
   let name pk = pk.package_name
-  let debug = ref false
+  let verbose = OcpDebug.verbose_function [ "BuildOCP.PackageSorter"]
 end)
 
 let reset_package_ids _debug array =
@@ -519,7 +519,7 @@ let scan_root root_dir =
     end
   in
 
-  push_dir (File.to_string root_dir);
+  push_dir (FileGen.to_string root_dir);
   while not (Stack.is_empty queue) do
     try
       let dirname = Stack.pop queue in
@@ -542,11 +542,11 @@ let scan_root root_dir =
             | 'a'..'z' | 'A'..'Z' | '0'..'9' ->
               if not (StringSet.mem filename !blacklist) then begin
                 if Filename.check_suffix filename ".ocp" && !arg_load_ocp then
-                  let file = File.of_string filename in
+                  let file = FileGen.of_string filename in
                   ocp_files := file :: !ocp_files
                 else
                 if Filename.check_suffix filename ".ocp2" then
-                  let file = File.of_string filename in
+                  let file = FileGen.of_string filename in
                   ocp_files := file :: !ocp_files
                 else
                   ()
@@ -570,13 +570,13 @@ let magic = magic_head ^ magic_kind ^ magic_version
 let magic_len = String.length magic
 
 let save_project_state state filename =
-  let oc = File.open_out_bin filename in
+  let oc = FileGen.open_out_bin filename in
   output_string oc magic;
   output_value oc (state : project);
   close_out oc
 
 let load_project_state filename =
-  let ic = File.open_in_bin filename in
+  let ic = FileGen.open_in_bin filename in
   let possible_magic =
     let magic = Bytes.create magic_len in
     try
@@ -616,13 +616,13 @@ let rec find_obuild f dir =
 
 let find_root root_dir basenames =
   let rec find dirname (basenames : string list) =
-    let file = File.add_basenames dirname basenames in
-    if File.exists file then dirname else
-      let new_dirname = File.dirname dirname in
+    let file = FileGen.add_basenames dirname basenames in
+    if FileGen.exists file then dirname else
+      let new_dirname = FileGen.dirname dirname in
       if new_dirname == dirname then raise Not_found;
       find new_dirname basenames
   in
-  let root_dir = if File.is_absolute root_dir then root_dir else
-      File.concat (File.getcwd ()) root_dir
+  let root_dir = if FileGen.is_absolute root_dir then root_dir else
+      FileGen.concat (FileGen.getcwd ()) root_dir
   in
   find root_dir basenames

@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 exception ExitStatus of int
 let non_fatal_errors = ref ([] : string list)

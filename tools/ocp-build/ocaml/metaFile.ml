@@ -10,9 +10,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let verbose = DebugVerbosity.verbose ["B"] "MetaFile"
+let verbose = OcpDebug.verbose_function ["B"; "MetaFile"]
 
-open StringCompat
+open OcpCompat
 
 open MetaTypes
 

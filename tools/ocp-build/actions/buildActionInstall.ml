@@ -11,7 +11,7 @@
 (**************************************************************************)
 
 open StdlibArg
-open StringCompat
+open OcpCompat
 
 open BuildTypes
 open BuildArgs

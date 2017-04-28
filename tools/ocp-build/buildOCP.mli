@@ -11,7 +11,7 @@
 (**************************************************************************)
 
 (* open BuildBase *)
-open StringCompat
+open OcpCompat
 open BuildOCPTypes
 open BuildValue.TYPES
 
@@ -39,7 +39,7 @@ val print_missing_deps : bool ref
 val init_packages : unit -> state
 val load_ocp_files :
   config ->
-  state -> File.t list -> int
+  state -> FileGen.t list -> int
 
 val verify_packages :
   BuildWarnings.set ->
@@ -49,26 +49,26 @@ val verify_packages :
 val get_packages : state -> BuildOCPTypes.pre_package IntMap.t
 val plugin_verifiers : (BuildWarnings.set -> state -> unit) list ref
 
-(* val load_project : File.t list -> project * int *)
+(* val load_project : FileGen.t list -> project * int *)
 
 (* returns the number of errors while reading the files *)
 
-val find_root : File.t -> string list -> File.t
+val find_root : FileGen.t -> string list -> FileGen.t
 
 (*
-  val save_project : File.t -> project -> unit
+  val save_project : FileGen.t -> project -> unit
 *)
 
-val scan_root : File.t -> File.t list
+val scan_root : FileGen.t -> FileGen.t list
 
 
 (* [find_package pj file] returns the list of packages in
    project [pj] containing [file] as a source.
-val find_package : project -> File.t -> final_package list
+val find_package : project -> FileGen.t -> final_package list
 *)
 
-val save_project_state : project -> File.t -> unit
-val load_project_state : File.t -> project
+val save_project_state : project -> FileGen.t -> unit
+val load_project_state : FileGen.t -> project
 
 val find_obuild : (string -> unit) -> string -> unit
 

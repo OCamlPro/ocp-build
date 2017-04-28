@@ -10,11 +10,16 @@
 (*                                                                        *)
 (**************************************************************************)
 
-include Map.S with type key = int
+open OcpCompat
 
-val to_list: 'a t -> (int * 'a) list
-val to_list1: 'a t -> int list
-val to_list2: 'a t -> 'a list
-
-exception MinElt
-val min_elt: 'a t -> (key * 'a) option
+let find_in_path path name =
+  if not (Filename.is_implicit name) then
+    if Sys.file_exists name then name else raise Not_found
+  else begin
+    let rec try_dir = function
+    [] -> raise Not_found
+      | dir::rem ->
+        let fullname = Filename.concat dir name in
+        if Sys.file_exists fullname then fullname else try_dir rem
+    in try_dir path
+  end

@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 include (FileSig.CONTENT_OPERATIONS with
           type in_file := in_channel

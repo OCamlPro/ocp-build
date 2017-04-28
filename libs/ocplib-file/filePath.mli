@@ -10,20 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
-val mkdir : File.t -> int -> unit
-
-(* mkdir, with potentially any non-existing parent directory *)
-val safe_mkdir : ?mode:int -> File.t -> unit
-
-(* deprecated, use mkdir and mkdir_all *)
-val make : File.t -> unit
-val make_all : File.t -> unit
-
-val list : File.t -> string list
-val list_files : File.t -> File.t list
-val iter : (string -> unit) -> File.t -> unit
-val iter_files : (File.t -> unit) -> File.t -> unit
-val remove : File.t -> unit
-val remove_all : File.t -> unit
+(** [find_in_path path filename] searches a file in a list of directories. *)
+val find_in_path: string list -> string -> string

@@ -11,7 +11,7 @@
 (**************************************************************************)
 
 open BuildValue.TYPES
-open StringCompat
+open OcpCompat
 
 exception OCPExn of location * string * BuildValue.TYPES.value
 

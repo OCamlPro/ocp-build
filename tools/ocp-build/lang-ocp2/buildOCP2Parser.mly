@@ -14,7 +14,7 @@
 
 (* Precedence of operators is the same as in Javascript !! *)
 
-  open StringCompat
+  open OcpCompat
   open BuildValue.TYPES
 open BuildOCP2Tree
 

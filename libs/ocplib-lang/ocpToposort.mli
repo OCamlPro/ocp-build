@@ -1,4 +1,3 @@
-(* SUPERSEDED BY StringCompat
 (**************************************************************************)
 (*                                                                        *)
 (*   Typerex Libraries                                                    *)
@@ -11,22 +10,27 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module Map = Map.Make(String)
+(** Abstract type for a node *)
+type node
 
-include Map
+(** Node creation *)
+val new_node : unit -> node
 
-let of_list list =
-  let map = ref empty in
-  List.iter (fun (x,y) -> map := add x y !map) list;
-  !map
+module Make :
+  functor
+    (M : sig
+       type t
+       val node : t -> node
+       val iter_edges : (t -> unit) -> t -> unit
 
-let to_list map =
-  let list = ref [] in
-  iter (fun x y -> list := (x,y) :: !list) map;
-  List.rev !list
+       (* associate a name with a value, useful for debugging *)
+       val name : t -> string
+       val verbose : int -> bool
+     end) ->
+      sig
+        val sort : M.t list ->
+                   M.t list * (* sorted list *)
+                     (M.t * M.t list * M.t list) list *  (* a cycle *)
+                       M.t list (* other non-sorted nodes *)
 
-let to_list_of_keys map =
-  let list = ref [] in
-  iter (fun x y -> list := x :: !list) map;
-  List.rev !list
-*)
+      end

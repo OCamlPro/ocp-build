@@ -67,7 +67,7 @@ let print_deleted () =
    [] -> ()
       |  _ ->
 
-   let _, ext = File.cut_last_extension file.file_basename in
+   let _, ext = FileGen.cut_last_extension file.file_basename in
 (*   Printf.eprintf "Testing generated file %s[%s]\n" filename ext; *)
 
    match ext with
@@ -119,7 +119,7 @@ let do_distclean () =
 (* let list_of_ocp_files_filename = "ocp-build.root" *)
 
 type project_info = {
-  project_dir : File.t;
+  project_dir : FileGen.t;
   cin : BuildOptions.config_input;
   cout : BuildOCamlConfig.TYPES.config_output;
 }
@@ -131,7 +131,7 @@ let load_project w =
   let cin =  BuildOptions.load project_dir in
   time_step "   Done loading files";
 
-  DebugVerbosity.increase_verbosity "B" cin.cin_verbosity;
+  OcpDebug.set_verbosity_source "B" cin.cin_verbosity;
   BuildTerm.set_ansi_term (
     term.esc_ansi && cin.cin_color &&
     (MinUnix.os_type = MinUnix.WINDOWS || (

@@ -25,7 +25,7 @@ val do_build :
   unit ->
   BuildActions.project_info *
     BuildTypes.builder_context * (module BuildTypes.Package) list *
-  (module BuildTypes.Package) StringCompat.StringMap.t
+  (module BuildTypes.Package) OcpCompat.StringMap.t
 
 (* val do_read_env : BuildActions.project_info -> BuildOCPInterp.state *)
 

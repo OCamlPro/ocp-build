@@ -25,7 +25,7 @@ type load_error =
   | FileDoesNotExist
   | FileCannotBeRead
   | ParseError of int * string
-  | FileHasTempBackup of File.t
+  | FileHasTempBackup of FileGen.t
   | SetOptionFailed of string * string
 
-exception LoadError of File.t * load_error
+exception LoadError of FileGen.t * load_error

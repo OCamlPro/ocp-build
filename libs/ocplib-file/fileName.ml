@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
   let copy_file f1 f2 =
     let s = ReentrantBuffers.get default_buffer_size in

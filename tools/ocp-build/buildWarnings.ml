@@ -15,7 +15,7 @@ For example, [equal] does only compare the [warnings] field,  so if
 we create another field, equal will still not change.
 *)
 
-open StringCompat
+open OcpCompat
 
 type set = {
   mutable warnings : string list;

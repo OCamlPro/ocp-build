@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 open AutoconfProjectConfig
 open SimpleConfig.Op (* !! and =:= *)
 

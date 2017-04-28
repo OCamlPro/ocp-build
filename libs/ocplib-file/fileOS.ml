@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 let win32 = (Sys.os_type = "Win32")
 let dir_separator = if win32 then '\\' else '/'

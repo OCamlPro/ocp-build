@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 
 let w_SyntaxDepDeclaredAsNotSyntax w (lib_name, tool_name, pk_name) =
   BuildWarnings.wprintf w
@@ -66,7 +66,7 @@ open BuildOCamlTypes
 open BuildOCamlVariables
 open BuildOCamlMisc
 
-let verbose = DebugVerbosity.verbose ["B"] "BuildOCamlSyntaxes"
+let verbose = OcpDebug.verbose_function ["B"; "BuildOCamlSyntaxes"]
 
 let execution_dependencies lib kind =
   if lib.lib_opk.opk_installed then [] else

@@ -10,6 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(*
 (** Topological Sort *)
 
 
@@ -31,3 +32,4 @@ module Make :
         val sort : M.t list -> M.t list
         val sort_sorted : M.t list -> M.t list
       end
+ *)

@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module StringCompat = struct
+module OcpCompat = struct
 
   module Bytes = Bytes
   module Buffer = Buffer

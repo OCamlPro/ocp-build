@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StringCompat
+open OcpCompat
 open BuildOCamlTypes
 open BuildOCamlVariables
 open BuildEngineTypes
@@ -18,7 +18,7 @@ open BuildTypes
 open BuildOCPTypes
 open BuildValue.TYPES
 
-let verbose = DebugVerbosity.verbose [ "B" ] "BuildOCamldep"
+let verbose = OcpDebug.verbose_function [ "B" ;"BuildOCamldep" ]
 
 let parse_dependencies b =
   let s = Buffer.contents b in

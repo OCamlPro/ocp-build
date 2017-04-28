@@ -46,7 +46,7 @@ let arg_list =
     ]
 
 let action () =
-  BuildOptions.load_config UserOptions.config_file (File.of_string !filename);
+  BuildOptions.load_config UserOptions.config_file (FileGen.of_string !filename);
   BuildOptions.apply_arguments ();
   BuildOptions.save_config UserOptions.config_file
 
