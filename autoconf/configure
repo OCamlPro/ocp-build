@@ -5649,7 +5649,7 @@ fi
 
 
 echo
-echo "Summary:"
+echo "Summary for ${PACKAGE_NAME}.${PACKAGE_VERSION}:"
 echo "prefix=${prefix}"
 echo "exec_prefix=${exec_prefix}"
 echo "bindir=${bindir}"
