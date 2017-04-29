@@ -7,7 +7,7 @@
 #   * ocp-autoconf.ac for autoconf parts              #
 #                                                     #
 #######################################################
-AC_INIT(ocp-build,1.99.19-beta)
+AC_INIT(ocp-build,1.99.20-beta)
 CONFIGURE_ARGS=$*
 AC_COPYRIGHT(Copyright 2011-2016 OCamlPro SAS)
 OCAML_MINIMAL_VERSION=3.12.1
@@ -168,7 +168,7 @@ AC_CONFIG_FILES(Makefile.config config.ocpgen config.ocp2gen ocaml-config.h)
 AC_OUTPUT
 
 echo
-echo "Summary:"
+echo "Summary for ${PACKAGE_NAME}.${PACKAGE_VERSION}:"
 echo "prefix=${prefix}"
 echo "exec_prefix=${exec_prefix}"
 echo "bindir=${bindir}"
