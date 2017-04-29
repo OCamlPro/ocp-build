@@ -31,7 +31,7 @@ ocaml = { pp_requires = [] } + ocaml;
 *)
 
   begin
-    ocaml.files = [ "stringCompat.ml";  "ocpCompat.ml" ];
+    ocaml.files = [  "ocpCompat.ml";  "stringCompat.ml"; ];
     ocaml.pp = [ "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte" ]; 
     ocaml.requires = [ "ocp-pp" ];
     ocaml.pp_requires = [ "ocp-pp:byte" ];
