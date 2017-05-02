@@ -31,7 +31,10 @@ begin
     "ocpSubst.ml";
 
 (* "stringTemplate.ml"; *)
-     "ocpReuse.ml"; 
+     "ocpReuse.ml";
+
+     "ocpArg.ml";
+
   ];
 
   ocaml.requires = [ "ocplib-debug" ] +  string_compat ;
