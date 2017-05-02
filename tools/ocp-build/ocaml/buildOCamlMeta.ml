@@ -161,13 +161,32 @@ let add_META pj ocamllib meta_dirname meta_filename =
             ) requires)) in
           let options = BuildValue.set_bool options "generated" true in
 
+          let stub_targets = List.filter (fun file ->
+                                 Filename.check_suffix file ".o"
+                                 || Filename.check_suffix file ".a")
+                                         byte_targets in
+          let byte_targets, asm_targets =
+            match stub_targets with
+            | [] -> byte_targets, asm_targets
+            | _ ->
+               let byte_targets =
+                 List.filter (fun file ->
+                     not (List.mem file stub_targets)) byte_targets in
+               let asm_targets =
+                 List.filter (fun file ->
+                     not (List.mem file stub_targets)) asm_targets in
+               byte_targets, asm_targets
+          in
           let options =
-            if byte_targets = [] && asm_targets = [] then
-              BuildValue.set_bool options "meta" true
-            else
-              let options = BuildValue.set_strings options
-                "asm_targets" asm_targets in
-              BuildValue.set_strings options "byte_targets" byte_targets;
+            match byte_targets, asm_targets, stub_targets with
+              | [], [], [] ->
+                 BuildValue.set_bool options "meta" true
+              | _ ->
+                 let options = BuildValue.set_strings
+                                 options "asm_targets" asm_targets in
+                 let options = BuildValue.set_strings
+                                 options "byte_targets" byte_targets in
+                 BuildValue.set_strings options "stub_targets" stub_targets
           in
 
           let options = match p_option with
