@@ -2753,8 +2753,8 @@ let create w cin cout bc state =
               | "cmi" when List.mem CMI kinds -> [ bf, CMI ]
               | "cmo" when List.mem CMO kinds -> [ bf, CMO ]
               | "cma" when List.mem CMA kinds -> [ bf, CMA ]
-              | ".o" when List.mem STUB_A kinds -> [ bf, STUB_A ]
-              | ".a" when List.mem STUB_A kinds -> [ bf, STUB_A ]
+              | "o" when List.mem STUB_A kinds -> [ bf, STUB_A ]
+              | "a" when List.mem STUB_A kinds -> [ bf, STUB_A ]
               | ext ->
                 Printf.eprintf
                   "Error: package %S, option %S contains a file %S\n"
