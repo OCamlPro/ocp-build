@@ -48,9 +48,9 @@ let () =
       AutoconfCommon.command "git init"
   end;
 
+  FileString.safe_mkdir ocp_autoconf_dir;
   apply_makers ();
 
-  FileString.safe_mkdir ocp_autoconf_dir;
   if Sys.file_exists commit_filename_old then
     Sys.rename  commit_filename_old commit_filename;
   let files = AutoconfFS.commit commit_filename in
