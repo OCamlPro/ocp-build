@@ -23,20 +23,11 @@ val arg :
 
 (* a simple command *)
 val basic :
-  arg list ->
-  (string -> unit) -> (* anon args *)
+  ?args: arg list ->
+  ?group:(string * command) list ->
   ?readme: (unit -> string) -> (* readme *)
+  ?action: (string list -> unit) -> (* action *)
   string -> (* usage *)
-  (unit -> unit) -> (* action *)
-  command
-
-(* a command with sub-commands *)
-val group :
-  arg list ->
-  (string * command) list -> (* sub-commands *)
-  ?readme: (unit -> string) -> (* readme *)
-  string -> (* usage *)
-  (unit -> unit) -> (* action *)
   command
 
 val runner : ?version:string -> ?build:string -> unit -> runner
@@ -50,5 +41,6 @@ val run : command -> runner -> unit
 val add_commands : command -> (string * command) list -> unit
 val add_args : command -> arg list -> unit
 
-(* From the actions *)
-exception Usage of int (* print help and exit with status *)
+(* exceptions to be raised from the actions *)
+exception InvalidArg of string (* print error message and exit with status 1 *)
+exception Usage (* print help and exit with status 0 *)

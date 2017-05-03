@@ -10,29 +10,39 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(*
+TODO:
+* print usage, maybe as manpage
+* parse arguments' arguments
+ *)
+
+open OcpCompat
+
 type arg = {
     arg_keys : string list;
     arg_spec : Arg.spec;
     arg_readme : (unit -> string) option;
     arg_usage : string;
   }
+
 type command = {
-    mutable cmd_args : arg list;
+    mutable cmd_arg_list : arg list;
+    mutable cmd_arg_map : arg StringMap.t;
     mutable cmd_group : (string * command) list;
-    mutable cmd_anon : (string -> unit);
     cmd_readme : (unit -> string) option;
     cmd_usage : string;
-    cmd_action : (unit -> unit);
+    cmd_action : (string list -> unit) option;
   }
-
- and anonymous_args =
-   | Basic of (string -> unit)
-   | Group of (string * command) list
 
 type runner = {
     version: string option;
     build: string option;
   }
+
+exception InvalidArg of string
+exception Usage (* print help and exit with status 0 *)
+exception BuildInfo
+exception Version
 
 let arg arg_key arg_spec ?readme arg_usage =
   {
@@ -44,37 +54,148 @@ let arg arg_key arg_spec ?readme arg_usage =
 
 let runner ?version ?build () = { version; build }
 
-let basic cmd_args cmd_anon ?readme cmd_usage cmd_action =
-  {
-    cmd_args;
-    cmd_anon;
-    cmd_group = [];
-    cmd_readme = readme;
-    cmd_usage;
-    cmd_action;
-  }
+let add_args cmd cmd_args =
+  cmd.cmd_arg_list <- cmd.cmd_arg_list @ cmd_args;
+  List.iter (fun arg ->
+      List.iter (fun key ->
+          cmd.cmd_arg_map <- StringMap.add key arg cmd.cmd_arg_map
+        ) arg.arg_keys
+    ) cmd_args
 
-let choose_in_group cmd arg = assert false (* TODO *)
-
-let group cmd_args cmd_group ?readme cmd_usage cmd_action =
+let basic ?(args=[]) ?(group = []) ?readme ?action cmd_usage =
   let cmd = {
-      cmd_args;
-      cmd_anon = (fun _ -> ());
-      cmd_group;
+      cmd_arg_list = [] ;
+      cmd_arg_map = StringMap.empty;
+      cmd_group = group;
       cmd_readme = readme;
       cmd_usage;
-      cmd_action;
+      cmd_action = action;
     } in
-  cmd.cmd_anon <- choose_in_group cmd;
+  add_args cmd args;
   cmd
-
-let add_args cmd cmd_args =
-  cmd.cmd_args <- cmd.cmd_args @ cmd_args
 
 let add_commands cmd cmd_group =
   cmd.cmd_group <- cmd.cmd_group @ cmd_group
 
+                                     (*
+let add_runner_arguments cmd runner =
 
+  let args = [] in
 
-let run cmd runner = assert false (* TODO *)
-exception Usage of int (* print help and exit with status *)
+  let args = match runner.version with
+    | None -> args
+    | Some v ->
+       (arg "--version" (Arg.Unit (fun () ->
+                             Printf.printf "%s\n%!" v;
+                             exit 0))
+            " Print version and exit")
+       :: args
+  in
+
+  let args = match runner.build with
+    | None -> args
+    | Some v ->
+       (arg "--build-info" (Arg.Unit (fun () ->
+                             Printf.printf "%s\n%!" v;
+                             exit 0)) " Print build info and exit")
+       :: args
+  in
+
+  cmd.cmd_args @ args @
+    [ arg "--help" (Arg.Unit (fun () -> raise Usage))
+          " Print command help (first argument)" ]
+                                      *)
+
+let print_usage cmd runner i =
+  Printf.eprintf "fatal: print_usage...\n%!"; exit 2
+
+let run_action cmd runner i action =
+  try
+    action ()
+  with
+  | Usage ->
+     print_usage cmd runner i;
+     exit 0
+  | InvalidArg arg ->
+     Printf.eprintf "Error: invalid argument %S\n%!" arg;
+     print_usage cmd runner i;
+     exit 1
+  | BuildInfo ->
+     Printf.printf "%s\n%!" (match runner.build with
+                             | None -> assert false
+                             | Some v -> v);
+     exit 0
+  | Version ->
+     Printf.printf "%s\n%!" (match runner.version with
+                             | None -> assert false
+                             | Some v -> v);
+     exit 0
+
+let arg_help =
+  arg "--help" (Arg.Unit (fun () -> raise Usage))
+      " Print command help"
+
+let arg_version =
+  arg "--version" (Arg.Unit (fun () -> raise Version))
+      " Print version"
+
+let arg_build_info =
+  arg "--build-info" (Arg.Unit (fun () -> raise BuildInfo))
+      " Print build info"
+
+let rec run_group cmd runner i =
+  if Array.length Sys.argv <= i then
+    run_action cmd runner (i-1) (fun () ->
+                 match cmd.cmd_action with
+                 | None -> raise Usage
+                 | Some action -> action []
+               )
+  else
+    let arg = Sys.argv.(i) in
+    let group = try Some (List.assoc arg cmd.cmd_group) with _ -> None in
+    match group with
+    | Some cmd -> run_group cmd runner (i+1)
+    | None ->
+       run_next_arg cmd runner (i-1) [] (i-1)
+
+and run_arg cmd runner i_group anon i arg =
+  match
+    try Some (StringMap.find arg cmd.cmd_arg_map)
+    with Not_found ->
+         match arg, runner with
+         | "--help", _ -> Some arg_help
+         | "--version", { version = Some _ } -> Some arg_version
+         | "--build-info", { build = Some _  } -> Some arg_build_info
+         | _ -> None
+  with
+
+  | None -> begin
+      match cmd.cmd_action with
+      | Some _ ->
+         let anon = arg :: anon in
+         run_next_arg cmd runner i_group anon i
+      | None ->
+         run_action cmd runner i_group
+                    (fun () -> raise (InvalidArg arg))
+    end
+
+  | Some arg ->
+     begin
+       assert false; (* TODO *)
+       run_next_arg cmd runner i_group anon i
+     end
+
+and run_next_arg cmd runner i_group anon i =
+  let i = i + 1 in
+  if Array.length Sys.argv >= i then
+    let arg = Sys.argv.(i) in
+    run_arg cmd runner i_group anon i arg
+  else
+    let anon = List.rev anon in
+    match cmd.cmd_action with
+    | None -> ()
+    | Some action ->
+       run_action cmd runner i_group (fun () -> action anon)
+
+let run cmd runner =
+  run_group cmd runner 1
