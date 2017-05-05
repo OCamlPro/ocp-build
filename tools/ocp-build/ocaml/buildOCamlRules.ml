@@ -810,13 +810,16 @@ let add_cmo2byte_rule lib ptmp linkflags cclib cmo_files o_files byte_file =
       | ProgramPackage ->
         add_command_args cmd (bytelinkflags lib2);
         if not lib2.lib_meta then begin
+          let has_ocaml_modules = ref false in
           List.iter (fun (obj, kind) ->
             match kind with
-            | CMA -> add_command_arg cmd (BF obj)
-            | CMO -> add_command_arg cmd (BF obj)
+            | CMA
+            | CMO ->
+               has_ocaml_modules := true;
+               add_command_arg cmd (BF obj)
             | _ -> ()
           ) lib2.lib_byte_targets;
-          if not lib2.lib_autolink then
+          if not (lib2.lib_autolink && !has_ocaml_modules) then
             List.iter (fun (obj, kind) ->
               match kind with
               | STUB_A -> add_command_arg cmd (BF obj)
@@ -880,21 +883,22 @@ let add_cmx2asm_rule lib ptmp linkflags cclib cmx_files cmx_o_files o_files opt_
       | RulesPackage
       | ObjectsPackage
       | ProgramPackage ->
-        add_command_args cmd (asmlinkflags lib2);
-        if not lib2.lib_meta then begin
-          List.iter (fun (obj, kind) ->
-            match kind with
-            | CMXA | CMX -> add_command_arg cmd (BF obj)
+         add_command_args cmd (asmlinkflags lib2);
+         let has_ocaml_modules = ref false in
+         List.iter (fun (obj, kind) ->
+             match kind with
+             | CMXA | CMX ->
+                has_ocaml_modules := true;
+                add_command_arg cmd (BF obj)
             | _ -> ()
           ) lib2.lib_asm_targets;
-          if not lib2.lib_autolink then
+          if not (!has_ocaml_modules && lib2.lib_autolink) then
             List.iter (fun (obj, kind) ->
               match kind with
               | STUB_A -> add_command_arg cmd (BF obj)
               (*     [S "-cclib"; S ("-l" ^ lib2.lib_stubarchive)] *)
               | _ -> ()
             ) lib2.lib_stub_targets;
-        end;
       | SyntaxPackage -> ()
       | TestPackage -> ()
     ) lib.lib_linkdeps;
