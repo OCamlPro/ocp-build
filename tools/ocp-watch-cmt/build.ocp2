@@ -1,0 +1,27 @@
+(**************************************************************************)
+(*                                                                        *)
+(*   Typerex Tools                                                        *)
+(*                                                                        *)
+(*   Copyright 2011-2017 OCamlPro SAS                                     *)
+(*                                                                        *)
+(*   All rights reserved.  This file is distributed under the terms of    *)
+(*   the GNU General Public License version 3 described in the file       *)
+(*   LICENSE.                                                             *)
+(*                                                                        *)
+(**************************************************************************)
+
+begin
+
+  ocaml.version = autoconf.package_version;
+  ocaml.files = [
+    "watchVersion.ml", { ocp2ml = true };
+    "watchMain.ml";
+  ];
+  ocaml.requires = [
+    "unix";
+    "ocplib-file";
+    "ocplib-compiler-annot";
+  ] + string_compat;
+
+  new_package("ocp-watch-cmt","program", ocaml);
+end
