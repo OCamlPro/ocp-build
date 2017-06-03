@@ -342,7 +342,7 @@ include autoconf/Makefile.rules
 	$(OCAMLC) -c -o $*.cmo $(EXTERNAL_INCLUDES) $(INCLUDES) $<
 
 .c.o:
-	$(OCAMLC) -c $(INCLUDES) $<
+	$(OCAMLC) -c $(INCLUDES) -ccopt -DOCAML_VERSION=$(OCAMLVERSION_C) $<
 	mv `basename $*.o` $*.o
 
 
