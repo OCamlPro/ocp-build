@@ -21,7 +21,7 @@ begin
     "minUnix.ml", with_ocp_pp;
     "minUnix_c.c";
     "onlyUnix.ml", with_ocp_pp;
-    "onlyUnix_c.c";
+    "onlyUnix_c.c", { ccopt = "-DOCAML_VERSION=" + String_concat(ocaml_major_version) + String_concat(ocaml_minor_version) + String_concat(ocaml_point_version); };
     "onlyWin32.ml"; "onlyWin32_c.c";
   ];
 

@@ -51,8 +51,10 @@ UNAVAILABLE_PRIM(unix_chown)
 UNAVAILABLE_PRIM(unix_fchown)
 UNAVAILABLE_PRIM(unix_chroot)
 UNAVAILABLE_PRIM(unix_mkfifo)
+#if (OCAML_VERSION < 4030)
 UNAVAILABLE_PRIM(unix_readlink)
 UNAVAILABLE_PRIM(unix_symlink)
+#endif
 #endif
 
 UNAVAILABLE_PRIM(unix_clear_close_on_exec)
