@@ -141,7 +141,7 @@ let dirname t =
 let add_basename_string dir basename =
   match dir.file_basename with
   | "" | "/" | "\\" ->
-    dir.file_basename ^ basename
+    dir.file_partition ^ dir.file_basename ^ basename
   | _ ->
     dir.file_string ^ FileOS.dir_separator_string ^ basename
 
