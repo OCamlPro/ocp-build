@@ -608,6 +608,7 @@ OCAML_POINT_VERSION
 OCAML_MINOR_VERSION
 OCAML_MAJOR_VERSION
 SED
+OCAML_OS_TYPE
 OCAMLBUILD
 OCAMLDOC
 OCAMLMKLIB
@@ -3706,6 +3707,21 @@ else
 fi
 
 
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking OCaml Sys.os_type" >&5
+$as_echo_n "checking OCaml Sys.os_type... " >&6; }
+
+  cat > conftest.ml <<EOF
+  print_string(Sys.os_type);;
+EOF
+
+  OCAML_OS_TYPE=`$OCAML conftest.ml`
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAML_OS_TYPE" >&5
+$as_echo "$OCAML_OS_TYPE" >&6; }
+
+
+if test "${OCAML_OS_TYPE}" = "Win32" ; then
+  OCAMLLIB="$(echo "${OCAMLLIB}" | sed -e 's|\\|/|g')"
+fi
 
 ROOTDIR=$(dirname $(pwd))
 
@@ -4043,7 +4059,11 @@ fi
 
 
 if test "${OCAMLFIND}" != "no"; then
-  metadir="$(${OCAMLFIND} -printconf destdir)"
+  if test "${OCAML_OS_TYPE}" = "Win32" ; then
+    metadir="$(${OCAMLFIND} -printconf destdir | sed -e 's|\\|/|g')"
+  else
+    metadir="$(${OCAMLFIND} -printconf destdir)"
+  fi
   echo "initializing metadir from ocamlfind config"
 fi
 
