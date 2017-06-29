@@ -2700,7 +2700,7 @@ fi
 
 
   if test "$OCAMLC" != "no"; then
-     OCAMLVERSION=`$OCAMLC -v | sed -n -e 's|.*version* *\(.*\)$|\1|p'`
+     OCAMLVERSION=`$OCAMLC -v | tr -d '\015' | sed -n -e 's|.*version* *\(.*\)$|\1|p'`
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: OCaml version is $OCAMLVERSION" >&5
 $as_echo "OCaml version is $OCAMLVERSION" >&6; }
      # If OCAMLLIB is set, use it
@@ -2814,7 +2814,7 @@ fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cannot find ocamlopt; bytecode compilation only." >&5
 $as_echo "$as_me: WARNING: Cannot find ocamlopt; bytecode compilation only." >&2;}
      else
-	TMPVERSION=`$OCAMLOPT -v | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
+	TMPVERSION=`$OCAMLOPT -v | tr -d '\015' | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
 	if test "$TMPVERSION" != "$OCAMLVERSION" ; then
 	    { $as_echo "$as_me:${as_lineno-$LINENO}: result: versions differs from ocamlc; ocamlopt discarded." >&5
 $as_echo "versions differs from ocamlc; ocamlopt discarded." >&6; }
@@ -2920,7 +2920,7 @@ else
 fi
 
      if test "$OCAMLCDOTOPT" != "no"; then
-	TMPVERSION=`$OCAMLCDOTOPT -v | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
+	TMPVERSION=`$OCAMLCDOTOPT -v | tr -d '\015' | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
 	if test "$TMPVERSION" != "$OCAMLVERSION" ; then
 	    { $as_echo "$as_me:${as_lineno-$LINENO}: result: versions differs from ocamlc; ocamlc.opt discarded." >&5
 $as_echo "versions differs from ocamlc; ocamlc.opt discarded." >&6; }
@@ -3024,7 +3024,7 @@ else
 fi
 
 	if test "$OCAMLOPTDOTOPT" != "no"; then
-	   TMPVERSION=`$OCAMLOPTDOTOPT -v | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
+	   TMPVERSION=`$OCAMLOPTDOTOPT -v | tr -d '\015' | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
 	   if test "$TMPVERSION" != "$OCAMLVERSION" ; then
 	      { $as_echo "$as_me:${as_lineno-$LINENO}: result: version differs from ocamlc; ocamlopt.opt discarded." >&5
 $as_echo "version differs from ocamlc; ocamlopt.opt discarded." >&6; }
@@ -3321,7 +3321,7 @@ else
 fi
 
 	if test "$OCAMLDEPDOTOPT" != "no"; then
-	   TMPVERSION=`$OCAMLDEPDOTOPT -version | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
+	   TMPVERSION=`$OCAMLDEPDOTOPT -version | tr -d '\015' | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
 	   if test "$TMPVERSION" != "$OCAMLVERSION" ; then
 	      { $as_echo "$as_me:${as_lineno-$LINENO}: result: version differs from ocamlc; ocamldep.opt discarded." >&5
 $as_echo "version differs from ocamlc; ocamldep.opt discarded." >&6; }
@@ -3720,7 +3720,7 @@ $as_echo "$OCAML_OS_TYPE" >&6; }
 
 
 if test "${OCAML_OS_TYPE}" = "Win32" ; then
-  OCAMLLIB="$(echo "${OCAMLLIB}" | sed -e 's|\\|/|g')"
+  OCAMLLIB="$(echo "${OCAMLLIB}" | tr -d '\015' | sed -e 's|\\|/|g')"
 fi
 
 ROOTDIR=$(dirname $(pwd))
@@ -4060,7 +4060,7 @@ fi
 
 if test "${OCAMLFIND}" != "no"; then
   if test "${OCAML_OS_TYPE}" = "Win32" ; then
-    metadir="$(${OCAMLFIND} -printconf destdir | sed -e 's|\\|/|g')"
+    metadir="$(${OCAMLFIND} -printconf destdir | tr -d '\015' | sed -e 's|\\|/|g')"
   else
     metadir="$(${OCAMLFIND} -printconf destdir)"
   fi

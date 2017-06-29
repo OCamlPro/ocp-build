@@ -28,7 +28,7 @@ AC_PROG_CC
 AC_PROG_OCAML
 AC_CHECK_OCAML_OS_TYPE
 if test "${OCAML_OS_TYPE}" = "Win32" ; then
-  OCAMLLIB="$(echo "${OCAMLLIB}" | sed -e 's|\\|/|g')"
+  OCAMLLIB="$(echo "${OCAMLLIB}" | tr -d '\015' | sed -e 's|\\|/|g')"
 fi
 
 ROOTDIR=$(dirname $(pwd))
@@ -75,7 +75,7 @@ metadir='${ocamldir}'
 AC_PROG_FINDLIB
 if test "${OCAMLFIND}" != "no"; then
   if test "${OCAML_OS_TYPE}" = "Win32" ; then
-    metadir="$(${OCAMLFIND} -printconf destdir | sed -e 's|\\|/|g')"
+    metadir="$(${OCAMLFIND} -printconf destdir | tr -d '\015' | sed -e 's|\\|/|g')"
   else
     metadir="$(${OCAMLFIND} -printconf destdir)"
   fi
