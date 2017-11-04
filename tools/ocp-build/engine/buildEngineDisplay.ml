@@ -86,9 +86,10 @@ let begin_command b proc =
     (BuildEngineRules.command_of_command r cmd) @
       List.map (BuildEngineRules.argument_of_argument r) cmd.cmd_args
   in
-  if verbose 1 && term.esc_ansi then print_stat_line b proc else
-    if verbose 2 then begin
-      Printf.eprintf "[%d.%d] BEGIN '%s' %s\n%!" r.rule_id proc.proc_step
+  if verbose 1 && term.esc_ansi then
+    print_stat_line b proc;
+  if verbose 2 then begin
+      Printf.eprintf "[%d.%d] BEGIN COMMAND:\n'%s' %s\n%!" r.rule_id proc.proc_step
         (term_escape (String.concat "' '" cmd_args))
         (match cmd.cmd_stdout_pipe with
           None -> ""
@@ -147,7 +148,7 @@ let end_command b proc time status =
     let has_stderr = (MinUnix.stat (temp_stderr b r)).MinUnix.st_size > 0 in
     begin
       if verbose 2 then begin
-        Printf.eprintf "[%d.%d]   END(%d) '%s'\n%!" r.rule_id proc.proc_step
+        Printf.eprintf "[%d.%d] END COMMAND:\n(%d) '%s'\n%!" r.rule_id proc.proc_step
           status
           (term_escape (String.concat "' '" cmd_args));
       end

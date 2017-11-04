@@ -138,7 +138,7 @@ let split_simplify s =
   let s = Bytes.to_string bs in
   OcpString.split_simplify s ' '
 
-let rec meta_of_package p =
+let rec meta_of_raw p =
   let meta = empty () in
   StringMap.iter (fun var_name v ->
       List.iter (function
@@ -195,7 +195,7 @@ let rec meta_of_package p =
         ) v.var_additions;
     ) p.p_variables;
   meta.meta_package <- List.map (fun (name, new_p) ->
-      let new_meta = meta_of_package new_p in
+      let new_meta = meta_of_raw new_p in
       (name, new_meta)
     ) p.p_packages;
   meta
@@ -265,7 +265,7 @@ ppx(-ppx_driver,-custom_ppx) = "./ppx"
 
 *)
 
-let variable_of_package p var_name preds =
+let variable_of_raw p var_name preds =
   try
     let v = StringMap.find var_name p.p_variables in
     let rec iter_assigns (npreds,value) assigns =
@@ -275,16 +275,25 @@ let variable_of_package p var_name preds =
         let preconds = List.fold_left (fun count (precond, is_true) ->
           if StringSet.mem precond preds = is_true then count+1 else count
         ) 0 preconds in
-        if preconds > npreds then [new_value] else value
+        iter_assigns
+          (
+           if preconds > npreds then (preconds,[new_value]) else
+           (npreds,value)
+          )
+          assigns
     in
     let rec iter_additions value additions =
       match additions with
         [] -> value
-      | (preconds, new_value) :: assigns ->
+      | (preconds, new_value) :: additions ->
         let preconds = List.fold_left (fun preconds (precond, is_true) ->
           preconds && StringSet.mem precond preds = is_true
         ) true preconds in
-        if preconds then value @ [new_value] else value
+        iter_additions
+          (
+           if preconds then value @ [new_value] else value
+          )
+          additions
     in
     let result = iter_assigns (0,[]) v.var_assigns in
     let result = iter_additions result v.var_additions in
@@ -309,9 +318,9 @@ let fprintf_ops oc indent op var_name ops =
         str
   ) ops
 
-let file_of_package filename p =
+let file_of_raw filename p =
   let oc = open_out filename in
-  let rec fprintf_package oc indent meta =
+  let rec fprintf_package oc indent p =
     StringMap.iter (fun var_name { var_assigns; var_additions } ->
       fprintf_ops oc indent "=" var_name var_assigns;
       fprintf_ops oc indent "+=" var_name var_additions
@@ -324,6 +333,9 @@ let file_of_package filename p =
   in
   fprintf_package oc "" p;
   close_out oc
+
+
+
 
 (* How -syntax works in ocamlfind ?
 

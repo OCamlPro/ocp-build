@@ -45,7 +45,7 @@ let add_META pj ocamllib meta_dirname meta_filename =
     let rec add_meta meta_dirname pj path name p =
       if verbose 4 then
         Printf.eprintf "add_meta %S %S\n%!" path name;
-      let meta = MetaFile.meta_of_package p in
+      let meta = MetaFile.meta_of_raw p in
 
       let dirname = match meta.meta_directory with
         | Some dirname when dirname <> "" ->
