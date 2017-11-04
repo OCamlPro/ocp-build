@@ -10,5 +10,5 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val parse_file : string -> MetaTypes.meta_package
+val parse_file : string -> MetaTypes.raw_meta
 val name_of_META : string (* full filename *) -> string

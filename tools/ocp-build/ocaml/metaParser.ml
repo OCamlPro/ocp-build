@@ -67,7 +67,7 @@ let rec tokens_of_file verbose filename =
     Printf.eprintf "Exception %S while parsing %S\n%!" (Printexc.to_string e) filename;
     raise e
 
-let new_meta_package p_parent =
+let new_raw_meta p_parent =
   {
     p_parent;
     p_packages = [];
@@ -115,7 +115,7 @@ let parse_file filename =
       iter_precond p path name [] tokens
 
     | IDENT "package" :: STRING package_name :: LPAREN :: tokens ->
-      let new_p = new_meta_package (Some p) in
+      let new_p = new_raw_meta (Some p) in
       p.p_packages <- (package_name, new_p) :: p.p_packages;
       iter new_p ( (package_name,p) :: path) tokens
 
@@ -146,7 +146,7 @@ let parse_file filename =
     end;
     failwith "Unexpected tokens"
 
-  and iter_precond (p : meta_package) path name preconds tokens =
+  and iter_precond (p : raw_meta) path name preconds tokens =
     match tokens with
     | RPAREN ::EQUAL :: STRING str :: tokens ->
       let v = get_variable p name in
@@ -180,7 +180,7 @@ let parse_file filename =
       v
 
   in
-  let p = new_meta_package None in
+  let p = new_raw_meta None in
   iter p [] tokens;
   p
 

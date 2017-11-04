@@ -64,7 +64,7 @@ let _ =
     try
       Printf.fprintf stderr "Parsing file %S\n%!" file;
       let p = MetaParser.parse_file file in
-      let meta = MetaFile.meta_of_package p in
+      let meta = MetaFile.meta_of_raw p in
       print "  " meta;
       let name = match meta.meta_name with
           None -> Filename.basename (Filename.dirname file)
