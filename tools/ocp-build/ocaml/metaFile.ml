@@ -16,112 +16,10 @@ open OcpCompat
 
 open MetaTypes
 
-let empty () = {
-  meta_version = None;
-  meta_description = None;
-  meta_exists_if = [];
-  meta_directory = None;
-  meta_preprocessor = None;
-  meta_name = None;
-  meta_linkopts = None;
-  meta_license = None;
-(*  meta_browse_interfaces = []; *)
-
-  meta_error = StringMap.empty;
-  meta_requires = StringMap.empty;
-  meta_archive = StringMap.empty;
-  meta_plugin = StringMap.empty;
-
-  meta_package = [];
-}
-
 let key_of_preds preds =
   let preds = List.map (fun (s, bool) ->
     if bool then s else "-" ^ s) preds in
   String.concat ", " preds
-
-let add_requires meta preds values =
-  let key = key_of_preds preds in
-  try
-    let var = StringMap.find key meta.meta_requires in
-    var.metavar_value <- var.metavar_value @ values
-  with Not_found ->
-    let var = {
-      metavar_key = key;
-      metavar_preds = preds;
-      metavar_value = values;
-    } in
-    meta.meta_requires <- StringMap.add key var meta.meta_requires
-
-let add_archive meta preds values =
-  let key = key_of_preds preds in
-  try
-    let var = StringMap.find key meta.meta_archive in
-    var.metavar_value <- var.metavar_value @ values
-  with Not_found ->
-    let var = {
-      metavar_key = key;
-      metavar_preds = preds;
-      metavar_value = values;
-    } in
-    meta.meta_archive <- StringMap.add key var meta.meta_archive
-
-let add_plugin meta preds values =
-  let key = key_of_preds preds in
-  try
-    let var = StringMap.find key meta.meta_plugin in
-    var.metavar_value <- var.metavar_value @ values
-  with Not_found ->
-    let var = {
-      metavar_key = key;
-      metavar_preds = preds;
-      metavar_value = values;
-    } in
-    meta.meta_plugin <- StringMap.add key var meta.meta_plugin
-
-let fprintf_option_field oc indent name field =
-    match field with
-      None -> ()
-    | Some s ->
-      Printf.fprintf oc "%s%s = %S\n" indent name s
-
-let fprintf_list_field oc indent name field =
-    match field with
-      [] -> ()
-    |  s ->
-      Printf.fprintf oc "%s%s = %S\n" indent name (String.concat ", " s)
-
-let fprintf_entries oc indent name entries =
-  StringMap.iter (fun _ var ->
-    Printf.fprintf oc "%s%s%s = %S\n"
-      indent name
-      (if var.metavar_key = "" then "" else
-          Printf.sprintf "(%s)" var.metavar_key)
-      (String.concat " " var.metavar_value)
-  ) entries
-
-let create_meta_file filename meta =
-  let oc = open_out filename in
-  let rec fprintf_meta oc indent meta =
-    fprintf_option_field oc indent "version" meta.meta_version;
-    fprintf_option_field oc indent "description" meta.meta_description;
-    fprintf_option_field oc indent "name" meta.meta_name;
-    fprintf_option_field oc indent "directory" meta.meta_directory;
-    fprintf_option_field oc indent "license" meta.meta_license;
-    fprintf_option_field oc indent "preprocessor" meta.meta_preprocessor;
-    fprintf_option_field oc indent "linkopts" meta.meta_linkopts;
-    fprintf_entries oc indent "requires" meta.meta_requires;
-    fprintf_entries oc indent "archive" meta.meta_archive;
-    fprintf_entries oc indent "plugin" meta.meta_plugin;
-    fprintf_list_field oc indent "exists_if" meta.meta_exists_if;
-    List.iter (fun (name, meta) ->
-      Printf.fprintf oc "%spackage %S (\n" indent name;
-      fprintf_meta oc (indent ^ "  ") meta;
-      Printf.fprintf oc "%s)\n" indent;
-    ) meta.meta_package
-  in
-  fprintf_meta oc "" meta;
-  close_out oc
 
 open OcpString
 
@@ -138,68 +36,8 @@ let split_simplify s =
   let s = Bytes.to_string bs in
   OcpString.split_simplify s ' '
 
-let rec meta_of_raw p =
-  let meta = empty () in
-  StringMap.iter (fun var_name v ->
-      List.iter (function
-          | [], str ->
-            begin
-              match var_name with
-              | "version" -> meta.meta_version <- Some str
-              | "description" -> meta.meta_description <- Some str
-              | "exists_if" -> meta.meta_exists_if <- split_simplify str
-              | "directory" -> meta.meta_directory <- Some str
-              | "preprocessor" -> meta.meta_preprocessor <- Some str
-              | "name" -> meta.meta_name <- Some str
-              | "linkopts" -> meta.meta_linkopts <- Some str
-
-              | "requires" ->
-                add_requires meta [] (split_simplify str)
-              | "archive" ->
-                add_archive meta [] (split_simplify str)
-              | "plugin" ->
-                add_plugin meta [] (split_simplify str)
-              | _ ->
-                if verbose 4 then
-                  Printf.eprintf "MetaParser.parse_file: discarding %S\n%!"
-                    var_name
-            end
-          | preconds, str ->
-            begin
-              match var_name with
-              | "requires" ->
-                add_requires meta (List.rev preconds)
-                  (OcpString.split_simplify str ' ')
-              | "archive" ->
-                add_archive meta (List.rev preconds)
-                  (OcpString.split_simplify str ' ')
-              | _ ->
-                if verbose 4 then
-                  Printf.eprintf "MetaParser.parse_file: discarding %S\n%!"
-                    var_name
-            end) v.var_assigns;
-      List.iter (function
-          | [], str ->
-            begin
-              match var_name with
-                "requires" ->
-                add_requires meta [] (split_simplify str)
-              | "archive" ->
-                add_archive meta [] (split_simplify str)
-              | _ ->
-                if verbose 4 then
-                  Printf.eprintf "MetaParser.parse_file: discarding %S\n%!"
-                    var_name
-            end
-          | _preconds, _str -> ()
-        ) v.var_additions;
-    ) p.p_variables;
-  meta.meta_package <- List.map (fun (name, new_p) ->
-      let new_meta = meta_of_raw new_p in
-      (name, new_meta)
-    ) p.p_packages;
-  meta
-
+let split_list list =
+  List.flatten (List.map split_simplify list)
 
 (* This is the kind of things that we are supposed to support, as
 ocamlfind does:
@@ -265,7 +103,7 @@ ppx(-ppx_driver,-custom_ppx) = "./ppx"
 
 *)
 
-let variable_of_raw p var_name preds =
+let variable_of_meta p var_name preds =
   try
     let v = StringMap.find var_name p.p_variables in
     let rec iter_assigns (npreds,value) assigns =
@@ -307,35 +145,89 @@ let string_of_preconds preconds =
       if is_true then precond else "-"^precond
      ) preconds)
 
-let fprintf_ops oc indent op var_name ops =
+let bprintf_ops oc indent op var_name ops =
   List.iter (fun (preconds, str) ->
     match preconds with
     | [] ->
-      Printf.fprintf oc "%s%s %s %S\n" indent var_name op str
+      Printf.bprintf oc "%s%s %s %S\n" indent var_name op str
     | _ ->
-      Printf.fprintf oc "%s%s(%s) %s %S\n" indent var_name
+      Printf.bprintf oc "%s%s(%s) %s %S\n" indent var_name
         (string_of_preconds preconds) op
         str
   ) ops
 
-let file_of_raw filename p =
-  let oc = open_out filename in
-  let rec fprintf_package oc indent p =
+let string_of_meta p =
+  let b = Buffer.create 11000 in
+  let rec bprintf_package b indent p =
     StringMap.iter (fun var_name { var_assigns; var_additions } ->
-      fprintf_ops oc indent "=" var_name var_assigns;
-      fprintf_ops oc indent "+=" var_name var_additions
+      bprintf_ops b indent "=" var_name var_assigns;
+      bprintf_ops b indent "+=" var_name var_additions
     ) p.p_variables;
     List.iter (fun (name, sub_p) ->
-      Printf.fprintf oc "%spackage %S (\n" indent name;
-      fprintf_package oc (indent ^ "  ") sub_p;
-      Printf.fprintf oc "%s)\n" indent;
+      Printf.bprintf b "%spackage %S (\n" indent name;
+      bprintf_package b (indent ^ "  ") sub_p;
+      Printf.bprintf b "%s)\n" indent;
     ) p.p_packages
   in
-  fprintf_package oc "" p;
+  bprintf_package b "" p;
+  Buffer.contents b
+
+let file_of_meta filename p =
+  let oc = open_out filename in
+  output_string oc (string_of_meta p);
   close_out oc
 
+let meta_of_file filename = MetaParser.parse_file filename
 
+type predicates = StringSet.t
+let preds_none = StringSet.empty
+let preds_of_strings list =
+  List.fold_left (fun set s ->
+    StringSet.add s set) StringSet.empty list
 
+let preds_byte = preds_of_strings [ "byte" ]
+let preds_asm = preds_of_strings [ "asm" ]
+
+let directory p = variable_of_meta p "directory" preds_none
+let exists_if p = variable_of_meta p "exists_if" preds_none
+let version p = variable_of_meta p "version" preds_none
+let archive p preds = split_list (variable_of_meta p "archive" preds)
+let requires p preds = split_list (variable_of_meta p "requires" preds)
+
+let create = MetaParser.create
+
+let set_var var p value =
+  let v = MetaParser.get_variable p var in
+  v.var_assigns <- ([], value) :: v.var_assigns
+
+let set_directory = set_var "directory"
+let set_version = set_var "version"
+let set_exists_if = set_var "exists_if"
+let set_description = set_var "description"
+
+let add_var var p predicates value =
+  let v = MetaParser.get_variable p var in
+  let found = ref false in
+  let assigns = List.map (fun (preds, previous_value) ->
+    if preds = predicates && not !found then begin
+      found := true;
+      (preds, previous_value ^ " " ^ value)
+    end
+    else
+      (preds, previous_value)
+    ) v.var_assigns in
+  v.var_assigns <- (if !found then
+    assigns
+  else
+    (predicates, value) :: v.var_assigns
+  )
+
+let precs_byte = [ "byte", true ]
+let precs_asm = [ "native", true ]
+
+let add_archive = add_var "archive"
+let add_plugin = add_var "plugin"
+let add_requires = add_var "requires"
 
 (* How -syntax works in ocamlfind ?
 

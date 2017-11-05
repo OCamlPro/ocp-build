@@ -10,5 +10,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val parse_file : string -> MetaTypes.raw_meta
+val create : MetaTypes.t option -> MetaTypes.t
+val get_variable :
+    MetaTypes.t -> string -> MetaTypes.variable
+
+val parse_file : string -> MetaTypes.t
 val name_of_META : string (* full filename *) -> string

@@ -160,7 +160,7 @@ let install_META log where installdir meta lib =
     let really_install_META meta_file =
       let meta_file_d = in_destdir where meta_file in
       safe_mkdir where log (Filename.dirname meta_file);
-      MetaFile.create_meta_file meta_file_d meta;
+      MetaFile.file_of_meta meta_file_d meta;
       BuildUninstall.add_un_field log FILE meta_file;
       Printf.eprintf "Generated META file %s\n%!" meta_file;
     in
@@ -182,13 +182,13 @@ let install_META log where installdir meta lib =
             match List.split_after installdir_list dir_list with
             | None -> iter dirs
             | Some subdir ->
-              meta.meta_directory <- Some (String.concat "/" subdir);
+                MetaFile.set_directory meta  (String.concat "/" subdir);
               really_install_META (Filename.concat dir meta_basename)
           end
         | [] ->
           begin
             let ocamllib = split_dir where.install_ocamllib in
-            meta.meta_directory <- Some
+            MetaFile.set_directory meta
               (match List.split_after installdir_list ocamllib with
               | None -> installdir
               | Some subdir -> "^" ^ String.concat "/" subdir
@@ -235,10 +235,10 @@ let install where what lib installdir =
         BuildUninstall.add_un_field log PACK pk.lib_name) bundle;
 
     (* Do the installation *)
-      let meta = MetaFile.empty () in
+      let meta = MetaFile.create None in
 
-      meta.meta_version <- Some opk.opk_version;
-      meta.meta_description <- Some
+      MetaFile.set_version meta opk.opk_version;
+      MetaFile.set_description meta
         (BuildValue.get_string_with_default lib.lib_opk.opk_options "description" lib.lib.lib_name);
 
       let need_requires = ref false in
@@ -259,17 +259,17 @@ let install where what lib installdir =
             Some (Filename.concat installdir file.file_basename)
           | CMA when what.install_byte_lib ->
             need_requires := true;
-            MetaFile.add_archive meta [ "byte", true ] [ file.file_basename ];
-            MetaFile.add_plugin meta [ "byte", true ] [ file.file_basename ];
-            meta.meta_exists_if <- file.file_basename :: meta.meta_exists_if;
+            MetaFile.add_archive meta MetaFile.precs_byte file.file_basename;
+            MetaFile.add_plugin meta MetaFile.precs_byte file.file_basename ;
+            MetaFile.set_exists_if meta file.file_basename;
             Some (Filename.concat installdir file.file_basename)
           | CMXA when what.install_asm_lib ->
             need_requires := true;
-            MetaFile.add_archive meta [ "native", true ] [ file.file_basename ];
+            MetaFile.add_archive meta MetaFile.precs_asm file.file_basename;
             Some (Filename.concat installdir file.file_basename)
           | CMXS when what.install_asm_lib ->
             need_requires := true;
-            MetaFile.add_plugin meta [ "native", true ] [ file.file_basename ];
+            MetaFile.add_plugin meta MetaFile.precs_asm file.file_basename;
             Some (Filename.concat installdir file.file_basename)
           | RUN_ASM when  what.install_asm_bin ->
             Some (Filename.concat installbin
@@ -318,7 +318,7 @@ let install where what lib installdir =
         List.iter (fun dep ->
           let olib = dep.dep_project in
           if dep.dep_link then
-            MetaFile.add_requires meta [] [olib.lib.lib_name]
+            MetaFile.add_requires meta [] olib.lib.lib_name
         ) lib.lib_requires;
 
 
