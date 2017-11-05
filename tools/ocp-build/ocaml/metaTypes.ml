@@ -15,46 +15,18 @@ open OcpCompat
 (* Raw-version of META files: *)
 
 type precondition = string * bool
+type preconditions = precondition list
 
 type variable = {
   var_name : string;
-  mutable var_assigns : (precondition list * string) list;
-  mutable var_additions : (precondition list * string) list;
+  mutable var_assigns : (preconditions * string) list;
+  mutable var_additions : (preconditions * string) list;
 }
 
-type raw_meta = {
-  p_parent : raw_meta option;
-  mutable p_packages : (string * raw_meta) list;
+type t = {
+  p_parent : t option;
+  mutable p_packages : (string * t) list;
   mutable p_variables : variable StringMap.t;
-}
-
-
-
-(* Simplified/partial pre-interpreted version of META files, as used
-   by ocp-build 1.X: *)
-type meta = {
-  mutable meta_version : string option; (* USED *)
-  mutable meta_description : string option;
-  mutable meta_exists_if : string list; (* USED *)
-  mutable meta_directory : string option; (* USED *)
-  mutable meta_preprocessor : string option;
-  mutable meta_name : string option;
-  mutable meta_linkopts : string option;
-  mutable meta_license : string option;
-(*  mutable meta_browse_interfaces : string list; *)
-
-  mutable meta_requires : string list var StringMap.t; (* USED *)
-  mutable meta_archive : string list var StringMap.t; (* USED *)
-  mutable meta_plugin : string list var StringMap.t;
-  mutable meta_error : string var StringMap.t;
-
-  mutable meta_package : (string * meta) list;
-}
-
-and 'a var = {
-  metavar_key : string;
-  metavar_preds : (string * bool) list;
-  mutable metavar_value : 'a;
 }
 
 

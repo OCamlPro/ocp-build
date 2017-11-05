@@ -67,7 +67,7 @@ let rec tokens_of_file verbose filename =
     Printf.eprintf "Exception %S while parsing %S\n%!" (Printexc.to_string e) filename;
     raise e
 
-let new_raw_meta p_parent =
+let create p_parent =
   {
     p_parent;
     p_packages = [];
@@ -83,6 +83,18 @@ let close_package p =
         v.var_additions <- List.rev v.var_additions;
     ) p.p_variables;
   ()
+
+let get_variable p var_name =
+  try
+    StringMap.find var_name p.p_variables
+  with Not_found ->
+    let v = {
+      var_name;
+      var_additions = [];
+      var_assigns = [];
+    } in
+    p.p_variables <- StringMap.add var_name v p.p_variables;
+    v
 
 let parse_file filename =
   let tokens = tokens_of_file false filename in
@@ -115,7 +127,7 @@ let parse_file filename =
       iter_precond p path name [] tokens
 
     | IDENT "package" :: STRING package_name :: LPAREN :: tokens ->
-      let new_p = new_raw_meta (Some p) in
+      let new_p = create (Some p) in
       p.p_packages <- (package_name, new_p) :: p.p_packages;
       iter new_p ( (package_name,p) :: path) tokens
 
@@ -146,7 +158,7 @@ let parse_file filename =
     end;
     failwith "Unexpected tokens"
 
-  and iter_precond (p : raw_meta) path name preconds tokens =
+  and iter_precond (p : t) path name preconds tokens =
     match tokens with
     | RPAREN ::EQUAL :: STRING str :: tokens ->
       let v = get_variable p name in
@@ -167,20 +179,8 @@ let parse_file filename =
     | _ ->
       print_remaining "iter_precond" tokens
 
-  and get_variable p var_name =
-    try
-      StringMap.find var_name p.p_variables
-    with Not_found ->
-      let v = {
-        var_name;
-        var_additions = [];
-        var_assigns = [];
-      } in
-      p.p_variables <- StringMap.add var_name v p.p_variables;
-      v
-
   in
-  let p = new_raw_meta None in
+  let p = create None in
   iter p [] tokens;
   p
 
