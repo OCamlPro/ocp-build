@@ -106,16 +106,18 @@ ppx(-ppx_driver,-custom_ppx) = "./ppx"
 let variable_of_meta p var_name preds =
   try
     let v = StringMap.find var_name p.p_variables in
+    (* Printf.eprintf "Variable %S found\n%!" var_name; *)
     let rec iter_assigns (npreds,value) assigns =
       match assigns with
         [] -> value
       | (preconds, new_value) :: assigns ->
-        let preconds = List.fold_left (fun count (precond, is_true) ->
-          if StringSet.mem precond preds = is_true then count+1 else count
-        ) 0 preconds in
+        let ok = List.fold_left (fun preconds (precond, is_true) ->
+          preconds && StringSet.mem precond preds = is_true
+        ) true preconds in
         iter_assigns
           (
-           if preconds > npreds then (preconds,[new_value]) else
+            if ok && List.length preconds > npreds then
+              (List.length preconds,[new_value]) else
            (npreds,value)
           )
           assigns
@@ -124,19 +126,26 @@ let variable_of_meta p var_name preds =
       match additions with
         [] -> value
       | (preconds, new_value) :: additions ->
-        let preconds = List.fold_left (fun preconds (precond, is_true) ->
+        let ok = List.fold_left (fun preconds (precond, is_true) ->
           preconds && StringSet.mem precond preds = is_true
         ) true preconds in
         iter_additions
           (
-           if preconds then value @ [new_value] else value
+           if ok then value @ [new_value] else value
           )
           additions
     in
-    let result = iter_assigns (0,[]) v.var_assigns in
+    let result = iter_assigns (-1,[]) v.var_assigns in
     let result = iter_additions result v.var_additions in
     result
-  with Not_found -> []
+  with Not_found ->
+    (*
+    Printf.eprintf "Variable %S NOT FOUND\n%!" var_name;
+    StringMap.iter (fun v _ ->
+      Printf.eprintf "Variable %S exists\n%!" v
+                   ) p.p_variables;
+     *)
+    []
 
 
 let string_of_preconds preconds =
@@ -186,9 +195,13 @@ let preds_of_strings list =
     StringSet.add s set) StringSet.empty list
 
 let preds_byte = preds_of_strings [ "byte" ]
-let preds_asm = preds_of_strings [ "asm" ]
+let preds_asm = preds_of_strings [ "native" ]
 
-let directory p = variable_of_meta p "directory" preds_none
+let rec directory p =
+  match p.p_parent with
+  | None -> variable_of_meta p "directory" preds_none
+  | Some p -> directory p
+
 let exists_if p = variable_of_meta p "exists_if" preds_none
 let version p = variable_of_meta p "version" preds_none
 let archive p preds = split_list (variable_of_meta p "archive" preds)
