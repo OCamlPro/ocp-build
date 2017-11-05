@@ -34,9 +34,9 @@ let set_field env var_name preds field value =
 
 let add_META pj ocamllib meta_dirname meta_filename =
   (*
-    Printf.eprintf "dirname=%S\n%!" dirname;
-    Printf.eprintf "filename=%S\n%!" filename;
-  *)
+  Printf.eprintf "dirname=%S\n%!" meta_dirname;
+  Printf.eprintf "filename=%S\n%!" meta_filename;
+   *)
   try
     let p = MetaFile.meta_of_file meta_filename in
     if verbose 4 then
@@ -48,7 +48,8 @@ let add_META pj ocamllib meta_dirname meta_filename =
 (*      let meta = MetaFile.meta_of_raw p in *)
 
       let dirname =
-        match MetaFile.directory p with
+        let dir = MetaFile.directory p in
+        match dir with
         | []
         | "" :: _
           -> meta_dirname
@@ -113,8 +114,10 @@ let add_META pj ocamllib meta_dirname meta_filename =
         ) meta.meta_archive;
          *)
 
-        let has_byte = MetaFile.variable_of_meta p "archive" MetaFile.preds_byte in
-        let has_asm = MetaFile.variable_of_meta p "archive" MetaFile.preds_asm in
+        let has_byte = MetaFile.variable_of_meta p "archive"
+                                                 MetaFile.preds_byte in
+        let has_asm = MetaFile.variable_of_meta p "archive
+                                                   " MetaFile.preds_asm in
 
         (*
         let archive = match !has_asm, !has_byte with
