@@ -117,8 +117,6 @@ libs/ocplib-lang/ocpGenlex.cmi :
 libs/ocplib-lang/ocpList.cmo : libs/ocplib-lang/ocpList.cmi
 libs/ocplib-lang/ocpList.cmx : libs/ocplib-lang/ocpList.cmi
 libs/ocplib-lang/ocpList.cmi :
-libs/ocplib-lang/ocpMap.cmo :
-libs/ocplib-lang/ocpMap.cmx :
 libs/ocplib-lang/ocpReuse.cmo : \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
     libs/ocplib-lang/ocpReuse.cmi
@@ -127,8 +125,6 @@ libs/ocplib-lang/ocpReuse.cmx : \
     libs/ocplib-lang/ocpReuse.cmi
 libs/ocplib-lang/ocpReuse.cmi : \
     libs/ocplib-compat/string-compat/ocpCompat.cmo
-libs/ocplib-lang/ocpSet.cmo :
-libs/ocplib-lang/ocpSet.cmx :
 libs/ocplib-lang/ocpString.cmo : libs/ocplib-lang/ocpList.cmi \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
     libs/ocplib-lang/ocpString.cmi
@@ -820,14 +816,48 @@ tools/ocp-build/lang-ocp2/buildOCP2Tree.cmx : \
     tools/ocp-build/buildValue.cmx
 tools/ocp-build/logger.cmo :
 tools/ocp-build/logger.cmx :
+tools/ocp-build/meta/metaConfig.cmo : libs/ocplib-lang/ocpString.cmi \
+    tools/ocp-build/buildMisc.cmo tools/ocp-build/meta/metaConfig.cmi
+tools/ocp-build/meta/metaConfig.cmx : libs/ocplib-lang/ocpString.cmx \
+    tools/ocp-build/buildMisc.cmx tools/ocp-build/meta/metaConfig.cmi
+tools/ocp-build/meta/metaConfig.cmi :
+tools/ocp-build/meta/metaFile.cmo : libs/ocplib-lang/ocpString.cmi \
+    libs/ocplib-debug/ocpDebug.cmi \
+    libs/ocplib-compat/string-compat/ocpCompat.cmo \
+    tools/ocp-build/meta/metaTypes.cmo tools/ocp-build/meta/metaParser.cmi \
+    tools/ocp-build/meta/metaFile.cmi
+tools/ocp-build/meta/metaFile.cmx : libs/ocplib-lang/ocpString.cmx \
+    libs/ocplib-debug/ocpDebug.cmx \
+    libs/ocplib-compat/string-compat/ocpCompat.cmx \
+    tools/ocp-build/meta/metaTypes.cmx tools/ocp-build/meta/metaParser.cmx \
+    tools/ocp-build/meta/metaFile.cmi
+tools/ocp-build/meta/metaFile.cmi : tools/ocp-build/meta/metaTypes.cmo
+tools/ocp-build/meta/metaLexer.cmo : tools/ocp-build/meta/metaLexer.cmi
+tools/ocp-build/meta/metaLexer.cmx : tools/ocp-build/meta/metaLexer.cmi
+tools/ocp-build/meta/metaLexer.cmi :
+tools/ocp-build/meta/metaParser.cmo : libs/ocplib-lang/ocpString.cmi \
+    libs/ocplib-debug/ocpDebug.cmi \
+    libs/ocplib-compat/string-compat/ocpCompat.cmo \
+    tools/ocp-build/meta/metaTypes.cmo tools/ocp-build/meta/metaLexer.cmi \
+    tools/ocp-build/meta/metaParser.cmi
+tools/ocp-build/meta/metaParser.cmx : libs/ocplib-lang/ocpString.cmx \
+    libs/ocplib-debug/ocpDebug.cmx \
+    libs/ocplib-compat/string-compat/ocpCompat.cmx \
+    tools/ocp-build/meta/metaTypes.cmx tools/ocp-build/meta/metaLexer.cmx \
+    tools/ocp-build/meta/metaParser.cmi
+tools/ocp-build/meta/metaParser.cmi : tools/ocp-build/meta/metaTypes.cmo
+tools/ocp-build/meta/metaTypes.cmo : \
+    libs/ocplib-compat/string-compat/ocpCompat.cmo
+tools/ocp-build/meta/metaTypes.cmx : \
+    libs/ocplib-compat/string-compat/ocpCompat.cmx
 tools/ocp-build/ocaml/buildOCamlConfig.cmo : libs/ocplib-lang/ocpString.cmi \
-    libs/ocplib-maxunix/minUnix.cmo tools/ocp-build/ocaml/metaConfig.cmi \
+    libs/ocplib-maxunix/minUnix.cmo tools/ocp-build/meta/metaConfig.cmi \
     tools/ocp-build/buildWarnings.cmi tools/ocp-build/buildValue.cmi \
     tools/ocp-build/buildSubst.cmi tools/ocp-build/buildOptions.cmi \
     tools/ocp-build/buildMisc.cmo tools/ocp-build/buildConfig.cmi \
     tools/ocp-build/ocaml/buildOCamlConfig.cmi
 tools/ocp-build/ocaml/buildOCamlConfig.cmx : libs/ocplib-lang/ocpString.cmx \
-    libs/ocplib-maxunix/minUnix.cmx tools/ocp-build/ocaml/metaConfig.cmx \
+    libs/ocplib-maxunix/minUnix.cmx tools/ocp-build/meta/metaConfig.cmx \
     tools/ocp-build/buildWarnings.cmx tools/ocp-build/buildValue.cmx \
     tools/ocp-build/buildSubst.cmx tools/ocp-build/buildOptions.cmx \
     tools/ocp-build/buildMisc.cmx tools/ocp-build/buildConfig.cmx \
@@ -872,8 +902,8 @@ tools/ocp-build/ocaml/buildOCamlGlobals.cmx : \
     tools/ocp-build/engine/buildEngineContext.cmx
 tools/ocp-build/ocaml/buildOCamlInstall.cmo : \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
-    libs/ocplib-maxunix/minUnix.cmo tools/ocp-build/ocaml/metaTypes.cmi \
-    tools/ocp-build/ocaml/metaFile.cmi libs/ocplib-file/fileString.cmi \
+    libs/ocplib-maxunix/minUnix.cmo tools/ocp-build/meta/metaTypes.cmo \
+    tools/ocp-build/meta/metaFile.cmi libs/ocplib-file/fileString.cmi \
     libs/ocplib-file/fileGen.cmi tools/ocp-build/buildValue.cmi \
     tools/ocp-build/buildUninstall.cmi tools/ocp-build/buildTypes.cmi \
     tools/ocp-build/buildOptions.cmi \
@@ -887,8 +917,8 @@ tools/ocp-build/ocaml/buildOCamlInstall.cmo : \
     tools/ocp-build/ocaml/buildOCamlInstall.cmi
 tools/ocp-build/ocaml/buildOCamlInstall.cmx : \
     libs/ocplib-compat/string-compat/ocpCompat.cmx \
-    libs/ocplib-maxunix/minUnix.cmx tools/ocp-build/ocaml/metaTypes.cmx \
-    tools/ocp-build/ocaml/metaFile.cmx libs/ocplib-file/fileString.cmx \
+    libs/ocplib-maxunix/minUnix.cmx tools/ocp-build/meta/metaTypes.cmx \
+    tools/ocp-build/meta/metaFile.cmx libs/ocplib-file/fileString.cmx \
     libs/ocplib-file/fileGen.cmx tools/ocp-build/buildValue.cmx \
     tools/ocp-build/buildUninstall.cmx tools/ocp-build/buildTypes.cmx \
     tools/ocp-build/buildOptions.cmx \
@@ -906,8 +936,8 @@ tools/ocp-build/ocaml/buildOCamlInstall.cmi : tools/ocp-build/buildTypes.cmi \
     tools/ocp-build/ocaml/buildOCamlConfig.cmi
 tools/ocp-build/ocaml/buildOCamlMeta.cmo : libs/ocplib-lang/ocpString.cmi \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
-    tools/ocp-build/ocaml/metaTypes.cmi tools/ocp-build/ocaml/metaParser.cmi \
-    tools/ocp-build/ocaml/metaFile.cmi tools/ocp-build/buildValue.cmi \
+    tools/ocp-build/meta/metaTypes.cmo tools/ocp-build/meta/metaParser.cmi \
+    tools/ocp-build/meta/metaFile.cmi tools/ocp-build/buildValue.cmi \
     tools/ocp-build/ocaml/buildOCamlTypes.cmi \
     tools/ocp-build/ocaml/buildOCamlOCP2.cmi \
     tools/ocp-build/buildOCPTypes.cmi tools/ocp-build/buildOCPPrinter.cmi \
@@ -915,8 +945,8 @@ tools/ocp-build/ocaml/buildOCamlMeta.cmo : libs/ocplib-lang/ocpString.cmi \
     tools/ocp-build/ocaml/buildOCamlMeta.cmi
 tools/ocp-build/ocaml/buildOCamlMeta.cmx : libs/ocplib-lang/ocpString.cmx \
     libs/ocplib-compat/string-compat/ocpCompat.cmx \
-    tools/ocp-build/ocaml/metaTypes.cmx tools/ocp-build/ocaml/metaParser.cmx \
-    tools/ocp-build/ocaml/metaFile.cmx tools/ocp-build/buildValue.cmx \
+    tools/ocp-build/meta/metaTypes.cmx tools/ocp-build/meta/metaParser.cmx \
+    tools/ocp-build/meta/metaFile.cmx tools/ocp-build/buildValue.cmx \
     tools/ocp-build/ocaml/buildOCamlTypes.cmx \
     tools/ocp-build/ocaml/buildOCamlOCP2.cmx \
     tools/ocp-build/buildOCPTypes.cmx tools/ocp-build/buildOCPPrinter.cmx \
@@ -1145,44 +1175,6 @@ tools/ocp-build/ocaml/buildObjectInspector.cmo : \
 tools/ocp-build/ocaml/buildObjectInspector.cmx : \
     tools/ocp-build/ocaml/buildObjectInspector.cmi
 tools/ocp-build/ocaml/buildObjectInspector.cmi :
-tools/ocp-build/ocaml/metaConfig.cmo : libs/ocplib-lang/ocpString.cmi \
-    tools/ocp-build/buildMisc.cmo tools/ocp-build/ocaml/metaConfig.cmi
-tools/ocp-build/ocaml/metaConfig.cmx : libs/ocplib-lang/ocpString.cmx \
-    tools/ocp-build/buildMisc.cmx tools/ocp-build/ocaml/metaConfig.cmi
-tools/ocp-build/ocaml/metaConfig.cmi :
-tools/ocp-build/ocaml/metaFile.cmo : libs/ocplib-lang/ocpString.cmi \
-    libs/ocplib-debug/ocpDebug.cmi \
-    libs/ocplib-compat/string-compat/ocpCompat.cmo \
-    tools/ocp-build/ocaml/metaTypes.cmi tools/ocp-build/ocaml/metaFile.cmi
-tools/ocp-build/ocaml/metaFile.cmx : libs/ocplib-lang/ocpString.cmx \
-    libs/ocplib-debug/ocpDebug.cmx \
-    libs/ocplib-compat/string-compat/ocpCompat.cmx \
-    tools/ocp-build/ocaml/metaTypes.cmx tools/ocp-build/ocaml/metaFile.cmi
-tools/ocp-build/ocaml/metaFile.cmi : \
-    libs/ocplib-compat/string-compat/ocpCompat.cmo \
-    tools/ocp-build/ocaml/metaTypes.cmi
-tools/ocp-build/ocaml/metaLexer.cmo : tools/ocp-build/ocaml/metaLexer.cmi
-tools/ocp-build/ocaml/metaLexer.cmx : tools/ocp-build/ocaml/metaLexer.cmi
-tools/ocp-build/ocaml/metaLexer.cmi :
-tools/ocp-build/ocaml/metaParser.cmo : libs/ocplib-lang/ocpString.cmi \
-    libs/ocplib-debug/ocpDebug.cmi \
-    libs/ocplib-compat/string-compat/ocpCompat.cmo \
-    tools/ocp-build/ocaml/metaTypes.cmi tools/ocp-build/ocaml/metaLexer.cmi \
-    tools/ocp-build/ocaml/metaParser.cmi
-tools/ocp-build/ocaml/metaParser.cmx : libs/ocplib-lang/ocpString.cmx \
-    libs/ocplib-debug/ocpDebug.cmx \
-    libs/ocplib-compat/string-compat/ocpCompat.cmx \
-    tools/ocp-build/ocaml/metaTypes.cmx tools/ocp-build/ocaml/metaLexer.cmx \
-    tools/ocp-build/ocaml/metaParser.cmi
-tools/ocp-build/ocaml/metaParser.cmi : tools/ocp-build/ocaml/metaTypes.cmi
-tools/ocp-build/ocaml/metaTypes.cmo : \
-    libs/ocplib-compat/string-compat/ocpCompat.cmo \
-    tools/ocp-build/ocaml/metaTypes.cmi
-tools/ocp-build/ocaml/metaTypes.cmx : \
-    libs/ocplib-compat/string-compat/ocpCompat.cmx \
-    tools/ocp-build/ocaml/metaTypes.cmi
-tools/ocp-build/ocaml/metaTypes.cmi : \
-    libs/ocplib-compat/string-compat/ocpCompat.cmo
 tools/ocp-build/ocamldot.cmo : tools/ocp-build/ocamldot.cmi
 tools/ocp-build/ocamldot.cmx : tools/ocp-build/ocamldot.cmi
 tools/ocp-build/ocamldot.cmi :
