@@ -21,7 +21,7 @@ begin
   ocaml.version = autoconf.package_version;
 
   ocaml.files = [
-     "stdlibArg.ml"
+     "stdlibArg.ml" (* currently 4.06.0 *)
   ];
 
   new_package( "ocplib-stdlib", "library", ocaml);

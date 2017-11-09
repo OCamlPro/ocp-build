@@ -17,8 +17,8 @@ open BuildValue.TYPES
 
 (*
   This module does several things in [verify_packages]:
-  * it checks which packages have met dependencies, and set
-     package_disabled=false for other ones
+  * it checks which packages have unmet dependencies, and set
+     package_disabled=Some reason
   * it computes the dependencies in package_requires_list
   * it disables bytecode or native code compilation when compiling in one of
       them is not possible because of missing dependencies

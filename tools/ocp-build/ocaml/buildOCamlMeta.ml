@@ -114,10 +114,8 @@ let add_META pj ocamllib meta_dirname meta_filename =
         ) meta.meta_archive;
          *)
 
-        let has_byte = MetaFile.variable_of_meta p "archive"
-                                                 MetaFile.preds_byte in
-        let has_asm = MetaFile.variable_of_meta p "archive
-                                                   " MetaFile.preds_asm in
+        let has_byte = MetaFile.archive p MetaFile.preds_byte in
+        let has_asm = MetaFile.archive p MetaFile.preds_asm in
 
         (*
         let archive = match !has_asm, !has_byte with

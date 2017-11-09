@@ -10,8 +10,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-module Arg = StdlibArg
-
 open BuildArgs
 open BuildActions
 open BuildTypes
@@ -22,7 +20,7 @@ let arg_list =
       [
 
       ];
-      BuildActionBuild.arg_list
+      BuildActionMake.arg_list
     ]
 
 
@@ -48,7 +46,7 @@ let do_test b ncores projects =
 ;;
 
 let action () =
-  BuildActionBuild.(
+  BuildActionMake.(
     if not !make_doc_targets && not !make_test_targets then make_build_targets := true;
     (* Test targets require build targets ? *)
     if !make_test_targets then make_build_targets := true;
@@ -56,8 +54,8 @@ let action () =
   );
 
 
-  let (p, bc, projects, _package_map) = BuildActionBuild.do_build () in
-  do_test bc.build_context (BuildActionBuild.get_ncores p.cin) projects;
+  let (p, bc, projects, _package_map) = BuildActionMake.do_build () in
+  do_test bc.build_context (BuildActionMake.get_ncores p.cin) projects;
   ()
 
 let subcommand = {

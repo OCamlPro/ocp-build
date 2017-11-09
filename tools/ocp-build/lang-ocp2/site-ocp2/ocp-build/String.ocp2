@@ -15,6 +15,7 @@ function StringMaker(){
     String = {
         mem = String_mem;
         length = value_length;
+        concat = String_concat;
     };
 
     try { String.split = String_split; }
@@ -27,6 +28,9 @@ function StringMaker(){
     catch("unknown-variable",x){}
 
     try { String.filter_by_suffix = String_filter_by_suffix; }
+    catch("unknown-variable",x){}
+    
+    try { String.subst = String_subst; }
     catch("unknown-variable",x){}
 
     return String;   

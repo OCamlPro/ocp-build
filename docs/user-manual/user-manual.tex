@@ -6,6 +6,61 @@
 \usepackage[colorlinks=true,linkcolor=blue] {hyperref}
 \usepackage{url}
 \usepackage[english]{babel}
+\usepackage{listings}
+\usepackage{xcolor}
+
+\lstset{
+  % frame=tb,framerule=0pt,
+  aboveskip=0pt,
+  belowskip=0pt,
+  % framexleftmargin=10pt,
+  % framextopmargin=2pt,
+  % framexbottommargin=2pt,
+  showstringspaces=false,
+  columns=fullflexible,keepspaces=true,
+  basicstyle={\ttfamily\footnotesize\upshape},
+  % backgroundcolor=\color{bg},
+  numbers=none,
+  numberstyle=\tiny\color{gray},
+  breaklines=true,
+  breakatwhitespace=true,
+  mathescape=false,
+  tabsize=3,
+  commentstyle=\itshape\color{black!50},
+  keywordstyle=\color{green!50!black}\bfseries,
+  stringstyle=\color{purple},
+  literate={é}{{\'e}}1%
+    {É}{{\'E}}1%
+    {è}{{\`e}}1%
+    {È}{{\`E}}1%
+    {à}{{\`a}}1%
+    {À}{{\`A}}1%
+    {î}{{\^i}}1%
+    {Î}{{\^I}}1%
+    {_}{\tt{\_}}1%
+}
+
+
+\lstdefinelanguage{ocaml}{
+  language=[Objective]caml,
+  morekeywords={val, module, struct, sig},
+  %identifierstyle=\ocidstyle
+}
+
+\lstdefinelanguage{ocp2}{
+  alsoletter=_,
+  language=ocaml,
+  classoffset=1,
+  morekeywords={catch,function},
+  classoffset=2,
+  morekeywords={fail},
+  keywordstyle=\color{red}\bfseries,
+  classoffset=3,
+  morekeywords={unit,timestamp,tez,int,nat,bool,key,signature,string,
+                pair,or,contract,lambda,map,set,list,option,variant},
+  keywordstyle=\color{blue!60!black}\bfseries,
+  classoffset=0,
+}
 
 \newcommand{\cmd}[1]{$\texttt{#1}$}
 
@@ -54,6 +109,9 @@
 
 \chapter{The new OCP2 language}
 \input{chapter-ocp2}
+
+\chapter{Internals}
+\input{chapter-internals}
 
 %\input{specif}
 
