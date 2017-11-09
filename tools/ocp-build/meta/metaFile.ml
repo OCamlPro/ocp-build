@@ -198,9 +198,12 @@ let preds_byte = preds_of_strings [ "byte" ]
 let preds_asm = preds_of_strings [ "native" ]
 
 let rec directory p =
-  match p.p_parent with
-  | None -> variable_of_meta p "directory" preds_none
-  | Some p -> directory p
+  match variable_of_meta p "directory" preds_none with
+  | [] ->
+     (match p.p_parent with
+     | None -> []
+     | Some p -> directory p)
+  | dir -> dir
 
 let exists_if p = variable_of_meta p "exists_if" preds_none
 let version p = variable_of_meta p "version" preds_none

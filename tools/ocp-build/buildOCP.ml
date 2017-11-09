@@ -244,6 +244,9 @@ let init_packages () =
 let print_loaded_ocp_files = ref false
 let print_package_deps = ref false
 
+(* Evaluate .ocp2 files: Module Files are evaluated first, then
+       Description Files (build.ocp2 files). *)
+
 let load_ocp_files config packages files =
 
   List.iter (fun file ->
@@ -541,7 +544,7 @@ let scan_root root_dir =
             match basename.[0] with
             | 'a'..'z' | 'A'..'Z' | '0'..'9' ->
               if not (StringSet.mem filename !blacklist) then begin
-                if Filename.check_suffix filename ".ocp" && !arg_load_ocp then
+                  if Filename.check_suffix filename ".ocp" && !arg_load_ocp then
                   let file = FileGen.of_string filename in
                   ocp_files := file :: !ocp_files
                 else

@@ -10,30 +10,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StdlibArg
+function FeaturesMaker(){
+  Features = {
+      get = Features_get;
+      enable = Features_enable;
+      with = Features_with;
+      without = Features_without;
+      };
+  return Features;
+}
 
-val subcommand : BuildArgs.subcommand
+provides("ocp-build:Features", "1.0", FeaturesMaker);
 
-val action : unit -> unit
-val arg_list : (string * Arg.spec * string) list
-
-                                            (*
-
-val load_initial_project :
-  BuildWarnings.set ->
-  BuildActions.project_info ->
-  BuildOCP.state ->
-  BuildValue.TYPES.config_state ->
-
-  BuildTypes.builder_context *
-    (module BuildTypes.Package) OcpCompat.StringMap.t *
-    BuildOCPTypes.project
-
-val init_env :
-  unit ->
-    BuildWarnings.set *
-    BuildActions.project_info * BuildOCP.state *
-    BuildOCPTypes.project * BuildValue.TYPES.config_state
-
-val chdir_to_project : BuildActions.project_info -> unit
-                                             *)

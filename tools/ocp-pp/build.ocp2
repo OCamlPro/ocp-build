@@ -58,5 +58,5 @@ begin
     "main.ml";
   ];
 
-  new_package( "ocp-pp", "program", ocaml);
+  OCaml.program( "ocp-pp", ocaml);
 end

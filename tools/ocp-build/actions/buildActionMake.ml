@@ -24,6 +24,13 @@
    in a particular compilation scheme.
 *)
 
+let command_name = "make"
+let command_help = {|
+ocp-build make [MAKE_OPTIONS] [CONFIGURE_OPTIONS] [CHECK_OPTIONS]
+
+Build the project.
+|}
+
 open OcpCompat
 
 open SimpleConfig
@@ -44,8 +51,7 @@ open BuildOCamlInstall.TYPES
 
 open StdlibArg
 
-let verbose = OcpDebug.verbose_function ["B"; "BuildActionBuild"]
-
+let _verbose = OcpDebug.verbose_function ["B"; "BuildActionMake"]
   (*
   if
     !build_max ||
@@ -90,8 +96,8 @@ let add_finally action =
 let rec do_compile stage p ncores env_state arg_targets pre_w
     config_state =
 
-  let (bc, package_map, pj) =
-    BuildActionInit.load_initial_project pre_w p
+  let (bc, package_map, _pj) =
+    BuildActionCheck.load_initial_project pre_w p
     (BuildOCP.copy_state env_state) config_state in
 
   if !configure_arg then BuildMisc.clean_exit 0;
@@ -276,8 +282,8 @@ let get_ncores cin =
 (* Also called from BuildActionTests.action () *)
 let do_build () =
 
-  let (env_w, p, env_state, env_pj, config_state) =
-    BuildActionInit.init_env () in
+  let (env_w, p, env_state, _env_pj, config_state) =
+    BuildActionCheck.init_env () in
 
   if !query_global then move_to_project := false;
 
@@ -320,7 +326,7 @@ let do_build () =
   end;
 
 
-  BuildActionInit.chdir_to_project p;
+  BuildActionCheck.chdir_to_project p;
 
   do_compile 0 p (get_ncores p.cin) env_state targets env_w config_state
 
@@ -338,45 +344,47 @@ let action () =
 
 let arg_list =
   [
+    "", Arg.Unit (fun()->()), "\nList of options available in MAKE_OPTIONS:\n";
+
   (* This option should be shared with -install and -tests, no ? *)
-  "-arch", Arg.String (fun s ->
+  "--arch", Arg.String (fun s ->
     arch_arg := Arch ("_other_archs/" ^ s)),
   "ARCH Set arch sub-directory of _obuild";
 
-  "-max", Arg.Set build_max, " Build as many packages as possible";
+  "--max", Arg.Set build_max, " Build as many packages as possible";
 
-  "-max-stage", Arg.Int (fun n -> max_stage := n),
+  "--max-stage", Arg.Int (fun n -> max_stage := n),
   "NUM Maximal number of times compilation can be restarted";
-  "-print-loaded-ocp-files", Arg.Set
+  "--print-loaded-ocp-files", Arg.Set
     BuildOCP.print_loaded_ocp_files,
   " Print loaded ocp files";
- "-print-package-deps", Arg.Set
+ "--print-package-deps", Arg.Set
     BuildOCP.print_package_deps,
  " Print package dependencies";
- "-print-missing", Arg.Set
+ "---print-missing", Arg.Set
    BuildOCP.print_missing_deps, " Print missing dependencies";
- "-print-conflicts", Arg.Set
+ "--print-conflicts", Arg.Set
     print_conflicts_arg,
  " Print conflicts between package definitions";
 
-  "-doc", Arg.Set make_doc_targets, " Make doc targets";
-  "-test", Arg.Set make_test_targets, " Make tests targets";
-  "-build", Arg.Set make_build_targets, " Make build targets";
+  "--doc", Arg.Set make_doc_targets, " Make doc targets";
+  "--test", Arg.Set make_test_targets, " Make tests targets";
+  "--build", Arg.Set make_build_targets, " Make build targets";
 
-  "-continue-on-ocp-error", Arg.Set BuildOCP.continue_on_ocp_error, " Continue after finding a syntax error in an ocp file";
+  "--continue-on-ocp-error", Arg.Set BuildOCP.continue_on_ocp_error, " Continue after finding a syntax error in an ocp file";
 
-  "-init", Arg.Unit (fun () ->
+  "--init", Arg.Unit (fun () ->
     BuildActionInit.action ();
     exit 0),
   " Set the root of a project in the current directory and exit.";
 
-  "-version", Arg.Unit (fun () ->
+  "--version", Arg.Unit (fun () ->
     Printf.printf "%s\n%!" BuildVersion.version;
     BuildMisc.clean_exit 0
   ),
   " Print version information";
 
-  "-disable", Arg.String BuildOCP.conf_add_disabled_package,
+  "--disable", Arg.String BuildOCP.conf_add_disabled_package,
   "PKG@DIR Disable package PKG installed in DIR";
 
   "--html-report", Arg.Set BuildGlobals.html_report_arg,
@@ -392,7 +400,6 @@ let arg_list =
   " Generates _obuild/_reports/graph.dot";
 
   ]
-  @ BuildActionInit.arg_list
   @ arg_list1
 
 let add_synomyms arg_list1 synonyms =
@@ -414,9 +421,12 @@ let arg_list = add_synomyms arg_list
 let arg_usage = [ "Build" ]
 
 let subcommand = {
-  sub_name = "make";
-  sub_help = "Build the project";
-  sub_arg_list = arg_list;
+  sub_name = command_name;
+  sub_help = command_help;
+  sub_arg_list = arg_list
+                 @ BuildActionInit.arg_list
+                 @ BuildActionCheck.arg_list;
+
   sub_arg_anon = Some arg_anon;
   sub_arg_usage = arg_usage;
   sub_action = action;

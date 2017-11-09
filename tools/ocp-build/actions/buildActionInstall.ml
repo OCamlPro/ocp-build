@@ -134,14 +134,14 @@ let arg_list =
   " Only compute and print the list of actions to perform";
 
       ];
-      BuildActionBuild.arg_list
+      BuildActionMake.arg_list
     ]
 
 
 
 let action () =
-  BuildActionBuild.make_build_targets := true;
-  let (p, _bc, projects, package_map) = BuildActionBuild.do_build () in
+  BuildActionMake.make_build_targets := true;
+  let (p, _bc, projects, package_map) = BuildActionMake.do_build () in
 
   let install_where = BuildOCamlInstall.install_where p.cin p.cout in
   let install_what = BuildOCamlInstall.install_what () in

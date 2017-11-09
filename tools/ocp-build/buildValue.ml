@@ -112,7 +112,7 @@ bprint_plist b indent list =
   | VObject env ->
     Printf.bprintf b "{\n";
     bprint_env b (indent^"  ") env;
-    Printf.bprintf b "}"
+    Printf.bprintf b "%s}" indent
   | VList [] ->
     Printf.bprintf b "[]"
   | VList list ->
@@ -121,7 +121,7 @@ bprint_plist b indent list =
       Printf.bprintf b "%s" indent;
       bprint_value b indent v;
       Printf.bprintf b "\n") list;
-    Printf.bprintf b "]"
+    Printf.bprintf b "%s]" indent
   | VFunction _ -> Printf.bprintf b "function(...){...}"
   | VPrim s -> Printf.bprintf b "primitive(%S)" s
 

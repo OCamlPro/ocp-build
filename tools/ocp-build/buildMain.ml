@@ -51,13 +51,14 @@ let sub_map = ref StringMap.empty
 
 let subcommands =  [
     BuildActionInit.subcommand;
+    BuildActionCheck.subcommand;
     BuildActionConfigure.subcommand;
-    BuildActionBuild.subcommand;
+    BuildActionMake.subcommand;
     BuildActionTests.subcommand;
     BuildActionInstall.subcommand;
     BuildActionUninstall.subcommand;
     BuildActionClean.subcommand;
-    BuildActionBuild.old_subcommand;
+    BuildActionMake.old_subcommand;
 
     BuildActionPrefs.subcommand;
     BuildActionQuery.subcommand;
@@ -66,7 +67,7 @@ let subcommands =  [
 
 (* The default command is the 'build' one *)
 let default_subcommand = {
-  BuildActionBuild.subcommand with
+  BuildActionMake.subcommand with
   sub_name = "SUBCOMMAND";
   sub_arg_usage = [
     "Build command for OCaml projects";
@@ -76,6 +77,9 @@ let default_subcommand = {
                     Printf.sprintf "   %-15s %s" s.sub_name s.sub_help;
                   ) subcommands;
 }
+
+let () =
+  BuildActionHelp.subcommands := subcommands
 
 let make_arg_usage s =
   String.concat "\n"

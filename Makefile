@@ -137,10 +137,11 @@ BUILD_OCAML= $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlConfig.ml	\
 BUILD_MAIN= $(OCP_BUILD_SRCDIR)/actions/buildArgs.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActions.ml		\
     $(OCP_BUILD_SRCDIR)/actions/buildActionsWarnings.ml	\
-    $(OCP_BUILD_SRCDIR)/actions/buildActionInit.ml	\
-    $(OCP_BUILD_SRCDIR)/actions/buildActionPrefs.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionConfigure.ml	\
-    $(OCP_BUILD_SRCDIR)/actions/buildActionBuild.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionInit.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionCheck.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionPrefs.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionMake.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionInstall.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionClean.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionTests.ml	\
