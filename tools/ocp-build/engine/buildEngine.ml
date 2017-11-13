@@ -291,7 +291,7 @@ let init b targets =
       RULE_INACTIVE ->
         if verbose 7 then begin
           Printf.eprintf "ACTIVATING RULE\n%!";
-          BuildEngineRules.print_rule r;
+          BuildEngineDisplay.print_rule r;
         end;
         r.rule_state <- RULE_ACTIVE;
         if verbose 9 then
@@ -345,7 +345,7 @@ let init b targets =
           if verbose 5 then begin
             Printf.eprintf "Picking rule %d among other ones\n" r.rule_id;
             Printf.eprintf "All rules:";
-            List.iter (fun r -> BuildEngineRules.print_rule r) rules;
+            List.iter (fun r -> BuildEngineDisplay.print_rule r) rules;
             Printf.eprintf "\n";
           end;
           activate_rule r
@@ -509,7 +509,7 @@ let print_waiting_queue b max_print =
         IntMap.iter (fun _ file ->
           Printf.eprintf "\t\tTARGET %s\n%!" (file_filename file))
           r.rule_targets;
-        List.iter BuildEngineRules.print_indented_command r.rule_commands;
+        List.iter BuildEngineDisplay.print_indented_command r.rule_commands;
         IntMap.iter (fun _ f ->
           if not f.file_exists then
             Printf.eprintf "\t\tSOURCE %s missing\n%!" (file_filename f)
@@ -525,7 +525,7 @@ let print_waiting_queue b max_print =
         IntMap.iter (fun _ file ->
           Printf.eprintf "\t\tTARGET %s\n%!" (file_filename file))
           r.rule_targets;
-        List.iter BuildEngineRules.print_indented_command r.rule_commands;
+        List.iter BuildEngineDisplay.print_indented_command r.rule_commands;
         IntMap.iter (fun _ f ->
           if not f.file_exists then
             Printf.eprintf "\t\tSOURCE %s missing\n%!" (file_filename f)
@@ -541,7 +541,7 @@ let print_waiting_queue b max_print =
         IntMap.iter (fun _ file ->
           Printf.eprintf "\tTARGET %s\n%!" (file_filename file))
           r.rule_targets;
-        List.iter BuildEngineRules.print_indented_command r.rule_commands;
+        List.iter BuildEngineDisplay.print_indented_command r.rule_commands;
         IntMap.iter (fun _ f ->
           if not f.file_exists then
             Printf.eprintf "\t\t%s missing\n%!" (file_filename f)
@@ -635,7 +635,7 @@ let rec next_rule b =
       if verbose 7 then
         begin
           Printf.eprintf "NEXT RULE\n%!";
-          BuildEngineRules.print_rule r;
+          BuildEngineDisplay.print_rule r;
           IntMap.iter (fun _ f ->
             if not f.file_exists then
               Printf.eprintf "ERROR: missing source %s\n%!" (file_filename f)
@@ -704,11 +704,7 @@ let rule_executed b r execution_status =
                 (BuildMtime.to_string f.file_mtime);
           with
           | _e ->
-            BuildEngineDisplay.add_error b
-              [
-                Printf.sprintf "rule %d: target %s not built"
-                  r.rule_id
-                  (file_filename f);]
+             BuildEngineDisplay.add_error b (TargetNotGenerated (r, f))
       end;
       if f.file_exists then
         List.iter (fun r2 ->
@@ -717,13 +713,10 @@ let rule_executed b r execution_status =
               Printf.eprintf "\t\t\trule %d: missing %d -> %d (rule %d executed)\n" r2.rule_id r2.rule_missing_sources (r2.rule_missing_sources - 1) r.rule_id;
             r2.rule_missing_sources <- r2.rule_missing_sources - 1;
             if (r2.rule_missing_sources < 0) then begin
-              BuildEngineRules.print_rule r;
-              BuildEngineRules.print_rule r2;
+              BuildEngineDisplay.print_rule r;
+              BuildEngineDisplay.print_rule r2;
               BuildMisc.clean_exit 2
             end;
-       (*     Printf.eprintf "Generated %s =>\n%!" (file_filename f); *)
-       (*     Printf.eprintf "Setting rule %d missing sources to %d\n%!" r.rule_id r.rule_missing_sources; *)
-
             if r2.rule_state = RULE_WAITING && r2.rule_missing_sources = 0 then begin
               b.queue_waiting <- IntMap.remove r2.rule_id b.queue_waiting;
               b.queue_ready <- IntMap.add r2.rule_id r2 b.queue_ready
@@ -817,8 +810,7 @@ let add_dependency b r target_file filenames =
   try
     add_dependency b r target_file filenames
   with EmptyListOfDependencies ->
-    let (rule_filename, rule_loc, _rule_project) = r.rule_loc in
-    BuildMisc.print_loc rule_filename rule_loc;
+    BuildEngineDisplay.print_loc r.rule_loc;
     Printf.eprintf "Error, unexpected situation:\n";
     Printf.eprintf "  Dependencies needed by %s\n"
       (file_filename target_file);
@@ -838,7 +830,6 @@ let load_dependency_file b loader file r_ok =
           List.iter (fun (filename, deps) ->
             if verbose 7 then Printf.eprintf "FILE %s\n%!" filename;
             let dirname = Filename.dirname filename in
-            let (rule_filename, rule_loc, rule_name) = r_ok.rule_loc in
             let dirname = cross_dirname b dirname in
             let dir = BuildEngineContext.add_directory b dirname in
             let target_file = try
@@ -855,26 +846,25 @@ let load_dependency_file b loader file r_ok =
                 if r.rule_state <> RULE_INACTIVE then begin
                   if verbose 7 then begin
                     Printf.eprintf "Adding deps to rule %d \n%!" r.rule_id;
-                    BuildEngineRules.print_rule r;
+                    BuildEngineDisplay.print_rule r;
                   end;
                   begin
                     match r.rule_state with
                       RULE_INACTIVE | RULE_WAITING -> ()
                     | _ ->
-                      failwith (Printf.sprintf "Rule %d failure with state %s" r.rule_id (BuildEngineRules.string_of_rule_state r))
+                      failwith (Printf.sprintf "Rule %d failure with state %s" r.rule_id (BuildEngineDisplay.string_of_rule_state r))
                   end;
                   begin
+                    (* TODO : remove unmanaged_dependencies from context ! *)
                     b.unmanaged_dependencies <- [];
                     List.iter (add_dependency b r target_file) deps;
                     List.iter (fun filename ->
-                      BuildMisc.print_loc rule_filename rule_loc;
-                      Printf.eprintf "Warning: file \"%s\" of project \"%s\" depends on\n" (file_filename target_file)  rule_name;
+                      BuildEngineDisplay.print_loc r_ok.rule_loc;
+                      Printf.eprintf "Warning: file \"%s\" of project \"%s\" depends on\n" (file_filename target_file)  r_ok.rule_loc.loc_package.package_package;
                       Printf.eprintf "  file \"%s\", that is not generated by any project\n%!" filename
                     ) b.unmanaged_dependencies;
                     if b.unmanaged_dependencies <> [] then begin
-                      (*         MinUnix.unlink (file_filename file);*)
-                      BuildEngineDisplay.add_error b
-                        [Printf.sprintf "Dependency file %s contains unmanaged dependencies. You might want to remove it and rebuild." (file_filename file)]
+                        BuildEngineDisplay.add_error b (ExternalDeps file)
                     end;
                     b.unmanaged_dependencies <- []
                   end
@@ -882,13 +872,13 @@ let load_dependency_file b loader file r_ok =
               )
                 target_file.file_target_of
           ) dependencies
-    with e ->
+    with exn ->
       (* An exception while reading dependencies. Probably there was a
          problem with the generated file. We should generate it again.
          TODO: add an option to not remove the file for debugging purpose !
       *)
       (*      MinUnix.unlink (file_filename file); TODO: do it, or not ? *)
-      BuildEngineDisplay.add_error b [Printf.sprintf "Incorrect dependency file %s (Exception %s). You should clean and rebuild." (file_filename file) (Printexc.to_string e)]
+      BuildEngineDisplay.add_error b (IncorrectDependFile (file, exn))
   end
 
 
@@ -938,27 +928,6 @@ let new_proc r =
   } in
   proc
 
-    (*
-let print_file message filename =
-  let ic = open_in filename in
-  let message_printed = ref false in
-  begin
-    try
-      while true do
-        let line = input_line ic in
-        if not !message_printed then begin
-          message_printed := true;
-          Printf.eprintf "%s\n%!" message
-        end;
-        Printf.eprintf "%s\n%!" line
-      done
-    with _ -> ()
-  end;
-  close_in ic
-
-let s = Bytes.create 32768
-    *)
-
 (* TODO: Use FileGen.copy Copy line-oriented file *)
 let copy_file b src dst =
   if verbose 7 then Printf.eprintf "copy_file from %s to %s\n%!" src dst;
@@ -966,10 +935,7 @@ let copy_file b src dst =
     FileString.copy_file src dst;
     0
   with e ->
-    b.fatal_errors <- [
-      Printf.sprintf "Error while copying %s to %s:" src dst;
-      Printf.sprintf "exception %s" (Printexc.to_string e);
-    ] :: b.fatal_errors;
+    b.fatal_errors <- CopyError (src, dst, e) :: b.fatal_errors;
     2
 
 let different_digests fa1 fa2 =
@@ -1003,27 +969,11 @@ let command_executed b proc status =
         let src = temp_stderr b r in
         copy_file b src file;
     in
-    (*      if force_verbose then
-            print_file  "Command stderr:" (temp_stderr b r); *)
-    (*      if status <> 0 then begin
-            add_error
-            [
-            Printf.sprintf "[%d.%d] '%s'" r.rule_id proc.proc_step
-            (BuildEngineDisplay.term_escape (String.concat "' '" cmd_args));
-            FileGen.string_of_file (temp_stderr b r)
-            ];
-            end; *)
     MinUnix.unlink (temp_stdout b r);
     MinUnix.unlink (temp_stderr b r);
     b.stats_files_generated <- (IntMap.cardinal r.rule_targets) + b.stats_files_generated;
     if status <> 0 then status else copy_stdout + copy_stderr
 
-(*
-  let print_project_location pj =
-  let pos = pj.project_loc in
-  Printf.eprintf "File \"%s\", line 0, characters %d-%d:\n%!"
-  pj.project_filename pos pos
-*)
 
 let rule_executed b r s =
   try
@@ -1164,10 +1114,7 @@ let parallel_loop b ncores =
         begin match error with
           None -> execute_proc proc nslots
         | Some e ->
-          b.fatal_errors <- [
-            Printf.sprintf "Error while doing action %s:" name;
-            Printf.sprintf "\tException %s" (Printexc.to_string e);
-          ] :: b.fatal_errors;
+          b.fatal_errors <- ActionError (name, e) :: b.fatal_errors;
 
           rule_executed b proc.proc_rule EXECUTION_FAILURE;
           nslots
@@ -1191,15 +1138,9 @@ let parallel_loop b ncores =
           slots := IntMap.add pid proc !slots;
           nslots - 1
         | `EXN e ->
-          b.fatal_errors <- [
-            Printf.sprintf "Error while executing: '%s' '%s'\n"
-              (String.concat "' '" (BuildEngineRules.command_of_command r cmd))
-              (String.concat "' '" (List.map BuildEngineRules.string_of_argument cmd.cmd_args));
-            Printf.sprintf "\tException %s" (Printexc.to_string e);
-          ] :: b.fatal_errors;
-
-          rule_executed b proc.proc_rule EXECUTION_FAILURE;
-          nslots
+           b.fatal_errors <- ExecutionError (r, cmd, e) :: b.fatal_errors;
+           rule_executed b proc.proc_rule EXECUTION_FAILURE;
+           nslots
         end
       | LoadDeps (loader, file, r) ->
         if verbose 7 then

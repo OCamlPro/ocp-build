@@ -1,0 +1,35 @@
+Internals of ocplib-build-engine
+================================
+
+Types are defined in `BuildEngineTypes`.  General interfaces are in
+`BuildEngineContext`, `BuildEngineRules` and `BuildEngine`. Printers are in
+`BuildEngineDisplay`.
+
+How to use
+----------
+
+Use `BuildEngineContext.create cur_dir build_dir` to create the build
+context.
+
+You can use `BuildEngineContext.add_directory ctx dir` to add
+additionnal directories. Adding directories is important to recognize
+files that are in the scope of the project.
+
+You will need to create one or more `build_package` to give ownership
+of files. Use `BuildEngineContext.new_package ctx name` for that.
+
+You will then need to create rules. Use functions from
+`BuildEngineRules` for that:
+* `BuildEngineRules.new_rule` to create a new build rule for a target
+* Use `BuildEngineRules.add_rule_*` to improve the rule
+* Use `BuildEngineRules.new_command` to create a command to be added as action
+   for a rule (Use `Execute cmd` as an action).
+
+To start the engine:
+* Use `BuildEngineContext.init ctx targets` to initialize the engine with the
+  targets to build (this can raise `BuildEngine.MissingSourceWithNoBuildingRule (r,file)`
+  if a source file is missing).
+* Use `BuildEngineContext.sanitize ctx delete_orphans should_keep_guard` to clear.
+* Use `BuildEngineContext.parallel_loop ctx njobs` to start building.
+* Use `BuildEngineContext.errors` and `BuildEngineContext.fatal_errors` to print
+   error messages if any.
