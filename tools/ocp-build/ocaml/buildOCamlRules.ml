@@ -946,8 +946,7 @@ let add_os2a_rule lib o_files a_file =
     let target = FileGen.add_basename a_file.file_dir.dir_file target_without_prefix in
     let cmd = new_command (ocamlmklib_cmd.get envs)
       [S "-custom"; S "-o"; F target] in
-    List.iter (fun s ->
-      add_command_arg cmd (argument_of_string s))
+    List.iter (add_command_string cmd)
       (mklib_option.get lib.lib_opk.opk_options );
     List.iter (fun o_file ->
       add_command_arg cmd (BF o_file)) o_files;
@@ -2272,8 +2271,6 @@ let add_objects w b lib =
   end;
   ()
 
-let string_of_loc (x,y,z) = Printf.sprintf "%s:%d:%s" x y z
-
 let local_subst (file, env) s =
   let s = BuildSubst.subst_global s in
   let s = BuildSubst.apply_substituter
@@ -2337,7 +2334,9 @@ let add_extra_rules bc lib target_name target_files =
         try
           BuildValue.get_local_prop_list envs "commands"
         with Var_not_found _ ->
-          Printf.eprintf "Error in package %S at %S:\n%!" lib.lib.lib_name (string_of_loc lib.lib.lib_loc);
+          Printf.eprintf "Error in package %S at %S:\n%!"
+                         lib.lib.lib_name
+                         (BuildEngineDisplay.string_of_loc lib.lib.lib_loc);
           Printf.eprintf "\tRule for %S does not define 'commands'\n%!" file;
           clean_exit 2
       in
@@ -2501,7 +2500,7 @@ let add_extra_rules bc lib target_name target_files =
           add_rule_command r (Function (cmd_name, printer, actor));
         | _ ->
           Printf.eprintf "Error: Unknown primitive command %S in %s\n" cmd_name
-            (string_of_loc lib.lib.lib_loc);
+            (BuildEngineDisplay.string_of_loc lib.lib.lib_loc);
           Printf.eprintf "  Commands to execute should be between { ... }, while\n";
           Printf.eprintf "  primitive commands start by %% (for example %%loaddeps)\n%!";
           clean_exit 2

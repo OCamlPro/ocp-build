@@ -194,12 +194,11 @@ let rec do_compile stage p ncores env_state arg_targets pre_w
       try
         BuildEngine.init b !build_targets
       with BuildEngine.MissingSourceWithNoBuildingRule (r, filename) ->
-        let (rule_filename, rule_loc, rule_name) = r.rule_loc in
-        BuildMisc.print_loc rule_filename rule_loc;
+        BuildEngineDisplay.print_loc r.rule_loc;
         Printf.eprintf "Error: in project \"%s\", the source filename\n"
-          rule_name;
+          r.rule_loc.loc_package.package_package;
         Printf.eprintf "\t\"%s\" does not exist\n" filename;
-        BuildEngineRules.print_rule r;
+        BuildEngineDisplay.print_rule r;
         BuildMisc.clean_exit 2
     end;
     time_step "   Build Engine Initialized";
@@ -227,8 +226,10 @@ let rec do_compile stage p ncores env_state arg_targets pre_w
     BuildEngine.parallel_loop b ncores;
     time_step "   Done building packages";
 
-    let errors = BuildEngine.fatal_errors b @
-                 BuildEngineDisplay.errors b in
+    let errors =
+      List.map BuildEngineDisplay.strings_of_fatal_error (BuildEngine.fatal_errors b) @
+        List.map BuildEngineDisplay.strings_of_error (BuildEngineDisplay.errors b)
+    in
     let t1 = MinUnix.gettimeofday () in
 
     let nerrors = List.length errors in

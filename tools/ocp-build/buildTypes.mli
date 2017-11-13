@@ -40,7 +40,7 @@ type package_info = {
   lib_name : string;
   lib_builder_context : builder_context;
 
-  lib_loc : string * int * string;
+  lib_loc : BuildEngineTypes.build_loc;
   mutable lib_dirname : FileGen.t;
   mutable lib_type : BuildOCPTypes.package_type;
   mutable lib_tag : string;

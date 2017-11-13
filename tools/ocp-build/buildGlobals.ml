@@ -16,7 +16,7 @@ open OcpCompat
 open BuildTypes
 open BuildOCPTypes
 
-open BuildEngineContext
+(* open BuildEngineContext *)
 open BuildEngineRules
 open BuildEngineTypes
 
@@ -66,11 +66,13 @@ let config_filename_validated bc lib_loc (filename, digest_o) =
     let b = bc.build_context in
     let basename = Filename.basename filename in
     let dirname = Filename.dirname filename in
-    let dir = add_directory b dirname in
+    let dir = BuildEngineContext.add_directory b dirname in
     let p = bc.build_config_package in
-    let file = add_file p dir basename in
-    let file_checked = add_virtual_file p dir (basename ^ " checked") in
-    let file_validated = add_virtual_file p dir (basename ^ " validated") in
+    let file = BuildEngineContext.add_file p dir basename in
+    let file_checked =
+      BuildEngineContext.add_virtual_file p dir (basename ^ " checked") in
+    let file_validated =
+      BuildEngineContext.add_virtual_file p dir (basename ^ " validated") in
     let r_checker = new_rule b lib_loc file_checked [] in
     let r_validator = new_rule b lib_loc file_validated [] in
     add_rule_source r_checker file;
@@ -103,11 +105,14 @@ let new_library bc pk package_dirname src_dir dst_dir mut_dir =
   (*  let envs = [ pk.package_options ] in *)
 
   (*  let lib_name = pk.package_name in *)
-  let lib_loc = (pk.package_filename,
-                 pk.package_loc.BuildValue.TYPES.loc_begin.Lexing.pos_lnum,
-                 pk.package_name) in
-
   let lib_package = BuildEngineContext.new_package b pk.package_name in
+  let lib_loc = {
+      loc_file = pk.package_filename;
+      loc_line = pk.package_loc.BuildValue.TYPES.loc_begin.Lexing.pos_lnum;
+      loc_package = lib_package;
+    }
+  in
+
   let lib =
     {
       lib_builder_context = bc;
