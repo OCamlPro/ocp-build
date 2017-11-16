@@ -15,7 +15,7 @@ open BuildOCPTypes
 open BuildOCamlTypes
 open BuildValue.TYPES
 
-let verbose = OcpDebug.verbose_function [ "B"; "BP"; "BuildOCamlPackage"]
+(* let verbose = OcpDebug.verbose_function [ "B"; "BP"; "BuildOCamlPackage"] *)
 
 let add_primitive name prim_help prim =
   let prim_name = "OCaml_" ^ name in
@@ -187,7 +187,7 @@ let _ =
 
   add_primitive "system"
     [ "Call a shell command" ]
-    (fun loc state config args ->
+    (fun loc _state _config args ->
       match args with
       | [ VList cmd ] ->
           VTuple [ VString ("", StringRaw);
@@ -203,7 +203,7 @@ let _ =
 
   add_primitive "pack" [
     "pack(string[,pack_env], list-of-strings)"
-  ] (fun loc ctx config args ->
+  ] (fun loc _ctx _config args ->
     let packmodname, pack_env, files =
       match args with
       | [VString (packmodname,_); files] ->
@@ -239,7 +239,7 @@ as it is not specific to OCaml, isn't it ? *)
 let () =
   BuildOCP.add_primitive "getconf"
     [ "getconf(name) returns the configuration associated with name" ]
-    (fun loc state config args ->
+    (fun loc _state config args ->
       match args with
       | [VString (name,_)] ->
         begin
@@ -266,7 +266,7 @@ let predefined_packages = ref (VObject BuildValue.empty_env)
 let () =
   add_primitive "findlib"
     [ "Returns the map of pre-existing packages" ]
-    (fun loc state config args ->
+    (fun _loc _state _config _args ->
       !predefined_packages
         )
 

@@ -14,7 +14,7 @@
  is linked statically. It is called after the subcommands has been chosen,
    allowing a right choice of arguments. *)
 
-let init subcommand_name =
+let init _subcommand_name =
 
   (*
   let add_args subs args =

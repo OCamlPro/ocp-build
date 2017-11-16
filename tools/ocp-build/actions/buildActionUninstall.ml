@@ -129,7 +129,7 @@ let action () =
     end
 
 
-  | Some (arg_name, ActionQuery query) ->
+  | Some (_arg_name, ActionQuery query) ->
     let b = Buffer.create 100 in
     let print_target un =
       if match query with

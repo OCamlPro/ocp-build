@@ -177,13 +177,13 @@ let main_with_subcommands ~name ?version ?default
     else
       cmds @ [help_cmd ~name ~man ~topics]
   in
-  match Term.eval_choice default_cmd cmds with
+  match Term.eval_choice ~catch:false default_cmd cmds with
   | `Ok () -> ()
   | t -> Term.exit t
 
 let main ?version cmd =
   let cmd = create_sub ?version cmd in
-  match Term.eval cmd with
+  match Term.eval ~catch:false cmd with
   | `Ok () -> ()
   | t -> Term.exit t
 

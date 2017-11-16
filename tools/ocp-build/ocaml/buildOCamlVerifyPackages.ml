@@ -56,16 +56,16 @@ module Warnings = struct
       dep_name opk.opk_name opk.opk_package.package_filename
 
   let w_ConflictingInstalledPackages w opk1 opk2 =
-    Printf.eprintf
+    BuildWarnings.wprintf w
       "Warning: installed package %S has conflicting directories:\n"
       opk1.opk_name;
-    Printf.eprintf "   first: %s@%s\n" opk2.opk_name opk2.opk_dirname;
-    Printf.eprintf "     (from %s)\n" opk2.opk_package.package_filename;
-    Printf.eprintf "   second: %s@%s\n" opk1.opk_name opk1.opk_dirname;
-    Printf.eprintf "     (from %s)\n" opk1.opk_package.package_filename;
-    Printf.eprintf
+    BuildWarnings.wprintf w "   first: %s@%s\n" opk2.opk_name opk2.opk_dirname;
+    BuildWarnings.wprintf w "     (from %s)\n" opk2.opk_package.package_filename;
+    BuildWarnings.wprintf w "   second: %s@%s\n" opk1.opk_name opk1.opk_dirname;
+    BuildWarnings.wprintf w "     (from %s)\n" opk1.opk_package.package_filename;
+    BuildWarnings.wprintf w
       "Use the --disable-package PKG@DIR to disable one of them.\n%!";
-    Printf.eprintf "Choosing %S.\n%!" opk2.opk_name
+    BuildWarnings.wprintf w "Choosing %S.\n%!" opk2.opk_name
 
 end
 
@@ -116,7 +116,7 @@ let get_uniq_ocaml_packages w state =
 
   let packages = ref StringMap.empty in
 
-  IntMap.iter (fun i pk ->
+  IntMap.iter (fun _i pk ->
     match pk.package_plugin with
     | OCamlPackage opk when not (package_disabled pk) ->
 
@@ -251,7 +251,7 @@ let verify_packages w state =
 
   let opk_id = ref 0 in
   let sorted_packages = ref [] in
-  let rec set_id opk trace =
+  let rec set_id opk _trace =
     if opk.opk_id = -2 then begin
       Printf.eprintf "CYCLE !\n%!"; (* we should use the trace ! *)
       exit 2;

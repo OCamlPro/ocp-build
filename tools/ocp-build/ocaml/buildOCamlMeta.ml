@@ -88,31 +88,6 @@ let add_META pj ocamllib meta_dirname meta_filename =
             String.lowercase name
             in  *)
         let fullname = path ^ name in
-        let has_asm = ref [] in
-        let has_byte = ref [] in
-        let _has_syntax = ref None in
-
-        (*
-        StringMap.iter (fun _ var ->
-          match var.metavar_preds, var.metavar_value with
-            (* TODO: handle multiple files (objects) *)
-
-          | [ "byte", true ], byte_targets ->
-            has_byte := byte_targets
-
-              (*
-          | [ "syntax", true; "preprocessor", true ], [ archive ]
-            when Filename.check_suffix archive ".cma"
-              ->
-            has_syntax := Some (Filename.chop_suffix archive ".cma")
-              *)
-
-          | [ "native", true ], asm_targets ->
-            has_asm :=  asm_targets
-
-          | _ -> ()
-        ) meta.meta_archive;
-         *)
 
         let has_byte = MetaFile.archive p MetaFile.preds_byte in
         let has_asm = MetaFile.archive p MetaFile.preds_asm in
@@ -320,7 +295,7 @@ let load_META_files pj ocamllib top_dirname =
   in
   Array.iter (fun basename ->
     let filename = Filename.concat top_dirname basename in
-    if OcpString.starts_with basename "META." then
+    if OcpString.starts_with ~prefix:basename "META." then
       add_META pj ocamllib top_dirname filename
     else
       if Sys.is_directory filename then

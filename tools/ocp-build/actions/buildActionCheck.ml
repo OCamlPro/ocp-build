@@ -216,7 +216,7 @@ let do_print_project_info pj =
   * the list of targets that cannot be built
  *)
 
-let do_print_fancy_project_info pj =
+let do_print_fancy_project_info _pj =
   let cantbuild = [] in
   (*
   let missing =
@@ -524,7 +524,7 @@ let init_env () =
 
 let action () =
   BuildActionsWarnings.set_default_is_always ();
-  let (w, p, env_state, env_pj, config_state) = init_env () in
+  let (w, p, env_state, _env_pj, config_state) = init_env () in
 
   chdir_to_project p;
 

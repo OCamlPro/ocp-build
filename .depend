@@ -1,11 +1,6 @@
-libs/ezcmd/ezcmd.cmo : \
-    /home/lefessan/.opam/4.05.0/lib/ocaml/../cmdliner/cmdliner.cmi \
-    libs/ezcmd/ezcmd.cmi
-libs/ezcmd/ezcmd.cmx : \
-    /home/lefessan/.opam/4.05.0/lib/ocaml/../cmdliner/cmdliner.cmi \
-    libs/ezcmd/ezcmd.cmi
-libs/ezcmd/ezcmd.cmi : \
-    /home/lefessan/.opam/4.05.0/lib/ocaml/../cmdliner/cmdliner.cmi
+libs/ezcmd/ezcmd.cmo : libs/ezcmd/ezcmd.cmi
+libs/ezcmd/ezcmd.cmx : libs/ezcmd/ezcmd.cmi
+libs/ezcmd/ezcmd.cmi :
 libs/ocplib-compat/string-compat/ocpCompat.cmo :
 libs/ocplib-compat/string-compat/ocpCompat.cmx :
 libs/ocplib-config/simpleConfig.cmo : \
@@ -253,7 +248,7 @@ tools/ocp-build/actions/buildActionInit.cmi : libs/ezcmd/ezcmd.cmi
 tools/ocp-build/actions/buildActionInstall.cmo : \
     libs/ocplib-compat/string-compat/ocpCompat.cmo libs/ezcmd/ezcmd.cmi \
     tools/ocp-build/buildUninstall.cmi tools/ocp-build/buildTypes.cmi \
-    tools/ocp-build/misc/buildTerm.cmi tools/ocp-build/buildOptions.cmi \
+    tools/ocp-build/misc/buildTerm.cmi \
     tools/ocp-build/ocaml/buildOCamlInstall.cmi \
     tools/ocp-build/misc/buildMisc.cmo tools/ocp-build/actions/buildArgs.cmo \
     tools/ocp-build/actions/buildActions.cmi \
@@ -262,7 +257,7 @@ tools/ocp-build/actions/buildActionInstall.cmo : \
 tools/ocp-build/actions/buildActionInstall.cmx : \
     libs/ocplib-compat/string-compat/ocpCompat.cmx libs/ezcmd/ezcmd.cmx \
     tools/ocp-build/buildUninstall.cmx tools/ocp-build/buildTypes.cmx \
-    tools/ocp-build/misc/buildTerm.cmx tools/ocp-build/buildOptions.cmx \
+    tools/ocp-build/misc/buildTerm.cmx \
     tools/ocp-build/ocaml/buildOCamlInstall.cmx \
     tools/ocp-build/misc/buildMisc.cmx tools/ocp-build/actions/buildArgs.cmx \
     tools/ocp-build/actions/buildActions.cmx \
@@ -287,6 +282,7 @@ tools/ocp-build/actions/buildActionMake.cmo : \
     tools/ocp-build/actions/buildArgs.cmo \
     tools/ocp-build/actions/buildActions.cmi \
     tools/ocp-build/actions/buildActionInit.cmi \
+    tools/ocp-build/actions/buildActionConfigure.cmo \
     tools/ocp-build/actions/buildActionCheck.cmi \
     tools/ocp-build/actions/buildActionMake.cmi
 tools/ocp-build/actions/buildActionMake.cmx : \
@@ -307,6 +303,7 @@ tools/ocp-build/actions/buildActionMake.cmx : \
     tools/ocp-build/actions/buildArgs.cmx \
     tools/ocp-build/actions/buildActions.cmx \
     tools/ocp-build/actions/buildActionInit.cmx \
+    tools/ocp-build/actions/buildActionConfigure.cmx \
     tools/ocp-build/actions/buildActionCheck.cmx \
     tools/ocp-build/actions/buildActionMake.cmi
 tools/ocp-build/actions/buildActionMake.cmi : \
@@ -332,15 +329,13 @@ tools/ocp-build/actions/buildActionQuery.cmx : libs/ezcmd/ezcmd.cmx \
     tools/ocp-build/actions/buildActionMake.cmx \
     tools/ocp-build/actions/buildActionCheck.cmx
 tools/ocp-build/actions/buildActionTests.cmo : libs/ezcmd/ezcmd.cmi \
-    tools/ocp-build/buildTypes.cmi tools/ocp-build/buildOptions.cmi \
-    tools/ocp-build/ocaml/buildOCamlTest.cmi \
+    tools/ocp-build/buildTypes.cmi tools/ocp-build/ocaml/buildOCamlTest.cmi \
     tools/ocp-build/actions/buildArgs.cmo \
     tools/ocp-build/actions/buildActions.cmi \
     tools/ocp-build/actions/buildActionMake.cmi \
     tools/ocp-build/actions/buildActionTests.cmi
 tools/ocp-build/actions/buildActionTests.cmx : libs/ezcmd/ezcmd.cmx \
-    tools/ocp-build/buildTypes.cmx tools/ocp-build/buildOptions.cmx \
-    tools/ocp-build/ocaml/buildOCamlTest.cmx \
+    tools/ocp-build/buildTypes.cmx tools/ocp-build/ocaml/buildOCamlTest.cmx \
     tools/ocp-build/actions/buildArgs.cmx \
     tools/ocp-build/actions/buildActions.cmx \
     tools/ocp-build/actions/buildActionMake.cmx \

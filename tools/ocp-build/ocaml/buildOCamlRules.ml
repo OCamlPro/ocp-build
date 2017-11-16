@@ -1044,7 +1044,7 @@ let get_copy_objects_from lib envs =
       Printf.eprintf "Error: in package %S, copy_objects_from %S, no such package\n%!" lib.lib.lib_name name;
       clean_exit 2
 
-let copy_ml_objects_from lib ptmp envs src_lib kernel_name =
+let copy_ml_objects_from lib ptmp src_lib kernel_name =
   (* TODO: check that pack_for = [] *)
   (* TODO: check that src_lib is in requires *)
   do_copy_objects_from lib src_lib kernel_name ".cmi" ptmp.cmi_files;
@@ -1576,7 +1576,7 @@ let add_ml_source w b lib ptmp ml_file options =
     let copy_objects_from = get_copy_objects_from lib envs  in
     match copy_objects_from with
     | Some src_lib ->
-      copy_ml_objects_from lib ptmp envs src_lib kernel_name
+      copy_ml_objects_from lib ptmp src_lib kernel_name
 
     | None ->
 
@@ -1958,7 +1958,7 @@ let add_mll_source w b lib ptmp mll_file options =
     let copy_objects_from = get_copy_objects_from lib envs  in
     match copy_objects_from with
     | Some src_lib ->
-      copy_ml_objects_from lib ptmp envs src_lib kernel_name
+      copy_ml_objects_from lib ptmp src_lib kernel_name
     | None ->
 
 (*    let tmp_dirname =
@@ -1989,7 +1989,7 @@ let add_mly_source w b lib ptmp mly_file options =
     let copy_objects_from = get_copy_objects_from lib envs  in
     match copy_objects_from with
     | Some src_lib ->
-      copy_ml_objects_from lib ptmp envs src_lib kernel_name
+      copy_ml_objects_from lib ptmp src_lib kernel_name
     | None ->
 
       let _ = () in

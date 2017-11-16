@@ -9,5 +9,5 @@ let () =
                    [
       "-toto", Arg.Set toto, "Documentation on toto";
     ]
-            (fun s -> assert false)
+            (fun _s -> assert false)
             "test3 [OPTIONS] [ARGUMENTS]"
