@@ -19,7 +19,8 @@ begin
     "buildOCP2Prims.ml";
     "buildOCP2Interp.ml"
   ];
-  ocaml.requires = [ "ocplib-compat"; "ocplib-lang"; "ocp-build-misc"; "str" ];
+  ocaml.requires = [ "ocplib-compat"; "ocplib-lang";
+  "ocp-build-misc"; "ocp-build-value"; "str" ];
   new_package("ocp-build-lang-ocp2", "library", ocaml);
 end
 

@@ -190,7 +190,8 @@ let pr_to_pager print ppf v =
     | None -> print PLAIN ppf v
     | Some cmd -> if (Sys.command cmd) <> 0 then print PLAIN ppf v
 
-let rec print ?(subst = fun x -> x) fmt ppf (page : 'a man_page) = match fmt with
+let rec print ?(subst = fun x -> x) fmt ppf (page : 'a man_page) =
+  match fmt with
   | PAGER -> pr_to_pager (print ~subst) ppf page
   | PLAIN -> pr_plain_page subst ppf page
   | GROFF -> pr_groff_page subst ppf page
@@ -254,7 +255,7 @@ module RAW = struct
       ".nh";
       ".ad l";
     ] @
-                           (List.flatten (List.map groff_div p.man_text))
+                          (List.flatten (List.map groff_div p.man_text))
     )
 
 end

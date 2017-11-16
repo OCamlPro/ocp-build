@@ -10,8 +10,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StdlibArg
-
 open OcpCompat
 open BuildTypes
 open BuildOCPTypes

@@ -57,30 +57,15 @@ try {
   ocaml.version = "1.0";
 }
 
-(* Only install the ocp-build, so set install=true in it *)
-ocaml.install = false;
-
-begin
-  ocaml.install = true;
-  ocaml.files = [
-    "logger.ml";
-    "ocamldot.ml";
-    "versioning.ml";
-
-    "buildMisc.ml";
-    "buildMtime.ml";   (* How modification times are computed *)
-
-    "buildScanner.ml"; (* Scan directories looking for files with particular properties *)
-    "buildSubst.ml";
-    "buildFind.ml";
-    "buildTerm.ml";
+OCaml.library("ocp-build-value", 
+  ocaml + {
+  files = [
     "buildValue.ml";
-    "buildWarnings.ml";
   ];
-
-  ocaml.requires =  [ "ocplib-lang"; "ocplib-unix"; "ocplib-system" ];
-  OCaml.library("ocp-build-misc", ocaml);
-end
+  requires =  [ "ocplib-lang"; "ocplib-unix"; "ocplib-system";
+              "ocp-build-misc";
+           ];
+});
 
 begin
   ocaml.install = true;
