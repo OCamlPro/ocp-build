@@ -171,7 +171,8 @@ let action () =
 let subcommand = {
   Arg.cmd_name = "uninstall";
   cmd_man = [`P "Uninstall the project."];
-  cmd_args = Arg.translate arg_list (Some arg_anon);
+  cmd_args = Arg.translate arg_list
+             @ Arg.translate_anon arg_anon;
   cmd_doc = "Uninstall the project.";
   cmd_action = action;
 }

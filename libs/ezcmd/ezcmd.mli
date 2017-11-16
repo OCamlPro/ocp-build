@@ -55,10 +55,12 @@ module Modules : sig
       | Anon of int * (string -> unit)
       | Anons of (string list -> unit)
 
+    type arg_list = (string list * spec * info) list
+
     type command = {
         cmd_name : string;
         cmd_action : (unit -> unit);
-        cmd_args : (string list * spec * info) list;
+        cmd_args : arg_list;
         cmd_man : block list;
         cmd_doc : string;
       }
@@ -74,9 +76,14 @@ module Modules : sig
       unit
 
     val translate :
+      ?docs:string ->
       (string * spec * string) list ->
-      (string -> unit) option ->
       (string list * spec * info) list
+
+    val translate_anon:
+      (string -> unit) ->
+      (string list * spec * info) list
+
   end
 end
 

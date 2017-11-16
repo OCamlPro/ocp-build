@@ -60,7 +60,7 @@ let action () =
 let subcommand = {
   Arg.cmd_name = "clean";
   cmd_man =  [`P "Clean the project."];
-  cmd_args = Arg.translate arg_list None;
+  cmd_args = Arg.translate arg_list;
   cmd_doc = "Clean the project.";
   cmd_action = action;
 }

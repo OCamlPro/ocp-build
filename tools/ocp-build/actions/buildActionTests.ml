@@ -16,14 +16,8 @@ open BuildArgs
 open BuildActions
 open BuildTypes
 
-let arg_list =
-  BuildOptions.merge
-    [
-      [
+let arg_list = []
 
-      ];
-      BuildActionMake.arg_list
-    ]
 
 
 
@@ -63,7 +57,9 @@ let action () =
 let subcommand = {
   Arg.cmd_name = "tests";
   cmd_man = [`P "Run project tests."];
-  cmd_args = Arg.translate arg_list (Some arg_anon);
+  cmd_args = arg_list
+             @ BuildActionMake.arg_list
+             @ Arg.translate_anon arg_anon;
   cmd_doc = "Run project tests.";
   cmd_action = action;
 }

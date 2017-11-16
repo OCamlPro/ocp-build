@@ -27,7 +27,9 @@ let with_args = ref []
 
 (* BuildOCP2Prims.with_feature *)
 
-let arg_with = [
+let arg_with =
+  Arg.translate ~docs:"FEATURES OPTIONS"
+  [
   "--with", Arg.String (fun name -> with_args := (name, true) :: !with_args),
   " Enable a feature (X), maybe setting its value (X=Y)";
 
@@ -36,10 +38,7 @@ let arg_with = [
   ]
 
 let arg_list =
-  [
-    "", Arg.Unit (fun()->()), "\nList of options available in CONFIGURE_OPTIONS:\n";
-  ] @
-  arg_with @
+  Arg.translate ~docs:"CONFIGURE OPTIONS"
   [
 
   arg_set_int_option ProjectOptions.njobs_option;
@@ -86,7 +85,7 @@ let action () =
 let subcommand = {
   Arg.cmd_name = command_name;
   cmd_man = [ `P command_help ];
-  cmd_args = Arg.translate arg_list None;
+  cmd_args = arg_with @ arg_list;
   cmd_doc = "Set the project options.";
   cmd_action = action;
 }

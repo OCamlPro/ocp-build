@@ -39,7 +39,7 @@ let query_libdir = ref []
 let query_package = ref []
 let list_arg = ref false
 
-let arg_list =
+let arg_list = Arg.translate ~docs:"QUERY OPTIONS"
   [
     "", Arg.Unit (fun()->()), "\nList of options available in QUERY_OPTIONS:\n";
 
@@ -139,8 +139,8 @@ let action () =
 let subcommand = {
   Arg.cmd_name = "query";
   cmd_man = [`P "Query information about environment."];
-  cmd_args = Arg.translate (arg_list
-                            @ BuildActionMake.arg_list) None;
+  cmd_args = arg_list
+             @ BuildActionMake.arg_list;
   cmd_doc = "Query information about environment.";
   cmd_action = action;
 }

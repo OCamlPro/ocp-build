@@ -56,17 +56,16 @@ let action () =
     end;
   BuildActionConfigure.action ()
 
-let arg_list = [
-    (*    "", Arg.Unit (fun()->()), "\nList of options available in INIT_OPTIONS:\n" ;*)
+let arg_list = Arg.translate ~docs:"INIT OPTIONS" [
 
   ]
 
 let subcommand = {
   Arg.cmd_name = command_name;
   cmd_man = [`P command_help];
-  cmd_args = Arg.translate (arg_list
-                 @ BuildActionConfigure.arg_with
-                 @ BuildActionsWarnings.arg_list) None;
+  cmd_args =  arg_list
+              @ BuildActionConfigure.arg_with
+              @ BuildActionsWarnings.arg_list;
   cmd_doc = "Set the root of a project.";
   cmd_action = action;
 }

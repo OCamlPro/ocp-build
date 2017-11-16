@@ -345,8 +345,6 @@ let action () =
 
 let arg_list =
   [
-    "", Arg.Unit (fun()->()), "\nList of options available in MAKE_OPTIONS:\n";
-
   (* This option should be shared with -install and -tests, no ? *)
   "--arch", Arg.String (fun s ->
     arch_arg := Arch ("_other_archs/" ^ s)),
@@ -403,6 +401,7 @@ let arg_list =
   ]
   @ arg_list1
 
+
 let add_synomyms arg_list1 synonyms =
   arg_list1 @ List.map (fun (s1, s2) ->
     let rec iter list =
@@ -419,13 +418,16 @@ let arg_list = add_synomyms arg_list
       "-j", "-njobs";
     ]
 
+let arg_list = Arg.translate ~docs:"BUILD OPTIONS" arg_list
+
 let subcommand = {
   Arg.cmd_name = command_name;
   cmd_man = [ `S command_help ];
-  cmd_args = Arg.translate (arg_list
-                 @ BuildActionInit.arg_list
-                 @ BuildActionCheck.arg_list)
-                           (Some arg_anon);
+  cmd_args = arg_list
+             @ BuildActionInit.arg_list
+             @ BuildActionConfigure.arg_with
+             @ BuildActionCheck.arg_list
+             @ Arg.translate_anon arg_anon;
   cmd_doc = "Build";
   cmd_action = action;
 }
@@ -434,7 +436,8 @@ let old_subcommand =
   {
   Arg.cmd_name = "build";
   cmd_man = [`S "(deprecated, use 'ocp-build make' subcommand)"];
-  cmd_args = Arg.translate arg_list (Some arg_anon);
+  cmd_args = arg_list
+             @ Arg.translate_anon arg_anon;
   cmd_doc = "Build";
   cmd_action = action;
 }

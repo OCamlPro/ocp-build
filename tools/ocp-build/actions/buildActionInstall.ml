@@ -120,8 +120,7 @@ let do_install dest_dir _install_what projects _package_map =
     end
 
 let arg_list =
-  BuildOptions.merge
-    [
+  Arg.translate ~docs:"INSTALL OPTIONS"
       [
   "-install-bundle", Arg.String (fun _s ->
     Printf.eprintf "Warning: option -install-bundle is obsolete\n%!"
@@ -134,10 +133,7 @@ let arg_list =
         "--print-only", Arg.Set print_only,
   " Only compute and print the list of actions to perform";
 
-      ];
-      BuildActionMake.arg_list
-    ]
-
+      ]
 
 
 let action () =
@@ -155,7 +151,9 @@ let action () =
 let subcommand = {
   Arg.cmd_name = "install";
   cmd_man = [`P "Install the project."];
-  cmd_args = Arg.translate arg_list (Some BuildArgs.arg_anon);
+  cmd_args = arg_list
+             @ BuildActionMake.arg_list
+             @ Arg.translate_anon BuildArgs.arg_anon;
   cmd_doc = "Install the project.";
   cmd_action = action;
 }

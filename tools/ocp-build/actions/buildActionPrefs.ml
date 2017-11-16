@@ -53,7 +53,7 @@ let action () =
 let subcommand = {
   Arg.cmd_name = "prefs";
   cmd_man = [`P "Set the user global preferences."];
-  cmd_args = Arg.translate arg_list None;
+  cmd_args = Arg.translate arg_list;
   cmd_doc = "Set the user global preferences.";
   cmd_action = action;
 }

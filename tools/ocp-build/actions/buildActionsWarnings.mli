@@ -12,7 +12,7 @@
 
 open Ezcmd.Modules
 
-val arg_list : (string * Arg.spec * string) list
+val arg_list : Arg.arg_list
 
 val set_default_is_always : unit -> unit
 

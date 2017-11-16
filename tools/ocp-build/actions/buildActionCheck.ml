@@ -532,10 +532,9 @@ let action () =
     (BuildOCP.copy_state env_state) config_state in
   ()
 
-let arg_list = [
-    (*    "", Arg.Unit (fun()->()), "\nList of options available in CHECK_OPTIONS:\n"; *)
-
-
+let arg_list =
+  Arg.translate ~docs:"CHECK OPTIONS"
+  [
   "-I", Arg.String (fun dir ->
     arg_ocp_dirs := !arg_ocp_dirs @ [ dir ]),
   "DIR Include files from DIR";
@@ -558,9 +557,9 @@ let subcommand = {
   Arg.cmd_name = command_name;
   cmd_man = [`P command_help];
   cmd_args =
-    Arg.translate (arg_list
-                 @ BuildActionConfigure.arg_with
-                 @ BuildActionsWarnings.arg_list) None;
+    arg_list
+    @ BuildActionConfigure.arg_with
+    @ BuildActionsWarnings.arg_list;
   cmd_doc = "Set the root of a project.";
   cmd_action = action;
 }

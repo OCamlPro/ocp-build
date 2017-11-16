@@ -14,7 +14,7 @@ open Ezcmd.Modules
 
 val subcommand : Arg.command
 val action : unit -> unit
-val arg_list : (string * Arg.spec * string) list
+val arg_list : Arg.arg_list
 
 val load_initial_project :
   BuildWarnings.set ->

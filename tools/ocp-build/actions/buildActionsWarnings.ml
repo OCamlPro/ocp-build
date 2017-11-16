@@ -37,7 +37,9 @@ let warnings_filename_fmt = format_of_string "%s/_obuild/%s_warnings.data"
 let arg_print_env_warnings = ref PrintWarningsIfChanged
 let arg_print_pj_warnings = ref PrintWarningsIfChanged
 
-let arg_list = [
+let arg_list =
+  Arg.translate ~docs: "WARNING OPTIONS"
+  [
   arg_no_warnings_string, Arg.Unit (fun () ->
     arg_print_pj_warnings := PrintWarningsNever;
     arg_print_env_warnings := PrintWarningsNever;

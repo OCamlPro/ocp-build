@@ -30,10 +30,12 @@ module Types = struct
     | Anon of int * (string -> unit)
     | Anons of (string list -> unit)
 
+  type arg_list = (string list * spec * info) list
+
   type command = {
       cmd_name : string;
       cmd_action : (unit -> unit);
-      cmd_args : (string list * spec * info) list;
+      cmd_args : arg_list;
       cmd_man : Cmdliner.Manpage.block list;
       cmd_doc : string;
     }
@@ -197,8 +199,7 @@ module Modules = struct
 
     include Types
 
-    let translate arg_list arg_anon =
-      let arg_list =
+    let translate ?docs arg_list =
       List.map (fun (arg, spec, doc) ->
             let len = String.length arg in
             let arg =
@@ -210,21 +211,18 @@ module Modules = struct
               else
                 arg
             in
-            [arg], spec, info doc
+            [arg], spec, info ?docs doc
         ) arg_list
-      in
-      match arg_anon with
-      | None -> arg_list
-      | Some arg_anon ->
-         arg_list
-        @
-          [
-            [], Anons (fun list ->
-                    List.iter arg_anon list), info "General arguments"
-          ]
+
+    let translate_anon arg_anon =
+      [
+        [], Anons (fun list ->
+                List.iter arg_anon list), info "General arguments"
+      ]
 
     let parse ?name ?version ?(man = []) arg_list arg_anon arg_usage =
-      let cmd_args = translate arg_list (Some arg_anon) in
+      let cmd_args = translate arg_list @
+                       translate_anon  arg_anon in
       let cmd_name = match name with
           None -> "COMMAND"
         | Some cmd_name -> cmd_name in

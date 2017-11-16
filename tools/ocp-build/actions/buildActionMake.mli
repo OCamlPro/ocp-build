@@ -12,7 +12,7 @@
 
 open Ezcmd.Modules
 
-val arg_list : (string * Arg.spec * string) list
+val arg_list : Arg.arg_list
 
 val subcommand : Arg.command
 val old_subcommand : Arg.command
