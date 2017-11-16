@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StdlibArg
+open Ezcmd.Modules
 
 val shortcut_arg :
   string -> string ->

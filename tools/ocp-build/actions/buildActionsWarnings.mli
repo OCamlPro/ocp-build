@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StdlibArg
+open Ezcmd.Modules
 
 val arg_list : (string * Arg.spec * string) list
 

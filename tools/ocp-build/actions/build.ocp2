@@ -25,10 +25,9 @@ begin
     "buildActionTests.ml";
     "buildActionUninstall.ml";
     "buildActionQuery.ml";
-    "buildActionHelp.ml";
   ];
 
-  ocaml.requires = [ "ocp-build-lib";
+  ocaml.requires = [ "ocp-build-lib"; "ezcmd";
                      "ocp-build-ocaml-plugin";
                      "ocp-build-oasis" ];
   OCaml.library( "ocp-build-actions", ocaml);

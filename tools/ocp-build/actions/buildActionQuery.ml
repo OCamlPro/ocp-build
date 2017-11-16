@@ -26,7 +26,8 @@ Query the project environment (mostly META files).
 
 
 
-open StdlibArg
+open Ezcmd.Modules
+
 open BuildOCPTypes
 open BuildTypes
 open BuildArgs
@@ -136,11 +137,10 @@ let action () =
 
 
 let subcommand = {
-  sub_name = "query";
-  sub_help =  "Query information about environment.";
-  sub_arg_list = arg_list
-                 @ BuildActionMake.arg_list;
-  sub_arg_anon = None;
-  sub_arg_usage = [ "Query information about environment."; ];
-  sub_action = action;
+  Arg.cmd_name = "query";
+  cmd_man = [`P "Query information about environment."];
+  cmd_args = Arg.translate (arg_list
+                            @ BuildActionMake.arg_list) None;
+  cmd_doc = "Query information about environment.";
+  cmd_action = action;
 }

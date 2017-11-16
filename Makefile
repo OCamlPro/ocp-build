@@ -15,21 +15,27 @@ minunix_SRCDIR=libs/ocplib-unix
 unix_SRCDIR=libs/ocplib-maxunix
 file_SRCDIR=libs/ocplib-file
 system_SRCDIR=libs/ocplib-system
-stdlib_SRCDIR=libs/ocplib-stdlib
+ezcmd_SRCDIR=libs/ezcmd
 config_SRCDIR=libs/ocplib-config
 OCP_BUILD_SRCDIR=tools/ocp-build
 OCP_BUILD_DSTDIR=$(OBUILD_DSTDIR)/ocp-build
 
-OCPLIB_NAMES=stdlib debug lang unix file system config compat subcmd
+OCPLIB_NAMES=debug lang unix file system config compat
+
+EXTERNAL_INCLUDES=    -I $(OCAMLLIB)/../cmdliner
+EXTERNAL_LIBS=$(OCAMLLIB)/../cmdliner/cmdliner.cmxa
 
 INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
-    $(OCP_BUILD_SRCDIR) \
+    -I $(OCP_BUILD_SRCDIR) \
+    -I libs/ezcmd \
+    -I $(OCP_BUILD_SRCDIR)/misc \
     -I $(OCP_BUILD_SRCDIR)/lang-ocp \
     -I $(OCP_BUILD_SRCDIR)/lang-ocp2 \
     -I $(OCP_BUILD_SRCDIR)/engine \
     -I $(OCP_BUILD_SRCDIR)/actions \
     -I $(OCP_BUILD_SRCDIR)/meta \
-    -I $(OCP_BUILD_SRCDIR)/ocaml
+    -I $(OCP_BUILD_SRCDIR)/ocaml \
+    $(EXTERNAL_INCLUDES)
 
 OCPLIB_LIBS=$(foreach lib, $(OCPLIB_NAMES), ocplib-$(lib))
 
@@ -38,7 +44,7 @@ OCP_BUILD_BOOTER=boot/ocp-build.asm
 STRING_COMPAT=\
 	$(compat_SRCDIR)/ocpCompat.ml
 
-OCPLIB_STDLIB=$(stdlib_SRCDIR)/stdlibArg.ml
+EZCMD=$(ezcmd_SRCDIR)/ezcmd.ml
 
 OCPLIB_DEBUG= $(debug_SRCDIR)/ocpDebug.ml
 
@@ -63,16 +69,16 @@ OCPLIB_CONFIG= \
     $(config_SRCDIR)/simpleConfigOCaml.ml \
     $(config_SRCDIR)/simpleConfig.ml
 
-BUILD_MISC= $(OCP_BUILD_SRCDIR)/logger.ml				\
-    $(OCP_BUILD_SRCDIR)/buildMisc.ml					\
-    $(OCP_BUILD_SRCDIR)/buildWarnings.ml				\
-    $(OCP_BUILD_SRCDIR)/buildMtime.ml					\
-    $(OCP_BUILD_SRCDIR)/buildScanner.ml					\
-    $(OCP_BUILD_SRCDIR)/buildSubst.ml					\
-    $(OCP_BUILD_SRCDIR)/buildFind.ml 					\
-    $(OCP_BUILD_SRCDIR)/buildTerm.ml					\
-    $(OCP_BUILD_SRCDIR)/versioning.ml					\
-    $(OCP_BUILD_SRCDIR)/ocamldot.ml 					\
+BUILD_MISC= $(OCP_BUILD_SRCDIR)/misc/logger.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/buildMisc.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/buildWarnings.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/buildMtime.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/buildScanner.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/buildSubst.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/buildFind.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/buildTerm.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/versioning.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/ocamldot.ml	\
     $(OCP_BUILD_SRCDIR)/buildValue.ml
 
 
@@ -147,10 +153,9 @@ BUILD_MAIN= $(OCP_BUILD_SRCDIR)/actions/buildArgs.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionTests.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionUninstall.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionQuery.ml	\
-    $(OCP_BUILD_SRCDIR)/actions/buildActionHelp.ml	\
     $(OCP_BUILD_SRCDIR)/buildMain.ml
 
-OCP_BUILD_MLS= $(STRING_COMPAT) $(OCPLIB_STDLIB) $(OCPLIB_DEBUG)	\
+OCP_BUILD_MLS= $(STRING_COMPAT) $(EZCMD) $(OCPLIB_DEBUG)	\
   $(OCPLIB_LANG) $(OCPLIB_UNIX) $(OCPLIB_FILE) $(OCPLIB_SYSTEM)		\
   $(OCPLIB_CONFIG) $(BUILD_MISC) $(BUILD_PROJECT) $(BUILD_ENGINE)	\
   $(BUILD_OCAML_OBJS) $(BUILD_LIB) $(BUILD_OCAMLFIND) $(BUILD_OCAML)	\
@@ -193,7 +198,7 @@ $(OCP_BUILD_BOOTER): $(MAKE_CONFIG)
 	$(MAKE) partialclean
 
 create-booter: $(OCP_BUILD_MLS) $(OCP_BUILD_CMXS) $(OCP_BUILD_STUBS)
-	$(OCAMLOPT) -o $(OCP_BUILD_BOOTER) unix.cmxa str.cmxa $(OCP_BUILD_CMXS) $(OCP_BUILD_STUBS)
+	$(OCAMLOPT) -o $(OCP_BUILD_BOOTER) unix.cmxa str.cmxa $(EXTERNAL_LIBS) $(OCP_BUILD_CMXS) $(OCP_BUILD_STUBS)
 
 byte: ocp-build.byte
 ocp-build.byte: $(OCP_BUILD_MLS) $(OCP_BUILD_CMOS) $(OCP_BUILD_STUBS)

@@ -34,7 +34,7 @@ open BuildValue.TYPES
 open BuildActions
 open BuildTypes
 
-open StdlibArg
+open Ezcmd.Modules
 
 let _verbose = OcpDebug.verbose_function ["B"; "BuildActionInit"]
 
@@ -57,19 +57,16 @@ let action () =
   BuildActionConfigure.action ()
 
 let arg_list = [
-    "", Arg.Unit (fun()->()), "\nList of options available in INIT_OPTIONS:\n" ;
+    (*    "", Arg.Unit (fun()->()), "\nList of options available in INIT_OPTIONS:\n" ;*)
 
   ]
 
 let subcommand = {
-  sub_name = command_name;
-  sub_help = command_help;
-  sub_arg_list = arg_list
+  Arg.cmd_name = command_name;
+  cmd_man = [`P command_help];
+  cmd_args = Arg.translate (arg_list
                  @ BuildActionConfigure.arg_with
-                 @ BuildActionsWarnings.arg_list;
-  sub_arg_anon = None;
-  sub_arg_usage = [
-    "Set the root of a project.";
-  ];
-  sub_action = action;
+                 @ BuildActionsWarnings.arg_list) None;
+  cmd_doc = "Set the root of a project.";
+  cmd_action = action;
 }

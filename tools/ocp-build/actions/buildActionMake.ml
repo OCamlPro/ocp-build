@@ -24,6 +24,8 @@
    in a particular compilation scheme.
 *)
 
+open Ezcmd.Modules
+
 let command_name = "make"
 let command_help = {|
 ocp-build make [MAKE_OPTIONS] [CONFIGURE_OPTIONS] [CHECK_OPTIONS]
@@ -48,8 +50,6 @@ open BuildActions
 open BuildValue.TYPES
 open BuildUninstall.TYPES
 open BuildOCamlInstall.TYPES
-
-open StdlibArg
 
 let _verbose = OcpDebug.verbose_function ["B"; "BuildActionMake"]
   (*
@@ -419,26 +419,22 @@ let arg_list = add_synomyms arg_list
       "-j", "-njobs";
     ]
 
-let arg_usage = [ "Build" ]
-
 let subcommand = {
-  sub_name = command_name;
-  sub_help = command_help;
-  sub_arg_list = arg_list
+  Arg.cmd_name = command_name;
+  cmd_man = [ `S command_help ];
+  cmd_args = Arg.translate (arg_list
                  @ BuildActionInit.arg_list
-                 @ BuildActionCheck.arg_list;
-
-  sub_arg_anon = Some arg_anon;
-  sub_arg_usage = arg_usage;
-  sub_action = action;
+                 @ BuildActionCheck.arg_list)
+                           (Some arg_anon);
+  cmd_doc = "Build";
+  cmd_action = action;
 }
 
 let old_subcommand =
   {
-  sub_name = "build";
-  sub_help = "(deprecated, use 'ocp-build make' subcommand)";
-  sub_arg_list = arg_list;
-  sub_arg_anon = Some arg_anon;
-  sub_arg_usage = arg_usage;
-  sub_action = action;
+  Arg.cmd_name = "build";
+  cmd_man = [`S "(deprecated, use 'ocp-build make' subcommand)"];
+  cmd_args = Arg.translate arg_list (Some arg_anon);
+  cmd_doc = "Build";
+  cmd_action = action;
 }

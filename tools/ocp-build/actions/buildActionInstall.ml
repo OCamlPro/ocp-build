@@ -10,7 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StdlibArg
+open Ezcmd.Modules
+
 open OcpCompat
 
 open BuildTypes
@@ -152,10 +153,9 @@ let action () =
 
 
 let subcommand = {
-  sub_name = "install";
-  sub_help =  "Install the project.";
-  sub_arg_list = arg_list;
-  sub_arg_anon = Some BuildArgs.arg_anon;
-  sub_arg_usage = [ "Install the project."; ];
-  sub_action = action;
+  Arg.cmd_name = "install";
+  cmd_man = [`P "Install the project."];
+  cmd_args = Arg.translate arg_list (Some BuildArgs.arg_anon);
+  cmd_doc = "Install the project.";
+  cmd_action = action;
 }

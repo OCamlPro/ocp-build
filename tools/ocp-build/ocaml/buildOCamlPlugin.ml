@@ -10,14 +10,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StdlibArg
-
 (* This is called when the plugin is loaded, or from the main if the plugin
  is linked statically. It is called after the subcommands has been chosen,
    allowing a right choice of arguments. *)
 
 let init subcommand_name =
 
+  (*
   let add_args subs args =
     if List.mem subcommand_name subs then
       BuildGlobals.arg_list := !BuildGlobals.arg_list @ args
@@ -34,5 +33,6 @@ let init subcommand_name =
       " Load .ocp files (set backward compatibility)";
 
     ];
+   *)
 
   ()

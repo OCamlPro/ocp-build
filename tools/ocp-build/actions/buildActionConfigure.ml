@@ -18,7 +18,7 @@ let command_help = {|
 the options `--with FEATURE`, `--with FEATURE=VALUE` and `--without FEATURE`.
 |}
 
-open StdlibArg
+open Ezcmd.Modules
 
 open BuildArgs
 open BuildOptions
@@ -84,12 +84,9 @@ let action () =
   BuildOptions.save_config ProjectOptions.config_file
 
 let subcommand = {
-  sub_name = command_name;
-  sub_help =  command_help;
-  sub_arg_list = arg_list;
-  sub_arg_anon = None;
-  sub_arg_usage = [
-    "Set the project options.";
-  ];
-  sub_action = action;
+  Arg.cmd_name = command_name;
+  cmd_man = [ `P command_help ];
+  cmd_args = Arg.translate arg_list None;
+  cmd_doc = "Set the project options.";
+  cmd_action = action;
 }

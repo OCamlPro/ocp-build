@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StdlibArg
+open Ezcmd.Modules
 
 open OcpCompat
 open BuildOCPTypes

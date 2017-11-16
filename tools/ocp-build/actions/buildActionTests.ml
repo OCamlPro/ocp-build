@@ -10,6 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open Ezcmd.Modules
+
 open BuildArgs
 open BuildActions
 open BuildTypes
@@ -59,10 +61,9 @@ let action () =
   ()
 
 let subcommand = {
-  sub_name = "tests";
-  sub_help =  "Run project tests.";
-  sub_arg_list = arg_list;
-  sub_arg_anon = Some arg_anon;
-  sub_arg_usage = [ "Run project tests."; ];
-  sub_action = action;
+  Arg.cmd_name = "tests";
+  cmd_man = [`P "Run project tests."];
+  cmd_args = Arg.translate arg_list (Some arg_anon);
+  cmd_doc = "Run project tests.";
+  cmd_action = action;
 }

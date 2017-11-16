@@ -108,3 +108,7 @@ headers-??.txt
 *.old
 /tools/ocp-build/lang-ocp2/buildOCP2Parser.ml
 /tools/ocp-build/lang-ocp2/buildOCP2Parser.mli
+/tools/ocp-build/lang-ocp/buildOCPParser.mli
+/tools/ocp-build/lang-ocp/buildOCPParser.ml
+/libs/ocplib-compat/string-compat/ocpCompat.ml
+/tools/ocp-build/meta/metaLexer.ml

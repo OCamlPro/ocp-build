@@ -19,6 +19,7 @@ module Types = struct
 
   type spec =
     | Bool of (bool -> unit)
+    | Unit of (unit -> unit)
     | Set of bool ref
     | Clear of bool ref
     | Int of (int -> unit)
@@ -59,6 +60,10 @@ let rec term_of_list list =
      | Set r ->
         let term = Arg.(value & flag & arg_info) in
         let f () x = if x then r := true in
+        Term.(const f $ x $ term)
+     | Unit f ->
+        let term = Arg.(value & flag & arg_info) in
+        let f () x = if x then f () in
         Term.(const f $ x $ term)
      | Clear r ->
         let term = Arg.(value & flag & arg_info) in
@@ -164,7 +169,12 @@ let main_with_subcommands ~name ?version ?default
        default_cmd ~name ?version ~doc ~man
     | Some cmd -> create_sub ?version cmd
   in
-  let cmds = cmds @ [help_cmd ~name ~man ~topics] in
+  let cmds =
+    if List.exists (fun cmd -> cmd.cmd_name = "help") subs then
+      cmds
+    else
+      cmds @ [help_cmd ~name ~man ~topics]
+  in
   match Term.eval_choice default_cmd cmds with
   | `Ok () -> ()
   | t -> Term.exit t
@@ -187,9 +197,9 @@ module Modules = struct
 
     include Types
 
-    let parse ?name ?version ?(man = []) arg_list arg_anon arg_usage =
-      let cmd_args =
-        List.map (fun (arg, spec, doc) ->
+    let translate arg_list arg_anon =
+      let arg_list =
+      List.map (fun (arg, spec, doc) ->
             let len = String.length arg in
             let arg =
               if len > 0 && arg.[0] = '-' then
@@ -201,13 +211,20 @@ module Modules = struct
                 arg
             in
             [arg], spec, info doc
-          ) arg_list
+        ) arg_list
+      in
+      match arg_anon with
+      | None -> arg_list
+      | Some arg_anon ->
+         arg_list
         @
           [
             [], Anons (fun list ->
                     List.iter arg_anon list), info "General arguments"
           ]
-      in
+
+    let parse ?name ?version ?(man = []) arg_list arg_anon arg_usage =
+      let cmd_args = translate arg_list (Some arg_anon) in
       let cmd_name = match name with
           None -> "COMMAND"
         | Some cmd_name -> cmd_name in

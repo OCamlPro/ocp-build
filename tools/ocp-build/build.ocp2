@@ -97,7 +97,7 @@ begin
   ];
 
   ocaml.requires = [ "ocplib-unix"; "ocp-build-engine"; "ocp-build-project";
-    "ocp-build-misc"; "ocplib-config"; "ocplib-stdlib" ];
+    "ocp-build-misc"; "ocplib-config"; "ezcmd" ];
 
   OCaml.library( "ocp-build-lib", ocaml);
 end

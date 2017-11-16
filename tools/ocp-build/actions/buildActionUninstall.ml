@@ -13,7 +13,7 @@
 (* ocp-build uninstall [OPTIONS]
 *)
 
-open StdlibArg
+open Ezcmd.Modules
 open OcpCompat
 
 open BuildArgs
@@ -169,10 +169,9 @@ let action () =
       if !not_found then exit 2
 
 let subcommand = {
-  sub_name = "uninstall";
-  sub_help =  "Uninstall the project.";
-  sub_arg_list = arg_list;
-  sub_arg_anon = Some arg_anon;
-  sub_arg_usage = [ "Uninstall the project."; ];
-  sub_action = action;
+  Arg.cmd_name = "uninstall";
+  cmd_man = [`P "Uninstall the project."];
+  cmd_args = Arg.translate arg_list (Some arg_anon);
+  cmd_doc = "Uninstall the project.";
+  cmd_action = action;
 }

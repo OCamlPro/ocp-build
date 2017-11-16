@@ -13,9 +13,13 @@
 (* Easy interface over Cmdliner. Very similar to the Stdlib Arg module.
 
   Three main functions:
-  * [main cmd]: simple command
-  * [main_with_subcommands cmds]: with sub-commands
-  * [parse]: similar to Arg.parse
+  * [Ezcmd.main cmd]: simple command
+  * [Ezcmd.main_with_subcommands cmds]: with sub-commands
+  * [Ezcmd.Arg.parse]: similar to Arg.parse
+
+  Usually, you will start your code with `open Ezcmd.Modules` and then
+  use functions and constructors from either `Ezcmd` or `Arg`. Also
+  `Arg.translate` can be used to translate from Stdlib Arg.
 
  *)
 
@@ -39,6 +43,7 @@ module Modules : sig
 
     type spec =
       | Bool of (bool -> unit)
+      | Unit of (unit -> unit)
       | Set of bool ref
       | Clear of bool ref
       | Int of (int -> unit)
@@ -68,6 +73,10 @@ module Modules : sig
       string ->
       unit
 
+    val translate :
+      (string * spec * string) list ->
+      (string -> unit) option ->
+      (string list * spec * info) list
   end
 end
 

@@ -24,7 +24,8 @@
    in a particular compilation scheme.
 *)
 
-open StdlibArg
+open Ezcmd.Modules
+
 open OcpCompat
 
 open BuildActions
@@ -47,8 +48,6 @@ let finally () =
   end;
   ()
 
-let sub_map = ref StringMap.empty
-
 let subcommands =  [
     BuildActionInit.subcommand;
     BuildActionCheck.subcommand;
@@ -62,40 +61,10 @@ let subcommands =  [
 
     BuildActionPrefs.subcommand;
     BuildActionQuery.subcommand;
-    BuildActionHelp.subcommand;
   ]
 
-(* The default command is the 'build' one *)
-let default_subcommand = {
-  BuildActionMake.subcommand with
-  sub_name = "SUBCOMMAND";
-  sub_arg_usage = [
-    "Build command for OCaml projects";
-    "";
-    "Available subcommands are:";
-  ] @ List.map (fun s ->
-                    Printf.sprintf "   %-15s %s" s.sub_name s.sub_help;
-                  ) subcommands;
-}
-
-let () =
-  BuildActionHelp.subcommands := subcommands
-
-let make_arg_usage s =
-  String.concat "\n"
-    (
-      [ "Command:";
-        Printf.sprintf "  ocp-build %s [OPTIONS] %s"
-          s.sub_name (match s.sub_arg_anon with
-          None -> "" | Some _ -> "[ARGS]");
-        "";
-      ] @
-      s.sub_arg_usage @ [ ""; "Available options in this mode:";])
 
 let _ =
-  List.iter (fun s ->
-    sub_map := StringMap.add s.sub_name s !sub_map
-  ) subcommands;
 
   Printexc.record_backtrace true;
 
@@ -104,29 +73,18 @@ let _ =
     DebugVerbosity.increase_verbosity "B"  v end;
    *)
 
-  let s =
-    try
-      if Array.length Sys.argv < 2 then raise Not_found;
-      let arg1 = Sys.argv.(1) in
-      let s = StringMap.find arg1 !sub_map in
-      Sys.argv.(1) <- Sys.argv.(0) ^ " " ^ arg1;
-      incr Arg.current;
-      s
-    with Not_found ->
-      Sys.argv.(0) <- Sys.argv.(0) ^ " build";
-      default_subcommand
-  in
-  BuildGlobals.arg_list := arg_align (s.sub_arg_list @ !BuildGlobals.arg_list);
-  let arg_usage = make_arg_usage s in
-
-  BuildOCamlPlugin.init s.sub_name;
+  BuildOCamlPlugin.init "UNKNOWN";
 
   try
-    Arg.parse_dynamic BuildGlobals.arg_list (match s.sub_arg_anon with
-        None -> arg_anon_none
-      | Some f -> f) arg_usage;
-    s.sub_action ();
-    BuildMisc.clean_exit 0
+    let () = Ezcmd.main_with_subcommands
+               ~name:"ocp-build"
+               ~doc:"OCaml Highly-Parallel Build System"
+               ~man: []
+               ~default: {BuildActionMake.subcommand with
+                           Arg.cmd_name = "ocp-build make" }
+               subcommands in
+    ()
+
   with
   | BuildMisc.ExitStatus n ->
     let exit_status =

@@ -10,11 +10,12 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StdlibArg
+open Ezcmd.Modules
 
 val arg_list : (string * Arg.spec * string) list
-val subcommand : BuildArgs.subcommand
-val old_subcommand : BuildArgs.subcommand
+
+val subcommand : Arg.command
+val old_subcommand : Arg.command
 
 val make_doc_targets : bool ref
 val make_test_targets : bool ref
