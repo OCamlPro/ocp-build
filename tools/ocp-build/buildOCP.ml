@@ -99,7 +99,8 @@ let conf_add_disabled_package dir_and_name =
 let normalized_dir dir =
   FileGen.to_string (FileGen.of_string dir)
 
-let new_package package_loc state name dirname filename filenames kind options =
+let new_package package_loc state name dirname
+                filename filenames kind _options =
   let package_id = state.npackages in
     (* Printf.eprintf "new_package %s_%d\n%!" name package_id; *)
   state.npackages <- state.npackages + 1;
@@ -284,7 +285,7 @@ let load_ocp_files config packages files =
         [] -> assert false
       | (parent, filename, config) :: next_parents ->
         let file = FileGen.to_string file in
-        if OcpString.starts_with file parent then
+        if OcpString.starts_with file ~prefix:parent then
           let dirname = Filename.dirname file in
           if verbose 5 || !print_loaded_ocp_files then
             Printf.eprintf "Reading %s with context from %s\n%!" file filename;
@@ -308,9 +309,6 @@ let load_ocp_files config packages files =
   iter [ "", "<root>", config ] files;
   !nerrors
 
-let is_enabled options =
-  BuildValue.get_bool_with_default options "enabled" true
-
 module PackageSorter = OcpToposort.Make(struct
   type t = pre_package
   let node pd = pd.package_node
@@ -327,8 +325,10 @@ let reset_package_ids _debug array =
     array.(i).package_id <- i
   done
 
+    (*
 let requires_keep_order_option =
   BuildValue.new_bool_option "requires_keep_order" false
+     *)
 
 let plugin_verifiers = ref ([] : (BuildWarnings.set -> state -> unit) list)
 
@@ -457,7 +457,7 @@ and it can modify:
       sorted_packages := pk :: !sorted_packages
   ) state.packages;
 
-  let (sorted_packages, cycle, non_sorted) =
+  let (sorted_packages, _cycle, _non_sorted) =
     PackageSorter.sort !sorted_packages in
 
   let pj = {

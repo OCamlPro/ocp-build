@@ -10,16 +10,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let verbose = OcpDebug.verbose_function ["B"; "MetaFile"]
+(* let verbose = OcpDebug.verbose_function ["B"; "MetaFile"] *)
 
 open OcpCompat
 
 open MetaTypes
 
+       (*
 let key_of_preds preds =
   let preds = List.map (fun (s, bool) ->
     if bool then s else "-" ^ s) preds in
   String.concat ", " preds
+        *)
 
 open OcpString
 

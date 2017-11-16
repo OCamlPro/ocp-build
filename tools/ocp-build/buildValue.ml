@@ -230,7 +230,7 @@ let set_strings env name v = set env name (plist_of_strings v)
 let get_strings env name = strings_of_plist (get env name)
 let get_local_strings env name = strings_of_plist (get_local env name)
 
-let set_version env name v = set env name (VString (v, StringVersion))
+(*let set_version env name v = set env name (VString (v, StringVersion))*)
 let set_string env name v = set env name (plist_of_string v)
 let get_string env name = string_of_plist (get env name)
 let get_local_string env name = string_of_plist (get_local env name)

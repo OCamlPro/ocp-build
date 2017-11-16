@@ -295,7 +295,7 @@ let load_META_files pj ocamllib top_dirname =
   in
   Array.iter (fun basename ->
     let filename = Filename.concat top_dirname basename in
-    if OcpString.starts_with ~prefix:basename "META." then
+    if OcpString.starts_with basename ~prefix:"META." then
       add_META pj ocamllib top_dirname filename
     else
       if Sys.is_directory filename then

@@ -82,8 +82,8 @@ let report packages =
         ) n2.node_requires_all;
       ) n.node_requires;
 
-      StringMap.iter (fun name2 n2 ->
-        StringMap.iter (fun name3 n3 ->
+      StringMap.iter (fun name2 _n2 ->
+        StringMap.iter (fun _name3 n3 ->
           if StringMap.mem name2 n3.node_requires_all then
             n.node_requires <- StringMap.remove name2 n.node_requires
         ) n.node_requires

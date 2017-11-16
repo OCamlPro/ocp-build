@@ -175,7 +175,7 @@ let report b =
             incr nvertices;
             Hashtbl.add vertices key v;
 
-            let (p,vertices_in_package) =
+            let (_p,vertices_in_package) =
               try
                 IntMap.find file.file_package.package_uid !packages
               with Not_found ->
@@ -195,10 +195,10 @@ let report b =
       if not (IntSet.mem rule.rule_id !rules_done) then begin
         rules_done := IntSet.add rule.rule_id !rules_done;
 
-        IntMap.iter (fun target_id target_file ->
+        IntMap.iter (fun _target_id target_file ->
 
           let target_vertex = get_vertex target_file in
-          IntMap.iter (fun source_id source_file ->
+          IntMap.iter (fun _source_id source_file ->
             let source_vertex = get_vertex source_file in
 
             if source_vertex != target_vertex then begin
@@ -270,7 +270,7 @@ let report b =
 
     BuildMisc.safe_mkdir report_dir;
 
-    IntMap.iter (fun package_uid (p, vertices_in_package) ->
+    IntMap.iter (fun _package_uid (p, vertices_in_package) ->
 
       let create name get_edges =
 
@@ -291,7 +291,7 @@ let report b =
         in
 
         List.iter (fun v ->
-          let node = get_node v in
+          let _node = get_node v in
           ()
         ) !vertices_in_package;
 

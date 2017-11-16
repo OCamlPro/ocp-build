@@ -98,7 +98,7 @@ let number_of_cores () =
   (* Compute number of cores, including hyper-threading, on a linux machine *)
   begin try
           FileString.iter_lines (fun line ->
-            if OcpString.starts_with line "processor" then incr ncores
+            if OcpString.starts_with line ~prefix:"processor" then incr ncores
           ) "/proc/cpuinfo"
     with _ -> ()
   end;
