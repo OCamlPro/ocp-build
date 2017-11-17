@@ -87,16 +87,24 @@ let add_prims b root project_files =
     [ "Create a new package: new_package(name, requires, description)" ]
     (fun loc state config args ->
       if CopSwitch.has_switch() then
-        match args with
-        | [ VString(name, _) ;
-            VList requires ;
-            VObject env ] ->
-           CopEval.add_project state loc name config requires env;
-           VBool true
+        try
+          match args with
+          | [ VString(name, _) ;
+              VList requires ;
+              VObject env ] ->
+             CopEval.add_project state loc name config requires env;
+             VBool true
+          | _ -> raise Not_found
+        with
+        | Var_not_found var ->
+          BuildOCP2Prims.raise_bad_arity
+            loc
+            (Printf.sprintf "new_package(): missing variable %S" var)
+            3 args
         | _ ->
-           BuildOCP2Prims.raise_bad_arity
-             loc
-             "new_package(name:string, requires:list, description)" 3 args
+          BuildOCP2Prims.raise_bad_arity
+            loc
+            "new_package(name:string, requires:list, description)" 3 args
       else
         BuildOCP2Prims.ocp2_raise
           loc

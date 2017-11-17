@@ -1,3 +1,4 @@
+conf_ocamlfind="@OCAMLFIND@"
 conf_ocamlyacc="@OCAMLYACC@"
 conf_ocamllex="@OCAMLLEX@"
 rootdir="@ROOTDIR@"

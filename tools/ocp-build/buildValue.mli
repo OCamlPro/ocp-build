@@ -166,3 +166,6 @@ val set_deep_field : TYPES.env -> string list -> TYPES.value -> TYPES.env
 val new_object : (string * value) list -> value
 val compare_values : value -> value -> int
 val empty_config_state : unit -> TYPES.config_state
+
+val fold :
+  (string -> TYPES.value -> 'a -> 'a) -> TYPES.env -> 'a -> 'a

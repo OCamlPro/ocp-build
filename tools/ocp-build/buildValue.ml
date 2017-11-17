@@ -403,6 +403,8 @@ let revassoc_of_env env =
     (n :: nn, v :: vv)
   ) env ([],[])
 
+let fold f env x = StringMap.fold f env.env x
+
 let rec compare_values e1 e2 =
   match e1, e2 with
 

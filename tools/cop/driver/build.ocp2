@@ -13,9 +13,12 @@
 OCaml.program("cop",
   ocaml + {
     files = [
+      "copTypes.ml";
+
       "copGlobals.ml";
       "copWorkspace.ml";
       "copEval.ml";
+      "copPackage.ml";
       "copSwitch.ml";
 
       "copArgs.ml";

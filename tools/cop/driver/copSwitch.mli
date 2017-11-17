@@ -21,7 +21,7 @@ val eval_switch :
   BuildEngineTypes.build_context ->
   switch ->
   int ->
-  CopEval.package_description list ->
+  CopTypes.package list ->
   unit
 
 val has_switch : unit -> bool

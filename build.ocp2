@@ -7,24 +7,10 @@
 #
  ****************************************************************************)
 
-Sys = module("ocp-build:Sys", "1.0");
+Sys = { file_exists = Sys_file_exists };
 
 include "autoconf/config.ocp2gen";
 ocaml.version = autoconf.package_version;
 
 filename_ocp2 = "ocp-autoconf.d/build.ocp2inc";
 if( Sys.file_exists(filename_ocp2) ){ include filename_ocp2; }
-
-
-(*
-print(Sys);
-print(getconf("Sys"));
-
-packages = OCaml.findlib();
-print(packages["compiler-libs.common"]);
-
-Features = module("ocp-build:Features", "1.0");
-
-x = Features.get("tezos", true); 
-print(x);
-*)

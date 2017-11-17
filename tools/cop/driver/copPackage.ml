@@ -10,42 +10,5 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type state
-
-exception BadRule of BuildValue.TYPES.value
-
-val add_prim :
-  string ->
-  string list ->
-  (BuildValue.TYPES.location ->
-   state ->
-   BuildValue.TYPES.config ->
-   BuildValue.TYPES.value list -> BuildValue.TYPES.value) ->
-  unit
-
-val eval_file :
-  state ->
-  BuildValue.TYPES.config ->
-  string ->
-  BuildValue.TYPES.config
-
-val init_state : unit -> state
-val init_workspace :
-  state ->
-  string list ->
-  state * BuildValue.TYPES.config
-
-val load_projects :
-  state ->
-  BuildValue.TYPES.config ->
-  string list ->
-  int * CopTypes.package list
-
-val add_project:
-  state ->
-  BuildValue.TYPES.location ->
-  string ->
-  BuildValue.TYPES.config ->
-  BuildValue.TYPES.value list ->
-  BuildValue.TYPES.env ->
-  unit
+let rules_of_package b pk =
+  assert false
