@@ -10,27 +10,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type state = {
-  unit : unit;
-}
+val workspace_arg : string ref
+val root_arg : string option ref
+val local_arg : bool ref
 
-module OCP_arg = struct
+val common_options : Ezcmd.Modules.Arg.arg_list
 
-  type context = state
-
-  let parse_error () = exit 2
-  let new_file ctx filename digest = ()
-
-  end
-
-module EvalOCP2 = BuildOCP2Interp.Eval(OCP_arg)
-
-let _ =
-  for i = 1 to Array.length Sys.argv - 1 do
-    let arg = Sys.argv.(i) in
-    let state = { unit = () } in
-    let config = BuildValue.empty_config () in
-    let ( _ : BuildValue.TYPES.config) =
-      EvalOCP2.read_ocamlconf arg state config in
-    ()
-  done
+(* Call [CopWorkspace.lookup_root] with the arguments provided by the user *)
+val lookup_root : unit ->
+                  string    (* root *)
+                  * string  (* workspace file *)

@@ -10,27 +10,41 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type state = {
-  unit : unit;
-}
+type state
+type package_description
 
-module OCP_arg = struct
+val add_prim :
+  string ->
+  string list ->
+  (BuildValue.TYPES.location ->
+   state ->
+   BuildValue.TYPES.config ->
+   BuildValue.TYPES.value list -> BuildValue.TYPES.value) ->
+  unit
 
-  type context = state
+val eval_file :
+  state ->
+  BuildValue.TYPES.config ->
+  string ->
+  BuildValue.TYPES.config
 
-  let parse_error () = exit 2
-  let new_file ctx filename digest = ()
+val init_state : unit -> state
+val init_workspace :
+  state ->
+  string list ->
+  state * BuildValue.TYPES.config
 
-  end
+val load_projects :
+  state ->
+  BuildValue.TYPES.config ->
+  string list ->
+  int * package_description list
 
-module EvalOCP2 = BuildOCP2Interp.Eval(OCP_arg)
-
-let _ =
-  for i = 1 to Array.length Sys.argv - 1 do
-    let arg = Sys.argv.(i) in
-    let state = { unit = () } in
-    let config = BuildValue.empty_config () in
-    let ( _ : BuildValue.TYPES.config) =
-      EvalOCP2.read_ocamlconf arg state config in
-    ()
-  done
+val add_project:
+  state ->
+  BuildValue.TYPES.location ->
+  string ->
+  BuildValue.TYPES.config ->
+  BuildValue.TYPES.value list ->
+  BuildValue.TYPES.env ->
+  unit

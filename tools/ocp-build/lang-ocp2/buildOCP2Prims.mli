@@ -33,16 +33,6 @@ module Init(S: sig
 
     type context
 
-    val define_package :
-      location ->
-      context ->
-      config ->
-      name:string ->
-      kind:string ->
-      unit
-
-    val filesubst : (string * env list) BuildSubst.t
-
   end) : sig
   val primitives :
     (

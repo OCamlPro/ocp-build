@@ -231,6 +231,20 @@ module OCP_arg = struct
 module EvalOCP1 = BuildOCPInterp.Eval(OCP_arg)
 module EvalOCP2 = BuildOCP2Interp.Eval(OCP_arg)
 
+let () =
+  EvalOCP2.add_primitive "new_package" [
+    "Create a new package: new_package(name, kind, ocaml)"
+  ]
+    (fun loc ctx config args ->
+      match args with
+      | [VString (name,_); VString (kind,_); VObject config_env] ->
+        OCP_arg.define_package loc ctx { config  with config_env } ~name ~kind;
+        VList []
+      | _ ->
+         BuildOCP2Prims.raise_bad_arity
+           loc "new_package(string,string,object)" 3 args
+    )
+
 let add_primitive = EvalOCP2.add_primitive
 let primitives_help = EvalOCP1.primitives_help
 

@@ -10,27 +10,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type state = {
-  unit : unit;
-}
+type switch
 
-module OCP_arg = struct
+val init :
+  string ->
+  BuildValue.TYPES.config ->
+  switch * BuildValue.TYPES.config
 
-  type context = state
+val eval_switch :
+  BuildEngineTypes.build_context ->
+  switch ->
+  int ->
+  CopEval.package_description list ->
+  unit
 
-  let parse_error () = exit 2
-  let new_file ctx filename digest = ()
-
-  end
-
-module EvalOCP2 = BuildOCP2Interp.Eval(OCP_arg)
-
-let _ =
-  for i = 1 to Array.length Sys.argv - 1 do
-    let arg = Sys.argv.(i) in
-    let state = { unit = () } in
-    let config = BuildValue.empty_config () in
-    let ( _ : BuildValue.TYPES.config) =
-      EvalOCP2.read_ocamlconf arg state config in
-    ()
-  done
+val has_switch : unit -> bool

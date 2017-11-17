@@ -19,14 +19,6 @@ module Eval(S: sig
 
   type context
 
-  val filesubst : (string * env list) BuildSubst.t
-  val define_package :
-    location ->
-    context -> config ->
-    name:string ->
-    kind:string ->
-    unit
-
     (*    if not !continue_on_ocp_error then exit 2; *)
   val parse_error : unit -> unit
   val new_file : context -> string -> string -> unit

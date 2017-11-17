@@ -94,16 +94,6 @@ module Init(S: sig
 
     type context
 
-    val define_package :
-      location ->
-      context ->
-      config ->
-      name:string ->
-      kind:string ->
-      unit
-
-    val filesubst : (string * env list) BuildSubst.t
-
   end) = struct
 
   let primitives = ref StringMap.empty
@@ -364,18 +354,6 @@ let _ =
       VList []
     | _ -> raise_bad_arity loc "provides(string, version, value)" 2 args
   );
-
-  add_primitive "new_package" [
-    "Create a new package: new_package(name, kind, ocaml)"
-  ]
-    (fun loc ctx config args ->
-      match args with
-      | [VString (name,_); VString (kind,_); VObject config_env] ->
-        S.define_package loc ctx { config  with config_env } ~name ~kind;
-        VList []
-      | _ ->
-        raise_bad_arity loc "new_package(string,string,object)" 3 args
-    );
 
 
   (* Specific to OCaml *)

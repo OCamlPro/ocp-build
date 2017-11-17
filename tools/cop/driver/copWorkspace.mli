@@ -10,27 +10,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type state = {
-  unit : unit;
-}
+exception NoWorkspace of string
 
-module OCP_arg = struct
+(* Find the root of the current workspace *)
+val lookup_root :
+  root:string option -> local:bool -> workspace:string ->
+  string (* root *)
 
-  type context = state
-
-  let parse_error () = exit 2
-  let new_file ctx filename digest = ()
-
-  end
-
-module EvalOCP2 = BuildOCP2Interp.Eval(OCP_arg)
-
-let _ =
-  for i = 1 to Array.length Sys.argv - 1 do
-    let arg = Sys.argv.(i) in
-    let state = { unit = () } in
-    let config = BuildValue.empty_config () in
-    let ( _ : BuildValue.TYPES.config) =
-      EvalOCP2.read_ocamlconf arg state config in
-    ()
-  done
+(* scan the workspace looking for `cop-project` and `FILE.cop` files *)
+val scan_workspace :
+  string ->       (* root *)
+    string list   (* project files *)
+  * string list   (* module files *)

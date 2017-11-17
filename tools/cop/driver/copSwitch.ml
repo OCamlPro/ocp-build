@@ -10,27 +10,23 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type state = {
-  unit : unit;
-}
+let has_switch = ref false
 
-module OCP_arg = struct
+type switch = {
+    switch_name : string;
+  }
 
-  type context = state
+let init switch_name config =
+  has_switch := true;
+  let s = {
+      switch_name
+    } in
+  s, config
 
-  let parse_error () = exit 2
-  let new_file ctx filename digest = ()
+let eval_switch b s nerrors projects =
+  Printf.eprintf
+    "Warning (switch %S): %d errors while evaluating project descriptions\n%!"
+    s.switch_name nerrors;
+  ()
 
-  end
-
-module EvalOCP2 = BuildOCP2Interp.Eval(OCP_arg)
-
-let _ =
-  for i = 1 to Array.length Sys.argv - 1 do
-    let arg = Sys.argv.(i) in
-    let state = { unit = () } in
-    let config = BuildValue.empty_config () in
-    let ( _ : BuildValue.TYPES.config) =
-      EvalOCP2.read_ocamlconf arg state config in
-    ()
-  done
+let has_switch () = !has_switch

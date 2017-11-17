@@ -10,27 +10,39 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type state = {
-  unit : unit;
-}
+open Ezcmd.Modules
 
-module OCP_arg = struct
+let version = "0.1"
 
-  type context = state
+let commands = [
+    CopDo.cmd;
+  ]
 
-  let parse_error () = exit 2
-  let new_file ctx filename digest = ()
+let () =
 
-  end
+  Printexc.record_backtrace true;
 
-module EvalOCP2 = BuildOCP2Interp.Eval(OCP_arg)
+  try
+    Ezcmd.main_with_subcommands
+      ~name:"cop"
+      ~doc:"Generic Build System"
+      ~man:[
+        `P "$(i,COMMAND) is a Composable build system"
+      ]
+      ~version
+      (List.map (fun cmd ->
+           { cmd with Arg.cmd_args = cmd.Arg.cmd_args @ CopArgs.common_options }
+         ) commands)
+  with
 
-let _ =
-  for i = 1 to Array.length Sys.argv - 1 do
-    let arg = Sys.argv.(i) in
-    let state = { unit = () } in
-    let config = BuildValue.empty_config () in
-    let ( _ : BuildValue.TYPES.config) =
-      EvalOCP2.read_ocamlconf arg state config in
-    ()
-  done
+  | CopWorkspace.NoWorkspace workspace ->
+     Printf.eprintf "Error: could not find workspace root (file '%s')\n"
+                    workspace;
+     Printf.eprintf "Aborting.\n%!";
+     exit 2
+
+  | exn ->
+     let backtrace = Printexc.get_backtrace () in
+     Printf.fprintf stderr "ocp-build: Fatal Exception %s\n%s\n%!"
+                    (Printexc.to_string exn) backtrace;
+     raise exn

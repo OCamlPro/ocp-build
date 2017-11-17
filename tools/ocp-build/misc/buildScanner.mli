@@ -32,17 +32,6 @@ val scan_directory_for_extensions :
   (string -> unit) StringMap.t ->
   unit
 
-(*
-val scan_directory_for_extensions2 :
- (* directory *) string ->
- (* extensions handlers *)
-  (string ->  (* relative filename *)
-   string ->  (* full filename *)
-   unit) StringMap.t ->
-  unit
-*)
-
-
 val scan_directory : (string (*dirname*) ->
                       string (*basename*) ->
                       string (*fullname*) -> unit)

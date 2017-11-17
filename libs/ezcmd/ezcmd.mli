@@ -42,16 +42,24 @@ module Modules : sig
     type env
 
     type spec =
-      | Bool of (bool -> unit)
+      (* Same as Arg. But they should only appear at most once on the
+       command-line, or Cmdliner will complain. *)
       | Unit of (unit -> unit)
+      | Bool of (bool -> unit)
       | Set of bool ref
       | Clear of bool ref
-      | Int of (int -> unit)
       | String of (string -> unit)
-      | Strings of (string list -> unit)
-      | File of (string -> unit)
-      | Files of (string list -> unit)
+      | Set_string of string ref
+      | Int of (int -> unit)
+      | Set_int of int ref
+      | Float of (float -> unit)
+      | Set_float of float ref
+      | Symbol of string list * (string -> unit)
 
+      | File of (string -> unit)
+
+      (* Anonymous arguments. `Anon(n,f)` means the anonymous argument
+      at position `n`. `Anons f` means all the anonymous arguments. *)
       | Anon of int * (string -> unit)
       | Anons of (string list -> unit)
 
@@ -139,13 +147,14 @@ val info :
          listed if it has both a [doc] and [docv] specified.}} *)
 
 val main_with_subcommands :
-  name:string ->
+  name:string ->          (* name of main command *)
   ?version:string ->
-  ?default:Arg.command ->
+  ?default:Arg.command -> (* if absent, prints help *)
   doc:string ->
   man:block list ->
   ?topics:(string * Cmdliner.Manpage.block list) list ->
-  Arg.command list -> unit
+  Arg.command list ->
+  unit
 
 val main :
   ?version:string ->
