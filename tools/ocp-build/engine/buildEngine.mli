@@ -12,11 +12,12 @@
 
 exception MissingSourceWithNoBuildingRule of BuildEngineTypes.build_rule * string
 
-(* [init targets] Initialize the build engine, by checking activating all the rules
- needed for the creation of the files [targets].
-   raise MissingSourceWithNoBuildingRule (rule, filename) if a file is needed as
-      a source and no rule is available for generating it.
-*)
+(* [init targets] Initialize the build engine, by checking activating
+ all the rules needed for the creation of the files [targets].  raise
+ MissingSourceWithNoBuildingRule (rule, filename) if a file is needed
+ as a source and no rule is available to generate it.
+ *)
+
 val init :
   BuildEngineTypes.build_context ->
   BuildEngineTypes.build_file list ->

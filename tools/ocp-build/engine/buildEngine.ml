@@ -984,6 +984,13 @@ let rule_executed b r s =
     raise e
 
 let parallel_loop b ncores =
+
+  (* first, create required directories *)
+  List.iter (fun f ->
+    (* TODO *) assert false
+    ) (List.rev b.build_create_dirs);
+  b.build_create_dirs <- [];
+
   let max_nslots = ref 0 in
   let slots = ref IntMap.empty in
 

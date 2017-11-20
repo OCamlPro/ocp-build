@@ -97,7 +97,8 @@ and command_argument =
   | BF of build_file (* build_file type *)
   | BD of build_directory (* build_file type *)
 
-(* TODO: we should support the fact that directories could also be created by build rules ! *)
+(* TODO: we should support the fact that directories could also be
+created by build rules ! *)
 and  build_file = {
   file_id : int;
   mutable file_kind : file_kind; (* mutable because we sometimes discover that
@@ -112,8 +113,12 @@ and  build_file = {
   file_package : build_package;
 }
 
+and build_dir_key =
+  | Inode of (int * int64)
+  | Dirname of string
+
 and  build_directory = {
-  dir_key : int * int64; (* (st_dev, st_ino) *)
+  dir_key : build_dir_key; (* (st_dev, st_ino) *)
   dir_id : int;
   dir_basename : string;
   mutable dir_file : FileGen.t;
@@ -184,13 +189,14 @@ and build_context = {
   mutable queue_not_waiting : build_rule IntMap.t;
   mutable temp_files : ( build_rule * build_rule list ref ) IntMap.t;
   mutable unmanaged_dependencies : string list;
-  (* TODO: What's the difference between those ? *)
+
   mutable fatal_errors : fatal_error list;
-  mutable errors : error list;
+  mutable errors : error list; (* actually, warnings *)
 
   mutable stats_command_executed : int;
   mutable stats_files_generated : int;
   mutable stats_total_time : float;
+  mutable build_create_dirs : build_file list;
 }
 
 type build_process = {

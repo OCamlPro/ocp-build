@@ -10,16 +10,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type switch
-
 val init :
   string ->
   BuildValue.TYPES.config ->
-  switch * BuildValue.TYPES.config
+  CopTypes.switch * BuildValue.TYPES.config
 
 val eval_switch :
   BuildEngineTypes.build_context ->
-  switch ->
+  CopTypes.switch ->
   int ->
   CopTypes.package list ->
   unit

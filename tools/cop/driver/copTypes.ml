@@ -10,6 +10,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
+type switch = {
+    switch_name : string;
+  }
+
 type package = {
     pk_name : string;
     pk_dirname : string;
@@ -17,6 +21,7 @@ type package = {
     pk_requires : require list;
     pk_rules : rule list;
     pk_env : BuildValue.TYPES.env;
+    pk_node : OcpToposort.node;
   }
 
  and require = {

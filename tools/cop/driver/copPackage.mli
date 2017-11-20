@@ -10,4 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val rules_of_package : unit -> CopTypes.package -> unit
+val rules_of_package :
+  BuildEngineTypes.build_context ->
+  CopTypes.switch ->
+  CopTypes.package ->
+  unit

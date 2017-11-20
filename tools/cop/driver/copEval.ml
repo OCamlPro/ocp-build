@@ -269,6 +269,7 @@ let add_project state pk_loc pk_name pk_config pk_requires pk_env =
   in
   let pk_rules = BuildValue.get_with_default [pk_env] "rules" (VList[]) in
   let pk_rules = parse_list parse_rule pk_rules in
+  let pk_node = OcpToposort.new_node () in
   let p = {
       pk_name;
       pk_dirname;
@@ -276,5 +277,6 @@ let add_project state pk_loc pk_name pk_config pk_requires pk_env =
       pk_requires;
       pk_env;
       pk_rules;
+      pk_node;
     } in
   state.package_descriptions <- p :: state.package_descriptions

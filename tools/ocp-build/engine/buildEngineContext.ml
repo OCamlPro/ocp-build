@@ -148,7 +148,7 @@ let rec add_directory b filename =
       if verbose 5 then
         Printf.fprintf stderr "\tdirname = %s\n" filename;
       match st.MinUnix.st_kind with
-        MinUnix.S_LNK ->
+      | MinUnix.S_LNK ->
           let link = OnlyUnix.readlink filename in
           let filename =
             if Filename.is_relative link then
@@ -162,7 +162,7 @@ let rec add_directory b filename =
           Printf.fprintf stderr "\tfilename = %s\n" filename;
         if dirname = filename then
           let rec dir = {
-            dir_key = key;
+            dir_key = Inode key;
             dir_id = new_dir_id b;
             dir_basename = basename;
             dir_parent = dir;
@@ -221,7 +221,7 @@ let rec add_directory b filename =
                   dir_basename = basename;
                   dir_parent = parent_dir;
                   dir_file = FileGen.add_basename parent_dir.dir_file basename;
-                  dir_key = key;
+                  dir_key = Inode key;
                   dir_id = new_dir_id b;
                   dir_files = StringMap.empty;
                   dir_dirs = StringMap.empty;
@@ -399,6 +399,7 @@ let create current_dir_filename build_dir_filename =
       stats_command_executed = 0;
       stats_files_generated = 0;
       stats_total_time = 0.;
+      build_create_dirs = [];
     }
 
   in
