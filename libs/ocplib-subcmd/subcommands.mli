@@ -10,6 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(*
 module TYPES : sig
 
   type subcmd_spec = {
@@ -40,3 +41,4 @@ val parse :
   (string * subcmd_init * subcmd_spec * subcmd_action) list ->
   Arg.usage_msg ->
   unit
+ *)
