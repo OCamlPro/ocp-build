@@ -35,7 +35,6 @@ type file_kind =
 
 
 module DigestMap : Map.S with type key = Digest.t
-type loc = string * int * string
 
 type only_if_changed = bool
 
@@ -47,7 +46,7 @@ type build_rule = {
   mutable rule_temp_dir : FileGen.t option;
   mutable rule_forced : bool;
   mutable rule_commands :  build_action list;
-  rule_loc : loc; (* project_info *)
+  rule_loc : build_loc; (* project_info *)
   mutable rule_sources :  build_file IntMap.t;
 
   (* rule_time_dependencies: dependencies that are not required, but if the rules that generate them
@@ -60,6 +59,12 @@ type build_rule = {
 
   rule_context : build_context;
 }
+
+and build_loc = {
+    loc_file : string;
+    loc_line : int;
+    loc_package : build_package;
+  }
 
 and dependency_loader =  string -> (string * string list list) list
 
@@ -125,6 +130,21 @@ and build_package = {
   mutable package_files : build_file IntMap.t;
 }
 
+and fatal_error =
+  | CopyError of string * string * exn
+  | ActionError of string * exn
+  | ExecutionError of build_rule * build_command * exn
+
+and error =
+  | TargetNotGenerated of build_rule * build_file
+  | CommandError of build_rule
+                    * int (* step *)
+                    * string list (* command *)
+                    * string (* stdout *)
+                    * string (* stderr *)
+  | ExternalDeps of build_file
+  | IncorrectDependFile of build_file * exn
+
 and build_context = {
   mutable build_should_restart : bool;
 
@@ -165,8 +185,8 @@ and build_context = {
   mutable temp_files : ( build_rule * build_rule list ref ) IntMap.t;
   mutable unmanaged_dependencies : string list;
   (* TODO: What's the difference between those ? *)
-  mutable fatal_errors : string list list;
-  mutable errors : string list list;
+  mutable fatal_errors : fatal_error list;
+  mutable errors : error list;
 
   mutable stats_command_executed : int;
   mutable stats_files_generated : int;

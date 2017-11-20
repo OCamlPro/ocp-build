@@ -34,21 +34,26 @@ let set_field env var_name preds field value =
 
 let add_META pj ocamllib meta_dirname meta_filename =
   (*
-    Printf.eprintf "dirname=%S\n%!" dirname;
-    Printf.eprintf "filename=%S\n%!" filename;
-  *)
+  Printf.eprintf "dirname=%S\n%!" meta_dirname;
+  Printf.eprintf "filename=%S\n%!" meta_filename;
+   *)
   try
-    let p = MetaParser.parse_file meta_filename in
+    let p = MetaFile.meta_of_file meta_filename in
     if verbose 4 then
       Printf.eprintf "Loaded %S\n%!" meta_filename;
 
     let rec add_meta meta_dirname pj path name p =
       if verbose 4 then
         Printf.eprintf "add_meta %S %S\n%!" path name;
-      let meta = MetaFile.meta_of_package p in
+(*      let meta = MetaFile.meta_of_raw p in *)
 
-      let dirname = match meta.meta_directory with
-        | Some dirname when dirname <> "" ->
+      let dirname =
+        let dir = MetaFile.directory p in
+        match dir with
+        | []
+        | "" :: _
+          -> meta_dirname
+        | dirname :: _ ->
           if dirname.[0] = '^' || dirname.[0] = '+' then
             Filename.concat ocamllib
               (String.sub dirname 1 (String.length dirname-1))
@@ -57,15 +62,11 @@ let add_META pj ocamllib meta_dirname meta_filename =
               Filename.concat meta_dirname dirname
             else
               dirname
-        | _ -> meta_dirname
       in
 
       if verbose 4 then
         Printf.eprintf "dirname=%S\n%!" dirname;
       let exists =
-        match meta.meta_exists_if with
-          [] -> true
-        | list ->
           List.for_all (fun filename ->
             let proof_filename = Filename.concat dirname filename in
             if not (Sys.file_exists proof_filename) then begin
@@ -74,7 +75,8 @@ let add_META pj ocamllib meta_dirname meta_filename =
                   "Warning: proof of package %S does not exist\n%!"
                   proof_filename;
               false
-            end else true) list
+              end else true)
+                       (MetaFile.exists_if p)
       in
       if exists then
           (*
@@ -90,6 +92,7 @@ let add_META pj ocamllib meta_dirname meta_filename =
         let has_byte = ref [] in
         let _has_syntax = ref None in
 
+        (*
         StringMap.iter (fun _ var ->
           match var.metavar_preds, var.metavar_value with
             (* TODO: handle multiple files (objects) *)
@@ -109,6 +112,10 @@ let add_META pj ocamllib meta_dirname meta_filename =
 
           | _ -> ()
         ) meta.meta_archive;
+         *)
+
+        let has_byte = MetaFile.archive p MetaFile.preds_byte in
+        let has_asm = MetaFile.archive p MetaFile.preds_asm in
 
         (*
         let archive = match !has_asm, !has_byte with
@@ -125,6 +132,7 @@ let add_META pj ocamllib meta_dirname meta_filename =
         in
         *)
 
+        (*
         let requires = ref [] in
         StringMap.iter (fun _ var ->
           match var.metavar_preds with
@@ -143,6 +151,9 @@ let add_META pj ocamllib meta_dirname meta_filename =
             *)
           | _ -> ()
         ) meta.meta_requires;
+         *)
+
+        let requires = MetaFile.requires p MetaFile.preds_none in
 
           (* for objects, we should set   pk.package_sources <- source_files; *)
 
@@ -224,10 +235,10 @@ let add_META pj ocamllib meta_dirname meta_filename =
             (* this package has already been generated *)
 
           begin
-            match meta.meta_version with
-              None -> ()
-            | Some version ->
-              opk.opk_version <- version
+            match MetaFile.version p with
+            | version :: _ ->
+               opk.opk_version <- version
+            | _ -> ()
           end;
 
 
@@ -263,8 +274,8 @@ let add_META pj ocamllib meta_dirname meta_filename =
 (*        begin match !has_syntax with
           | None -> *)
           create_package (Some p) fullname BuildOCPTypes.LibraryPackage
-            (List.map (fun l -> (l,true)) !requires)
-            !has_byte !has_asm;
+            (List.map (fun l -> (l,true)) requires)
+            has_byte has_asm;
         (*
         | Some syntax_archive ->
           match archive with

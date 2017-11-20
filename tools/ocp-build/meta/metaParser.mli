@@ -10,30 +10,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StdlibArg
+val create : MetaTypes.t option -> MetaTypes.t
+val get_variable :
+    MetaTypes.t -> string -> MetaTypes.variable
 
-val subcommand : BuildArgs.subcommand
-
-val action : unit -> unit
-val arg_list : (string * Arg.spec * string) list
-
-                                            (*
-
-val load_initial_project :
-  BuildWarnings.set ->
-  BuildActions.project_info ->
-  BuildOCP.state ->
-  BuildValue.TYPES.config_state ->
-
-  BuildTypes.builder_context *
-    (module BuildTypes.Package) OcpCompat.StringMap.t *
-    BuildOCPTypes.project
-
-val init_env :
-  unit ->
-    BuildWarnings.set *
-    BuildActions.project_info * BuildOCP.state *
-    BuildOCPTypes.project * BuildValue.TYPES.config_state
-
-val chdir_to_project : BuildActions.project_info -> unit
-                                             *)
+val parse_file : string -> MetaTypes.t
+val name_of_META : string (* full filename *) -> string

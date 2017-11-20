@@ -19,10 +19,12 @@ exception MissingSourceWithNoBuildingRule of BuildEngineTypes.build_rule * strin
 *)
 val init :
   BuildEngineTypes.build_context ->
-  BuildEngineTypes.build_file list -> unit
+  BuildEngineTypes.build_file list ->
+  unit
 
-val fatal_errors : BuildEngineTypes.build_context -> string list list
-(* val errors : unit -> string list list *)
+(* [fatal_errors ctx] returns the list of errors *)
+val fatal_errors : BuildEngineTypes.build_context ->
+                   BuildEngineTypes.fatal_error list
 
 (* [parallel_loop ncores] Start the build process on [ncores] cores. *)
 val parallel_loop :

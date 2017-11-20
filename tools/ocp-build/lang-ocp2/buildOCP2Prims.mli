@@ -59,3 +59,7 @@ module Init(S: sig
   val primitives_help : unit -> string list OcpCompat.StringMap.t
 
   end
+
+val with_feature : string -> unit
+val without_feature : string -> unit
+val queried_features : unit -> bool StringMap.t

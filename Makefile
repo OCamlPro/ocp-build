@@ -28,6 +28,7 @@ INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
     -I $(OCP_BUILD_SRCDIR)/lang-ocp2 \
     -I $(OCP_BUILD_SRCDIR)/engine \
     -I $(OCP_BUILD_SRCDIR)/actions \
+    -I $(OCP_BUILD_SRCDIR)/meta \
     -I $(OCP_BUILD_SRCDIR)/ocaml
 
 OCPLIB_LIBS=$(foreach lib, $(OCPLIB_NAMES), ocplib-$(lib))
@@ -110,11 +111,11 @@ BUILD_LIB= $(OCP_BUILD_SRCDIR)/buildVersion.ml	\
     $(OCP_BUILD_SRCDIR)/buildConfig.ml		\
     $(OCP_BUILD_SRCDIR)/buildUninstall.ml		
 
-BUILD_OCAMLFIND= $(OCP_BUILD_SRCDIR)/ocaml/metaTypes.ml			\
-    $(OCP_BUILD_SRCDIR)/ocaml/metaLexer.ml					\
-    $(OCP_BUILD_SRCDIR)/ocaml/metaFile.ml					\
-    $(OCP_BUILD_SRCDIR)/ocaml/metaParser.ml					\
-    $(OCP_BUILD_SRCDIR)/ocaml/metaConfig.ml
+BUILD_OCAMLFIND= $(OCP_BUILD_SRCDIR)/meta/metaTypes.ml	\
+    $(OCP_BUILD_SRCDIR)/meta/metaLexer.ml		\
+    $(OCP_BUILD_SRCDIR)/meta/metaParser.ml		\
+    $(OCP_BUILD_SRCDIR)/meta/metaFile.ml		\
+    $(OCP_BUILD_SRCDIR)/meta/metaConfig.ml
 
 BUILD_OCAML= $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlConfig.ml	\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlTypes.ml		\
@@ -136,10 +137,11 @@ BUILD_OCAML= $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlConfig.ml	\
 BUILD_MAIN= $(OCP_BUILD_SRCDIR)/actions/buildArgs.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActions.ml		\
     $(OCP_BUILD_SRCDIR)/actions/buildActionsWarnings.ml	\
-    $(OCP_BUILD_SRCDIR)/actions/buildActionInit.ml	\
-    $(OCP_BUILD_SRCDIR)/actions/buildActionPrefs.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionConfigure.ml	\
-    $(OCP_BUILD_SRCDIR)/actions/buildActionBuild.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionInit.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionCheck.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionPrefs.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionMake.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionInstall.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionClean.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionTests.ml	\
@@ -155,7 +157,7 @@ OCP_BUILD_MLS= $(STRING_COMPAT) $(OCPLIB_STDLIB) $(OCPLIB_DEBUG)	\
   $(BUILD_MAIN)
 
 OCP_BUILD_MLLS= \
-   $(lang_SRCDIR)/ocamllexer.mll $(OCP_BUILD_SRCDIR)/ocaml/metaLexer.mll 
+   $(lang_SRCDIR)/ocamllexer.mll $(OCP_BUILD_SRCDIR)/meta/metaLexer.mll 
 
 OCP_BUILD_MLYS= $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.mly
 

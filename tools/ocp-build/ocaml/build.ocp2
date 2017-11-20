@@ -10,25 +10,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-begin
-  ocaml.files = [ "metaTypes.ml";
-                  "metaLexer.mll", { pp =[] };
-                  "metaParser.ml"; (* load to raw version of META file *)
-                  "metaConfig.ml"; (* detect ocamlfind search path *)
-                  "metaFile.ml";   (* for interpreted version of META file *)
-          ];
-  ocaml.requires = [ "ocp-build-misc" ];
-  OCaml.library( "ocplib-ocamlfind", ocaml);
-end
-
-
-begin
-   ocaml.files = [ "metaMain.ml" ];
-   ocaml.requires = [ "ocplib-ocamlfind"];
-   OCaml.program ("test-meta", ocaml);
-end
-
-
 (*
 This plugin defines the rules to build OCaml packages.
 BuildOCamlRules.create is directly called from BuildMain, so it

@@ -261,6 +261,15 @@ let pk_opk pk =
   | OCamlPackage opk -> opk
   | _ -> assert false
 
+let predefined_packages = ref (VObject BuildValue.empty_env)
+
+let () =
+  add_primitive "findlib"
+    [ "Returns the map of pre-existing packages" ]
+    (fun loc state config args ->
+      !predefined_packages
+        )
+
 let init_env env_pj =
 
   BuildOCamlVariables.packages_option.set
@@ -275,7 +284,26 @@ let init_env env_pj =
         VString (opk.opk_version, StringVersion);
         VString (dirname, StringRaw);
         VObject (List.hd opk.opk_options)]
-     ) env_pj.project_sorted)));
+                             ) env_pj.project_sorted)));
+
+  let env = ref BuildValue.empty_env in
+  Array.iter (fun pk ->
+      let opk = pk_opk pk in
+      let dirname = BuildGlobals.absolute_filename pk.package_dirname in
+      let v =
+        List.fold_left (fun env (name, value) ->
+            BuildValue.set env name value)
+                       (List.hd opk.opk_options)
+                       [
+                         "name", VString (pk.package_name, StringRaw);
+                         "version", VString (opk.opk_version, StringVersion);
+                         "dirname", VString (dirname, StringRaw);
+                       ]
+      in
+      env := BuildValue.set !env pk.package_name (VObject v)
+    ) env_pj.project_sorted;
+  predefined_packages := VObject !env;
+
   ()
 
 

@@ -14,6 +14,33 @@ open OcpCompat
 open BuildValue.TYPES
 open BuildOCP2Tree
 
+let features = ref BuildValue.empty_env
+let queried_features = ref StringMap.empty
+
+let with_feature_value name value =
+  let env =
+    try
+      let f = BuildValue.get [!features] name in
+      match f with
+      | VObject env -> env
+      | _ -> assert false
+    with Var_not_found _ -> BuildValue.empty_env
+  in
+  let env = BuildValue.set env "enabled" (VBool true) in
+  let env = BuildValue.set env "value" (VString (value,StringRaw)) in
+  let env = BuildValue.set_bool env "user" false in
+  features := BuildValue.set !features name (VObject env)
+
+let with_feature name =
+  let name, value = OcpString.cut_at name '=' in
+  with_feature_value name value
+
+let without_feature name =
+  let env = BuildValue.empty_env in
+  let env = BuildValue.set env "enabled" (VBool false) in
+  let env = BuildValue.set_bool env "user" false in
+  features := BuildValue.set !features name (VObject env)
+
 let vstring s = VString (s, StringRaw)
 
 let fatal_error loc =
@@ -32,13 +59,18 @@ let warning loc =
       Printf.eprintf "Warning: %s\n%!" s
     )
 
+let ocp2_raise loc name v =
+  raise (OCPExn (loc, name, v))
+
+let ocp2_raise_format loc name fmt =
+  Printf.kprintf (fun s -> ocp2_raise loc name (vstring s)) fmt
 
 let raise_type_error loc prim_name arg_num type_expected value_received =
-  raise (OCPExn (loc, "type-error",
-                 VTuple [vstring prim_name;
+  ocp2_raise loc "type-error"
+                 (VTuple [vstring prim_name;
                          VInt arg_num;
                          vstring type_expected;
-                         value_received]))
+                         value_received])
 
 let raise_bad_arity loc prim_name nargs_expected args =
   raise_type_error loc prim_name nargs_expected "arity-expected" (VTuple args)
@@ -57,9 +89,6 @@ let prim_raise loc ctx config args =
     raise (OCPExn (loc, name, v))
   | _ ->
     raise_bad_arity loc "raise(string,any)" 2 args
-
-let ocp2_raise loc name v =
-  raise (OCPExn (loc, name, v))
 
 module Init(S: sig
 
@@ -293,8 +322,9 @@ let _ =
         | None -> ()
         | Some required_version ->
           if Versioning.compare required_version version > 0 then
-            fatal_error loc
-              "module %S required to have version %s, but version %s found"
+            ocp2_raise_format loc
+              "bad-version"
+              "module %S requires version %s, but version %s found"
               modname
               (Versioning.string_of_version required_version)
               (Versioning.string_of_version version)
@@ -302,7 +332,8 @@ let _ =
       match !module_desc with
       | Computed v -> v
       | Computing ->
-        fatal_error loc "module recursion in module %S" modname
+          ocp2_raise_format loc "infinite-dependency"
+            "in module %S" modname
       | Declared v ->
         let v =
           match v with
@@ -312,7 +343,7 @@ let _ =
         module_desc := Computed v;
         v
     with Not_found ->
-      fatal_error loc "could not find module %S" modname
+      ocp2_raise_format loc "not-found" "could not find module %S" modname
   );
 
   add_primitive "provides" [] (fun loc ctx config args ->
@@ -714,6 +745,64 @@ let _ =
         raise_bad_arity loc "String_subst(s,assoc)" 2 args
     );
 
+  add_primitive "Features_get"
+                [ "Query the map of user-selected features" ]
+                (fun loc ctx config args ->
+                  match args with
+                    [ VString (name, _); VBool default ] ->
+                    queried_features := StringMap.add name default !queried_features;
+                    begin
+                      try
+                        BuildValue.get [!features] name
+                      with Var_not_found _ ->
+                        let env = BuildValue.empty_env in
+                        let env = BuildValue.set_bool env "enabled" default in
+                        let env = BuildValue.set_bool env "user" false in
+                        VObject env
+                    end
+                  | _ -> raise_bad_arity loc "Features.get(string,bool)" 2 args
+                );
+
+  add_primitive "Features_enable"
+                [ "Enable/disable a feature" ]
+                (fun loc ctx config args ->
+                  match args with
+                  | [ VString (name, _); VBool enable ] ->
+                    if enable then
+                      with_feature name
+                    else
+                      with_feature name;
+                    BuildValue.unit
+                  | [ VString (name, _) ] ->
+                     with_feature name;
+                     BuildValue.unit
+                  | _ ->
+                     raise_bad_arity loc "Features.enable(string,bool)" 2 args
+                );
+
+  add_primitive "Features_with"
+                [ "Set a feature" ]
+                (fun loc ctx config args ->
+                  match args with
+                  | [ VString (name, _); (VString (value,_)) ] ->
+                     with_feature_value name value;
+                     BuildValue.unit
+                  | [ VString (name, _) ] ->
+                     with_feature name;
+                     BuildValue.unit
+                  | _ -> raise_bad_arity loc "Features.with(string,string)" 2 args
+                );
+
+  add_primitive "Features_without"
+                [ "Unset a feature" ]
+                (fun loc ctx config args ->
+                  match args with
+                  | [ VString (name, _) ] ->
+                     without_feature name;
+                     BuildValue.unit
+                  | _ -> raise_bad_arity loc "Features.without(string)" 1 args
+                );
+
   ()
 
 let primitives_help () =
@@ -722,3 +811,5 @@ let primitives_help () =
 
 
 end
+
+let queried_features () = !queried_features

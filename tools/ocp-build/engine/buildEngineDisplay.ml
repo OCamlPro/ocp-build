@@ -86,9 +86,10 @@ let begin_command b proc =
     (BuildEngineRules.command_of_command r cmd) @
       List.map (BuildEngineRules.argument_of_argument r) cmd.cmd_args
   in
-  if verbose 1 && term.esc_ansi then print_stat_line b proc else
-    if verbose 2 then begin
-      Printf.eprintf "[%d.%d] BEGIN '%s' %s\n%!" r.rule_id proc.proc_step
+  if verbose 1 && term.esc_ansi then
+    print_stat_line b proc;
+  if verbose 2 then begin
+      Printf.eprintf "[%d.%d] BEGIN COMMAND:\n'%s' %s\n%!" r.rule_id proc.proc_step
         (term_escape (String.concat "' '" cmd_args))
         (match cmd.cmd_stdout_pipe with
           None -> ""
@@ -147,7 +148,7 @@ let end_command b proc time status =
     let has_stderr = (MinUnix.stat (temp_stderr b r)).MinUnix.st_size > 0 in
     begin
       if verbose 2 then begin
-        Printf.eprintf "[%d.%d]   END(%d) '%s'\n%!" r.rule_id proc.proc_step
+        Printf.eprintf "[%d.%d] END COMMAND:\n(%d) '%s'\n%!" r.rule_id proc.proc_step
           status
           (term_escape (String.concat "' '" cmd_args));
       end
@@ -208,13 +209,11 @@ let end_command b proc time status =
     if term.esc_ansi then print_stat_line b proc;
     if status <> 0 then
       b.errors <-
-        [
-          Printf.sprintf "[%d.%d] '%s'" r.rule_id proc.proc_step
-            (term_escape (String.concat "' '" cmd_args));
-          FileString.string_of_file (temp_stdout b r);
-          FileString.string_of_file (temp_stderr b r);
-        ] :: b.errors
-
+        (CommandError (r, proc.proc_step,
+                       cmd_args,
+                       FileString.string_of_file (temp_stdout b r),
+                       FileString.string_of_file (temp_stderr b r)
+                      )) :: b.errors
 
 let add_error b s =  b.errors <- s :: b.errors
 let has_error b = b.errors <> []
@@ -340,3 +339,115 @@ and eprint_command indent cmd =
     Printf.eprintf "%sNeedTempDir\n" indent
   | Function (name, _, _) ->
     Printf.eprintf "%sFunction %s\n" indent name
+
+let strings_of_error = function
+  | CommandError (r, step, cmd_args, stdout, stderr) ->
+     [
+       Printf.sprintf "[%d.%d] '%s'" r.rule_id step
+                      (term_escape (String.concat "' '" cmd_args));
+       stdout;
+       stderr;
+     ]
+  | TargetNotGenerated (r, f) ->
+     [
+       Printf.sprintf "rule %d: target %s not built"
+                      r.rule_id
+                      (file_filename f);]
+  | ExternalDeps file ->
+     [Printf.sprintf
+        "Dependency file %s contains unmanaged dependencies. You might want to remove it and rebuild."
+        (file_filename file)]
+  | IncorrectDependFile (file, exn) ->
+     [
+       Printf.sprintf
+         "Incorrect dependency file %s (Exception %s). You should clean and rebuild."
+         (file_filename file) (Printexc.to_string exn)]
+
+let strings_of_fatal_error = function
+  | CopyError (src, dst, exn) ->
+     [
+      Printf.sprintf "Error while copying %s to %s:" src dst;
+      Printf.sprintf "exception %s" (Printexc.to_string exn);
+     ]
+  | ActionError (name, e) ->
+     [
+       Printf.sprintf "Error while doing action %s:" name;
+       Printf.sprintf "\tException %s" (Printexc.to_string e);
+     ]
+  | ExecutionError (r, cmd, e) ->
+     [
+       Printf.sprintf "Error while executing: '%s' '%s'\n"
+                      (String.concat "' '" (BuildEngineRules.command_of_command r cmd))
+                      (String.concat "' '" (List.map BuildEngineRules.string_of_argument cmd.cmd_args));
+       Printf.sprintf "\tException %s" (Printexc.to_string e);
+     ]
+
+
+let print_indented_command cmd =
+  match cmd with
+  | Execute cmd ->
+    begin match cmd.cmd_move_to_dir with
+      None -> ()
+    | Some chdir ->
+      Printf.eprintf "\tcd %S\n" chdir;
+    end;
+    Printf.eprintf "\t%s %s"  (String.concat " " cmd.cmd_command) (String.concat " " (List.map string_of_argument cmd.cmd_args));
+    begin
+      match cmd.cmd_stdout_pipe with
+        None -> Printf.eprintf "\n"
+      | Some filename ->
+        Printf.eprintf " > %s\n" filename
+    end
+  | LoadDeps (_, file, r) -> Printf.eprintf "\tLoad dependencies from %s for %d\n"
+    (file_filename file) r.rule_id
+  | Copy (f1, f2) ->
+    Printf.eprintf "\tCopy %s to %s\n" (string_of_argument f1) (string_of_argument f2)
+  | Move (_, f1, f2) ->
+    Printf.eprintf "\tRename %s to %s\n" (string_of_argument f1) (string_of_argument f2)
+  | MoveIfExists (f1, f2, _link) ->
+    if verbose 4 then
+      Printf.eprintf "\tRename? %s to %s\n" (string_of_argument f1) (string_of_argument f2)
+  | DynamicAction (s,_) ->
+    Printf.eprintf "\tDynamicAction %s\n" s
+  | NeedTempDir ->
+    Printf.eprintf "\tNeedTempDir\n"
+  | Function (name, _, _) ->
+    Printf.eprintf "\tFunction %s\n" name
+
+let string_of_rule_state r =
+  match r.rule_state with
+    RULE_INACTIVE -> "inactive"
+  | RULE_ACTIVE -> "active"
+  | RULE_WAITING -> "waiting"
+  | RULE_EXECUTING -> "executing"
+  | RULE_EXECUTED -> "executed"
+
+let print_rule r =
+  Printf.eprintf "RULE %d (state %s)" r.rule_id
+    (match r.rule_state with
+      RULE_INACTIVE -> "inactive"
+    | RULE_ACTIVE -> "active"
+    | RULE_WAITING -> "waiting"
+    | RULE_EXECUTING -> "executing"
+    | RULE_EXECUTED -> "executed");
+
+  if r.rule_missing_sources <> 0 then Printf.eprintf "(%d missing)" r.rule_missing_sources;
+  Printf.eprintf "\n";
+  IntMap.iter (fun _ file ->
+    Printf.eprintf "\t\tSOURCE %s%s\n" (file_filename file)
+      (if file.file_exists then "(exists)" else "(not available)")
+  ) r.rule_sources;
+  List.iter print_indented_command r.rule_commands;
+  IntMap.iter (fun _ file ->
+    Printf.eprintf "\t\tTARGET %s\n" (file_filename file)
+  ) r.rule_targets;
+  ()
+
+let print_loc loc =
+  BuildMisc.print_loc loc.loc_file loc.loc_line
+
+let string_of_loc loc =
+  Printf.sprintf "%s:%d (package %S)"
+                 loc.loc_file
+                 loc.loc_line
+                 loc.loc_package.package_package

@@ -52,6 +52,8 @@ let arg_list = [
    "PRIM Display help on primitive %PRIM";
 ]
 
+let subcommands = ref ([] : BuildArgs.subcommand list)
+
 let action () =
   ()
 
