@@ -19,7 +19,7 @@ open BuildValue.TYPES
 
 let add_primitive name prim_help prim =
   let prim_name = "OCaml_" ^ name in
-  BuildOCamlVariables.ocamlmod_add name (VPrim prim_name);
+  BuildOCamlVariables.ocamlmod_add name (VFun (VPrim prim_name));
   BuildOCP.add_primitive prim_name prim_help prim
 
 

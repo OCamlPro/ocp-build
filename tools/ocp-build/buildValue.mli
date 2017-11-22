@@ -14,6 +14,8 @@ open OcpCompat
 
 module TYPES : sig
 
+  exception Var_not_found of string
+
   type location = {
     loc_begin : Lexing.position;
     loc_end : Lexing.position;
@@ -33,21 +35,11 @@ module TYPES : sig
   | VTuple of value list
   | VBool of bool
   | VInt of int
+  | VFun of functional_value
+
+  and functional_value =
   | VFunction of (location -> value list -> value)
   | VPrim of string
-
-(* Just for compatibility: a plist is morally a
-   VList of VPair (VString * VObject) *)
-  type plist = value
-  type prop_list = (string * env) list
-
-  type 'a source_option = {
-    get : env list -> 'a;
-    set : 'a -> unit;
-  }
-
-  exception Var_not_found of string
-  exception NotAPropertyList
 
   (* To avoid dealing with dependencies, modules can be declared lazily
      by provides("Mod", function(){...}), in which case the function will
@@ -71,6 +63,20 @@ module TYPES : sig
     config_filename : string;
     config_filenames : (string * Digest.t option) list;
   }
+
+
+(* Just for compatibility: a plist is morally a
+   VList of VPair (VString * VObject) *)
+  type plist = value
+  type prop_list = (string * env) list
+
+  exception NotAPropertyList
+
+  type 'a source_option = {
+    get : env list -> 'a;
+    set : 'a -> unit;
+  }
+
 
 end
 

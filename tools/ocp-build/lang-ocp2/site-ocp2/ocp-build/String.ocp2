@@ -33,9 +33,22 @@ function StringMaker(){
     try { String.subst = String_subst; }
     catch("unknown-variable",x){}
 
+    (* before 1.0 *)
+
+    try { String.capitalize = String_capitalize; }
+    catch("unknown-variable",x){}
+    
+    try { String.write_file = String_write_file; }
+    catch("unknown-variable",x){}
+    
+    try { String.read_file = String_read_file; }
+    catch("unknown-variable",x){}
+
+    (* before 1.1 *)
+
     return String;   
 }
 
-provides("ocp-build:String", "1.0", StringMaker);
+provides("ocp-build:String", "1.1", StringMaker);
 
 

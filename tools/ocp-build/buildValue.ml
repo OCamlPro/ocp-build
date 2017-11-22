@@ -24,6 +24,7 @@ module TYPES = struct
   | StringRaw
   | StringVersion
 
+
   type env = { env : value StringMap.t }
   and value =
   | VList of value list
@@ -32,6 +33,9 @@ module TYPES = struct
   | VTuple of value list
   | VBool of bool
   | VInt of int
+  | VFun of functional_value
+
+  and functional_value =
   | VFunction of (location -> value list -> value)
   | VPrim of string
 
@@ -122,8 +126,8 @@ bprint_plist b indent list =
       bprint_value b indent v;
       Printf.bprintf b "\n") list;
     Printf.bprintf b "%s]" indent
-  | VFunction _ -> Printf.bprintf b "function(...){...}"
-  | VPrim s -> Printf.bprintf b "primitive(%S)" s
+  | VFun (VFunction _) -> Printf.bprintf b "function(...){...}"
+  | VFun (VPrim s) -> Printf.bprintf b "primitive(%S)" s
 
 and bprint_env b indent env =
   iter_env (fun var v ->

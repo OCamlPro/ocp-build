@@ -112,6 +112,20 @@ module Init(S: sig
     in
     primitives := StringMap.add s (f, help) !primitives
 
+
+  let apply_fun f loc ctx config args =
+    match f with
+    | VFunction f -> f loc args
+    | VPrim name ->
+       let (f, _) =
+         try
+           StringMap.find name !primitives
+         with Not_found ->
+           fatal_error loc "primitive %S not available" name
+       in
+       f loc ctx config args
+
+
 let eprint_env indent env =
   let b = Buffer.create 1000 in
   BuildValue.bprint_env b indent env;
@@ -327,7 +341,7 @@ let _ =
       | Declared v ->
         let v =
           match v with
-          | VFunction f -> f loc []
+          | VFun f -> apply_fun f loc ctx config []
           | _ -> v
         in
         module_desc := Computed v;
@@ -417,8 +431,8 @@ let _ =
         | VObject _ -> "object"
         | VBool _ -> "bool"
         | VInt _ -> "int"
-        | VFunction _ -> "function"
-        | VPrim _ -> "prim"
+        | VFun (VFunction _) -> "function"
+        | VFun (VPrim _) -> "prim"
         )
       | _ ->
         raise_bad_arity loc "version(string)" 1 args
@@ -519,10 +533,10 @@ let _ =
   add_primitive "List_map" []
     (fun loc ctx config args ->
       match args with
-      | [ VFunction f; VList list ] ->
-        VList (List.map (fun v -> f loc [v]) list)
-      | [ VList list; VFunction f ] ->
-        VList (List.map (fun v -> f loc [v]) list)
+      | [ VFun f; VList list ] ->
+        VList (List.map (fun v -> apply_fun f loc ctx config [v]) list)
+      | [ VList list; VFun f ] ->
+        VList (List.map (fun v -> apply_fun f loc ctx config [v]) list)
       | _ ->
         raise_bad_arity loc "List.map(function, list)" 2 args
     );
@@ -538,6 +552,17 @@ let _ =
                  ))
       | _ ->
         raise_bad_arity loc "List.flatten(list)" 1 args
+    );
+
+  add_primitive "List_fold_left" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VFun f; acc; VList list ] ->
+        List.fold_left (fun acc ele ->
+            apply_fun f loc ctx config [acc; ele]
+          ) acc list
+      | _ ->
+        raise_bad_arity loc "List.fold_left(f, acc, list)" 3 args
     );
 
   (* ------------------------------------------------------------
@@ -574,6 +599,33 @@ let _ =
       let s = String.concat sep list in
       vstring s
     );
+
+  add_primitive "String_capitalize" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (ele,_) ] -> vstring (String.capitalize ele)
+      | _ ->
+        raise_bad_arity loc "String.capitalize(ele)" 1 args
+    );
+
+  add_primitive "String_write_file" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (filename,_); VString (content, _) ] ->
+         FileString.write_file filename content;
+         VBool true
+      | _ ->
+        raise_bad_arity loc "String.write_file(filename, content)" 2 args
+    );
+
+  add_primitive "String_read_file" []
+    (fun loc ctx config args ->
+      match args with
+      | [ VString (filename,_) ] -> vstring (FileString.read_file filename)
+      | _ ->
+        raise_bad_arity loc "String.read_file(filename)" 1 args
+    );
+
 
   (* ------------------------------------------------------------
 

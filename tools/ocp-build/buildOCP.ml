@@ -246,6 +246,7 @@ let () =
     )
 
 let add_primitive = EvalOCP2.add_primitive
+let apply_fun = EvalOCP2.apply_fun
 let primitives_help = EvalOCP1.primitives_help
 
 let verbose = OcpDebug.verbose_function ["B";"BP"; "BuildOCP"]
