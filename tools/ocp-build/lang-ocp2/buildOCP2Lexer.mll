@@ -19,6 +19,9 @@ type token =
   | Int of int
   | String of string
 
+
+(* the PUSH_LEXERS/POP_LEXER system is used only to deal with
+   simple-quoted lists (i.e. quotations and anti-quotations).  *)
 type lexer = Lexing.lexbuf -> token list * op option
 and op =
   | PUSH_LEXERS of lexer list
@@ -149,16 +152,17 @@ rule unquoted = parse
       { comment_start_pos := [Lexing.lexeme_start lexbuf];
         comment lexbuf;
         [], None }
-  | "("
   | "{"
   | "[" { [find_keyword_lexbuf lexbuf], Some (PUSH_LEXERS [unquoted]) }
-  | ")"
   | "}"
   | "]" { [find_keyword_lexbuf lexbuf], Some POP_LEXER }
 
 (* END SHARED PART *)
 
-
+  | "("
+    { [find_keyword_lexbuf lexbuf], Some (PUSH_LEXERS [unquoted]) }
+  | ")"
+    { [find_keyword_lexbuf lexbuf], Some POP_LEXER }
 
   | firstidentchar identchar*  {
       [find_keyword_lexbuf lexbuf], None
@@ -337,15 +341,17 @@ and quoted = parse
   | "}"
   | "]" { [find_keyword_lexbuf lexbuf], Some POP_LEXER }
 
+(* END SHARED PART *)
+
+
+
   | "("
         { [find_keyword ";"; find_keyword_lexbuf lexbuf],
           Some (PUSH_LEXERS [unquoted]) }
-
   | ")"
   | ","
   | ";"
         { [find_keyword "]"; find_keyword_lexbuf lexbuf], Some POP_LEXER }
-(* END SHARED PART *)
 
   | [ ^ ' ' '\009' '\010' '\013'  '\012' '"'  ',' ';' '{' '(' '[' ']' ')' '}' ]+
       { let s = Lexing.lexeme lexbuf in

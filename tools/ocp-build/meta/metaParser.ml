@@ -15,8 +15,6 @@ open OcpCompat
 open MetaTypes
 open MetaLexer
 
-let verbose = OcpDebug.verbose_function ["B"; "MetaParser"]
-
 let string_of_token = function
   | STRING s -> Printf.sprintf "STRING %S" s
   | IDENT  s -> Printf.sprintf "IDENT %S" s
@@ -190,7 +188,7 @@ let name_of_META filename =
     if basename = "META" then
       Filename.basename (Filename.dirname filename)
     else
-      if OcpString.starts_with basename "META." then
+      if OcpString.starts_with basename ~prefix:"META." then
         String.sub basename 5 (String.length basename - 5)
       else
         failwith (Printf.sprintf

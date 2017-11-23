@@ -49,7 +49,7 @@ let load_config ?(ocamlfind=["ocamlfind"]) () =
 
          and iter_path lines =
            match lines with
-           | path :: lines when OcpString.starts_with path "    " ->
+           | path :: lines when OcpString.starts_with path ~prefix:"    " ->
              search_path := String.sub path 4 (String.length path - 4) :: !search_path;
              iter_path lines
            | _ -> iter lines

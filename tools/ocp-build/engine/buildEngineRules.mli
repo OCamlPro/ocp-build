@@ -43,8 +43,11 @@ val add_rule_time_dependency :
   BuildEngineTypes.build_rule -> BuildEngineTypes.build_file -> unit
 
 val add_rule_command :
-           BuildEngineTypes.build_rule ->
-           BuildEngineTypes.build_action -> unit
+  BuildEngineTypes.build_rule ->
+  BuildEngineTypes.build_action -> unit
+val add_rule_commands :
+  BuildEngineTypes.build_rule ->
+  BuildEngineTypes.build_action list -> unit
 
 val new_command :
   string list ->
