@@ -233,8 +233,8 @@ install: install-ocp-build
 	if test -f $(OBUILD_DSTDIR)/ocp-pp/ocp-pp.asm; then $(MAKE) install-ocp-pp; else :; fi
 
 OCPBUILD_INSTALL=./_obuild/ocp-build/ocp-build.asm install		\
-  -install-lib $(ocamldir) -install-meta $(metadir)                    \
-  -install-bin $(bindir)
+  --install-lib $(ocamldir) --install-meta $(metadir)                    \
+  --install-bin $(bindir)
 
 DST_SITE_OCP2 := ${ocamldir}/site-ocp2/ocp-build
 SRC_SITE_OCP2 := ${OCP_BUILD_SRCDIR}/lang-ocp2/site-ocp2/ocp-build
