@@ -90,7 +90,8 @@ BUILD_PROJECT= \
     $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPPrims.ml		\
     $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPInterp.ml		\
     \
-    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Tree.ml			\
+    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Tree.ml		\
+    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Lexer.ml     	\
     $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parser.ml		\
     $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parse.ml		\
     $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Prims.ml		\
@@ -161,7 +162,9 @@ OCP_BUILD_MLS= $(STRING_COMPAT) $(EZCMD) $(OCPLIB_DEBUG)	\
   $(BUILD_MAIN)
 
 OCP_BUILD_MLLS= \
-   $(lang_SRCDIR)/ocamllexer.mll $(OCP_BUILD_SRCDIR)/meta/metaLexer.mll 
+   $(lang_SRCDIR)/ocamllexer.mll \
+   $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Lexer.mll     	\
+   $(OCP_BUILD_SRCDIR)/meta/metaLexer.mll  \
 
 OCP_BUILD_MLYS= $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.mly
 

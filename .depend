@@ -455,6 +455,7 @@ tools/ocp-build/buildOCP.cmo : libs/ocplib-lang/ocpToposort.cmi \
     tools/ocp-build/misc/buildWarnings.cmi tools/ocp-build/buildValue.cmi \
     tools/ocp-build/misc/buildSubst.cmi tools/ocp-build/buildOCPTypes.cmi \
     tools/ocp-build/lang-ocp/buildOCPInterp.cmi \
+    tools/ocp-build/lang-ocp2/buildOCP2Prims.cmi \
     tools/ocp-build/lang-ocp2/buildOCP2Interp.cmi \
     tools/ocp-build/misc/buildMisc.cmo tools/ocp-build/buildOCP.cmi
 tools/ocp-build/buildOCP.cmx : libs/ocplib-lang/ocpToposort.cmx \
@@ -464,6 +465,7 @@ tools/ocp-build/buildOCP.cmx : libs/ocplib-lang/ocpToposort.cmx \
     tools/ocp-build/misc/buildWarnings.cmx tools/ocp-build/buildValue.cmx \
     tools/ocp-build/misc/buildSubst.cmx tools/ocp-build/buildOCPTypes.cmx \
     tools/ocp-build/lang-ocp/buildOCPInterp.cmx \
+    tools/ocp-build/lang-ocp2/buildOCP2Prims.cmx \
     tools/ocp-build/lang-ocp2/buildOCP2Interp.cmx \
     tools/ocp-build/misc/buildMisc.cmx tools/ocp-build/buildOCP.cmi
 tools/ocp-build/buildOCP.cmi : \
@@ -735,15 +737,24 @@ tools/ocp-build/lang-ocp2/buildOCP2Interp.cmx : \
     tools/ocp-build/lang-ocp2/buildOCP2Interp.cmi
 tools/ocp-build/lang-ocp2/buildOCP2Interp.cmi : \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/misc/buildSubst.cmi \
+    tools/ocp-build/buildValue.cmi \
     tools/ocp-build/lang-ocp2/buildOCP2Tree.cmo
+tools/ocp-build/lang-ocp2/buildOCP2Lexer.cmo : \
+    libs/ocplib-compat/string-compat/ocpCompat.cmo \
+    tools/ocp-build/lang-ocp2/buildOCP2Lexer.cmi
+tools/ocp-build/lang-ocp2/buildOCP2Lexer.cmx : \
+    libs/ocplib-compat/string-compat/ocpCompat.cmx \
+    tools/ocp-build/lang-ocp2/buildOCP2Lexer.cmi
+tools/ocp-build/lang-ocp2/buildOCP2Lexer.cmi :
 tools/ocp-build/lang-ocp2/buildOCP2Parse.cmo : \
     libs/ocplib-lang/ocamllexer.cmi \
     tools/ocp-build/lang-ocp2/buildOCP2Parser.cmi \
+    tools/ocp-build/lang-ocp2/buildOCP2Lexer.cmi \
     tools/ocp-build/misc/buildMisc.cmo
 tools/ocp-build/lang-ocp2/buildOCP2Parse.cmx : \
     libs/ocplib-lang/ocamllexer.cmx \
     tools/ocp-build/lang-ocp2/buildOCP2Parser.cmx \
+    tools/ocp-build/lang-ocp2/buildOCP2Lexer.cmx \
     tools/ocp-build/misc/buildMisc.cmx
 tools/ocp-build/lang-ocp2/buildOCP2Parser.cmo : \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
@@ -760,18 +771,18 @@ tools/ocp-build/lang-ocp2/buildOCP2Parser.cmi : \
 tools/ocp-build/lang-ocp2/buildOCP2Prims.cmo : \
     tools/ocp-build/misc/versioning.cmi libs/ocplib-lang/ocpString.cmi \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/misc/buildSubst.cmi \
+    libs/ocplib-file/fileString.cmi tools/ocp-build/buildValue.cmi \
     tools/ocp-build/lang-ocp2/buildOCP2Tree.cmo \
     tools/ocp-build/lang-ocp2/buildOCP2Prims.cmi
 tools/ocp-build/lang-ocp2/buildOCP2Prims.cmx : \
     tools/ocp-build/misc/versioning.cmx libs/ocplib-lang/ocpString.cmx \
     libs/ocplib-compat/string-compat/ocpCompat.cmx \
-    tools/ocp-build/buildValue.cmx tools/ocp-build/misc/buildSubst.cmx \
+    libs/ocplib-file/fileString.cmx tools/ocp-build/buildValue.cmx \
     tools/ocp-build/lang-ocp2/buildOCP2Tree.cmx \
     tools/ocp-build/lang-ocp2/buildOCP2Prims.cmi
 tools/ocp-build/lang-ocp2/buildOCP2Prims.cmi : \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
-    tools/ocp-build/buildValue.cmi tools/ocp-build/misc/buildSubst.cmi \
+    tools/ocp-build/buildValue.cmi \
     tools/ocp-build/lang-ocp2/buildOCP2Tree.cmo
 tools/ocp-build/lang-ocp2/buildOCP2Tree.cmo : \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
@@ -785,12 +796,10 @@ tools/ocp-build/meta/metaConfig.cmx : libs/ocplib-lang/ocpString.cmx \
     tools/ocp-build/misc/buildMisc.cmx tools/ocp-build/meta/metaConfig.cmi
 tools/ocp-build/meta/metaConfig.cmi :
 tools/ocp-build/meta/metaFile.cmo : libs/ocplib-lang/ocpString.cmi \
-    libs/ocplib-debug/ocpDebug.cmi \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
     tools/ocp-build/meta/metaTypes.cmo tools/ocp-build/meta/metaParser.cmi \
     tools/ocp-build/meta/metaFile.cmi
 tools/ocp-build/meta/metaFile.cmx : libs/ocplib-lang/ocpString.cmx \
-    libs/ocplib-debug/ocpDebug.cmx \
     libs/ocplib-compat/string-compat/ocpCompat.cmx \
     tools/ocp-build/meta/metaTypes.cmx tools/ocp-build/meta/metaParser.cmx \
     tools/ocp-build/meta/metaFile.cmi
@@ -982,7 +991,7 @@ tools/ocp-build/ocaml/buildOCamlMisc.cmx : libs/ocplib-maxunix/minUnix.cmx \
     tools/ocp-build/buildTypes.cmx tools/ocp-build/ocaml/buildOCamlTypes.cmx \
     tools/ocp-build/engine/buildEngineTypes.cmx \
     tools/ocp-build/engine/buildEngineContext.cmx
-tools/ocp-build/ocaml/buildOCamlOCP2.cmo : libs/ocplib-debug/ocpDebug.cmi \
+tools/ocp-build/ocaml/buildOCamlOCP2.cmo : \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
     tools/ocp-build/buildValue.cmi tools/ocp-build/misc/buildSubst.cmi \
     tools/ocp-build/ocaml/buildOCamlVerifyPackages.cmi \
@@ -991,7 +1000,7 @@ tools/ocp-build/ocaml/buildOCamlOCP2.cmo : libs/ocplib-debug/ocpDebug.cmi \
     tools/ocp-build/buildOCPTypes.cmi \
     tools/ocp-build/lang-ocp2/buildOCP2Prims.cmi tools/ocp-build/buildOCP.cmi \
     tools/ocp-build/buildGlobals.cmo tools/ocp-build/ocaml/buildOCamlOCP2.cmi
-tools/ocp-build/ocaml/buildOCamlOCP2.cmx : libs/ocplib-debug/ocpDebug.cmx \
+tools/ocp-build/ocaml/buildOCamlOCP2.cmx : \
     libs/ocplib-compat/string-compat/ocpCompat.cmx \
     tools/ocp-build/buildValue.cmx tools/ocp-build/misc/buildSubst.cmx \
     tools/ocp-build/ocaml/buildOCamlVerifyPackages.cmx \
