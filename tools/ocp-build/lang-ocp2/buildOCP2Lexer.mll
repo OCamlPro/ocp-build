@@ -318,6 +318,10 @@ and quoted = parse
   | "}"
   | "]" { [find_keyword_lexbuf lexbuf], Some POP_LEXER }
 
+  | "("
+        { [find_keyword ";"; find_keyword_lexbuf lexbuf],
+          Some (PUSH_LEXER unquoted) }
+
   | ")"
   | ","
   | ";"
