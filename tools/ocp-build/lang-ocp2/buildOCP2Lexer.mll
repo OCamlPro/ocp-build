@@ -21,7 +21,7 @@ type token =
 
 type lexer = Lexing.lexbuf -> token list * op option
 and op =
-  | PUSH_LEXER of lexer
+  | PUSH_LEXERS of lexer list
   | POP_LEXER
 
 type error =
@@ -105,7 +105,7 @@ let char_for_decimal_code lexbuf i =
 let string_start_pos = ref 0;;
 let comment_start_pos = ref [];;
 
-(* Error report *)
+let finish_with tokens lexbuf = tokens, Some POP_LEXER
 
 }
 
@@ -151,7 +151,7 @@ rule unquoted = parse
         [], None }
   | "("
   | "{"
-  | "[" { [find_keyword_lexbuf lexbuf], Some (PUSH_LEXER unquoted) }
+  | "[" { [find_keyword_lexbuf lexbuf], Some (PUSH_LEXERS [unquoted]) }
   | ")"
   | "}"
   | "]" { [find_keyword_lexbuf lexbuf], Some POP_LEXER }
@@ -214,7 +214,7 @@ rule unquoted = parse
 
   (* Quoted cases *)
 
-  | "'" [ ^ ' ' '\009' '\010' '\013'  '\012'   '"'  ','  '(' '[' ';' ]+
+  | "'" [ ^ ' ' '\009' '\010' '\013'  '\012'   '"'  ','  '(' '[' ';' ')' ']' '{' '}' ]+
       { let s = Lexing.lexeme lexbuf in
         let len = String.length s in
         [String (String.sub s 1 (len-1))], None }
@@ -222,12 +222,31 @@ rule unquoted = parse
   | "'{" { [ find_keyword "function";
              find_keyword "(";
              find_keyword ")";
-             find_keyword "{"
-         ], Some (PUSH_LEXER unquoted) }
+             find_keyword "{";
+             find_keyword "return";
+             find_keyword "{";
+           ], Some (PUSH_LEXERS [unquoted;
+                                 finish_with [
+                                     find_keyword ";";
+                                     find_keyword "}";
+                                   ]
+                   ]) }
+  | "'(" { [ find_keyword "function";
+             find_keyword "(";
+             find_keyword ")";
+             find_keyword "{";
+             find_keyword "return";
+             find_keyword "(";
+           ], Some (PUSH_LEXERS [unquoted;
+                                 finish_with [
+                                     find_keyword ";";
+                                     find_keyword "}";
+                                   ]
+                   ]) }
 
   | "'["
   | "'"
-       { [ find_keyword "["], Some (PUSH_LEXER quoted) }
+       { [ find_keyword "["], Some (PUSH_LEXERS [quoted]) }
 
   | eof { [], Some POP_LEXER }
   | _
@@ -314,13 +333,13 @@ and quoted = parse
 
   | "{"
   | "[" { [find_keyword ","; find_keyword_lexbuf lexbuf],
-          Some (PUSH_LEXER unquoted) }
+          Some (PUSH_LEXERS [unquoted]) }
   | "}"
   | "]" { [find_keyword_lexbuf lexbuf], Some POP_LEXER }
 
   | "("
         { [find_keyword ";"; find_keyword_lexbuf lexbuf],
-          Some (PUSH_LEXER unquoted) }
+          Some (PUSH_LEXERS [unquoted]) }
 
   | ")"
   | ","
@@ -328,7 +347,7 @@ and quoted = parse
         { [find_keyword "]"; find_keyword_lexbuf lexbuf], Some POP_LEXER }
 (* END SHARED PART *)
 
-  | [ ^ ' ' '\009' '\010' '\013'  '\012' '"'  ','  '{' '(' '[' ']' ')' '}' ]+
+  | [ ^ ' ' '\009' '\010' '\013'  '\012' '"'  ',' ';' '{' '(' '[' ']' ')' '}' ]+
       { let s = Lexing.lexeme lexbuf in
         [find_keyword ";"; String s], None }
 
@@ -360,8 +379,8 @@ and quoted = parse
                     begin
                       match op with
                       | None -> ()
-                      | Some (PUSH_LEXER lexer) ->
-                         stack := lexer :: !stack
+                      | Some (PUSH_LEXERS lexers) ->
+                         stack := lexers @ !stack
                       | Some POP_LEXER ->
                          stack := lexers
                     end;

@@ -309,6 +309,51 @@ begin
 end
 \end{verbatim}
 
+\section{Simple-Quoting}
+
+The syntax can be sometimes heavy to describe simple packages when all
+strings have to be double-quoted. To simplify descriptions, OCP2 comes
+with a way to avoid this problem, using simple-quoted expressions.
+
+\subsection{Simple-Quoted Strings}
+
+The lexeme {\tt 'x} is equivalent to {\tt "x"}. Such simple-quoted
+strings can contain any characters except blanks (space, tabs,
+newlines), commas, semi-colons and parenthesis (parens, braces,
+brackets).
+
+\subsection{Simple-Quoted Lists}
+
+Simple-quoted lists introduce a way to write a list of strings without
+quoting every string. For example, \verb|'[ x y z]| is equivalent to
+\verb|[ "x"; "y"; "z"]|.
+
+Again, strings within simple-quoted lists can contain any characters
+except blanks (space, tabs, newlines), commas, semi-colons and
+parenthesis (parens, braces, brackets). It is possible to avoid this
+limitation using standard strings: \verb|`[ x "y,z" ]| is equivalent to
+\verb|[ "x"; "y,z"]|.
+
+It is possible to include an expression within a simple-quoted list:
+\verb|'[ x (y) z]| is equivalent to \verb|["x";y;"z"]|. It is also
+possible to replace a string by a tuple, whose second field is an object
+or list: for example, \verb|'[ x y {a = 3} z]| is equivalent to
+\verb|[ "x"; "y", { a = 3 }; "z"]|.
+
+Simple-quoted lists can even be simplified by removing the brackets,
+at the beginning and at the end, before a closing-parenthesis, a comma
+or a semi-colon: for example, \verb|OCaml.system(' ls -l)| is equivalent
+to \verb|OCaml.system(' ls -l)|.
+
+\subsection{Simple-Quoted Blocks}
+
+simple-quoted blocks can be used to create a simple abstraction around a value
+(record or expression): for
+example, \verb|'{ ... }| is equivalent to
+\verb|function(){ return {...};}|;
+in the same way, \verb|'(...)| is equivalent to
+\verb|function(){ return (...);}|.
+
 \section{The OCaml Plugin}
 
 The OCaml plugin defines two global variables: the module {\sf OCaml} and

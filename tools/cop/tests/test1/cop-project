@@ -4,8 +4,9 @@ new_package("test1", [], {
       {
          targets = "@build";
          sources = [];
-         commands = "shell:", [ "echo"; "Hello World!" ];
+         commands = "shell:", ' echo "Hello World!" ;
       }
     ];
   });
-  
+
+
