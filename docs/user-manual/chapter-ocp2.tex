@@ -329,10 +329,10 @@ quoting every string. For example, \verb|'[ x y z]| is equivalent to
 \verb|[ "x"; "y"; "z"]|.
 
 Again, strings within simple-quoted lists can contain any characters
-except blanks (space, tabs, newlines), commas, semi-colons and
-parenthesis (parens, braces, brackets). It is possible to avoid this
-limitation using standard strings: \verb|`[ x "y,z" ]| is equivalent to
-\verb|[ "x"; "y,z"]|.
+except blanks (space, tabs, newlines), commas, semi-colons,
+double-quotes and parenthesis (parens, braces, brackets). It is
+possible to avoid this limitation using standard strings:
+\verb|`[ x "y,z" ]| is equivalent to \verb|[ "x"; "y,z"]|.
 
 It is possible to include an expression within a simple-quoted list:
 \verb|'[ x (y) z]| is equivalent to \verb|["x";y;"z"]|. It is also

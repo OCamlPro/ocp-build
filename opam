@@ -39,6 +39,10 @@ remove: [
   [ "sh" "-exc" "rmdir %{prefix}%/lib/ocaml/typerex || true"   ]
 ]
 available: [ocaml-version >= "3.12.1"]
+depends: [
+     "cmdliner"
+     "ocamlfind"
+]
 
 (**************************************************************)
 (*                                                            *)

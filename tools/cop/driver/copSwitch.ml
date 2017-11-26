@@ -37,13 +37,13 @@ let filter_packages packages =
   List.iter (fun pk ->
       let fil = {
           fil_enabled = true;
-          fil_name = pk.pk_name;
+          fil_name = host_name pk;
           fil_pk = Some pk;
           fil_needed_by = [];
           fil_broken = [];
           fil_missing = [];
         } in
-      Hashtbl.add table pk.pk_name fil
+      Hashtbl.add table (host_name pk) fil
     ) packages;
 
   (* propagate dependencies *)
@@ -114,7 +114,7 @@ let filter_packages packages =
 let sort_packages packages =
   let table = Hashtbl.create 111 in
   List.iter (fun pk ->
-      Hashtbl.add table pk.pk_name pk
+      Hashtbl.add table (host_name pk) pk
     ) packages;
   let module PackageSorter =
     OcpToposort.Make(
@@ -124,7 +124,7 @@ let sort_packages packages =
           let iter_edges f pk =
             List.iter (fun req ->
                 f (Hashtbl.find table req.req_name)) pk.pk_requires
-          let name pk = pk.pk_name
+          let name pk = host_name pk
           let verbose n = n <= !CopGlobals.verbose
         end) in
   PackageSorter.sort packages

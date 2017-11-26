@@ -17,5 +17,5 @@ autoconf/travis-install.sh 9bfd3722ac873da3f33d69fd670659b2
 build.ocp e34f091d3841a5b334fbb7341b9e227e
 build.ocp2 1e8c5c999be6aa80323779226d7c7f1a
 configure 3ffc5da4b7c00140c3024342e64cc2a5
-opam 644c736dde38935b13975664d4e1a8dc
+opam 893b9af8913daccd54ffa5a8291e851a
 push-opam.sh c48fac7c8991f96357c9fc65a2ae6288

@@ -14,6 +14,11 @@ open OcpCompat
 open BuildValue.TYPES
 open CopTypes
 
+exception BadRule of BuildValue.TYPES.location * BuildValue.TYPES.value
+exception BadRequire of BuildValue.TYPES.location * BuildValue.TYPES.value
+
+
+
 type state = {
     mutable config_files : string StringMap.t;
     mutable package_descriptions : package list;
@@ -237,20 +242,22 @@ let parse_rule rule =
      }
   | _ -> raise Not_found
 
-exception BadRule of BuildValue.TYPES.value
-
-let parse_rule rule =
+let parse_rule loc rule =
   try
     parse_rule rule
   with _ ->
-    raise (BadRule rule)
+    raise (BadRule (loc,rule))
 
-let parse_require = function
+let parse_require loc = function
   | VString (req_name,_) ->
      { req_name; req_env = empty_env }
-  | VTuple[ VString (req_name,_); VObject req_env] ->
+  | VTuple[ VString (req_name,_);
+            ( VObject req_env
+              | VList [VObject req_env]
+          )] ->
      { req_name; req_env }
-  | _ -> raise Not_found
+  | r ->
+     raise (BadRequire (loc,r))
 
 let add_project state pk_loc pk_name pk_config pk_requires pk_env =
   let pk_dirname =
@@ -265,10 +272,10 @@ let add_project state pk_loc pk_name pk_config pk_requires pk_env =
       pk_config.config_dirname
   in
   let pk_requires =
-    List.map parse_require pk_requires
+    List.map (parse_require pk_loc) pk_requires
   in
   let pk_rules = BuildValue.get_with_default [pk_env] "rules" (VList[]) in
-  let pk_rules = parse_list parse_rule pk_rules in
+  let pk_rules = parse_list (parse_rule pk_loc) pk_rules in
   let pk_node = OcpToposort.new_node () in
   let p = {
       pk_name;

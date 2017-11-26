@@ -10,18 +10,20 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type state
-
-exception BadRule of BuildValue.TYPES.value
+exception BadRule of BuildValue.TYPES.location * BuildValue.TYPES.value
+exception BadRequire of BuildValue.TYPES.location * BuildValue.TYPES.value
 
 val add_prim :
-  string ->
-  string list ->
+  string -> (* prim name *)
+  string list -> (* help *)
+  (* function: *)
   (BuildValue.TYPES.location ->
    state ->
    BuildValue.TYPES.config ->
    BuildValue.TYPES.value list -> BuildValue.TYPES.value) ->
   unit
+
+val init_state : unit -> state
 
 val eval_file :
   state ->
@@ -29,7 +31,6 @@ val eval_file :
   string ->
   BuildValue.TYPES.config
 
-val init_state : unit -> state
 val init_workspace :
   state ->
   string list ->
@@ -44,7 +45,7 @@ val load_projects :
 val add_project:
   state ->
   BuildValue.TYPES.location ->
-  string ->
+  string -> (* project name *)
   BuildValue.TYPES.config ->
   BuildValue.TYPES.value list ->
   BuildValue.TYPES.env ->

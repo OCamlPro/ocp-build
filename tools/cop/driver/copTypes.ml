@@ -10,18 +10,42 @@
 (*                                                                        *)
 (**************************************************************************)
 
-type switch = {
-    switch_name : string;
+type context = {
+    c_switches : switch StringMap.t;
   }
 
-type package = {
+and switch = {
+    sw_context : context;
+    sw_name : string;
+    mutable sw_host : switch;
+    mutable sw_build : switch;
+
+    mutable sw_declarations : package list;
+
+    mutable sw_packages : package StringMap.t;
+  }
+
+and package = {
+    pk_switch : switch;
+
     pk_name : string;
     pk_dirname : string;
     pk_loc : BuildValue.TYPES.location;
-    pk_requires : require list;
-    pk_rules : rule list;
-    pk_env : BuildValue.TYPES.env;
     pk_node : OcpToposort.node;
+
+    pk_requires : require list;
+    pk_priority : priority;
+    pk_enabled : bool;
+    (* Maybe another *less* important description of this package: *)
+    mutable pk_sibling : package option;
+
+
+    pk_info : BuildValue.t;
+    pk_description : BuildValue.t;
+
+    (* Computed from DESCRIPTION avec sorting *)
+    mutable pk_env : BuildValue.TYPES.env;
+    mutable pk_rules : rule list;
   }
 
  and require = {
@@ -30,6 +54,7 @@ type package = {
    }
 
  and rule = {
+     r_package : package;
      r_targets : atom list;
      r_sources : atom list;
      r_temps : atom list;
