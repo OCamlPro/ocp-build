@@ -8,7 +8,7 @@ autoconf/build.ocp 9d81103f0dd977b6414645b9ab29c713
 autoconf/config.ocp2gen.in 4c0a6254516ad9a97b3a6dca69213442
 autoconf/config.ocpgen.in da3aeece4aac95639ba15bb1995715d7
 autoconf/config.ocpgen2.in 9a995bcba87527893659a1d970826a84
-autoconf/configure.ac 2c378c66bd986489ee58a757dbc812ae
+autoconf/configure.ac a99aa0ae322289cea4c709f503885f38
 autoconf/m4/ax_compare_version.m4 ebb455a7fd6a8ba9a4e38a25c8f0b686
 autoconf/m4/ocaml.m4 bffe7da970a9e23a89b611c00360f36f
 autoconf/ocaml-config.h.in 361f7d5a23b30c6c49756a9e34c2dcf9
@@ -17,5 +17,5 @@ autoconf/travis-install.sh 9bfd3722ac873da3f33d69fd670659b2
 build.ocp e34f091d3841a5b334fbb7341b9e227e
 build.ocp2 1e8c5c999be6aa80323779226d7c7f1a
 configure 3ffc5da4b7c00140c3024342e64cc2a5
-opam ed773a48bf8a4aa92f851b5fe7717501
+opam 4745d71f4872c2ff948ca7e84b880442
 push-opam.sh c48fac7c8991f96357c9fc65a2ae6288

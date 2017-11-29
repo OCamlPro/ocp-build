@@ -38,7 +38,7 @@ remove: [
   [ "rm" "-rf" "%{prefix}%/lib/ocaml/site-ocp2/ocp-build"   ]
   [ "sh" "-exc" "rmdir %{prefix}%/lib/ocaml/typerex || true"   ]
 ]
-available: [ocaml-version >= "3.12.1"]
+available: [ocaml-version >= "4.02.1"]
 
 (**************************************************************)
 (*                                                            *)

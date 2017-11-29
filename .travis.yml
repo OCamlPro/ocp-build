@@ -16,7 +16,6 @@ script: sh -ex ./autoconf/travis-ci.sh
 env:
   - OCAML_VERSION=system
   - OCAML_VERSION=4.02.1
-  - OCAML_VERSION=4.02.2
   - OCAML_VERSION=4.02.3
   - OCAML_VERSION=4.03.0
   - OCAML_VERSION=4.04.0
