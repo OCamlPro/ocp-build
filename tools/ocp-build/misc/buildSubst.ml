@@ -150,7 +150,9 @@ let map_subst map s =
 
 let global_subst = ref StringMap.empty
 
+(*
 let add_to_subst env var vv = StringMap.add var vv
+ *)
 
 let add_to_global_subst var var_value =
   global_subst := StringMap.add var var_value !global_subst
@@ -164,8 +166,10 @@ let _ =
 
 let subst_global s = map_subst !global_subst s
 
+                               (*
 let add_to_local_subst env var vv =
   add_to_copy env  (Printf.sprintf "%%{%s}%%" var) vv
+                                *)
 
 let create_substituter list =
   let map = ref StringMap.empty in

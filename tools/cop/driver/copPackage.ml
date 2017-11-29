@@ -13,8 +13,8 @@
 open BuildEngineTypes
 open CopTypes
 
-let rules_of_package b sw pk =
-  let p = BuildEngineContext.new_package b pk.pk_name in
+let rules_of_package b _sw pk =
+  let _p = BuildEngineContext.new_package b pk.pk_name in
 
   (*  let build_dir = BuildEngineContext.find_directory b b.build_dir in *)
   (*  let switch_dir = BuildEngineContext *)

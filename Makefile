@@ -36,7 +36,8 @@ INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
     -I $(OCP_BUILD_SRCDIR)/meta \
     -I $(OCP_BUILD_SRCDIR)/ocaml \
 
-OCPLIB_LIBS=$(foreach lib, $(OCPLIB_NAMES), ocplib-$(lib))
+OCPLIB_LIBS=$(foreach lib, $(OCPLIB_NAMES), ocplib-$(lib)) \
+  ezcmd ocplib-file-compat
 
 OCP_BUILD_BOOTER=boot/ocp-build.asm
 

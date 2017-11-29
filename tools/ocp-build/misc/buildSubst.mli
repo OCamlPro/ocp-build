@@ -24,4 +24,10 @@ type 'a t
 val create_substituter : (string * ('a -> string)) list -> 'a t
 val apply_substituter : 'a t -> string -> 'a -> string
 
+
+(* [substitute f ctx string] replaces all occurrences of variables in
+  the form `%{...}%` in `string` by calling `f ctx variable` with the
+  name of the variable.
+ *)
+
 val substitute : ('context -> string -> string) -> 'context -> string -> string

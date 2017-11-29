@@ -94,20 +94,20 @@ let add_finally action =
 
 
 let rec do_compile stage p ncores env_state arg_targets pre_w
-    config_state =
+                   config_state =
 
   let (bc, package_map, _pj) =
     BuildActionCheck.load_initial_project pre_w p
-    (BuildOCP.copy_state env_state) config_state in
+                                          (BuildOCP.copy_state env_state) config_state in
 
   if !configure_arg then BuildMisc.clean_exit 0;
 
   if !clean_arg then begin
-    Printf.eprintf "Removing build target directory\n%!";
+      Printf.eprintf "Removing build target directory\n%!";
 
-    BuildActions.delete_file_or_directory !build_dir_basename_arg;
-    BuildMisc.clean_exit 0;
-  end;
+      BuildActions.delete_file_or_directory !build_dir_basename_arg;
+      BuildMisc.clean_exit 0;
+    end;
 
   bc.build_context.stop_on_error_arg <- !stop_on_error_arg;
 
@@ -116,22 +116,22 @@ let rec do_compile stage p ncores env_state arg_targets pre_w
     let projects = ref [] in
     match arg_targets with
       [] ->
-        StringMap.iter (fun _ pj ->
+      StringMap.iter (fun _ pj ->
           let module P = (val pj : Package) in
           if not (P.pre_installed ()) then
             projects := pj :: !projects) package_map;
-        !projects
-    | list ->
-      List.iter (fun name ->
-        try
-          let pj = StringMap.find name package_map in
-          projects := pj :: !projects
-        with Not_found ->
-          Printf.eprintf
-            "Error: Could not find target project %s\n%!" name;
-          BuildMisc.clean_exit 2
-      ) list;
       !projects
+    | list ->
+       List.iter (fun name ->
+           try
+             let pj = StringMap.find name package_map in
+             projects := pj :: !projects
+           with Not_found ->
+             Printf.eprintf
+               "Error: Could not find target project %s\n%!" name;
+             BuildMisc.clean_exit 2
+         ) list;
+       !projects
   in
 
   let b = bc.build_context in
@@ -140,8 +140,8 @@ let rec do_compile stage p ncores env_state arg_targets pre_w
   let build_targets = ref [] in
   let map = ref StringMap.empty in
   let rec add_project_targets
-      (make_build_targets, make_doc_targets, make_test_targets)
-      p =
+            (make_build_targets, make_doc_targets, make_test_targets)
+            p =
     let module P = (val p : Package) in
     let lib = P.info in
     if not (StringMap.mem lib.lib_name !map) then begin
@@ -151,125 +151,126 @@ let rec do_compile stage p ncores env_state arg_targets pre_w
 
         let add_project_targets pj =
           let p = StringMap.find pj.lib_name package_map in
-          add_project_targets (true, false, false) p in
+          add_project_targets (true, false, false) p
+        in
         if make_build_targets then begin
-          let { targets; depends } = P.build_targets () in
+            let { targets; depends } = P.build_targets () in
           build_targets := targets @ !build_targets;
-          List.iter add_project_targets depends
-        end;
+            List.iter add_project_targets depends
+          end;
         if make_doc_targets then begin
-          let { targets; depends } = P.doc_targets () in
-          build_targets := targets @ !build_targets;
-          List.iter add_project_targets depends
-        end;
+            let { targets; depends } = P.doc_targets () in
+            build_targets := targets @ !build_targets;
+            List.iter add_project_targets depends
+          end;
         if make_test_targets then begin
-          let { targets; depends } = P.test_targets () in
-          build_targets := targets @ !build_targets;
-          List.iter add_project_targets depends
-        end;
-    end
+            let { targets; depends } = P.test_targets () in
+            build_targets := targets @ !build_targets;
+            List.iter add_project_targets depends
+          end;
+      end
   in
   List.iter (add_project_targets
                (!make_build_targets, !make_doc_targets, !make_test_targets)
-  ) projects;
+            ) projects;
 
   if !build_targets = [] then begin
-    Printf.eprintf "Error: project contains no targets\n%!";
-    Printf.eprintf "\tAre your .ocp files empty ?\n%!";
-    BuildMisc.clean_exit 2
-  end;
+      Printf.eprintf "Error: project contains no targets\n%!";
+      Printf.eprintf "\tAre your .ocp files empty ?\n%!";
+      BuildMisc.clean_exit 2
+    end;
 
   (*
         List.iter (fun s ->
         Printf.eprintf "TARGET %S\n%!" (File.to_string s.file_file)
         ) !targets;
-      *)
+   *)
 
 
 
   if !build_targets <> [] then begin
-    time_step "Initializing build engine...";
-    begin
+      time_step "Initializing build engine...";
+      begin
 
-      try
-        BuildEngine.init b !build_targets
-      with BuildEngine.MissingSourceWithNoBuildingRule (r, filename) ->
-        BuildEngineDisplay.print_loc r.rule_loc;
-        Printf.eprintf "Error: in project \"%s\", the source filename\n"
-          r.rule_loc.loc_package.package_package;
-        Printf.eprintf "\t\"%s\" does not exist\n" filename;
-        BuildEngineDisplay.print_rule r;
-        BuildMisc.clean_exit 2
-    end;
-    time_step "   Build Engine Initialized";
-    time_step "Checking remaining artefacts...";
-    let orphans = BuildEngine.sanitize b !delete_orphans_arg
-        (fun basename ->
-          match basename with
-            "_tests" | "_reports" -> true
-          | _ -> false)
-    in
-    if orphans > 0 then begin
-      Printf.eprintf "Error: found %d orphan files in %s. You must remove them.\n" orphans !build_dir_basename_arg;
-      Printf.eprintf "\n";
-      Printf.eprintf "   You can add the -sanitize argument to automatically remove\n";
-      Printf.eprintf "   orphan files\n";
-      Printf.eprintf "\n";
-      BuildMisc.clean_exit 2;
-    end else
-    if orphans < 0 then
+        try
+          BuildEngine.init b !build_targets
+        with BuildEngine.MissingSourceWithNoBuildingRule (r, filename) ->
+          BuildEngineDisplay.print_loc r.rule_loc;
+          Printf.eprintf "Error: in project \"%s\", the source filename\n"
+                         r.rule_loc.loc_package.package_package;
+          Printf.eprintf "\t\"%s\" does not exist\n" filename;
+          BuildEngineDisplay.print_rule r;
+          BuildMisc.clean_exit 2
+      end;
+      time_step "   Build Engine Initialized";
+      time_step "Checking remaining artefacts...";
+      let orphans = BuildEngine.sanitize b !delete_orphans_arg
+                                         (fun basename ->
+                                           match basename with
+                                             "_tests" | "_reports" -> true
+                                             | _ -> false)
+      in
+      if orphans > 0 then begin
+          Printf.eprintf "Error: found %d orphan files in %s. You must remove them.\n" orphans !build_dir_basename_arg;
+          Printf.eprintf "\n";
+          Printf.eprintf "   You can add the -sanitize argument to automatically remove\n";
+          Printf.eprintf "   orphan files\n";
+          Printf.eprintf "\n";
+          BuildMisc.clean_exit 2;
+        end else
+        if orphans < 0 then
+          Printf.eprintf
+            "Warning: deleted %d orphan files in %s\n" (-orphans) !build_dir_basename_arg;
+      time_step "   Done sanitizing";
+
+      time_step "Building packages...";
+      BuildEngine.parallel_loop b ncores;
+      time_step "   Done building packages";
+
+      let errors =
+        List.map BuildEngineDisplay.strings_of_fatal_error (BuildEngine.fatal_errors b) @
+          List.map BuildEngineDisplay.strings_of_error (BuildEngineDisplay.errors b)
+      in
+      let t1 = MinUnix.gettimeofday () in
+
+      let nerrors = List.length errors in
       Printf.eprintf
-        "Warning: deleted %d orphan files in %s\n" (-orphans) !build_dir_basename_arg;
-    time_step "   Done sanitizing";
-
-    time_step "Building packages...";
-    BuildEngine.parallel_loop b ncores;
-    time_step "   Done building packages";
-
-    let errors =
-      List.map BuildEngineDisplay.strings_of_fatal_error (BuildEngine.fatal_errors b) @
-        List.map BuildEngineDisplay.strings_of_error (BuildEngineDisplay.errors b)
-    in
-    let t1 = MinUnix.gettimeofday () in
-
-    let nerrors = List.length errors in
-    Printf.eprintf
-      "%s in %.2fs. %d jobs (parallelism %.1fx), %d files generated.\n%!"
-      (if errors = [] then
-         if term.esc_ansi then
-           Printf.sprintf "%sBuild Successful%s"
-             term.esc_green_text term.esc_end
-         else "Build Successful"
-       else
-         Printf.sprintf "%s%d error%s%s" term.esc_red_text
-           nerrors
-           (if nerrors > 1 then "s" else "")
-           term.esc_end)
-      (t1 -. t0)
-      b.stats_command_executed
-      (b.stats_total_time /. (t1 -. t0))
-      b.stats_files_generated;
-    if errors <> [] (* && not (verbose 1 && term.esc_ansi) *) then begin
-      Printf.eprintf "Error log:\n";
-      List.iter (fun lines ->
-        Printf.eprintf "Error:\n";
-        List.iter (fun line ->
-          Printf.eprintf "%s\n" line
-        ) lines
-      ) errors;
+        "%s in %.2fs. %d jobs (parallelism %.1fx), %d files generated.\n%!"
+        (if errors = [] then
+           if term.esc_ansi then
+             Printf.sprintf "%sBuild Successful%s"
+                            term.esc_green_text term.esc_end
+           else "Build Successful"
+         else
+           Printf.sprintf "%s%d error%s%s" term.esc_red_text
+                          nerrors
+                          (if nerrors > 1 then "s" else "")
+                          term.esc_end)
+        (t1 -. t0)
+        b.stats_command_executed
+        (b.stats_total_time /. (t1 -. t0))
+        b.stats_files_generated;
+      if errors <> [] (* && not (verbose 1 && term.esc_ansi) *) then begin
+          Printf.eprintf "Error log:\n";
+          List.iter (fun lines ->
+              Printf.eprintf "Error:\n";
+              List.iter (fun line ->
+                  Printf.eprintf "%s\n" line
+                ) lines
+            ) errors;
+        end;
+      if errors <> [] then BuildMisc.clean_exit 2
     end;
-    if errors <> [] then BuildMisc.clean_exit 2
-  end;
   Printf.eprintf "%!";
   if b.build_should_restart then
     if stage = !max_stage then begin
-      Printf.eprintf "Error: build restarted too many times (%d times). Aborting\n%!" stage;
-      BuildMisc.clean_exit 2
-    end else begin
-      Printf.eprintf "Some configuration files were changed. Restarting build\n%!";
+        Printf.eprintf "Error: build restarted too many times (%d times). Aborting\n%!" stage;
+        BuildMisc.clean_exit 2
+      end else begin
+        Printf.eprintf "Some configuration files were changed. Restarting build\n%!";
 
-      do_compile (stage+1) p ncores  env_state arg_targets pre_w config_state
-    end else
+        do_compile (stage+1) p ncores  env_state arg_targets pre_w config_state
+      end else
     (p, bc, projects, package_map)
 
 let get_ncores cin =
@@ -333,7 +334,6 @@ let do_build () =
 
 
 let action () =
-
 (* Nothing specified, make build targets: *)
   if not !make_doc_targets && not !make_test_targets then make_build_targets := true;
 (* Test targets require build targets ? *)

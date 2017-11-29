@@ -10,8 +10,17 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open OcpCompat
+
+
+(* We should have package descriptions at this level ! *)
 type context = {
-    c_switches : switch StringMap.t;
+    mutable c_files : string StringMap.t;
+    mutable c_switches : switch StringMap.t;
+
+    (* The current switch when evaluating project descriptions *)
+    mutable c_switch : switch option;
+    mutable c_packages : package StringMap.t;
   }
 
 and switch = {
@@ -19,10 +28,7 @@ and switch = {
     sw_name : string;
     mutable sw_host : switch;
     mutable sw_build : switch;
-
-    mutable sw_declarations : package list;
-
-    mutable sw_packages : package StringMap.t;
+    mutable sw_packages : package list;
   }
 
 and package = {
@@ -34,17 +40,17 @@ and package = {
     pk_node : OcpToposort.node;
 
     pk_requires : require list;
-    pk_priority : priority;
+    pk_priority : int;
     pk_enabled : bool;
     (* Maybe another *less* important description of this package: *)
     mutable pk_sibling : package option;
 
 
-    pk_info : BuildValue.t;
-    pk_description : BuildValue.t;
+    pk_info : BuildValue.TYPES.env;
+    pk_description : BuildValue.TYPES.value;
 
     (* Computed from DESCRIPTION avec sorting *)
-    mutable pk_env : BuildValue.TYPES.env;
+    mutable pk_envs : BuildValue.TYPES.env list;
     mutable pk_rules : rule list;
   }
 

@@ -10,16 +10,52 @@
 (*                                                                        *)
 (**************************************************************************)
 
+open OcpCompat
+open BuildValue.TYPES
 open CopTypes
 
 let has_switch = ref false
 
-let init switch_name config =
-  has_switch := true;
-  let s = {
-      switch_name
+let parse_switch c sw_name sw_env =
+  if StringMap.mem sw_name c.c_switches then
+    Printf.kprintf failwith "Switch %S: already exists" sw_name;
+  let rec sw = {
+      sw_name;
+      sw_context = c;
+      sw_host = sw;
+      sw_build = sw;
+      sw_packages = [];
     } in
-  s, config
+  c.c_switches <- StringMap.add sw_name sw c.c_switches;
+  BuildValue.iter_env (fun s v ->
+      match s,v with
+      | "host", VString (sw_host, _) ->
+         begin try
+             let sw_host = StringMap.find sw_host c.c_switches in
+             sw.sw_host <- sw_host
+           with Not_found ->
+             Printf.kprintf failwith "Switch %S: host %S does not exist"
+                            sw_name sw_host
+         end
+      | "build", VString (sw_host, _) ->
+         begin try
+             let sw_host = StringMap.find sw_host c.c_switches in
+             sw.sw_host <- sw_host
+           with Not_found ->
+             Printf.kprintf failwith "Switch %S: host %S does not exist"
+                            sw_name sw_host
+         end
+      | _ ->
+         Printf.eprintf
+           "Warning: useless field %S in declaration of switch %S\n%!"
+           s sw_name
+    ) sw_env;
+  ()
+
+
+let host_name pk =
+  let _name = pk.pk_switch.sw_host.sw_name ^ ":" ^ pk.pk_name in
+  assert false
 
 type filter = {
     mutable fil_enabled : bool;
@@ -132,7 +168,7 @@ let sort_packages packages =
 let eval_switch b sw nerrors packages =
   Printf.eprintf
     "Warning (switch %S): %d errors while evaluating project descriptions\n%!"
-    sw.switch_name nerrors;
+    sw.sw_name nerrors;
   (* TODO: validate packages (OCaml plugin) and other ones *)
 
   let packages, broken_packages, missing_packages = filter_packages packages in
@@ -144,7 +180,7 @@ let eval_switch b sw nerrors packages =
   let (sorted_packages, _cycle, _non_sorted) = sort_packages packages in
   List.iter (fun pk ->
       CopPackage.rules_of_package b sw pk
-    ) packages;
+    ) sorted_packages;
 
 
   (* incomplete_packages, sort_packages, cycle, non_sorted *)

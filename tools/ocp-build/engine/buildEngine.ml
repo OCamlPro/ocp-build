@@ -987,7 +987,7 @@ let parallel_loop b ncores =
 
   (* first, create required directories *)
   List.iter (fun f ->
-    (* TODO *) assert false
+      FileString.safe_mkdir (file_filename f)
     ) (List.rev b.build_create_dirs);
   b.build_create_dirs <- [];
 

@@ -112,8 +112,16 @@ let action () =
 
   match !action with
   | None ->
-    List.iter (BuildUninstall.uninstall state) targets;
-    BuildUninstall.finish state;
+     if targets = [] then begin
+         Printf.eprintf "Error: no target specified\n";
+         Printf.eprintf
+           "  If you want to remove all targets from this project, use:\n";
+         Printf.eprintf "      ocp-build install --uninstall\n";
+         exit 2;
+       end else begin
+         List.iter (BuildUninstall.uninstall state) targets;
+         BuildUninstall.finish state;
+       end
   | Some (_,ActionList) ->
     begin match targets with
     | name :: _ ->

@@ -55,14 +55,7 @@ let cmd_man = [
 
 let cmd_doc = "Build targets"
 
-let new_switch b state config switch project_files =
-  let switch, config = CopSwitch.init switch config in
-  let (nerrors, projects) =
-    CopEval.load_projects state config project_files
-  in
-  CopSwitch.eval_switch b switch nerrors projects
-
-let add_prims b root project_files =
+let add_prims root =
 
   CopEval.add_prim
     "root" [ "Return the root of the workspace" ]
@@ -71,28 +64,31 @@ let add_prims b root project_files =
   CopEval.add_prim
     "new_switch"
     [ "Create a build switch: new_switch(name:string)" ]
-    (fun loc state config args ->
+    (fun loc c _config args ->
       match args with
-      | [ VString (switch,_) ] ->
-         new_switch b state config switch project_files;
+      | [ VString (sw_name,_) ] ->
+         CopSwitch.parse_switch c sw_name BuildValue.empty_env;
+         VBool true
+      | [ VString (sw_name,_); VObject sw_env ] ->
+         CopSwitch.parse_switch c sw_name sw_env;
          VBool true
       | _ ->
          BuildOCP2Prims.raise_bad_arity
            loc
-           "new_switch(name:string)" 1 args
+           "new_switch(name:string[,env])" 1 args
     );
 
   CopEval.add_prim
     "new_package"
     [ "Create a new package: new_package(name, requires, description)" ]
-    (fun loc state config args ->
+    (fun loc c config args ->
       if CopSwitch.has_switch() then
         try
           match args with
           | [ VString(name, _) ;
-              VList requires ;
-              VObject env ] ->
-             CopEval.add_project state loc name config requires env;
+              pk_info ;
+              pk_description ] ->
+             CopEval.add_project c loc name config pk_info pk_description;
              VBool true
           | _ -> raise Not_found
         with
@@ -190,26 +186,26 @@ let start_engine b build_targets =
 let cmd_action () =
 
   let root, workspace = CopArgs.lookup_root () in
-  let project_files, module_files = CopWorkspace.scan_workspace root in
+  let _project_files, module_files = CopWorkspace.scan_workspace root in
 
   let state = CopEval.init_state () in
-  let state, config = CopEval.init_workspace state module_files in
+  let c, config = CopEval.init_workspace state module_files in
 
   let b =
     BuildEngineContext.create root
       (Filename.concat root "_build")
   in
 
-  add_prims b root project_files;
+  add_prims root;
 
-  let _config = CopEval.eval_file state config
+  let _config = CopEval.eval_file c config
                                   (Filename.concat root workspace)
   in
 
   if not ( CopSwitch.has_switch () ) then begin
       Printf.eprintf "Warning: no switch defined in '%s', using 'default'.\n"
                      workspace;
-      new_switch b state config "default" project_files
+         CopSwitch.parse_switch c "default" BuildValue.empty_env;
     end;
 
 

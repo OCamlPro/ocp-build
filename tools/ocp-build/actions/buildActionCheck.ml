@@ -140,7 +140,7 @@ let do_print_project_info pj =
       Array.iter (fun pj ->
         list := string_of_package pj :: !list) array;
       List.iter (fun s ->
-        Printf.printf "%s%!" s)
+        Printf.eprintf "%s%!" s)
         (List.sort compare !list)
     in
 
@@ -551,7 +551,8 @@ let arg_list =
 
   "--with-help", Arg.Set print_queried_features_arg,
   " Print queried features and exit";
-  ]
+  ] @
+    BuildActionsWarnings.arg_list
 
 let subcommand = {
   Arg.cmd_name = command_name;
@@ -559,7 +560,8 @@ let subcommand = {
   cmd_args =
     arg_list
     @ BuildActionConfigure.arg_with
-    @ BuildActionsWarnings.arg_list;
+    @ BuildActionsWarnings.arg_list
+    @ Arg.translate_anon BuildArgs.arg_anon;
   cmd_doc = "Set the root of a project.";
   cmd_action = action;
 }

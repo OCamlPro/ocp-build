@@ -139,7 +139,9 @@ let get_uniq_ocaml_packages w state =
               opk2.opk_package.package_disabled <-
                 Some "Superseeded by better package";
               raise Not_found
-            end
+              end else
+              opk.opk_package.package_disabled <-
+                Some "Superseeded by better package"
 
           with Not_found ->
             packages := StringMap.add opk.opk_name opk !packages;

@@ -14,34 +14,27 @@ open OcpCompat
 open BuildValue.TYPES
 open CopTypes
 
-exception BadRule of BuildValue.TYPES.location * BuildValue.TYPES.value
+exception BadRule of BuildValue.TYPES.location * string * BuildValue.TYPES.value
 exception BadRequire of BuildValue.TYPES.location * BuildValue.TYPES.value
-
-
-
-type state = {
-    mutable config_files : string StringMap.t;
-    mutable package_descriptions : package list;
-  }
 
 
 module Init = struct
 
-  type context = state
+  type context = CopTypes.context
 
   let parse_error () =
     exit 2
 
   let new_file ctx filename digest =
     try
-      let digest2 = StringMap.find filename ctx.config_files in
+      let digest2 = StringMap.find filename ctx.c_files in
       if digest <> digest2 then begin
           Printf.eprintf "File %S modified during built. Exiting.\n%!" filename;
           exit 2
         end
     with Not_found ->
-      ctx.config_files <-
-        StringMap.add filename digest ctx.config_files
+      ctx.c_files <-
+        StringMap.add filename digest ctx.c_files
 
   end
 
@@ -51,14 +44,14 @@ module Eval : sig
     string ->
     string list ->
     (BuildValue.TYPES.location ->
-     state ->
+     CopTypes.context ->
      BuildValue.TYPES.config ->
      BuildValue.TYPES.value list -> BuildValue.TYPES.value) ->
     unit
 
   val read_ocamlconf :
     string ->
-    state ->
+    CopTypes.context ->
     BuildValue.TYPES.config ->
     BuildValue.TYPES.config
 
@@ -70,8 +63,10 @@ let eval_file state config file =
 
 let init_state () =
   {
-    config_files = StringMap.empty;
-    package_descriptions = [];
+    c_files = StringMap.empty;
+    c_switches = StringMap.empty;
+    c_packages = StringMap.empty;
+    c_switch = None;
   }
 
 let init_workspace state module_files =
@@ -102,8 +97,8 @@ let init_workspace state module_files =
 
   state, config
 
-let load_projects state config project_files =
-  let state = { state with package_descriptions = [] } in
+let load_projects c sw config project_files =
+  c.c_switch <- Some sw;
   let nerrors = ref 0 in
   let rec iter parents files =
     match files with
@@ -119,7 +114,7 @@ let load_projects state config project_files =
                              file filename;
             let config =
               try
-                eval_file state config file
+                eval_file c config file
               with BuildMisc.ParseError ->
                 incr nerrors;
                 config
@@ -129,7 +124,8 @@ let load_projects state config project_files =
               iter next_parents files
   in
   iter [ "", "<root>", config ] project_files;
-  !nerrors, state.package_descriptions
+  c.c_switch <- None;
+  !nerrors
 
 
 
@@ -213,7 +209,7 @@ let parse_list parse_fun list =
       VList list -> List.map parse_fun list
     | ele -> [parse_fun ele]
 
-let parse_rule rule =
+let parse_rule r_package rule =
   match rule with
   | VObject env ->
 
@@ -234,7 +230,8 @@ let parse_rule rule =
          | _ ->
             Printf.kprintf failwith "Invalid field %S in rule" field
        ) env
-     {
+                     {
+                       r_package;
        r_targets = [];
        r_sources = [];
        r_temps = [];
@@ -242,12 +239,13 @@ let parse_rule rule =
      }
   | _ -> raise Not_found
 
-let parse_rule loc rule =
+let parse_rule pk loc rule =
   try
-    parse_rule rule
+    parse_rule pk rule
   with _ ->
-    raise (BadRule (loc,rule))
+    raise (BadRule (loc,pk.pk_name, rule))
 
+          (*
 let parse_require loc = function
   | VString (req_name,_) ->
      { req_name; req_env = empty_env }
@@ -258,12 +256,44 @@ let parse_require loc = function
      { req_name; req_env }
   | r ->
      raise (BadRequire (loc,r))
+           *)
 
-let add_project state pk_loc pk_name pk_config pk_requires pk_env =
+let parse_info _pk _pk_loc _pk_info = assert false
+
+let rec insert_package pk old_pk =
+  if pk.pk_priority > old_pk.pk_priority then begin
+      pk.pk_sibling <- Some old_pk;
+      pk
+    end else
+    match old_pk.pk_sibling with
+    | None ->
+       old_pk.pk_sibling <- Some pk;
+       old_pk
+    | Some old_sibling ->
+       old_pk.pk_sibling <- Some (insert_package pk old_sibling);
+       old_pk
+
+let add_project c pk_loc pk_name pk_config
+                pk_info pk_description =
+  let pk_switch =
+    match c.c_switch with
+    | None -> Printf.kprintf failwith "package %S declared outside switch"
+                             pk_name
+    | Some sw -> sw
+  in
+  let pk_name = pk_switch.sw_name ^ ":" ^ pk_name in
+  let pk_info = match pk_info with
+    | VObject pk_info -> pk_info
+    | VList _ ->
+       BuildValue.set BuildValue.empty_env "requires" pk_info
+    | _ ->
+       Printf.kprintf failwith "package %S bad info type" pk_name
+  in
+
   let pk_dirname =
     try
       let dirname = BuildValue.get_string
-                      [pk_env; pk_config.config_env] "dirname" in
+                      [pk_info; pk_config.config_env] "dirname" in
       if Filename.is_relative dirname then
         Filename.concat pk_config.config_dirname dirname
       else
@@ -271,19 +301,37 @@ let add_project state pk_loc pk_name pk_config pk_requires pk_env =
     with Var_not_found _ ->
       pk_config.config_dirname
   in
-  let pk_requires =
-    List.map (parse_require pk_loc) pk_requires
-  in
+  (*
   let pk_rules = BuildValue.get_with_default [pk_env] "rules" (VList[]) in
-  let pk_rules = parse_list (parse_rule pk_loc) pk_rules in
+    let pk_rules = parse_list (parse_rule pk_loc) pk_rules in
+   *)
   let pk_node = OcpToposort.new_node () in
-  let p = {
+  let pk = {
+      pk_switch;
+
       pk_name;
       pk_dirname;
       pk_loc;
-      pk_requires;
-      pk_env;
-      pk_rules;
       pk_node;
+
+      pk_requires = [];
+      pk_priority = 0;
+      pk_enabled = true;
+      pk_sibling = None;
+
+      pk_info;
+      pk_description;
+
+      pk_envs = [];
+      pk_rules = [];
     } in
-  state.package_descriptions <- p :: state.package_descriptions
+  parse_info pk pk_loc pk_info;
+  pk_switch.sw_packages <- pk :: pk_switch.sw_packages;
+  c.c_packages <-
+    StringMap.add pk_name
+                  (try
+                     let old_pk = StringMap.find pk_name c.c_packages
+                     in
+                     insert_package pk old_pk
+                   with Not_found -> pk)
+                  c.c_packages

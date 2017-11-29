@@ -90,28 +90,28 @@ val value : prop_list -> value
 
 val empty_env : env
 
-val set_global : string -> plist -> unit
+val set_global : string -> value -> unit
 val get_global : string -> plist
 
-val bool_of_plist : plist -> bool
+val bool_of_plist : value -> bool
 val plist_of_bool : bool -> plist
 
-val strings_of_plist : plist -> string list
+val strings_of_plist : value -> string list
 val plist_of_strings : string list -> plist
 
-val string_of_plist : plist -> string
+val string_of_plist : value -> string
 val plist_of_string : string -> plist
 
-val string_option_of_plist : plist -> string option
+val string_option_of_plist : value -> string option
 val plist_of_string_option : string option -> plist
 
-val set : env -> string -> plist -> env
+val set : env -> string -> value -> env
 (* [get envs s] get from local envs, or from global env *)
 val get : env list -> string -> plist
-val get_with_default : env list -> string -> plist -> plist
+val get_with_default : env list -> string -> value -> plist
 (* [get_local envs s] get only from local envs *)
 val get_local : env list -> string -> plist
-val get_local_with_default : env list -> string -> plist -> plist
+val get_local_with_default : env list -> string -> value -> plist
 
 val get_local_prop_list : env list -> string -> prop_list
 val get_local_prop_list_with_default : env list -> string -> prop_list -> prop_list
@@ -148,13 +148,13 @@ val get_local_path_with_default : env list -> string -> string -> string
 
 val is_already_installed : env list -> bool
 
-val new_option : string -> plist -> plist source_option
+val new_option : string -> value -> value source_option
 val new_bool_option : string -> bool -> bool source_option
 val new_strings_option : string -> string list -> string list source_option
 val new_string_option : string -> string -> string source_option
 val new_version_option : string -> string -> string source_option
 
-val iter_env : (string -> plist -> unit) -> env -> unit
+val iter_env : (string -> value -> unit) -> env -> unit
 
 val bprint_env : Buffer.t -> string -> env -> unit
 val bprint_value : Buffer.t -> string -> value -> unit

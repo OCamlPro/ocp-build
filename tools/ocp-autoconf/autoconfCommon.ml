@@ -26,7 +26,7 @@ let find_content filename =
     exit 2
 
 let save_file ?exe ?(override=true) filename =
-  assert (OcpString.starts_with filename "skeleton/");
+  assert (OcpString.starts_with filename ~prefix:"skeleton/");
   let _,dst_filename = OcpString.cut_at filename '/' in
   if override || not (Sys.file_exists dst_filename) then
     let content = find_content filename in

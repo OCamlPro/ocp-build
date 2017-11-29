@@ -74,14 +74,21 @@ let _ =
    *)
 
   BuildOCamlPlugin.init "UNKNOWN";
-
+  let argv = Array.copy Sys.argv in
+  for i = 0 to Array.length argv - 1 do
+    match argv.(i) with
+    | "-install-lib" -> argv.(i) <- "--install-lib"
+    | "-install-bin" -> argv.(i) <- "--install-bin"
+    | "-install-meta" -> argv.(i) <- "--install-meta"
+    | _ -> ()
+  done;
   try
     let () = Ezcmd.main_with_subcommands
                ~name:"ocp-build"
                ~doc:"OCaml Highly-Parallel Build System"
                ~man: []
-               ~default: {BuildActionMake.subcommand with
-                           Arg.cmd_name = "ocp-build make" }
+               ~argv
+               ~default: "make"
                subcommands in
     ()
 

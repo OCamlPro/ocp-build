@@ -10,39 +10,34 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* assert 'ocaml' exists *)
 ocaml.exists = true;
+ocaml.version = autoconf.package_version;
 
-(* assert fields 'asmcomp' and 'bytecomp' exists and correctly typed *)
-ocaml = { asmcomp = []; bytecomp = [] } + ocaml;
-begin
-  ocaml.version = autoconf.package_version;
-  ocaml.files = [
-    "fileSig.ml";
+OCaml.library("ocplib-file",
+  ocaml + {
+      files = '[
+        fileSig.ml
+        fileOS.ml
+        fileChannel.ml
+        fileString.ml
 
-    "fileOS.ml";
-    "fileChannel.ml";
-
-    "fileString.ml";
-
-    "fileLabels.mli";
-    "fileLabels.ml", { asmcomp = ocaml.asmcomp + [ "-nolabels" ];
+        fileLabels.mli
+        fileLabels.ml { asmcomp = ocaml.asmcomp + [ "-nolabels" ];
                        bytecomp = ocaml.bytecomp + [ "-nolabels" ];
-                     };
-    "fileLines.ml";
+                     }
+        fileLines.ml
+        fileGen.ml
+        fileDir.ml
+        filePath.ml
+      ];
+      requires = '[
+        ocplib-lang
+        ocplib-unix
+      ];
+    });
 
-    "fileGen.ml";
-
-    "fileDir.ml";
-
-    "filePath.ml";
-
-    "file.ml"; (* For backward compatibility. To be removed soon. *)
-   ];
-
-  ocaml.requires = [
-    "ocplib-lang";
-    "ocplib-unix";
-  ];
-   new_package("ocplib-file", "library", ocaml);
-end
+OCaml.library("ocplib-file-compat",
+  ocaml + {
+    files = '[ file.ml ];
+    requires = '[ ocplib-file ];
+  });

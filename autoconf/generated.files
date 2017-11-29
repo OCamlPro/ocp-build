@@ -8,7 +8,7 @@ autoconf/build.ocp 9d81103f0dd977b6414645b9ab29c713
 autoconf/config.ocp2gen.in 4c0a6254516ad9a97b3a6dca69213442
 autoconf/config.ocpgen.in da3aeece4aac95639ba15bb1995715d7
 autoconf/config.ocpgen2.in 9a995bcba87527893659a1d970826a84
-autoconf/configure.ac 926d450446fe647fa3aeabdc029fcef3
+autoconf/configure.ac 2c378c66bd986489ee58a757dbc812ae
 autoconf/m4/ax_compare_version.m4 ebb455a7fd6a8ba9a4e38a25c8f0b686
 autoconf/m4/ocaml.m4 bffe7da970a9e23a89b611c00360f36f
 autoconf/ocaml-config.h.in 361f7d5a23b30c6c49756a9e34c2dcf9

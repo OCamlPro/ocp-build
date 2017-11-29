@@ -198,78 +198,94 @@ let default_cmd ~name ?version ~doc ~man =
   Term.info name ?version ~doc ~sdocs ~exits ~man
 
 let main_with_subcommands ~name ?version ?default
-                          ~doc ~man ?(topics = []) subs =
+                          ~doc ~man ?(topics = []) ?argv subs =
   let cmds = List.map (create_sub ?version) subs in
-  let default_cmd = match default with
-    | None ->
-       default_cmd ~name ?version ~doc ~man
-    | Some cmd -> create_sub ?version cmd
-  in
   let cmds =
     if List.exists (fun cmd -> cmd.cmd_name = "help") subs then
       cmds
     else
       cmds @ [help_cmd ~name ~man ~topics]
   in
-  match Term.eval_choice ~catch:false default_cmd cmds with
+  let argv = match argv with
+    | None -> Sys.argv
+    | Some argv -> argv
+  in
+  let argv =
+    if Array.length argv = 1 ||
+         let cmdname = argv.(1) in
+         cmdname <> "help" &&
+         cmdname <> "--help" &&
+         not (List.exists (fun cmd -> cmd.cmd_name = cmdname) subs)
+    then
+      match default with
+      | None -> argv
+      | Some default ->
+         let new_argv = Array.append [| argv.(0) |] argv in
+         new_argv.(1) <- default;
+         new_argv
+    else
+      argv
+  in
+  let default_cmd = default_cmd ~name ?version ~doc ~man in
+  match Term.eval_choice ~catch:false ~argv default_cmd cmds with
   | `Ok () -> ()
   | t -> Term.exit t
 
-let main ?version cmd =
-  let cmd = create_sub ?version cmd in
-  match Term.eval ~catch:false cmd with
-  | `Ok () -> ()
-  | `Error `Parse -> print_endline "toto"
-  | t -> Term.exit t
+        let main ?version ?argv cmd =
+          let cmd = create_sub ?version cmd in
+          match Term.eval ~catch:false ?argv cmd with
+          | `Ok () -> ()
+          | `Error `Parse -> print_endline "toto"
+          | t -> Term.exit t
 
-module Modules = struct
+        module Modules = struct
 
-  type block =
-    [ `S of string | `P of string | `Pre of string | `I of string * string
-      | `Noblank | `Blocks of block list ]
+          type block =
+            [ `S of string | `P of string | `Pre of string | `I of string * string
+              | `Noblank | `Blocks of block list ]
 
-  module Manpage = Cmdliner.Manpage
+          module Manpage = Cmdliner.Manpage
 
-  module Arg = struct
+          module Arg = struct
 
-    include Types
+            include Types
 
-    let translate ?docs arg_list =
-      List.map (fun (arg, spec, doc) ->
-            let len = String.length arg in
-            let arg =
-              if len > 0 && arg.[0] = '-' then
-                if len > 1 && arg.[1] = '-' then
-                  String.sub arg 2 (len-2)
-                else
-                  String.sub arg 1 (len-1)
-              else
-                arg
-            in
-            [arg], spec, info ?docs doc
-        ) arg_list
+            let translate ?docs arg_list =
+              List.map (fun (arg, spec, doc) ->
+                  let len = String.length arg in
+                  let arg =
+                    if len > 0 && arg.[0] = '-' then
+                      if len > 1 && arg.[1] = '-' then
+                        String.sub arg 2 (len-2)
+                      else
+                        String.sub arg 1 (len-1)
+                    else
+                      arg
+                  in
+                  [arg], spec, info ?docs doc
+                ) arg_list
 
-    let translate_anon arg_anon =
-      [
-        [], Anons (fun list ->
-                List.iter arg_anon list), info "General arguments"
-      ]
+            let translate_anon arg_anon =
+              [
+                [], Anons (fun list ->
+                        List.iter arg_anon list), info "General arguments"
+              ]
 
-    let parse ?name ?version ?(man = []) arg_list arg_anon arg_usage =
-      let cmd_args = translate arg_list @
-                       translate_anon  arg_anon in
-      let cmd_name = match name with
-          None -> "COMMAND"
-        | Some cmd_name -> cmd_name in
-      let cmd = {
-          cmd_name;
-          cmd_doc = arg_usage;
-          cmd_args;
-          cmd_man = man;
-          cmd_action = (fun () -> ());
-        } in
-      main ?version cmd
+            let parse ?name ?version ?(man = []) ?argv arg_list arg_anon arg_usage =
+              let cmd_args = translate arg_list @
+                               translate_anon  arg_anon in
+              let cmd_name = match name with
+                  None -> "COMMAND"
+                | Some cmd_name -> cmd_name in
+              let cmd = {
+                  cmd_name;
+                  cmd_doc = arg_usage;
+                  cmd_args;
+                  cmd_man = man;
+                  cmd_action = (fun () -> ());
+                } in
+              main ?version ?argv cmd
 
-  end
+          end
 
-end
+        end

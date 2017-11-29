@@ -2871,7 +2871,10 @@ let create w cin cout bc state =
 
       let clean_targets () = assert false
       let build_targets () =
-        (*        Printf.eprintf " (dir %s)\n" lib.lib_opk.opk_dirname; *)
+        (*
+        Printf.eprintf " (pk %s)\n" lib.lib_opk.opk_name;
+        Printf.eprintf " (dir %s)\n" lib.lib_opk.opk_dirname;
+         *)
         if lib.lib_opk.opk_installed then begin
           (*          Printf.eprintf "%s is already installed\n%!" name; *)
           {

@@ -260,8 +260,8 @@ val single_write : file_descr -> string -> int -> int -> int
    Thus, if an error occurs, [single_write] guarantees that no data
    has been written. *)
 
-
 (** {6 Interfacing with the standard input/output library} *)
+
 
 val in_channel_of_descr : file_descr -> in_channel
 (** Create an input channel reading from the given descriptor.

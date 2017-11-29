@@ -10,7 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-exception BadRule of BuildValue.TYPES.location * BuildValue.TYPES.value
+exception BadRule of BuildValue.TYPES.location * string * BuildValue.TYPES.value
 exception BadRequire of BuildValue.TYPES.location * BuildValue.TYPES.value
 
 val add_prim :
@@ -18,35 +18,41 @@ val add_prim :
   string list -> (* help *)
   (* function: *)
   (BuildValue.TYPES.location ->
-   state ->
+   CopTypes.context ->
    BuildValue.TYPES.config ->
    BuildValue.TYPES.value list -> BuildValue.TYPES.value) ->
   unit
 
-val init_state : unit -> state
+val init_state : unit -> CopTypes.context
 
 val eval_file :
-  state ->
+  CopTypes.context ->
   BuildValue.TYPES.config ->
   string ->
   BuildValue.TYPES.config
 
 val init_workspace :
-  state ->
+  CopTypes.context ->
   string list ->
-  state * BuildValue.TYPES.config
+  CopTypes.context * BuildValue.TYPES.config
 
 val load_projects :
-  state ->
+  CopTypes.context ->
+  CopTypes.switch ->
   BuildValue.TYPES.config ->
   string list ->
-  int * CopTypes.package list
+  int
 
 val add_project:
-  state ->
+  CopTypes.context ->
   BuildValue.TYPES.location ->
   string -> (* project name *)
   BuildValue.TYPES.config ->
-  BuildValue.TYPES.value list ->
-  BuildValue.TYPES.env ->
+  BuildValue.TYPES.value ->
+  BuildValue.TYPES.value ->
   unit
+
+val parse_rule :
+  CopTypes.package ->
+  BuildValue.TYPES.location ->
+  BuildValue.TYPES.value -> CopTypes.rule

@@ -10,10 +10,17 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(*
 val init :
   string ->
   BuildValue.TYPES.config ->
   CopTypes.switch * BuildValue.TYPES.config
+ *)
+
+val parse_switch :
+  CopTypes.context ->
+  OcpCompat.StringMap.key ->
+  BuildValue.TYPES.env -> unit
 
 val eval_switch :
   BuildEngineTypes.build_context ->

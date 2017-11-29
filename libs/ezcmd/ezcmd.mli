@@ -75,9 +75,10 @@ module Modules : sig
 
     (* Partial Compatibility with Stdlib Arg module *)
     val parse :
-      ?name:string ->
+      ?name:string ->  (* name of command *)
       ?version:string ->
       ?man: block list ->
+      ?argv:string array ->
       (string * spec * string) list ->
       (string -> unit) ->
       string ->
@@ -149,14 +150,16 @@ val info :
 val main_with_subcommands :
   name:string ->          (* name of main command *)
   ?version:string ->
-  ?default:Arg.command -> (* if absent, prints help *)
+  ?default:string -> (* if absent, prints help *)
   doc:string ->
   man:block list ->
   ?topics:(string * Cmdliner.Manpage.block list) list ->
+  ?argv:string array ->
   Arg.command list ->
   unit
 
 val main :
   ?version:string ->
+  ?argv:string array ->
   Arg.command ->
   unit
