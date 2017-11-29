@@ -10,4 +10,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-val subcommand : BuildArgs.subcommand
+open Ezcmd.Modules
+
+val subcommand : Arg.command

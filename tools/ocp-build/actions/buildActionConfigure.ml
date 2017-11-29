@@ -10,18 +10,36 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* ocp-build prefs [OPTIONS]
+let command_name = "configure"
+let command_help = {|
+  ocp-build configure [CONFIGURE_OPTIONS]
 
-  Set the options of the user preference file.
+  Set the configuration options of the project. This is mainly done using
+the options `--with FEATURE`, `--with FEATURE=VALUE` and `--without FEATURE`.
+|}
 
-*)
-
-module Arg = StdlibArg
+open Ezcmd.Modules
 
 open BuildArgs
 open BuildOptions
 
-let arg_list = [
+let with_args = ref []
+
+(* BuildOCP2Prims.with_feature *)
+
+let arg_with =
+  Arg.translate ~docs:"FEATURES OPTIONS"
+  [
+  "--with", Arg.String (fun name -> with_args := (name, true) :: !with_args),
+  " Enable a feature (X), maybe setting its value (X=Y)";
+
+  "--without", Arg.String (fun name -> with_args := (name, false) :: !with_args),
+  " Disable a feature (X)";
+  ]
+
+let arg_list =
+  Arg.translate ~docs:"CONFIGURE OPTIONS"
+  [
 
   arg_set_int_option ProjectOptions.njobs_option;
   arg_set_int_option ProjectOptions.verbosity_option;
@@ -51,6 +69,9 @@ let arg_list = [
 
 ]
 
+(* TODO: save project `with_args` so that it can be reloaded in
+    BuildActionCheck *)
+
 let action () =
   let project_root = BuildOptions.find_project_root () in
 (*  Printf.eprintf "project_root = %S\n" (FileGen.to_string project_root); *)
@@ -62,12 +83,9 @@ let action () =
   BuildOptions.save_config ProjectOptions.config_file
 
 let subcommand = {
-  sub_name = "configure";
-  sub_help =  "Set the project options.";
-  sub_arg_list = arg_list;
-  sub_arg_anon = None;
-  sub_arg_usage = [
-    "Set the project options.";
-  ];
-  sub_action = action;
+  Arg.cmd_name = command_name;
+  cmd_man = [ `P command_help ];
+  cmd_args = arg_with @ arg_list;
+  cmd_doc = "Set the project options.";
+  cmd_action = action;
 }

@@ -16,7 +16,7 @@
 
 *)
 
-open StdlibArg
+open Ezcmd.Modules
 
 open BuildArgs
 open BuildOptions
@@ -51,12 +51,9 @@ let action () =
   BuildOptions.save_config UserOptions.config_file
 
 let subcommand = {
-  sub_name = "prefs";
-  sub_help =  "Set the user global preferences.";
-  sub_arg_list = arg_list;
-  sub_arg_anon = None;
-  sub_arg_usage = [
-    "Set the user global preferences.";
-  ];
-  sub_action = action;
+  Arg.cmd_name = "prefs";
+  cmd_man = [`P "Set the user global preferences."];
+  cmd_args = Arg.translate arg_list;
+  cmd_doc = "Set the user global preferences.";
+  cmd_action = action;
 }

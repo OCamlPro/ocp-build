@@ -18,22 +18,3 @@ let arg_save_template = ref false
 
 let ocp_autoconf_dir =  "ocp-autoconf.d"
 let autoconf_dir =  "autoconf"
-
-let arg_list = Arg.align [
-    "--save-template", Arg.Set arg_save_template,
-    " Save a template if configuration file is not found";
-    "--git-add", Arg.Set arg_git_add,
-    " Call 'git add' at the end";
-    "-f", Arg.Set arg_force,
-    " Force overwrite of existing files";
-  ]
-
-let arg_usage =
-  String.concat "\n" [
-    Printf.sprintf "%s [OPTIONS]" (Filename.basename Sys.executable_name);
-    "Available options:";
-  ]
-let arg_anon s =
-  Printf.eprintf "Error: unexpected argument %S\n%!" s;
-  Arg.usage arg_list arg_usage;
-  exit 2

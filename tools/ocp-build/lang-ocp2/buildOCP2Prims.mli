@@ -33,16 +33,6 @@ module Init(S: sig
 
     type context
 
-    val define_package :
-      location ->
-      context ->
-      config ->
-      name:string ->
-      kind:string ->
-      unit
-
-    val filesubst : (string * env list) BuildSubst.t
-
   end) : sig
   val primitives :
     (
@@ -58,4 +48,15 @@ module Init(S: sig
            unit
   val primitives_help : unit -> string list OcpCompat.StringMap.t
 
+  val apply_fun :
+    BuildValue.TYPES.functional_value ->
+    BuildValue.TYPES.location ->
+    S.context ->
+    BuildValue.TYPES.config ->
+    BuildValue.TYPES.value list -> BuildValue.TYPES.value
+
   end
+
+val with_feature : string -> unit
+val without_feature : string -> unit
+val queried_features : unit -> bool StringMap.t

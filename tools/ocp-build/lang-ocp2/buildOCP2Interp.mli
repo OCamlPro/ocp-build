@@ -18,18 +18,6 @@ module Eval(S: sig
 
     type context
 
-    (* a substitution that can be applied *)
-    val filesubst : (string * env list) BuildSubst.t
-
-
-    val define_package :
-      location ->
-      context ->
-      config ->
-      name:string ->
-      kind:string ->
-      unit
-
     (* [parse_error()] is called in case of syntax error, to
        decide what to do next (raise an exception, exit or continue). *)
     val parse_error : unit -> unit
@@ -55,5 +43,12 @@ module Eval(S: sig
             BuildValue.TYPES.config ->
             BuildValue.TYPES.value list -> BuildValue.TYPES.value) ->
            unit
+
+ val apply_fun :
+   BuildValue.TYPES.functional_value ->
+   BuildValue.TYPES.location ->
+   S.context ->
+   BuildValue.TYPES.config ->
+   BuildValue.TYPES.value list -> BuildValue.TYPES.value
 
 end

@@ -15,29 +15,37 @@ minunix_SRCDIR=libs/ocplib-unix
 unix_SRCDIR=libs/ocplib-maxunix
 file_SRCDIR=libs/ocplib-file
 system_SRCDIR=libs/ocplib-system
-stdlib_SRCDIR=libs/ocplib-stdlib
+ezcmd_SRCDIR=libs/ezcmd
 config_SRCDIR=libs/ocplib-config
 OCP_BUILD_SRCDIR=tools/ocp-build
 OCP_BUILD_DSTDIR=$(OBUILD_DSTDIR)/ocp-build
 
-OCPLIB_NAMES=stdlib debug lang unix file system config compat subcmd
+OCPLIB_NAMES=debug lang unix file system config compat
+
+CMDLINER_DIR := $(shell ocamlfind query cmdliner)
+EXTERNAL_INCLUDES=    -I ${CMDLINER_DIR}
+EXTERNAL_LIBS=${CMDLINER_DIR}/cmdliner.cmxa
 
 INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
-    $(OCP_BUILD_SRCDIR) \
+    -I $(OCP_BUILD_SRCDIR) \
+    -I libs/ezcmd \
+    -I $(OCP_BUILD_SRCDIR)/misc \
     -I $(OCP_BUILD_SRCDIR)/lang-ocp \
     -I $(OCP_BUILD_SRCDIR)/lang-ocp2 \
     -I $(OCP_BUILD_SRCDIR)/engine \
     -I $(OCP_BUILD_SRCDIR)/actions \
-    -I $(OCP_BUILD_SRCDIR)/ocaml
+    -I $(OCP_BUILD_SRCDIR)/meta \
+    -I $(OCP_BUILD_SRCDIR)/ocaml \
 
-OCPLIB_LIBS=$(foreach lib, $(OCPLIB_NAMES), ocplib-$(lib))
+OCPLIB_LIBS=$(foreach lib, $(OCPLIB_NAMES), ocplib-$(lib)) \
+  ezcmd ocplib-file-compat
 
 OCP_BUILD_BOOTER=boot/ocp-build.asm
 
 STRING_COMPAT=\
 	$(compat_SRCDIR)/ocpCompat.ml
 
-OCPLIB_STDLIB=$(stdlib_SRCDIR)/stdlibArg.ml
+EZCMD=$(ezcmd_SRCDIR)/ezcmd.ml
 
 OCPLIB_DEBUG= $(debug_SRCDIR)/ocpDebug.ml
 
@@ -62,16 +70,16 @@ OCPLIB_CONFIG= \
     $(config_SRCDIR)/simpleConfigOCaml.ml \
     $(config_SRCDIR)/simpleConfig.ml
 
-BUILD_MISC= $(OCP_BUILD_SRCDIR)/logger.ml				\
-    $(OCP_BUILD_SRCDIR)/buildMisc.ml					\
-    $(OCP_BUILD_SRCDIR)/buildWarnings.ml				\
-    $(OCP_BUILD_SRCDIR)/buildMtime.ml					\
-    $(OCP_BUILD_SRCDIR)/buildScanner.ml					\
-    $(OCP_BUILD_SRCDIR)/buildSubst.ml					\
-    $(OCP_BUILD_SRCDIR)/buildFind.ml 					\
-    $(OCP_BUILD_SRCDIR)/buildTerm.ml					\
-    $(OCP_BUILD_SRCDIR)/versioning.ml					\
-    $(OCP_BUILD_SRCDIR)/ocamldot.ml 					\
+BUILD_MISC= $(OCP_BUILD_SRCDIR)/misc/logger.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/buildMisc.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/buildWarnings.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/buildMtime.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/buildScanner.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/buildSubst.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/buildFind.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/buildTerm.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/versioning.ml	\
+    $(OCP_BUILD_SRCDIR)/misc/ocamldot.ml	\
     $(OCP_BUILD_SRCDIR)/buildValue.ml
 
 
@@ -84,7 +92,8 @@ BUILD_PROJECT= \
     $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPPrims.ml		\
     $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPInterp.ml		\
     \
-    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Tree.ml			\
+    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Tree.ml		\
+    $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Lexer.ml     	\
     $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parser.ml		\
     $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parse.ml		\
     $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Prims.ml		\
@@ -110,11 +119,11 @@ BUILD_LIB= $(OCP_BUILD_SRCDIR)/buildVersion.ml	\
     $(OCP_BUILD_SRCDIR)/buildConfig.ml		\
     $(OCP_BUILD_SRCDIR)/buildUninstall.ml		
 
-BUILD_OCAMLFIND= $(OCP_BUILD_SRCDIR)/ocaml/metaTypes.ml			\
-    $(OCP_BUILD_SRCDIR)/ocaml/metaLexer.ml					\
-    $(OCP_BUILD_SRCDIR)/ocaml/metaFile.ml					\
-    $(OCP_BUILD_SRCDIR)/ocaml/metaParser.ml					\
-    $(OCP_BUILD_SRCDIR)/ocaml/metaConfig.ml
+BUILD_OCAMLFIND= $(OCP_BUILD_SRCDIR)/meta/metaTypes.ml	\
+    $(OCP_BUILD_SRCDIR)/meta/metaLexer.ml		\
+    $(OCP_BUILD_SRCDIR)/meta/metaParser.ml		\
+    $(OCP_BUILD_SRCDIR)/meta/metaFile.ml		\
+    $(OCP_BUILD_SRCDIR)/meta/metaConfig.ml
 
 BUILD_OCAML= $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlConfig.ml	\
     $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlTypes.ml		\
@@ -136,26 +145,28 @@ BUILD_OCAML= $(OCP_BUILD_SRCDIR)/ocaml/buildOCamlConfig.ml	\
 BUILD_MAIN= $(OCP_BUILD_SRCDIR)/actions/buildArgs.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActions.ml		\
     $(OCP_BUILD_SRCDIR)/actions/buildActionsWarnings.ml	\
-    $(OCP_BUILD_SRCDIR)/actions/buildActionInit.ml	\
-    $(OCP_BUILD_SRCDIR)/actions/buildActionPrefs.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionConfigure.ml	\
-    $(OCP_BUILD_SRCDIR)/actions/buildActionBuild.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionInit.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionCheck.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionPrefs.ml	\
+    $(OCP_BUILD_SRCDIR)/actions/buildActionMake.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionInstall.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionClean.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionTests.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionUninstall.ml	\
     $(OCP_BUILD_SRCDIR)/actions/buildActionQuery.ml	\
-    $(OCP_BUILD_SRCDIR)/actions/buildActionHelp.ml	\
     $(OCP_BUILD_SRCDIR)/buildMain.ml
 
-OCP_BUILD_MLS= $(STRING_COMPAT) $(OCPLIB_STDLIB) $(OCPLIB_DEBUG)	\
+OCP_BUILD_MLS= $(STRING_COMPAT) $(EZCMD) $(OCPLIB_DEBUG)	\
   $(OCPLIB_LANG) $(OCPLIB_UNIX) $(OCPLIB_FILE) $(OCPLIB_SYSTEM)		\
   $(OCPLIB_CONFIG) $(BUILD_MISC) $(BUILD_PROJECT) $(BUILD_ENGINE)	\
   $(BUILD_OCAML_OBJS) $(BUILD_LIB) $(BUILD_OCAMLFIND) $(BUILD_OCAML)	\
   $(BUILD_MAIN)
 
 OCP_BUILD_MLLS= \
-   $(lang_SRCDIR)/ocamllexer.mll $(OCP_BUILD_SRCDIR)/ocaml/metaLexer.mll 
+   $(lang_SRCDIR)/ocamllexer.mll \
+   $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Lexer.mll     	\
+   $(OCP_BUILD_SRCDIR)/meta/metaLexer.mll  \
 
 OCP_BUILD_MLYS= $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.mly
 
@@ -191,7 +202,7 @@ $(OCP_BUILD_BOOTER): $(MAKE_CONFIG)
 	$(MAKE) partialclean
 
 create-booter: $(OCP_BUILD_MLS) $(OCP_BUILD_CMXS) $(OCP_BUILD_STUBS)
-	$(OCAMLOPT) -o $(OCP_BUILD_BOOTER) unix.cmxa str.cmxa $(OCP_BUILD_CMXS) $(OCP_BUILD_STUBS)
+	$(OCAMLOPT) -o $(OCP_BUILD_BOOTER) unix.cmxa str.cmxa $(EXTERNAL_LIBS) $(OCP_BUILD_CMXS) $(OCP_BUILD_STUBS)
 
 byte: ocp-build.byte
 ocp-build.byte: $(OCP_BUILD_MLS) $(OCP_BUILD_CMOS) $(OCP_BUILD_STUBS)
@@ -212,10 +223,10 @@ $(OCP_BUILD_SRCDIR)/buildVersion.ml: Makefile $(MAKE_CONFIG)
 	echo "let version=\"$(PACKAGE_VERSION)\"" > $(OCP_BUILD_SRCDIR)/buildVersion.ml
 
 $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.cmi: $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.mli
-	$(OCAMLC) -c -o $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.cmi $(INCLUDES) $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.mli
+	$(OCAMLC) -c -o $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.cmi $(EXTERNAL_INCLUDES) $(INCLUDES) $(OCP_BUILD_SRCDIR)/lang-ocp/buildOCPParser.mli
 
 $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parser.cmi: $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parser.mli
-	$(OCAMLC) -c -o $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parser.cmi $(INCLUDES) $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parser.mli
+	$(OCAMLC) -c -o $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parser.cmi $(EXTERNAL_INCLUDES) $(INCLUDES) $(OCP_BUILD_SRCDIR)/lang-ocp2/buildOCP2Parser.mli
 
 doc:
 	cd docs/user-manual; $(MAKE)
@@ -224,8 +235,8 @@ install: install-ocp-build
 	if test -f $(OBUILD_DSTDIR)/ocp-pp/ocp-pp.asm; then $(MAKE) install-ocp-pp; else :; fi
 
 OCPBUILD_INSTALL=./_obuild/ocp-build/ocp-build.asm install		\
-  -install-lib $(ocamldir) -install-meta $(metadir)                    \
-  -install-bin $(bindir)
+  --install-lib $(ocamldir) --install-meta $(metadir)                    \
+  --install-bin $(bindir)
 
 DST_SITE_OCP2 := ${ocamldir}/site-ocp2/ocp-build
 SRC_SITE_OCP2 := ${OCP_BUILD_SRCDIR}/lang-ocp2/site-ocp2/ocp-build
@@ -321,13 +332,13 @@ include autoconf/Makefile.rules
 	$(OCAMLYACC) $<
 
 .ml.cmx:
-	$(OCAMLOPT) -c -o $*.cmx $(INCLUDES) $<
+	$(OCAMLOPT) -c -o $*.cmx $(EXTERNAL_INCLUDES) $(INCLUDES) $<
 
 .mli.cmi:
-	$(OCAMLC) -c -o $*.cmi $(INCLUDES) $<
+	$(OCAMLC) -c -o $*.cmi $(EXTERNAL_INCLUDES) $(INCLUDES) $<
 
 .ml.cmo:
-	$(OCAMLC) -c -o $*.cmo $(INCLUDES) $<
+	$(OCAMLC) -c -o $*.cmo $(EXTERNAL_INCLUDES) $(INCLUDES) $<
 
 .c.o:
 	$(OCAMLC) -c $(INCLUDES) $<

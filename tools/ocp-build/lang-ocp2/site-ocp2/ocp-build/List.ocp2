@@ -19,6 +19,7 @@ function ListMaker(){
     try { List.map = List_map; } catch("unknown-variable", x){}
     try { List.flatten = List_flatten; } catch("unknown-variable", x){}
     try { List.tail = List_tail; } catch("unknown-variable", x){}
+    try { List.tail = List_fold_left; } catch("unknown-variable", x){}
 
     return List;
 }

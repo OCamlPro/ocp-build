@@ -80,12 +80,11 @@ let mkrecord fields =
 
 %token <string> STRING
 %token <int> INT
-%token <float> FLOAT
-%token <char> CHAR
 
 %token SEMI
 %token COMMA
 %token DOT
+%token QUOTE
 
 %token EQUAL
 %token PLUSEQUAL
@@ -356,7 +355,9 @@ simpler_expr:
 
 expr_semi_exprs_maybe_empty:
 |                           { [] }
-| expr expr_semi_exprs { $1 :: $2 }
+| SEMI                      { [] }
+| SEMI expr expr_semi_exprs { $2 :: $3 }
+| expr expr_semi_exprs      { $1 :: $2 }
 ;
 expr_semi_exprs:
 | { [] }

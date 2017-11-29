@@ -11,7 +11,10 @@
 (**************************************************************************)
 
 function SysMaker(){
-  Sys = { file_exists = Sys_file_exists };
+  Sys = {
+      file_exists = Sys_file_exists;
+      readdir = Sys_readdir;
+      };
   return Sys;
 }
 

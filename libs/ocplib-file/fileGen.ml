@@ -58,8 +58,6 @@ type t = {
 }
 
 let root_basename = FileOS.dir_separator_string
-let curdir_basename = "."
-let pardir_basename = ".."
 
 let basename t = t.file_basename
 
@@ -86,6 +84,7 @@ let is_implicit t =
   in
   iter t.file_dir
 
+       (*
 let to_root_dir t =
   let rec root = {
     file_dir = root;
@@ -94,6 +93,7 @@ let to_root_dir t =
     file_string = t.file_partition ^ root_basename;
   } in
   root
+        *)
 
 let to_empty_dir t =
   let rec root = {
@@ -122,11 +122,13 @@ let to_parent_dir t =
   } in
   root
 
+    (*
 let rec to_string_raw t =
   if t.file_dir == t then
     Printf.sprintf "[%s]" t.file_basename
   else
     Printf.sprintf "%s::%s" (to_string_raw t.file_dir) t.file_basename
+     *)
 
 let to_string t = t.file_string  (* ^ "=" ^ to_string_raw t *)
 let dirname t =
@@ -512,10 +514,12 @@ let to_rooted_string t =
   else
     Printf.sprintf ".%c%s" FileOS.dir_separator t.file_string
 
+(*
 module String = FileString
 module Lines = FileLines
 module Channel = FileChannel
 module OS = FileOS
+ *)
 
 (*
 let safe_basename s =

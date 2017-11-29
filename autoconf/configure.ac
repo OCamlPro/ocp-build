@@ -7,10 +7,10 @@
 #   * ocp-autoconf.ac for autoconf parts              #
 #                                                     #
 #######################################################
-AC_INIT(ocp-build,1.99.19-beta)
+AC_INIT(ocp-build,1.99.20-beta)
 CONFIGURE_ARGS=$*
 AC_COPYRIGHT(Copyright 2011-2016 OCamlPro SAS)
-OCAML_MINIMAL_VERSION=3.12.1
+OCAML_MINIMAL_VERSION=4.02.1
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_ARG_ENABLE(version-check,
@@ -112,6 +112,13 @@ AC_SUBST(OCAMLDEP)
 AC_SUBST(OCAMLBIN)
 AC_PROG_OCAMLLEX
 AC_PROG_OCAMLYACC
+if test "$OCAMLFIND" = "no"; then
+   AC_MSG_ERROR([You must install OCaml package 'ocamlfind'])
+fi
+AC_CHECK_OCAML_PKG(cmdliner)
+if test "$OCAML_PKG_cmdliner" = "no"; then
+   AC_MSG_ERROR([Please install OCaml package 'cmdliner'.])
+fi
 OPAM_REPO=/home/lefessan/GIT/ocp-public/opam-repository
 OPAM_REPO_OFFICIAL_REMOTE=ocaml
 OPAM_REPO_FORK_REMOTE=origin
@@ -134,6 +141,7 @@ AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [4.03.0],, HAS_BYTES=4.03.0)
 ##                                                            #
 ###############################################################
 
+AC_SUBST(OCAMLFIND)
 AC_SUBST(OCAMLYACC)
 AC_SUBST(OCAMLLEX)
 AC_SUBST(CONFIGURE_ARGS)

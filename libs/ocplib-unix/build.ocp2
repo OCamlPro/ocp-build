@@ -15,6 +15,12 @@ system = system[0];
 ocp_pp = "%{ocp-pp_FULL_DST_DIR}%/ocp-pp.byte";
 
 begin
+
+  (* remove warnings on ambiguous comments *)
+  ocaml = ocaml + { bytecomp = []; asmcomp = [] };
+  ocaml.bytecomp += [ "-w"; "-50" ];
+  ocaml.asmcomp += [ "-w"; "-50" ];
+  
   ocaml.version = autoconf.package_version;
   with_ocp_pp = { pp = ocp_pp; pp_requires = [ "ocp-pp:byte" ]; };
   ocaml.files = [

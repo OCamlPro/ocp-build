@@ -1,14 +1,14 @@
 .travis-ci.sh e22cfae9156c383ce5a4abf646798a17
 .travis-install.sh 9bfd3722ac873da3f33d69fd670659b2
-.travis.yml 55a30e833a701da58fc4fa03c230310d
+.travis.yml fa9f32e8d6f50113a91f7fc9c2ca886b
 autoconf/.gitignore 00973f185af428536c3caff11a53626d
-autoconf/Makefile.config.in 66b213cfcdda530bfdbe7e6540d10393
+autoconf/Makefile.config.in 6789c79863a0489e31002d9f9e840d57
 autoconf/Makefile.rules c9e85dee44380b1a855cb2d49da44d54
 autoconf/build.ocp 9d81103f0dd977b6414645b9ab29c713
-autoconf/config.ocp2gen.in 580dd397811b979d94d9fe873d78e859
-autoconf/config.ocpgen.in a12b3db0b045829de61e185022392a05
+autoconf/config.ocp2gen.in 4c0a6254516ad9a97b3a6dca69213442
+autoconf/config.ocpgen.in da3aeece4aac95639ba15bb1995715d7
 autoconf/config.ocpgen2.in 9a995bcba87527893659a1d970826a84
-autoconf/configure.ac dabcc336df0e19ca8f6264c200aafa92
+autoconf/configure.ac a99aa0ae322289cea4c709f503885f38
 autoconf/m4/ax_compare_version.m4 ebb455a7fd6a8ba9a4e38a25c8f0b686
 autoconf/m4/ocaml.m4 bffe7da970a9e23a89b611c00360f36f
 autoconf/ocaml-config.h.in 361f7d5a23b30c6c49756a9e34c2dcf9
@@ -17,5 +17,5 @@ autoconf/travis-install.sh 9bfd3722ac873da3f33d69fd670659b2
 build.ocp e34f091d3841a5b334fbb7341b9e227e
 build.ocp2 1e8c5c999be6aa80323779226d7c7f1a
 configure 3ffc5da4b7c00140c3024342e64cc2a5
-opam 644c736dde38935b13975664d4e1a8dc
+opam 4745d71f4872c2ff948ca7e84b880442
 push-opam.sh c48fac7c8991f96357c9fc65a2ae6288

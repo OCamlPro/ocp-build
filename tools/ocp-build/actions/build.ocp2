@@ -15,19 +15,19 @@ begin
     "buildArgs.ml";
     "buildActions.ml";          (* Main possible actions *)
     "buildActionsWarnings.ml";          (* Main possible actions *)
-    "buildActionInit.ml";
-    "buildActionPrefs.ml";
     "buildActionConfigure.ml";
-    "buildActionBuild.ml";
+    "buildActionInit.ml";
+    "buildActionCheck.ml";
+    "buildActionPrefs.ml";
+    "buildActionMake.ml";
     "buildActionInstall.ml";
     "buildActionClean.ml";
     "buildActionTests.ml";
     "buildActionUninstall.ml";
     "buildActionQuery.ml";
-    "buildActionHelp.ml";
   ];
 
-  ocaml.requires = [ "ocp-build-lib";
+  ocaml.requires = [ "ocp-build-lib"; "ezcmd";
                      "ocp-build-ocaml-plugin";
                      "ocp-build-oasis" ];
   OCaml.library( "ocp-build-actions", ocaml);

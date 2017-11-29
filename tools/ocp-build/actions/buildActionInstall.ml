@@ -10,7 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StdlibArg
+open Ezcmd.Modules
+
 open OcpCompat
 
 open BuildTypes
@@ -119,8 +120,7 @@ let do_install dest_dir _install_what projects _package_map =
     end
 
 let arg_list =
-  BuildOptions.merge
-    [
+  Arg.translate ~docs:"INSTALL OPTIONS"
       [
   "-install-bundle", Arg.String (fun _s ->
     Printf.eprintf "Warning: option -install-bundle is obsolete\n%!"
@@ -133,15 +133,12 @@ let arg_list =
         "--print-only", Arg.Set print_only,
   " Only compute and print the list of actions to perform";
 
-      ];
-      BuildActionBuild.arg_list
-    ]
-
+      ]
 
 
 let action () =
-  BuildActionBuild.make_build_targets := true;
-  let (p, _bc, projects, package_map) = BuildActionBuild.do_build () in
+  BuildActionMake.make_build_targets := true;
+  let (p, _bc, projects, package_map) = BuildActionMake.do_build () in
 
   let install_where = BuildOCamlInstall.install_where p.cin p.cout in
   let install_what = BuildOCamlInstall.install_what () in
@@ -152,10 +149,11 @@ let action () =
 
 
 let subcommand = {
-  sub_name = "install";
-  sub_help =  "Install the project.";
-  sub_arg_list = arg_list;
-  sub_arg_anon = Some BuildArgs.arg_anon;
-  sub_arg_usage = [ "Install the project."; ];
-  sub_action = action;
+  Arg.cmd_name = "install";
+  cmd_man = [`P "Install the project."];
+  cmd_args = arg_list
+             @ BuildActionMake.arg_list
+             @ Arg.translate_anon BuildArgs.arg_anon;
+  cmd_doc = "Install the project.";
+  cmd_action = action;
 }

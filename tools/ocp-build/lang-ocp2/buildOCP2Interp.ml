@@ -19,14 +19,6 @@ module Eval(S: sig
 
   type context
 
-  val filesubst : (string * env list) BuildSubst.t
-  val define_package :
-    location ->
-    context -> config ->
-    name:string ->
-    kind:string ->
-    unit
-
     (*    if not !continue_on_ocp_error then exit 2; *)
   val parse_error : unit -> unit
   val new_file : context -> string -> string -> unit
@@ -37,6 +29,7 @@ module Primitives = BuildOCP2Prims.Init(S)
 let primitives_help = Primitives.primitives_help
 
 let add_primitive = Primitives.add_primitive
+let apply_fun = Primitives.apply_fun
 
 let read_config_file filename =
   try
@@ -261,7 +254,7 @@ and eval_expression ctx config exp =
         BuildValue.config_get config ident
       with Var_not_found _ ->
         if StringMap.mem ident !Primitives.primitives then
-          VPrim ident
+          VFun (VPrim ident)
         else
           raise (OCPExn (loc, "unknown-variable", VString (ident, StringRaw)))
     end
@@ -320,8 +313,8 @@ and eval_expression ctx config exp =
     let args = List.map (eval_expression ctx config) args in
     begin
       match f with
-      | VFunction f -> f loc args
-      | VPrim name ->
+      | VFun (VFunction f) -> f loc args
+      | VFun (VPrim name) ->
         begin
           let (f, _) =
             try
@@ -367,7 +360,7 @@ and eval_expression ctx config exp =
         VObject BuildValue.empty_env
       with OCPReturn v -> v
     in
-    VFunction f
+    VFun (VFunction f)
 
   | ExprRecord nvs ->
     let env = List.fold_left (fun env (name,v) ->

@@ -16,6 +16,34 @@ open AutoconfArgs
 
 
 
+let show_makers () =
+  Printf.printf "Available makers:\n";
+  StringMap.iter (fun file _maker ->
+      Printf.printf " %s" file
+    ) !AutoconfCommon.makers;
+  Printf.printf "\n%!"
+
+let arg_list = Arg.align [
+    "--save-template", Arg.Set arg_save_template,
+    " Save a template if configuration file is not found";
+    "--git-add", Arg.Set arg_git_add,
+    " Call 'git add' at the end";
+    "-f", Arg.Set arg_force,
+    " Force overwrite of existing files";
+    "--show-makers", Arg.Unit show_makers,
+    " Show file makers";
+  ]
+
+let arg_usage =
+  String.concat "\n" [
+    Printf.sprintf "%s [OPTIONS]" (Filename.basename Sys.executable_name);
+    "Available options:";
+  ]
+let arg_anon s =
+  Printf.eprintf "Error: unexpected argument %S\n%!" s;
+  Arg.usage arg_list arg_usage;
+  exit 2
+
 
 let commit_filename =  Filename.concat autoconf_dir "generated.files"
 let commit_filename_old =  "ocp-autoconf.files"
@@ -38,7 +66,7 @@ let apply_makers () =
   ()
 
 let () =
-  Arg.parse AutoconfArgs.arg_list AutoconfArgs.arg_anon AutoconfArgs.arg_usage;
+  Arg.parse arg_list arg_anon arg_usage;
 
   AutoconfGlobalConfig.load ();
   AutoconfProjectConfig.load ();

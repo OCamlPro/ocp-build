@@ -16,7 +16,7 @@
 
 *)
 
-open StdlibArg
+open Ezcmd.Modules
 open BuildArgs
 open BuildOptions
 
@@ -58,10 +58,9 @@ let action () =
   end
 
 let subcommand = {
-  sub_name = "clean";
-  sub_help =  "Clean the project.";
-  sub_arg_list = arg_list;
-  sub_arg_anon = None;
-  sub_arg_usage = [ "Clean the project."; ];
-  sub_action = action;
+  Arg.cmd_name = "clean";
+  cmd_man =  [`P "Clean the project."];
+  cmd_args = Arg.translate arg_list;
+  cmd_doc = "Clean the project.";
+  cmd_action = action;
 }

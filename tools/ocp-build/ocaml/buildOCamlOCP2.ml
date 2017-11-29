@@ -15,11 +15,11 @@ open BuildOCPTypes
 open BuildOCamlTypes
 open BuildValue.TYPES
 
-let verbose = OcpDebug.verbose_function [ "B"; "BP"; "BuildOCamlPackage"]
+(* let verbose = OcpDebug.verbose_function [ "B"; "BP"; "BuildOCamlPackage"] *)
 
 let add_primitive name prim_help prim =
   let prim_name = "OCaml_" ^ name in
-  BuildOCamlVariables.ocamlmod_add name (VPrim prim_name);
+  BuildOCamlVariables.ocamlmod_add name (VFun (VPrim prim_name));
   BuildOCP.add_primitive prim_name prim_help prim
 
 
@@ -187,7 +187,7 @@ let _ =
 
   add_primitive "system"
     [ "Call a shell command" ]
-    (fun loc state config args ->
+    (fun loc _state _config args ->
       match args with
       | [ VList cmd ] ->
           VTuple [ VString ("", StringRaw);
@@ -203,7 +203,7 @@ let _ =
 
   add_primitive "pack" [
     "pack(string[,pack_env], list-of-strings)"
-  ] (fun loc ctx config args ->
+  ] (fun loc _ctx _config args ->
     let packmodname, pack_env, files =
       match args with
       | [VString (packmodname,_); files] ->
@@ -239,7 +239,7 @@ as it is not specific to OCaml, isn't it ? *)
 let () =
   BuildOCP.add_primitive "getconf"
     [ "getconf(name) returns the configuration associated with name" ]
-    (fun loc state config args ->
+    (fun loc _state config args ->
       match args with
       | [VString (name,_)] ->
         begin
@@ -261,6 +261,15 @@ let pk_opk pk =
   | OCamlPackage opk -> opk
   | _ -> assert false
 
+let predefined_packages = ref (VObject BuildValue.empty_env)
+
+let () =
+  add_primitive "findlib"
+    [ "Returns the map of pre-existing packages" ]
+    (fun _loc _state _config _args ->
+      !predefined_packages
+        )
+
 let init_env env_pj =
 
   BuildOCamlVariables.packages_option.set
@@ -275,7 +284,26 @@ let init_env env_pj =
         VString (opk.opk_version, StringVersion);
         VString (dirname, StringRaw);
         VObject (List.hd opk.opk_options)]
-     ) env_pj.project_sorted)));
+                             ) env_pj.project_sorted)));
+
+  let env = ref BuildValue.empty_env in
+  Array.iter (fun pk ->
+      let opk = pk_opk pk in
+      let dirname = BuildGlobals.absolute_filename pk.package_dirname in
+      let v =
+        List.fold_left (fun env (name, value) ->
+            BuildValue.set env name value)
+                       (List.hd opk.opk_options)
+                       [
+                         "name", VString (pk.package_name, StringRaw);
+                         "version", VString (opk.opk_version, StringVersion);
+                         "dirname", VString (dirname, StringRaw);
+                       ]
+      in
+      env := BuildValue.set !env pk.package_name (VObject v)
+    ) env_pj.project_sorted;
+  predefined_packages := VObject !env;
+
   ()
 
 

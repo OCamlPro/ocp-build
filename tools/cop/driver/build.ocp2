@@ -1,0 +1,33 @@
+(**************************************************************************)
+(*                                                                        *)
+(*   Typerex Tools                                                        *)
+(*                                                                        *)
+(*   Copyright 2011-2017 OCamlPro SAS                                     *)
+(*                                                                        *)
+(*   All rights reserved.  This file is distributed under the terms of    *)
+(*   the GNU General Public License version 3 described in the file       *)
+(*   LICENSE.                                                             *)
+(*                                                                        *)
+(**************************************************************************)
+
+OCaml.program("cop",
+  ocaml + {
+    files = [
+      "copTypes.ml";
+
+      "copGlobals.ml";
+      "copWorkspace.ml";
+      "copEval.ml";
+      "copPackage.ml";
+      "copSwitch.ml";
+
+      "copArgs.ml";
+      "copDo.ml";
+      "copMain.ml";
+    ];
+    requires = [
+      "ocp-build-lang-ocp2";
+      "ocp-build-engine";
+      "ezcmd";
+    ];
+  });

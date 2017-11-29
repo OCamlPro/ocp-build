@@ -149,8 +149,10 @@ let ocamlyacc_prefixes = [
   "The OCaml parser generator" ]
 let ocamlmklib_prefixes =
   [ "ocamlmklib" ]
+    (*
 let ocamlmktop_prefixes =
   [ "ocamlmklib" ]
+     *)
 
 let check_is_ocamlc = check_is_compiler ',' ocamlc_prefixes  [ "-v" ]
 let check_is_ocamldoc file =
@@ -161,8 +163,11 @@ let check_is_ocamllex = check_is_compiler ',' ocamllex_prefixes  [ "-version" ]
 let check_is_ocamldep = check_is_compiler ',' ocamldep_prefixes [ "-version" ]
 let check_is_ocamlyacc = check_is_compiler ',' ocamlyacc_prefixes [ "-version" ]
 let check_is_ocamlmklib = check_is_compiler ',' ocamlmklib_prefixes [ "-version" ]
-let check_is_ocamlmktop = check_is_compiler ',' ocamlmktop_prefixes [ "-version" ]
 
+(*
+let check_is_ocamlmktop =
+  check_is_compiler ',' ocamlmktop_prefixes [ "-version" ]
+ *)
 
 let check_config w cin =
 

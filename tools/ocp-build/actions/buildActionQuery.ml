@@ -10,20 +10,24 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* ocp-build install [OPTIONS]
+let command_name = "query"
+let command_help = {|
 
-  Set the options of the user preference file.
+ocp-build query [QUERY_OPTIONS]
 
-*)
-
-
-
-
+Query the project environment (mostly META files).
+|}
 
 
 
 
-open StdlibArg
+
+
+
+
+
+open Ezcmd.Modules
+
 open BuildOCPTypes
 open BuildTypes
 open BuildArgs
@@ -35,22 +39,20 @@ let query_libdir = ref []
 let query_package = ref []
 let list_arg = ref false
 
-let arg_list =
-  BuildOptions.merge
-    [
-      [
-        "-libdir", Arg.String (fun s ->
-          query_libdir := s :: !query_libdir
-        ),
-        "PACKAGE Query libdir of PACKAGE";
-        "-has", Arg.String (fun s ->
-          query_package := s :: !query_package
-        ),
-        "PACKAGE Query if PACKAGE is available";
-        "-list", Arg.Set list_arg, " List packages from env";
-      ];
-      BuildActionBuild.arg_list
-    ]
+let arg_list = Arg.translate ~docs:"QUERY OPTIONS"
+  [
+    "", Arg.Unit (fun()->()), "\nList of options available in QUERY_OPTIONS:\n";
+
+  "--libdir", Arg.String (fun s ->
+                  query_libdir := s :: !query_libdir
+                ),
+  "PACKAGE Query libdir of PACKAGE";
+  "--has", Arg.String (fun s ->
+               query_package := s :: !query_package
+             ),
+  "PACKAGE Query if PACKAGE is available";
+  "-list", Arg.Set list_arg, " List packages from env";
+  ]
 
 
 
@@ -123,7 +125,7 @@ let do_list_packages pj =
   ()
 
 let action () =
-  let (_env_w, _p, _state, pj, _config_state) = BuildActionInit.init_env () in
+  let (_env_w, _p, _state, pj, _config_state) = BuildActionCheck.init_env () in
 
   if !list_arg then
     do_list_packages pj
@@ -135,10 +137,10 @@ let action () =
 
 
 let subcommand = {
-  sub_name = "query";
-  sub_help =  "Query information about environment.";
-  sub_arg_list = arg_list;
-  sub_arg_anon = None;
-  sub_arg_usage = [ "Query information about environment."; ];
-  sub_action = action;
+  Arg.cmd_name = "query";
+  cmd_man = [`P "Query information about environment."];
+  cmd_args = arg_list
+             @ BuildActionMake.arg_list;
+  cmd_doc = "Query information about environment.";
+  cmd_action = action;
 }

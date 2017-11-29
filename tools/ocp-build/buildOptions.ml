@@ -39,7 +39,7 @@ open SimpleConfig
  - one for the project: ocp-build.root
 *)
 
-open StdlibArg
+open Ezcmd.Modules
 
 type config_input = {
   mutable cin_ocamlc_variants : string list;

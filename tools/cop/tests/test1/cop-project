@@ -1,0 +1,12 @@
+
+new_package("test1", [], {
+    rules = [
+      {
+         targets = "@build";
+         sources = [];
+         commands = "shell:", ' echo "Hello World!" ;
+      }
+    ];
+  });
+
+

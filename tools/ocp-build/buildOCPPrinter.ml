@@ -22,8 +22,8 @@ let string_of_package_type = function
   | SyntaxPackage -> "SyntaxPackage"
   | RulesPackage -> "RulesPackage"
 
-let bprint_string b _indent s = Printf.bprintf b "%S" s
 
+(*
 let stringMap printer b indent array =
   Printf.bprintf b "{{\n";
   let indent2 = indent ^ "  " in
@@ -43,6 +43,7 @@ let intMap printer b indent array =
     Printf.bprintf b ";\n"
   ) array;
   Printf.bprintf b "%s}}" indent
+ *)
 
 let array_of printer b indent array =
   Printf.bprintf b "[|\n";
@@ -64,6 +65,7 @@ let list_of printer b indent array =
   ) array;
   Printf.bprintf b "]"
 
+                 (*
 let package_dependency printer b indent pd =
   let indent2 = indent ^ "  " in
   let indent4 = indent2 ^ "  " in
@@ -78,12 +80,14 @@ let package_dependency printer b indent pd =
   BuildValue.bprint_env b indent4 pd.dep_options;
   Printf.bprintf b "  %s}};\n" indent;
   Printf.bprintf b "%s}" indent
-
+                  *)
+(*
 let package_uid b _indent p =
   Printf.bprintf b "{ package with package_uid = \"%s_%d\" }"
     p.package_name p.package_id
+ *)
 
-let package package_info b indent p =
+let package _package_info b indent p =
   let indent2 = indent ^ "  " in
   let _indent4 = indent2 ^ "  " in
   Printf.bprintf b "{\n";
@@ -141,6 +145,7 @@ let package_info b indent pi =
 
 let final_package = package ()
 
+                            (*
 let string_x_package_list b indent (s, plist) =
   Printf.bprintf b "%s%S, " indent s;
   let indent2 = indent ^ "  " in
@@ -152,6 +157,7 @@ let package_x_package_x_package b indent (p1,p2,p3) =
   package_uid b indent p2;
   Printf.bprintf b ",\n%s" indent;
   package_uid b indent p3
+                             *)
 
 let project b indent p =
   Printf.bprintf b "{\n";

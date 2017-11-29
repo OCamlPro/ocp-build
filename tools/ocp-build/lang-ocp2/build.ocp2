@@ -12,14 +12,17 @@
 
 ocaml = {};
 begin
-  ocaml.files = [
-    "buildOCP2Tree.ml";
-    "buildOCP2Parser.mly";  (* (pp = []); *)
-    "buildOCP2Parse.ml";
-    "buildOCP2Prims.ml";
-    "buildOCP2Interp.ml"
-  ];
-  ocaml.requires = [ "ocplib-compat"; "ocplib-lang"; "ocp-build-misc"; "str" ];
+  ocaml.files = '
+    buildOCP2Tree.ml
+    buildOCP2Lexer.mll
+    buildOCP2Parser.mly
+    buildOCP2Parse.ml
+    buildOCP2Prims.ml
+    buildOCP2Interp.ml
+  ;
+
+  ocaml.requires = ' ocplib-compat ocplib-lang
+     ocp-build-misc ocp-build-value str ;
   new_package("ocp-build-lang-ocp2", "library", ocaml);
 end
 

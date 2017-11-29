@@ -24,6 +24,7 @@ module TYPES = struct
   | StringRaw
   | StringVersion
 
+
   type env = { env : value StringMap.t }
   and value =
   | VList of value list
@@ -32,6 +33,9 @@ module TYPES = struct
   | VTuple of value list
   | VBool of bool
   | VInt of int
+  | VFun of functional_value
+
+  and functional_value =
   | VFunction of (location -> value list -> value)
   | VPrim of string
 
@@ -112,7 +116,7 @@ bprint_plist b indent list =
   | VObject env ->
     Printf.bprintf b "{\n";
     bprint_env b (indent^"  ") env;
-    Printf.bprintf b "}"
+    Printf.bprintf b "%s}" indent
   | VList [] ->
     Printf.bprintf b "[]"
   | VList list ->
@@ -121,9 +125,9 @@ bprint_plist b indent list =
       Printf.bprintf b "%s" indent;
       bprint_value b indent v;
       Printf.bprintf b "\n") list;
-    Printf.bprintf b "]"
-  | VFunction _ -> Printf.bprintf b "function(...){...}"
-  | VPrim s -> Printf.bprintf b "primitive(%S)" s
+    Printf.bprintf b "%s]" indent
+  | VFun (VFunction _) -> Printf.bprintf b "function(...){...}"
+  | VFun (VPrim s) -> Printf.bprintf b "primitive(%S)" s
 
 and bprint_env b indent env =
   iter_env (fun var v ->
@@ -230,7 +234,7 @@ let set_strings env name v = set env name (plist_of_strings v)
 let get_strings env name = strings_of_plist (get env name)
 let get_local_strings env name = strings_of_plist (get_local env name)
 
-let set_version env name v = set env name (VString (v, StringVersion))
+(*let set_version env name v = set env name (VString (v, StringVersion))*)
 let set_string env name v = set env name (plist_of_string v)
 let get_string env name = string_of_plist (get env name)
 let get_local_string env name = string_of_plist (get_local env name)
@@ -402,6 +406,8 @@ let revassoc_of_env env =
   StringMap.fold (fun n v (nn, vv) ->
     (n :: nn, v :: vv)
   ) env ([],[])
+
+let fold f env x = StringMap.fold f env.env x
 
 let rec compare_values e1 e2 =
   match e1, e2 with

@@ -18,11 +18,8 @@ module OCP_arg = struct
 
   type context = state
 
-  let filesubst = BuildSubst.create_substituter []
   let parse_error () = exit 2
   let new_file ctx filename digest = ()
-  let define_package loc ctx config ~name ~kind =
-    ()
 
   end
 

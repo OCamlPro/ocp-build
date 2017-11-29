@@ -946,8 +946,7 @@ let add_os2a_rule lib o_files a_file =
     let target = FileGen.add_basename a_file.file_dir.dir_file target_without_prefix in
     let cmd = new_command (ocamlmklib_cmd.get envs)
       [S "-custom"; S "-o"; F target] in
-    List.iter (fun s ->
-      add_command_arg cmd (argument_of_string s))
+    List.iter (add_command_string cmd)
       (mklib_option.get lib.lib_opk.opk_options );
     List.iter (fun o_file ->
       add_command_arg cmd (BF o_file)) o_files;
@@ -1045,7 +1044,7 @@ let get_copy_objects_from lib envs =
       Printf.eprintf "Error: in package %S, copy_objects_from %S, no such package\n%!" lib.lib.lib_name name;
       clean_exit 2
 
-let copy_ml_objects_from lib ptmp envs src_lib kernel_name =
+let copy_ml_objects_from lib ptmp src_lib kernel_name =
   (* TODO: check that pack_for = [] *)
   (* TODO: check that src_lib is in requires *)
   do_copy_objects_from lib src_lib kernel_name ".cmi" ptmp.cmi_files;
@@ -1577,7 +1576,7 @@ let add_ml_source w b lib ptmp ml_file options =
     let copy_objects_from = get_copy_objects_from lib envs  in
     match copy_objects_from with
     | Some src_lib ->
-      copy_ml_objects_from lib ptmp envs src_lib kernel_name
+      copy_ml_objects_from lib ptmp src_lib kernel_name
 
     | None ->
 
@@ -1959,7 +1958,7 @@ let add_mll_source w b lib ptmp mll_file options =
     let copy_objects_from = get_copy_objects_from lib envs  in
     match copy_objects_from with
     | Some src_lib ->
-      copy_ml_objects_from lib ptmp envs src_lib kernel_name
+      copy_ml_objects_from lib ptmp src_lib kernel_name
     | None ->
 
 (*    let tmp_dirname =
@@ -1990,7 +1989,7 @@ let add_mly_source w b lib ptmp mly_file options =
     let copy_objects_from = get_copy_objects_from lib envs  in
     match copy_objects_from with
     | Some src_lib ->
-      copy_ml_objects_from lib ptmp envs src_lib kernel_name
+      copy_ml_objects_from lib ptmp src_lib kernel_name
     | None ->
 
       let _ = () in
@@ -2272,8 +2271,6 @@ let add_objects w b lib =
   end;
   ()
 
-let string_of_loc (x,y,z) = Printf.sprintf "%s:%d:%s" x y z
-
 let local_subst (file, env) s =
   let s = BuildSubst.subst_global s in
   let s = BuildSubst.apply_substituter
@@ -2337,7 +2334,9 @@ let add_extra_rules bc lib target_name target_files =
         try
           BuildValue.get_local_prop_list envs "commands"
         with Var_not_found _ ->
-          Printf.eprintf "Error in package %S at %S:\n%!" lib.lib.lib_name (string_of_loc lib.lib.lib_loc);
+          Printf.eprintf "Error in package %S at %S:\n%!"
+                         lib.lib.lib_name
+                         (BuildEngineDisplay.string_of_loc lib.lib.lib_loc);
           Printf.eprintf "\tRule for %S does not define 'commands'\n%!" file;
           clean_exit 2
       in
@@ -2501,7 +2500,7 @@ let add_extra_rules bc lib target_name target_files =
           add_rule_command r (Function (cmd_name, printer, actor));
         | _ ->
           Printf.eprintf "Error: Unknown primitive command %S in %s\n" cmd_name
-            (string_of_loc lib.lib.lib_loc);
+            (BuildEngineDisplay.string_of_loc lib.lib.lib_loc);
           Printf.eprintf "  Commands to execute should be between { ... }, while\n";
           Printf.eprintf "  primitive commands start by %% (for example %%loaddeps)\n%!";
           clean_exit 2
@@ -2872,7 +2871,10 @@ let create w cin cout bc state =
 
       let clean_targets () = assert false
       let build_targets () =
-        (*        Printf.eprintf " (dir %s)\n" lib.lib_opk.opk_dirname; *)
+        (*
+        Printf.eprintf " (pk %s)\n" lib.lib_opk.opk_name;
+        Printf.eprintf " (dir %s)\n" lib.lib_opk.opk_dirname;
+         *)
         if lib.lib_opk.opk_installed then begin
           (*          Printf.eprintf "%s is already installed\n%!" name; *)
           {

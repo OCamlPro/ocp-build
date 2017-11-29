@@ -3,6 +3,56 @@
 The OCP2 language is the new language used by ocp-build for package
 descriptions.
 
+\section{Files and Evaluation}
+
+There are two kinds of OCP2 files:
+\begin{description}
+\item[Description Files:] Description Files are files describing a
+  project to be compiled by \ocpbuild{}. Each directory of a project
+  can only contain one Description File, always called {\sf
+    build.ocp2}.
+\item[Module Files:] Module Files are files defining set of functions
+  (i.e. modules) to be used in Description Files. Module Files cannot
+  be called {\sf build.ocp2}.
+\end{description}
+
+The order of evaluation is the following:
+\begin{itemize}
+\item Module Files are evaluated first, in a non-specified order
+\item Description Files are evaluated second, starting at the root,
+  and descending in each subtree. A Description File in a
+  sub-directory is always evaluated after a Description File in an
+  ancestor directory, but the execution order is not specified between
+  two Description Files in unrelated directories.
+\end{itemize}
+
+Module Files are expected to define modules using the {\sf provides}
+function. A file {\sf path/namespace/module.ocp2} is expected to define
+the module {\sf namespace:Module}. For example:
+
+\begin{lstlisting}[language=ocp2]
+function ListMaker(){
+    List = {};
+    try { List.length = value_length; } catch("unknown-variable", x){}
+    try { List.mem = List_mem; } catch("unknown-variable", x){}
+    return List;
+}
+provides("ocp-build:List", "1.0", ListMaker);
+\end{lstlisting}
+
+Such modules can then be used from Description Files:
+
+\begin{lstlisting}[language=ocp2]
+Sys = module("ocp-build:Sys", "1.0");
+include_file = "build.ocpinc";
+if( Sys.file_exists(include_file) ){ include(include_file); }
+\end{lstlisting}
+
+Note that the function {\tt ListMaker} in the example above will only
+be executed once when the module {\tt ocp-build:List} will be
+used. Using functions this way helps solving dependencies between
+modules.
+
 \section{Statements and Expressions}
 
 In the OCP2 language, there are two kinds of constructs:
@@ -149,6 +199,84 @@ The {\tt raise} primitive can raise a user-defined exception in user code:
 raise("my-exception", "Message or any other value");
 \end{verbatim}
 
+\section{Basic Primitives}
+
+Here is a list of available primitives:
+\begin{description}
+\item[module(name,version):] retrieves a user-defined module with name
+  and minimal version. The name must contain a namespace (i.e. {\tt
+    "ocp-build:List"}). Can raise {\sf "not-found", "bad-version",
+    "infinite-dependency"};
+\item[provides(name,version):] defines a new module with name and
+  version;
+\item[print(...):] prints its arguments on the terminal
+\item[message(string):] prints the string on the terminal
+\item[exit(code):] exits from \ocpbuild{}
+\item[raise(name,arg):] raises an exception {\sf name} (a string) with
+  some argument.
+\item[value\_type(v):] returns a string containing the type of {\sf
+  v}: one of {\sf "string", "list", "tuple", "object", "bool", "int",
+  "function", "prim"}
+\item[version(s):] transforms a string into a version. Versions are
+  strings, compared using version comparison à la Debian.
+\item[store\_set(name, v):] associates {\sf v} with string {\sf name}
+  in a shared store;
+\item[store\_get(name):] retrieves the value associated with string
+  {\sf name} in a shared store. Raises {\sf "not-found"} if it is not
+  found;
+\end{description}
+
+\section{Basic Modules}
+
+The {\sf List} module:
+\begin{lstlisting}[language=ocp2]
+  List.length(list)
+  List.mem(ele, list)
+  List.tail(list)
+  List.map(function,list)
+  List.map(list,function)
+  List.flatten(list of lists)
+\end{lstlisting}
+
+The {\sf Sys} module:
+\begin{lstlisting}[language=ocp2]
+  Sys.file_exists(filename)
+  Sys.readdir(dirname)
+  Sys.readdir(dirname, regexp)
+\end{lstlisting}
+
+The {\sf Store} module:
+\begin{lstlisting}[language=ocp2]
+  Store.get(name)
+  Store.set(name)
+  Store.counter()  returns { get(); reset() }
+  Store.counter(name)
+\end{lstlisting}
+
+The {\sf String} module:
+\begin{lstlisting}[language=ocp2]
+  String.mem(ele, list)
+  String.length(s)
+  String.concat(list of strings)
+  String.concat(sep, list of strings)
+  String.concat(list of strings, sep)
+  String.split(string, char)
+  String.split_simplify(string, char)
+  String.subst_suffix(string, old_suffix,new_suffix)
+  String.subst_suffix(list of strings, old_suffix,new_suffix)
+  String.subst(string, assocs)
+\end{lstlisting}
+
+The {\sf Features} module: used to interact with the {\sf --with} and
+{\sf --without} arguments on the command line.
+\begin{lstlisting}[language=ocp2]
+  Features.get(name_string, default_bool)
+  Features.enable(name_string, enable_bool)
+  Features.with(name_string, value_bool)
+  Features.without(name_string)
+\end{lstlisting}
+
+
 \section{Using OCP2 to describe packages}
 
 \ocpbuild{} will search {\tt build.ocp2} files in your
@@ -180,3 +308,53 @@ begin
    new_package( "my-program", "program", ocaml);
 end
 \end{verbatim}
+
+\section{Simple-Quoting}
+
+The syntax can be sometimes heavy to describe simple packages when all
+strings have to be double-quoted. To simplify descriptions, OCP2 comes
+with a way to avoid this problem, using simple-quoted expressions.
+
+\subsection{Simple-Quoted Strings}
+
+The lexeme {\tt 'x} is equivalent to {\tt "x"}. Such simple-quoted
+strings can contain any characters except blanks (space, tabs,
+newlines), commas, semi-colons and parenthesis (parens, braces,
+brackets).
+
+\subsection{Simple-Quoted Lists}
+
+Simple-quoted lists introduce a way to write a list of strings without
+quoting every string. For example, \verb|'[ x y z]| is equivalent to
+\verb|[ "x"; "y"; "z"]|.
+
+Again, strings within simple-quoted lists can contain any characters
+except blanks (space, tabs, newlines), commas, semi-colons,
+double-quotes and parenthesis (parens, braces, brackets). It is
+possible to avoid this limitation using standard strings:
+\verb|`[ x "y,z" ]| is equivalent to \verb|[ "x"; "y,z"]|.
+
+It is possible to include an expression within a simple-quoted list:
+\verb|'[ x (y) z]| is equivalent to \verb|["x";y;"z"]|. It is also
+possible to replace a string by a tuple, whose second field is an object
+or list: for example, \verb|'[ x y {a = 3} z]| is equivalent to
+\verb|[ "x"; "y", { a = 3 }; "z"]|.
+
+Simple-quoted lists can even be simplified by removing the brackets,
+at the beginning and at the end, before a closing-parenthesis, a comma
+or a semi-colon: for example, \verb|OCaml.system(' ls -l)| is equivalent
+to \verb|OCaml.system(' ls -l)|.
+
+\subsection{Simple-Quoted Blocks}
+
+simple-quoted blocks can be used to create a simple abstraction around a value
+(record or expression): for
+example, \verb|'{ ... }| is equivalent to
+\verb|function(){ return {...};}|;
+in the same way, \verb|'(...)| is equivalent to
+\verb|function(){ return (...);}|.
+
+\section{The OCaml Plugin}
+
+The OCaml plugin defines two global variables: the module {\sf OCaml} and
+the record {\sf ocaml}.

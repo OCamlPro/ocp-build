@@ -38,8 +38,6 @@ module DigestMap = Map.Make(struct
   type t = Digest.t let compare = compare
 end)
 
-type loc = string * int * string
-
 type only_if_changed = bool
 
 type build_rule = {
@@ -48,7 +46,7 @@ type build_rule = {
   mutable rule_temp_dir : FileGen.t option;
   mutable rule_forced : bool;
   mutable rule_commands :  build_action list;
-  rule_loc : loc; (* project_info *)
+  rule_loc : build_loc; (* project_info *)
   mutable rule_sources :  build_file IntMap.t;
 
   (* rule_time_dependencies: dependencies that are not required, but if the rules that generate them
@@ -61,6 +59,12 @@ type build_rule = {
 
   rule_context : build_context;
 }
+
+and build_loc = {
+    loc_file : string;
+    loc_line : int;
+    loc_package : build_package;
+  }
 
 and dependency_loader =  string -> (string * string list list) list
 
@@ -93,7 +97,8 @@ and command_argument =
   | BF of build_file (* build_file type *)
   | BD of build_directory (* build_file type *)
 
-(* TODO: we should support the fact that directories could also be created by build rules ! *)
+(* TODO: we should support the fact that directories could also be
+created by build rules ! *)
 and  build_file = {
   file_id : int;
   mutable file_kind : file_kind; (* mutable because we sometimes discover that
@@ -108,8 +113,12 @@ and  build_file = {
   file_package : build_package;
 }
 
+and build_dir_key =
+  | Inode of (int * int64)
+  | Dirname of string
+
 and  build_directory = {
-  dir_key : int * int64; (* (st_dev, st_ino) *)
+  dir_key : build_dir_key; (* (st_dev, st_ino) *)
   dir_id : int;
   dir_basename : string;
   mutable dir_file : FileGen.t;
@@ -125,6 +134,21 @@ and build_package = {
   package_uid : int;
   mutable package_files : build_file IntMap.t;
 }
+
+and fatal_error =
+  | CopyError of string * string * exn
+  | ActionError of string * exn
+  | ExecutionError of build_rule * build_command * exn
+
+and error =
+  | TargetNotGenerated of build_rule * build_file
+  | CommandError of build_rule
+                    * int (* step *)
+                    * string list (* command *)
+                    * string (* stdout *)
+                    * string (* stderr *)
+  | ExternalDeps of build_file
+  | IncorrectDependFile of build_file * exn
 
 and build_context = {
   mutable build_should_restart : bool;
@@ -165,13 +189,14 @@ and build_context = {
   mutable queue_not_waiting : build_rule IntMap.t;
   mutable temp_files : ( build_rule * build_rule list ref ) IntMap.t;
   mutable unmanaged_dependencies : string list;
-  (* TODO: What's the difference between those ? *)
-  mutable fatal_errors : string list list;
-  mutable errors : string list list;
+
+  mutable fatal_errors : fatal_error list;
+  mutable errors : error list; (* actually, warnings *)
 
   mutable stats_command_executed : int;
   mutable stats_files_generated : int;
   mutable stats_total_time : float;
+  mutable build_create_dirs : build_file list;
 }
 
 type build_process = {

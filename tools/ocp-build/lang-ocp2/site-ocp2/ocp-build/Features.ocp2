@@ -1,0 +1,24 @@
+(**************************************************************************)
+(*                                                                        *)
+(*   Typerex Tools                                                        *)
+(*                                                                        *)
+(*   Copyright 2011-2017 OCamlPro SAS                                     *)
+(*                                                                        *)
+(*   All rights reserved.  This file is distributed under the terms of    *)
+(*   the GNU General Public License version 3 described in the file       *)
+(*   LICENSE.                                                             *)
+(*                                                                        *)
+(**************************************************************************)
+
+function FeaturesMaker(){
+  Features = {
+      get = Features_get;
+      enable = Features_enable;
+      with = Features_with;
+      without = Features_without;
+      };
+  return Features;
+}
+
+provides("ocp-build:Features", "1.0", FeaturesMaker);
+

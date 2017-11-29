@@ -20,6 +20,7 @@ new_package("ocp-build-lang-ocp", "library",
       "buildOCPInterp.ml";
       ];
 
-    requires = [ "ocplib-compat"; "ocplib-lang"; "ocp-build-misc" ];
+    requires = [ "ocplib-compat"; "ocplib-lang";
+                 "ocp-build-misc"; "ocp-build-value" ];
   });
   

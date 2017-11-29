@@ -10,11 +10,14 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open StdlibArg
+open Ezcmd.Modules
 
-val subcommand : BuildArgs.subcommand
+val subcommand : Arg.command
+
 val action : unit -> unit
-val arg_list : (string * Arg.spec * string) list
+val arg_list : Arg.arg_list
+
+                                            (*
 
 val load_initial_project :
   BuildWarnings.set ->
@@ -33,3 +36,4 @@ val init_env :
     BuildOCPTypes.project * BuildValue.TYPES.config_state
 
 val chdir_to_project : BuildActions.project_info -> unit
+                                             *)

@@ -10,11 +10,18 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Ocamllexer
+open BuildOCP2Lexer
 open BuildOCP2Parser
 
+let getenv_flag s =
+  try
+    ignore (Sys.getenv s); true
+  with Not_found -> false
 
-let lexer = Ocamllexer.make_lexer
+let flag_print_tokens = getenv_flag "OCPBUILD_PRINT_TOKENS"
+
+
+let lexer = BuildOCP2Lexer.make_lexer
     [
       ";"; ","; ".";
       "="; "+="; "-=";
@@ -25,6 +32,7 @@ let lexer = Ocamllexer.make_lexer
       "include"; "import";
       "try"; "catch"; "for"; "in";
       "+"; "-"; "*"; "/";
+      "'";
     ]
 
 exception ParseError
@@ -35,16 +43,27 @@ let read_ocamlconf filename content =
     { lexbuf.Lexing.lex_start_p with Lexing.pos_fname = filename };
   lexbuf.Lexing.lex_curr_p <-
     { lexbuf.Lexing.lex_curr_p with Lexing.pos_fname = filename };
+  if flag_print_tokens then
+    Printf.eprintf "Filename: %s\n" filename;
   let token_of_token token_opt =
+    if flag_print_tokens then
+      Printf.eprintf "%s %!"
+                     (match token_opt with
+                      | None -> "EOF"
+                      | Some token ->
+                         match token with
+                         | String s -> Printf.sprintf "STRING %S" s
+                         | Int _ -> "INT"
+                         | Ident s -> s
+                         | Kwd s -> s);
     match token_opt with
       None -> EOF
     | Some token ->
       match token with
       | String s -> STRING s
-      | Float f -> FLOAT f
       | Int i -> INT i
-      | Char c -> CHAR c
 
+      | Kwd "'" -> QUOTE
       | Kwd ";" -> SEMI
       | Kwd "," -> COMMA
       | Kwd "." -> DOT
@@ -103,13 +122,14 @@ let read_ocamlconf filename content =
         IDENT s
   in
 
+  let lexer = lexer () in
   let lexer lexbuf =
     try
       token_of_token (lexer lexbuf)
-    with Ocamllexer.Error (error, n, m) ->
+    with BuildOCP2Lexer.Error (error, n, m) ->
       Printf.eprintf "File %S, line 1, characters %d-%d:\n"
         filename n m;
-      Ocamllexer.report_error Format.err_formatter error;
+      BuildOCP2Lexer.report_error Format.err_formatter error;
       Format.fprintf Format.err_formatter "@.";
       raise ParseError
   in

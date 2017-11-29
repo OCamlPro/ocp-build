@@ -13,7 +13,7 @@
 (* ocp-build uninstall [OPTIONS]
 *)
 
-open StdlibArg
+open Ezcmd.Modules
 open OcpCompat
 
 open BuildArgs
@@ -112,8 +112,16 @@ let action () =
 
   match !action with
   | None ->
-    List.iter (BuildUninstall.uninstall state) targets;
-    BuildUninstall.finish state;
+     if targets = [] then begin
+         Printf.eprintf "Error: no target specified\n";
+         Printf.eprintf
+           "  If you want to remove all targets from this project, use:\n";
+         Printf.eprintf "      ocp-build install --uninstall\n";
+         exit 2;
+       end else begin
+         List.iter (BuildUninstall.uninstall state) targets;
+         BuildUninstall.finish state;
+       end
   | Some (_,ActionList) ->
     begin match targets with
     | name :: _ ->
@@ -129,7 +137,7 @@ let action () =
     end
 
 
-  | Some (arg_name, ActionQuery query) ->
+  | Some (_arg_name, ActionQuery query) ->
     let b = Buffer.create 100 in
     let print_target un =
       if match query with
@@ -169,10 +177,10 @@ let action () =
       if !not_found then exit 2
 
 let subcommand = {
-  sub_name = "uninstall";
-  sub_help =  "Uninstall the project.";
-  sub_arg_list = arg_list;
-  sub_arg_anon = Some arg_anon;
-  sub_arg_usage = [ "Uninstall the project."; ];
-  sub_action = action;
+  Arg.cmd_name = "uninstall";
+  cmd_man = [`P "Uninstall the project."];
+  cmd_args = Arg.translate arg_list
+             @ Arg.translate_anon arg_anon;
+  cmd_doc = "Uninstall the project.";
+  cmd_action = action;
 }
