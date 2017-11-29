@@ -22,8 +22,9 @@ OCP_BUILD_DSTDIR=$(OBUILD_DSTDIR)/ocp-build
 
 OCPLIB_NAMES=debug lang unix file system config compat
 
-EXTERNAL_INCLUDES=    -I $(OCAMLLIB)/../cmdliner
-EXTERNAL_LIBS=$(OCAMLLIB)/../cmdliner/cmdliner.cmxa
+CMDLINER_DIR := $(shell ocamlfind query cmdliner)
+EXTERNAL_INCLUDES=    -I ${CMDLINER_DIR}
+EXTERNAL_LIBS=${CMDLINER_DIR}/cmdliner.cmxa
 
 INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
     -I $(OCP_BUILD_SRCDIR) \

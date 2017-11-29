@@ -1,6 +1,6 @@
 .travis-ci.sh e22cfae9156c383ce5a4abf646798a17
 .travis-install.sh 9bfd3722ac873da3f33d69fd670659b2
-.travis.yml 55a30e833a701da58fc4fa03c230310d
+.travis.yml fa9f32e8d6f50113a91f7fc9c2ca886b
 autoconf/.gitignore 00973f185af428536c3caff11a53626d
 autoconf/Makefile.config.in 6789c79863a0489e31002d9f9e840d57
 autoconf/Makefile.rules c9e85dee44380b1a855cb2d49da44d54
