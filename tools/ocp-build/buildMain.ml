@@ -77,6 +77,8 @@ let _ =
   let argv = Array.copy Sys.argv in
   for i = 0 to Array.length argv - 1 do
     match argv.(i) with
+    | "-version" -> argv.(i) <- "--version"
+    | "-init" -> argv.(i) <- "--init"
     | "-install-lib" -> argv.(i) <- "--install-lib"
     | "-install-bin" -> argv.(i) <- "--install-bin"
     | "-install-meta" -> argv.(i) <- "--install-meta"
