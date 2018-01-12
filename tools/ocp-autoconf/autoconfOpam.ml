@@ -11,8 +11,10 @@
 (**************************************************************************)
 
 open OcpCompat
-open AutoconfProjectConfig
+open AutoconfTypes
 open SimpleConfig.Op (* !! and =:= *)
+
+module PROJECT = AutoconfProjectConfig
 
 let opam_version = "1.2"
 
@@ -20,7 +22,7 @@ let abort _oc =
   exit 2
 
 let wrong_value oc field options =
-  if List.mem field !!opam_fields then begin
+  if List.mem field !!PROJECT.opam_fields then begin
     Printf.eprintf
       "Error: cannot set 'opam' field %S:\n" field;
     Printf.eprintf "You should set a correct value for \"%s\"\n"
@@ -36,7 +38,7 @@ let opam_trailer_old = "opam.trailer"
 let () =
 
   AutoconfCommon.register_maker "opam" (fun () ->
-      let opam_maintainer = !!AutoconfProjectConfig.opam_maintainer in
+      let opam_maintainer = !!PROJECT.opam_maintainer in
 
       let already_done = ref StringSet.empty in
 
@@ -72,7 +74,7 @@ let () =
               AutoconfFS.fprintf oc "  [ ";
               List.iter (fun cmd ->
                   AutoconfFS.fprintf oc "    %S\n" cmd)
-                !!AutoconfProjectConfig.opam_configure_line;
+                !!PROJECT.opam_configure_line;
               AutoconfFS.fprintf oc "  ]\n";
               AutoconfFS.fprintf oc "  [ make ]\n";
               AutoconfFS.fprintf oc "]\n";
@@ -90,10 +92,10 @@ let () =
                       AutoconfFS.fprintf oc "%S " cmd) cmd;
                   AutoconfFS.fprintf oc "  ]\n"
                 )
-                !!AutoconfProjectConfig.opam_remove_commands;
+                !!PROJECT.opam_remove_commands;
               List.iter (fun pkg ->
                   AutoconfFS.fprintf oc "  [ \"ocp-build\" \"uninstall\" %S ]\n" pkg)
-                !!AutoconfProjectConfig.install_packages;
+                !!PROJECT.install_packages;
               AutoconfFS.fprintf oc "]\n"
 
             | "depends" ->
@@ -120,7 +122,7 @@ let () =
                           end
                     with Not_found ->
                       opam_deps := StringMap.add name pkg.version !opam_deps
-                ) !!AutoconfProjectConfig.need_packages;
+                ) !!PROJECT.need_packages;
 
               (* Add ocamlfind if we need to test for other packages being
                  installed before. *)
@@ -134,21 +136,23 @@ let () =
                     match version with
                     | None ->
                       AutoconfFS.fprintf oc "     %S\n" name
-                    | Some v ->
-                      AutoconfFS.fprintf oc "     %S {>= %S }\n" name v
+                    | Some (op,v) ->
+                       AutoconfFS.fprintf oc "     %S {%s %S }\n" name
+                                          (string_of_version_op op)
+                                          v
                 ) !opam_deps;
               AutoconfFS.fprintf oc "]\n";
 
             | "available" ->
               let ocaml_unsupported_version =
-                !!AutoconfProjectConfig.ocaml_unsupported_version in
+                !!PROJECT.ocaml_unsupported_version in
               if ocaml_unsupported_version <> "" then
                 AutoconfFS.fprintf oc "available: [ocaml-version >= %S && ocaml-version < %S]\n"
-                  !!AutoconfProjectConfig.ocaml_minimal_version
+                  !!PROJECT.ocaml_minimal_version
                   ocaml_unsupported_version
               else
                 AutoconfFS.fprintf oc "available: [ocaml-version >= %S]\n"
-                  !!AutoconfProjectConfig.ocaml_minimal_version
+                  !!PROJECT.ocaml_minimal_version
 
             | "maintainer" ->
               if opam_maintainer <> "" then
@@ -157,7 +161,7 @@ let () =
                 wrong_value oc field ["opam_maintainer"]
 
             | "authors" ->
-              let authors = !!AutoconfProjectConfig.authors in
+              let authors = !!PROJECT.authors in
               if authors <> [] then begin
                 AutoconfFS.fprintf oc "authors: [\n";
                 List.iter (fun name ->
@@ -168,11 +172,11 @@ let () =
                 wrong_value oc field ["authors"]
 
             | "homepage" ->
-              let homepage = !!AutoconfProjectConfig.homepage in
+              let homepage = !!PROJECT.homepage in
               let homepage =
                 if homepage = "" &&
-                   !!github_project <> "" then
-                  Printf.sprintf "http://github.com/%s" !!github_project
+                   !!PROJECT.github_project <> "" then
+                  Printf.sprintf "http://github.com/%s" !!PROJECT.github_project
                 else homepage
               in
               if homepage <> "" then
@@ -181,9 +185,9 @@ let () =
                 wrong_value oc field ["homepage"]
 
             | "dev-repo" ->
-              let dev_repo = !!AutoconfProjectConfig.dev_repo in
-              let dev_repo = if dev_repo = "" && !!github_project <> "" then
-                  Printf.sprintf "https://github.com/%s.git" !!github_project
+              let dev_repo = !!PROJECT.dev_repo in
+              let dev_repo = if dev_repo = "" && !!PROJECT.github_project <> "" then
+                  Printf.sprintf "https://github.com/%s.git" !!PROJECT.github_project
                 else dev_repo in
               if dev_repo <> "" then
                 AutoconfFS.fprintf oc "dev-repo: %S\n"  dev_repo
@@ -191,9 +195,9 @@ let () =
                 wrong_value oc field ["dev_repo"; "github_project"]
 
             | "bug-reports" ->
-              let bug_reports = !!AutoconfProjectConfig.bug_reports in
-              let bug_reports = if bug_reports = "" && !!github_project <> "" then
-                  Printf.sprintf "https://github.com/%s/issues" !!github_project
+              let bug_reports = !!PROJECT.bug_reports in
+              let bug_reports = if bug_reports = "" && !!PROJECT.github_project <> "" then
+                  Printf.sprintf "https://github.com/%s/issues" !!PROJECT.github_project
                 else bug_reports in
               if bug_reports <> "" then
                 AutoconfFS.fprintf oc "bug-reports: %S\n" bug_reports
@@ -204,7 +208,7 @@ let () =
               Printf.eprintf "Error: no support for opam field %S\n%!" field;
               abort oc
 
-        ) !!opam_fields;
+        ) !!PROJECT.opam_fields;
 
       if Sys.file_exists opam_trailer_old then begin
         FileString.safe_mkdir AutoconfArgs.ocp_autoconf_dir;
@@ -255,14 +259,14 @@ let () =
         "Warning: file '%s' needs to be present for\n" descr_file;
       Printf.eprintf "  'push-opam.sh' to be executed.\n%!";
     end;
-    if (!!AutoconfProjectConfig.download_url_prefix = "" &&
-        !!AutoconfProjectConfig.github_project = "") ||
+    if (!!PROJECT.download_url_prefix = "" &&
+        !!PROJECT.github_project = "") ||
       !!AutoconfGlobalConfig.opam_repo = "" then begin
 
         Printf.eprintf
           "Warning: 'push-opam.sh' is not generated because:\n";
-        if !!AutoconfProjectConfig.download_url_prefix = "" &&
-             !!AutoconfProjectConfig.github_project = "" then
+        if !!PROJECT.download_url_prefix = "" &&
+             !!PROJECT.github_project = "" then
           Printf.eprintf "  * both 'download_url' and 'github_project' are empty (ocp-autoconf.config)\n";
         if !!AutoconfGlobalConfig.opam_repo = ""then
           Printf.eprintf "  * option 'opam_repo' is empty (~/.ocp/ocp-autoconf/)\n";

@@ -13,14 +13,24 @@
 open OcpCompat
 open SimpleConfig.Op (* !! and =:= *)
 open AutoconfArgs
-
-type package = {
-  name : string;
-  version : string option;
-  opam : string option;
-}
+open AutoconfTypes
 
 let make_package ?version ?opam name =
+  let version = match version with
+    | None -> None
+    | Some version ->
+       let len = String.length version in
+       if len > 1 then
+         match version.[0], version.[1] with
+         | '<', '=' -> Some (LeVersion, String.sub version 2 (len-2))
+         | '>', '=' -> Some (GeVersion, String.sub version 2 (len-2))
+         | '<', _ -> Some (LtVersion, String.sub version 1 (len-1))
+         | '>', _ -> Some (GtVersion, String.sub version 1 (len-1))
+         | '=', _ -> Some (EqVersion, String.sub version 1 (len-1))
+         | _ -> Some (GeVersion, version)
+       else
+         Some (GeVersion, version)
+  in
   { name; version; opam }
 
 let package_option =
@@ -40,7 +50,8 @@ let package_option =
          List.iter (fun (field, field_value) ->
              match field with
              | "name" -> name := Some (value_to_string field_value)
-             | "version" -> version := Some (value_to_string field_value)
+             | "version" -> version :=
+                              Some (value_to_string field_value)
              | "opam" -> opam := Some (value_to_string field_value)
              | _ ->
                Printf.kprintf failwith "Unknown file %S in package" field
@@ -57,12 +68,16 @@ let package_option =
     (function { name; version; opam } ->
     match version, opam with
     | None, None -> StringValue name
-    | Some version, None -> SmallList [StringValue name; StringValue version]
+    | Some (op,version), None ->
+       SmallList [StringValue name;
+                  StringValue (string_of_version_op op ^ version)]
     | _ ->
       let fields = [ "name", StringValue name ] in
       let fields = match version with
           None -> fields
-        | Some version -> ("version", StringValue version) :: fields in
+        | Some (op, version) -> ("version",
+                           StringValue (string_of_version_op op ^ version))
+                          :: fields in
       let fields = match opam with
           None -> fields
         | Some opam -> ("opam", StringValue opam) :: fields in
