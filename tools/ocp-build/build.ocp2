@@ -94,6 +94,7 @@ begin
     "buildGlobals.ml";          (* All global variables and tables *)
     "buildConfig.ml";           (* Values stored in the configuration file. *)
     "buildUninstall.ml";
+    "buildDepMisc.ml";
   ];
 
   ocaml.requires = [ "ocplib-unix"; "ocp-build-engine"; "ocp-build-project";

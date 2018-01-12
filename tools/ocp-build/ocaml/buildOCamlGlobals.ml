@@ -85,11 +85,17 @@ in
       [file_ready]
   in
   let lib_meta = BuildValue.get_bool_with_default envs "meta" false in
-
+  let lib_alias =   BuildValue.get_string_option_with_default
+                      opk.opk_options "alias" None
+  in
+  let lib_aliases = StringMap.empty in
 
   let lib = {
     lib = lib;
     lib_opk = opk;
+
+    lib_alias;
+    lib_aliases;
 
     lib_autolink;
 

@@ -825,7 +825,7 @@ let add_dependency b r target_file filenames =
 let load_dependency_file b loader file r_ok =
   if verbose 7 then Printf.eprintf "Loading dependencies from %s\n%!" (file_filename file);
   begin try
-          let dependencies = (* BuildOcamldep.load_dependencies *) loader (file_filename file) in
+          let dependencies = loader (file_filename file) in
 
           List.iter (fun (filename, deps) ->
             if verbose 7 then Printf.eprintf "FILE %s\n%!" filename;
