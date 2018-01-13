@@ -1267,10 +1267,6 @@ let add_mli_source w b lib ptmp mli_file options =
 
       begin
         let dep_info =
-        (*
-        let (_is_ml, modname, basename) =
-          BuildOCamldep.modname_of_file envs force mli_file.file_basename in
-         *)
         try
           let (kind, basename) = StringMap.find kernel_modname !lib_modules in
           match kind with
@@ -1278,7 +1274,7 @@ let add_mli_source w b lib ptmp mli_file options =
           | MLandMLI -> None
           | ML -> Some (MLandMLI, basename)
         with Not_found ->
-          (* if verbose 5 then *)
+             if verbose 5 then
                Printf.eprintf "Adding MLI module %s to %s in %s\n"
                               kernel_modname kernel_name lib.lib.lib_name;
              Some (MLI, DepBasename kernel_name)
@@ -1824,9 +1820,6 @@ let add_ml_source w b lib ptmp ml_file options =
       in
 
       begin
-        (*
-        let (_is_ml, modname, basename) = BuildOCamldep.modname_of_file envs force ml_file.file_basename in
-         *)
         let dep =
           try
             let (kind, basename) =  StringMap.find kernel_modname !lib_modules
@@ -1836,10 +1829,14 @@ let add_ml_source w b lib ptmp ml_file options =
             | MLandMLI -> None
             | MLI -> Some (MLandMLI, basename)
           with Not_found ->
-            (* if verbose 5 then *)
-                 Printf.eprintf "Adding ML module %s to %s.CMO in %s\n"
-                                kernel_modname kernel_name lib.lib.lib_name;
-               Some (ML, DepBasename kernel_name)
+               if verbose 5 then
+               Printf.eprintf "Adding ML module %s to %s.CMO in %s\n"
+                              kernel_modname kernel_name lib.lib.lib_name;
+               match lib.lib_alias with
+               | Some _ when kernel_modname = kernel_modalias ->
+                  Some (ML, DepAlias lib)
+               | _ ->
+                  Some (ML, DepBasename kernel_name)
         in
         match dep with
         | None ->
@@ -1873,39 +1870,40 @@ let add_ml_source w b lib ptmp ml_file options =
           let cmo_basename = kernel_name ^ ".cmo" in
           let cmo_file = add_dst_file lib dst_dir cmo_basename in
 
-          let cmd = new_command (ocamlc_cmd.get envs ) (bytecompflags envs) in
           let r = new_rule lib cmo_file before_cmd in
           add_more_rule_sources lib r [ ocamlc_deps ] envs;
           add_rule_sources r comp_deps;
 
-          (*    let temp_dir = BuildEngineRules.rule_temp_dir r in
-                let cmo_temp = FileGen.add_basename temp_dir cmo_basename in
-                let cmi_temp = FileGen.add_basename temp_dir cmi_basename in *)
-
-          add_bin_annot_argument cmd envs;
-
-
           if pack_of = [] then begin
+
+              let cmd = new_command (ocamlc_cmd.get envs ) []  in
+              add_bin_annot_argument cmd envs;
               add_command_args cmd [S "-c"; S "-o"; T cmo_basename];
               add_command_strings cmd (comp_alias_options lib options);
-            add_command_pack_args cmd pack_for;
-            add_command_strings cmd (command_includes lib pack_for);
-            (*      add_command_strings cmd (command_pp ptmp options); *)
-            if force = Force_IMPL || ml_file_option.get envs  then
-              add_command_string cmd "-impl";
-            add_command_arg cmd temp_ml_file;
+              add_command_pack_args cmd pack_for;
+              add_command_strings cmd (command_includes lib pack_for);
+              add_command_args cmd (bytecompflags envs);
+              (*      add_command_strings cmd (command_pp ptmp options); *)
+              if force = Force_IMPL || ml_file_option.get envs  then
+                add_command_string cmd "-impl";
+              add_command_arg cmd temp_ml_file;
 
-            add_rule_command r (Execute cmd);
-            add_rule_source r ml_file;
+              add_rule_command r (Execute cmd);
+              add_rule_source r ml_file;
           end else begin
-            add_command_args cmd [S "-pack"; S "-o"; T cmo_basename];
-            add_command_pack_args cmd pack_for;
+              let cmd = new_command (ocamlc_cmd.get envs ) []  in
+              add_bin_annot_argument cmd envs;
+              add_command_args cmd (bytecompflags envs);
+              add_command_args cmd [S "-pack"; S "-o"; T cmo_basename];
+              add_command_pack_args cmd pack_for;
 
-            let src_dir = Filename.concat dst_dir.dir_fullname kernel_modname in
-            (*      Printf.eprintf "Pack in %s [%s]\n" src_dir modname; *)
-            let src_dir = BuildEngineContext.add_directory b src_dir in
-            let cmo_files = get_packed_objects lib r src_dir pack_of "cmo" in
-            let cmd = add_files_to_link_to_command lib "byte pack" cmd envs cmo_files in
+              let src_dir =
+                Filename.concat dst_dir.dir_fullname kernel_modname in
+              (*      Printf.eprintf "Pack in %s [%s]\n" src_dir modname; *)
+              let src_dir = BuildEngineContext.add_directory b src_dir in
+              let cmo_files = get_packed_objects lib r src_dir pack_of "cmo" in
+              let cmd = add_files_to_link_to_command
+                          lib "byte pack" cmd envs cmo_files in
             add_rule_command r cmd
           end;
 
@@ -1941,11 +1939,9 @@ let add_ml_source w b lib ptmp ml_file options =
           let o_basename = kernel_name ^ ext_obj in
           let o_file = add_dst_file lib dst_dir o_basename in
 
-          let cmd = new_command (ocamlopt_cmd.get envs ) (asmcompflags envs) in
           let r = new_rule  lib cmx_file before_cmd in
           add_more_rule_sources lib r [ ocamlopt_deps] envs;
           add_rule_sources r comp_deps;
-          add_bin_annot_argument cmd envs;
           (*
             let temp_dir = BuildEngineRules.rule_temp_dir r in
             let o_temp = FileGen.add_basename temp_dir o_basename in
@@ -1954,24 +1950,34 @@ let add_ml_source w b lib ptmp ml_file options =
           *)
 
           if pack_of = [] then begin
+              let cmd = new_command (ocamlopt_cmd.get envs ) [] in
+              add_bin_annot_argument cmd envs;
               add_command_args cmd [S "-c"; S "-o"; T cmx_basename];
+              add_command_pack_args cmd pack_for;
+              add_command_strings cmd (command_includes lib pack_for);
               add_command_strings cmd (comp_alias_options lib options);
-            add_command_pack_args cmd pack_for;
-            add_command_strings cmd (command_includes lib pack_for);
-            (*      add_command_strings cmd (command_pp ptmp options); *)
-            if force = Force_IMPL ||  ml_file_option.get envs  then
-              add_command_string cmd "-impl" ;
-            add_command_arg cmd temp_ml_file;
+              add_command_args cmd (asmcompflags envs);
+              (*      add_command_strings cmd (command_pp ptmp options); *)
+              if force = Force_IMPL ||  ml_file_option.get envs  then
+                add_command_string cmd "-impl" ;
+              add_command_arg cmd temp_ml_file;
 
             add_rule_command r (Execute cmd);
             add_rule_source r ml_file;
           end else begin
-            add_command_args cmd [S "-pack"; S "-o"; T cmx_basename];
-            add_command_pack_args cmd pack_for;
+              let cmd = new_command (ocamlopt_cmd.get envs ) [] in
+              add_bin_annot_argument cmd envs;
+              add_command_args cmd (asmcompflags envs);
+              add_command_args cmd [S "-pack"; S "-o"; T cmx_basename];
+              add_command_pack_args cmd pack_for;
 
-            let src_dir = BuildEngineContext.add_directory b (Filename.concat dst_dir.dir_fullname kernel_modname) in
-            let cmx_files = get_packed_objects lib r src_dir pack_of "cmx" in
-            let cmd = add_files_to_link_to_command lib "asm pack" cmd envs cmx_files in
+              let src_dir
+                = BuildEngineContext.add_directory
+                    b (Filename.concat dst_dir.dir_fullname kernel_modname) in
+              let cmx_files = get_packed_objects
+                                lib r src_dir pack_of "cmx" in
+              let cmd = add_files_to_link_to_command
+                          lib "asm pack" cmd envs cmx_files in
             add_rule_command r cmd
           end;
 
