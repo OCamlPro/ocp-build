@@ -1,0 +1,5 @@
+
+OCaml.program("jbuild2ocp", ocaml + {
+  files = '[ main.ml ];
+  requires = '[ parsexp ocplib-file ];
+});
