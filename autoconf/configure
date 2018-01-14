@@ -598,13 +598,18 @@ OCAMLYACC
 OCAMLLEXDOTOPT
 OCAMLLEX
 OCAMLBIN
+OCAMLVERSION_C
 CONFIGURE_ARGS
 metadir
 ocamldir
 OCAMLFIND
 OCAML_USE_POSIX_TYPES
 AWK
+OCAML_POINT_VERSION
+OCAML_MINOR_VERSION
+OCAML_MAJOR_VERSION
 SED
+OCAML_OS_TYPE
 OCAMLBUILD
 OCAMLDOC
 OCAMLMKLIB
@@ -2696,7 +2701,7 @@ fi
 
 
   if test "$OCAMLC" != "no"; then
-     OCAMLVERSION=`$OCAMLC -v | sed -n -e 's|.*version* *\(.*\)$|\1|p'`
+     OCAMLVERSION=`$OCAMLC -v | tr -d '\015' | sed -n -e 's|.*version* *\(.*\)$|\1|p'`
      { $as_echo "$as_me:${as_lineno-$LINENO}: result: OCaml version is $OCAMLVERSION" >&5
 $as_echo "OCaml version is $OCAMLVERSION" >&6; }
      # If OCAMLLIB is set, use it
@@ -2810,7 +2815,7 @@ fi
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Cannot find ocamlopt; bytecode compilation only." >&5
 $as_echo "$as_me: WARNING: Cannot find ocamlopt; bytecode compilation only." >&2;}
      else
-	TMPVERSION=`$OCAMLOPT -v | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
+	TMPVERSION=`$OCAMLOPT -v | tr -d '\015' | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
 	if test "$TMPVERSION" != "$OCAMLVERSION" ; then
 	    { $as_echo "$as_me:${as_lineno-$LINENO}: result: versions differs from ocamlc; ocamlopt discarded." >&5
 $as_echo "versions differs from ocamlc; ocamlopt discarded." >&6; }
@@ -2916,7 +2921,7 @@ else
 fi
 
      if test "$OCAMLCDOTOPT" != "no"; then
-	TMPVERSION=`$OCAMLCDOTOPT -v | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
+	TMPVERSION=`$OCAMLCDOTOPT -v | tr -d '\015' | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
 	if test "$TMPVERSION" != "$OCAMLVERSION" ; then
 	    { $as_echo "$as_me:${as_lineno-$LINENO}: result: versions differs from ocamlc; ocamlc.opt discarded." >&5
 $as_echo "versions differs from ocamlc; ocamlc.opt discarded." >&6; }
@@ -3020,7 +3025,7 @@ else
 fi
 
 	if test "$OCAMLOPTDOTOPT" != "no"; then
-	   TMPVERSION=`$OCAMLOPTDOTOPT -v | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
+	   TMPVERSION=`$OCAMLOPTDOTOPT -v | tr -d '\015' | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
 	   if test "$TMPVERSION" != "$OCAMLVERSION" ; then
 	      { $as_echo "$as_me:${as_lineno-$LINENO}: result: version differs from ocamlc; ocamlopt.opt discarded." >&5
 $as_echo "version differs from ocamlc; ocamlopt.opt discarded." >&6; }
@@ -3317,7 +3322,7 @@ else
 fi
 
 	if test "$OCAMLDEPDOTOPT" != "no"; then
-	   TMPVERSION=`$OCAMLDEPDOTOPT -version | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
+	   TMPVERSION=`$OCAMLDEPDOTOPT -version | tr -d '\015' | sed -n -e 's|.*version* *\(.*\)$|\1|p' `
 	   if test "$TMPVERSION" != "$OCAMLVERSION" ; then
 	      { $as_echo "$as_me:${as_lineno-$LINENO}: result: version differs from ocamlc; ocamldep.opt discarded." >&5
 $as_echo "version differs from ocamlc; ocamldep.opt discarded." >&6; }
@@ -3703,6 +3708,21 @@ else
 fi
 
 
+    { $as_echo "$as_me:${as_lineno-$LINENO}: checking OCaml Sys.os_type" >&5
+$as_echo_n "checking OCaml Sys.os_type... " >&6; }
+
+  cat > conftest.ml <<EOF
+  print_string(Sys.os_type);;
+EOF
+
+  OCAML_OS_TYPE=`$OCAML conftest.ml`
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $OCAML_OS_TYPE" >&5
+$as_echo "$OCAML_OS_TYPE" >&6; }
+
+
+if test "${OCAML_OS_TYPE}" = "Win32" ; then
+  OCAMLLIB="$(echo "${OCAMLLIB}" | tr -d '\015' | sed -e 's|\\|/|g')"
+fi
 
 ROOTDIR=$(dirname $(pwd))
 
@@ -3794,8 +3814,12 @@ $as_echo_n "checking Point version... " >&6; }
 $as_echo "$AX_POINT_VERSION" >&6; }
 
 OCAML_MAJOR_VERSION=$AX_MAJOR_VERSION
+
 OCAML_MINOR_VERSION=$AX_MINOR_VERSION
+
 OCAML_POINT_VERSION=$AX_POINT_VERSION
+
+OCAMLVERSION_C=$OCAML_MAJOR_VERSION$OCAML_MINOR_VERSION$OCAML_POINT_VERSION
 
 if test "$OCAMLC" = "no"; then
    as_fn_error $? "You must install the OCaml compiler" "$LINENO" 5
@@ -4037,7 +4061,11 @@ fi
 
 
 if test "${OCAMLFIND}" != "no"; then
-  metadir="$(${OCAMLFIND} -printconf destdir)"
+  if test "${OCAML_OS_TYPE}" = "Win32" ; then
+    metadir="$(${OCAMLFIND} -printconf destdir | tr -d '\015' | sed -e 's|\\|/|g')"
+  else
+    metadir="$(${OCAMLFIND} -printconf destdir)"
+  fi
   echo "initializing metadir from ocamlfind config"
 fi
 
@@ -4068,6 +4096,7 @@ fi
 if test "${with_metadir+set}" = set; then :
   withval=$with_metadir; metadir="${withval}"
 fi
+
 
 
 
@@ -4489,6 +4518,7 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
 ## END of autoconf.ac                                         #
 ##                                                            #
 ###############################################################
+
 
 
 
