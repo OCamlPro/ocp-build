@@ -598,6 +598,7 @@ OCAMLYACC
 OCAMLLEXDOTOPT
 OCAMLLEX
 OCAMLBIN
+OCAMLVERSION_C
 CONFIGURE_ARGS
 metadir
 ocamldir
@@ -3818,6 +3819,7 @@ OCAML_MINOR_VERSION=$AX_MINOR_VERSION
 
 OCAML_POINT_VERSION=$AX_POINT_VERSION
 
+OCAMLVERSION_C=$OCAML_MAJOR_VERSION$OCAML_MINOR_VERSION$OCAML_POINT_VERSION
 
 if test "$OCAMLC" = "no"; then
    as_fn_error $? "You must install the OCaml compiler" "$LINENO" 5
@@ -4094,6 +4096,7 @@ fi
 if test "${with_metadir+set}" = set; then :
   withval=$with_metadir; metadir="${withval}"
 fi
+
 
 
 
@@ -4515,6 +4518,7 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
 ## END of autoconf.ac                                         #
 ##                                                            #
 ###############################################################
+
 
 
 

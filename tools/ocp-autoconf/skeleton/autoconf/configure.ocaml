@@ -13,13 +13,18 @@ AC_ARG_ENABLE(bin-annot,
 AC_PROG_CC
 
 AC_PROG_OCAML
+AC_CHECK_OCAML_OS_TYPE
+if test "${OCAML_OS_TYPE}" = "Win32" ; then
+  OCAMLLIB="$(echo "${OCAMLLIB}" | tr -d '\015' | sed -e 's|\\|/|g')"
+fi
 
 ROOTDIR=$(dirname $(pwd))
 
 AX_SPLIT_VERSION(OCAMLVERSION)
-OCAML_MAJOR_VERSION=$AX_MAJOR_VERSION
-OCAML_MINOR_VERSION=$AX_MINOR_VERSION
-OCAML_POINT_VERSION=$AX_POINT_VERSION
+AC_SUBST(OCAML_MAJOR_VERSION,$AX_MAJOR_VERSION)
+AC_SUBST(OCAML_MINOR_VERSION,$AX_MINOR_VERSION)
+AC_SUBST(OCAML_POINT_VERSION,$AX_POINT_VERSION)
+OCAMLVERSION_C=$OCAML_MAJOR_VERSION$OCAML_MINOR_VERSION$OCAML_POINT_VERSION
 
 if test "$OCAMLC" = "no"; then
    AC_MSG_ERROR([You must install the OCaml compiler])
@@ -57,7 +62,11 @@ metadir='${ocamldir}'
 
 AC_PROG_FINDLIB
 if test "${OCAMLFIND}" != "no"; then
-  metadir="$(${OCAMLFIND} -printconf destdir)"
+  if test "${OCAML_OS_TYPE}" = "Win32" ; then
+    metadir="$(${OCAMLFIND} -printconf destdir | tr -d '\015' | sed -e 's|\\|/|g')"
+  else
+    metadir="$(${OCAMLFIND} -printconf destdir)"
+  fi
   echo "initializing metadir from ocamlfind config"
 fi
 
@@ -93,6 +102,7 @@ AC_SUBST(metadir)
 
 AC_SUBST(CONFIGURE_ARGS)
 AC_SUBST(OCAMLVERSION)
+AC_SUBST(OCAMLVERSION_C)
 AC_SUBST(OCAMLLIB)
 AC_SUBST(OCAMLOPT)
 AC_SUBST(OCAMLDEP)
