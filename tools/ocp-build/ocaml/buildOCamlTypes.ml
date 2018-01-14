@@ -55,12 +55,16 @@ type ocaml_package = {
   lib : BuildTypes.package_info;
   lib_opk : ocaml_description;
 
+  mutable lib_alias : string option;
+  mutable lib_aliases :
+            (module_origin * ocaml_dep) StringMap.t;
+
   mutable lib_modules :
     (BuildEngineTypes.build_directory *
-       (module_origin * string) StringMap.t ref) list;
+       (module_origin * ocaml_dep) StringMap.t ref) list;
   mutable lib_internal_modules :
     (BuildEngineTypes.build_directory *
-       (module_origin * string)
+       (module_origin * ocaml_dep)
         StringMap.t ref) StringsMap.t;
 
   lib_build_targets : BuildEngineTypes.build_file list ref;
@@ -68,6 +72,7 @@ type ocaml_package = {
   lib_test_targets : BuildEngineTypes.build_file list ref;
 
   mutable lib_autolink : bool;
+
 
   mutable lib_byte_targets : (BuildEngineTypes.build_file * target_kind) list;
   mutable lib_asm_targets : (BuildEngineTypes.build_file * target_kind) list;
@@ -88,6 +93,10 @@ type ocaml_package = {
   mutable lib_ready : BuildEngineTypes.build_file list;
   mutable lib_meta : bool;
 }
+
+and ocaml_dep =
+  | DepBasename of string
+  | DepAlias of ocaml_package
 
 and ocaml_description = {
   opk_name : string;
