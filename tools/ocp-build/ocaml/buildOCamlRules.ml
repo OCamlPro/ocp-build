@@ -1050,10 +1050,10 @@ let copy_ml_objects_from lib ptmp src_lib kernel_name =
   do_copy_objects_from lib src_lib kernel_name ".cmi" ptmp.cmi_files;
   if lib.lib_opk.opk_has_byte  then
     do_copy_objects_from lib src_lib kernel_name ".cmo" ptmp.cmo_files;
-  if lib.lib_opk.opk_has_asm then begin
+  if lib.lib_opk.opk_has_asm then
+    let ext_obj = BuildOCamlConfig.ocaml_config_ext_obj.get envs in
     do_copy_objects_from lib src_lib kernel_name ".cmx" ptmp.cmx_files;
-    do_copy_objects_from lib src_lib kernel_name ".o" ptmp.cmx_o_files;
-  end
+    do_copy_objects_from lib src_lib kernel_name ext_obj ptmp.cmx_o_files
 
 let object_dst_dir b lib pack_for =
   let dst_dir = lib.lib.lib_dst_dir in
@@ -2695,6 +2695,10 @@ let create w cin cout bc state =
     ) state.BuildOCPTypes.project_sorted
   in
   Array.iter (fun lib ->
+    let ext_lib, ext_obj =
+      let envs = lib.lib_opk.opk_options in
+      BuildOCamlConfig.(ocaml_config_ext_lib.get envs, ocaml_config_ext_obj.get envs)
+    in
     try
       if not lib.lib_opk.opk_installed then
         safe_mkdir lib.lib.lib_dst_dir.dir_fullname;
@@ -2746,24 +2750,27 @@ let create w cin cout bc state =
               | "byte"  when List.mem RUN_BYTE kinds -> [ bf, RUN_BYTE ]
               | "cmxs" when List.mem CMXS kinds -> [ bf, CMXS ]
               | "cmx" when List.mem CMX kinds ->
-                let s = Filename.chop_extension s ^ ".o" in
+                let s = Filename.chop_extension s ^ ext_obj in
                 let bf2 = add_package_file lib s in
                 [ bf, CMX; bf2, CMX_O ]
               | "cmxa" ->
-                let s = Filename.chop_extension s ^ ".a" in
+                let s = Filename.chop_extension s ^ ext_lib in
                 let bf2 = add_package_file lib s in
                 [ bf, CMXA; bf2, CMXA_A ]
               | "cmi" when List.mem CMI kinds -> [ bf, CMI ]
               | "cmo" when List.mem CMO kinds -> [ bf, CMO ]
               | "cma" when List.mem CMA kinds -> [ bf, CMA ]
-              | "o" when List.mem STUB_A kinds -> [ bf, STUB_A ]
-              | "a" when List.mem STUB_A kinds -> [ bf, STUB_A ]
-              | ext ->
-                Printf.eprintf
-                  "Error: package %S, option %S contains a file %S\n"
-                  lib.lib.lib_name name s0;
-                Printf.eprintf "  with unexpected extension %S\n%!" ext;
-                exit 2
+              | _ ->
+                let dot_ext = "." ^ ext in
+                if (dot_ext = ext_obj || dot_ext = ext_lib) && List.mem STUB_A kinds then
+                  [ bf, STUB_A ]
+                else begin
+                  Printf.eprintf
+                    "Error: package %S, option %S contains a file %S\n"
+                    lib.lib.lib_name name s0;
+                  Printf.eprintf "  with unexpected extension %S\n%!" ext;
+                  exit 2
+                end
               ) objs))
       in
 

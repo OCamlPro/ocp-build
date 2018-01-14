@@ -1,6 +1,8 @@
 *.cm?
 *.o
+*.obj
 *.a
+*.lib
 *.mldep
 *.mlidep
 *.byte
