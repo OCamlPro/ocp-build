@@ -17,6 +17,15 @@ module String = struct
   let lowercase_ascii = lowercase
   let uppercase_ascii = uppercase
   let capitalize_ascii = capitalize
+
+  (* added in 4.00 *)
+  let map f s =
+    let l = length s in
+    if l = 0 then s else begin
+      let r = create l in
+      for i = 0 to l - 1 do unsafe_set r i (f(unsafe_get s i)) done;
+      r
+    end
 end
 
 module Char = struct
