@@ -141,7 +141,7 @@ let dirname t =
 let add_basename_string dir basename =
   match dir.file_basename with
   | "" | "/" | "\\" ->
-    dir.file_basename ^ basename
+    dir.file_partition ^ dir.file_basename ^ basename
   | _ ->
     dir.file_string ^ FileOS.dir_separator_string ^ basename
 
@@ -302,6 +302,7 @@ let of_unix_string s =
 let of_win32_string s =
   let s1, s2  = OcpString.cut_at s ':' in
   let ss = if s1 == s then s else s2 in
+  let ss = String.map (function '/' -> '\\' | c -> c) ss in
   let part = if s1 == s then "" else (String.lowercase s1) ^ ":" in
   let path = OcpString.split ss '\\' in
   of_path part path

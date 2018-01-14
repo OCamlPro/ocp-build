@@ -147,10 +147,15 @@ let add_META pj ocamllib meta_dirname meta_filename =
             ) requires)) in
           let options = BuildValue.set_bool options "generated" true in
 
-          let stub_targets = List.filter (fun file ->
-                                 Filename.check_suffix file ".o"
-                                 || Filename.check_suffix file ".a")
-                                         byte_targets in
+          let stub_targets =
+            let ext_lib, ext_obj =
+              let envs = [options] in
+              BuildOCamlConfig.(ocaml_config_ext_lib.get envs, ocaml_config_ext_obj.get envs)
+            in
+            List.filter (fun file ->
+                Filename.check_suffix file ext_obj
+                || Filename.check_suffix file ext_lib)
+                       byte_targets in
           let byte_targets, asm_targets =
             match stub_targets with
             | [] -> byte_targets, asm_targets
