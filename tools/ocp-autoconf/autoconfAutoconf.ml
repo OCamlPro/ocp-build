@@ -253,6 +253,7 @@ let () =
          (List.map (fun s ->
               s, Some ("conf_" ^ String.lowercase s)) [
              "OCAMLVERSION";
+             "OCAMLVERSION_C";
              "OCAMLC";
              "OCAMLOPT";
              "OCAMLDEP";

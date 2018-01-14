@@ -1047,6 +1047,7 @@ let get_copy_objects_from lib envs =
 let copy_ml_objects_from lib ptmp src_lib kernel_name =
   (* TODO: check that pack_for = [] *)
   (* TODO: check that src_lib is in requires *)
+  let envs = lib.lib_opk.opk_options in
   do_copy_objects_from lib src_lib kernel_name ".cmi" ptmp.cmi_files;
   if lib.lib_opk.opk_has_byte  then
     do_copy_objects_from lib src_lib kernel_name ".cmo" ptmp.cmo_files;
