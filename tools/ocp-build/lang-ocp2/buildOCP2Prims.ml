@@ -688,6 +688,24 @@ let _ =
         raise_bad_arity loc "Sys.readdir(dir)" 1 args
     );
 
+  add_primitive "Sys_command"
+                [ "Call a shell command" ]
+                (fun loc _state _config args ->
+                  match args with
+                  | [ VList cmd ] ->
+                     VTuple [ VString ("", StringRaw);
+                              BuildValue.new_object [ "value", VList cmd ] ]
+                  | [ VList cmd; VObject { env } ] ->
+                     let env = StringMap.add "value" (VList cmd) env in
+                     VTuple [ VString ("", StringRaw);
+                              VObject { env } ]
+                  |  _ ->
+                      raise_bad_arity
+                        loc
+                        "Sys.command(cmd [,options])" 1 args
+    );
+
+
   (*
 
     add_function "byte_exe" [] (fun envs _env ->

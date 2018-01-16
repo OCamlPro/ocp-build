@@ -1,4 +1,6 @@
 
+open StringCompat
+
 module Cst = Parsexp.Cst
 
 type sexp =
@@ -139,6 +141,15 @@ let parse_rule b file r = function
      Printf.eprintf
        "%s: Discarding rule element %s\n%!" file (string_of_sexp ele)
 
+let rec filter_ocamldep_flags flags =
+  match flags with
+    [] -> []
+  | ("-safe-string" | "-nopervasives" | "-linkall"| "-opaque") :: flags ->
+     filter_ocamldep_flags flags
+  | ("-w") :: _ :: flags ->
+     filter_ocamldep_flags flags
+  | x :: flags ->
+     x :: filter_ocamldep_flags flags
 
 let print_library b file lib =
   Printf.bprintf b "(* from file %S *)\n\n%!" file;
@@ -162,9 +173,17 @@ let print_library b file lib =
               Printf.bprintf b "     %S;\n" name
             ) lib.lib_flags;
           Printf.bprintf b "  ];\n";
-          Printf.bprintf b "  ocaml.dep = flags;\n";
           Printf.bprintf b "  ocaml.bytecomp = flags;\n";
           Printf.bprintf b "  ocaml.asmcomp = flags;\n";
+          let dep_flags = filter_ocamldep_flags lib.lib_flags in
+          if dep_flags <> [] then begin
+              Printf.bprintf b "  ocaml.dep = [\n";
+              List.iter (fun name ->
+                  Printf.bprintf b "     %S;\n" name
+                ) dep_flags;
+              Printf.bprintf b "  ];\n";
+            end;
+
           Printf.bprintf b"\n";
         end;
 
@@ -191,14 +210,38 @@ let print_library b file lib =
               Printf.bprintf b "     %S;\n" name
           ) (Sys.readdir subdir)
       else
-        List.iter (fun name ->
-            match name with
-            | "" | ":standard" | "\\" -> ()
-            | name ->
-               let name = String.uncapitalize name in
-               let name = name ^ ".ml" in
-               Printf.bprintf b "     %S;\n" name
-          ) lib.lib_modules;
+        begin
+          let rec iter set modules =
+            match modules with
+              [] -> set
+            | "\\" :: modules ->
+               iter_except set modules
+            | ":standard" :: modules ->
+               let set = ref set in
+               Array.iter (fun name ->
+                   if Filename.check_suffix name ".ml" then
+                     let modname = Filename.chop_extension name in
+                     let modname = String.capitalize modname in
+                     set := StringSet.add modname !set
+                 ) (Sys.readdir subdir);
+               iter !set modules
+            | name :: modules ->
+               iter (StringSet.add name set) modules
+          and iter_except set modules =
+            match modules with
+              [] -> set
+            | "\\" :: modules ->
+               iter set modules
+            | name :: modules ->
+               iter (StringSet.remove name set) modules
+          in
+          let set = iter StringSet.empty lib.lib_modules in
+          StringSet.iter (fun name ->
+              let name = String.uncapitalize name in
+              let name = name ^ ".ml" in
+              Printf.bprintf b "     %S;\n" name
+            ) set
+        end;
       (*      data_encoding.ml *)
       Printf.bprintf b "  ];\n";
       Printf.bprintf b"\n";
@@ -231,26 +274,53 @@ let parse_package b file lib_kind sexps =
      print_library b file lib
 
 let print_rule b file r =
+  let subdir = Filename.dirname file in
+  let subdir =
+    if subdir = "" then function file -> file
+    else function file -> Filename.concat subdir file
+  in
   Printf.bprintf b "build_rules = [\n";
   begin
     match r.rule_targets with
     | [] -> assert false
-    | [r] -> Printf.bprintf b "    %S, {\n" r
+    | [r] -> Printf.bprintf b "    %S, {\n" (subdir r)
     | targets ->
        Printf.bprintf b "  [\n";
        List.iter (fun target ->
-           Printf.bprintf b "    %S;\n" target
+           Printf.bprintf b "    %S;\n" (subdir target)
          ) targets;
        Printf.bprintf b "  ], {\n";
-       Printf.bprintf b "    uniq_id = %S;\n" (List.hd targets);
+       Printf.bprintf b "    uniq_id = %S;\n" (subdir (List.hd targets));
   end;
   Printf.bprintf b "       sources = [\n";
-       List.iter (fun dep ->
-           Printf.bprintf b "         %S;\n" dep
-         ) r.rule_deps;
-       Printf.bprintf b "       ];\n";
+  List.iter (fun dep ->
+      Printf.bprintf b "         %S;\n" (subdir dep)
+    ) r.rule_deps;
+  Printf.bprintf b "       ];\n";
+  Printf.bprintf b "       commands = [\n";
+  List.iter (fun action ->
+      Printf.bprintf b "            OCaml.system([\n";
+      List.iter (fun arg ->
+          Printf.bprintf b "              %S;\n" arg
+        ) action.action_args;
+      Printf.bprintf b "               ]\n";
+      begin
+        match action.action_stdout with
+        | None -> ()
+        | Some file ->
+           Printf.bprintf b "           ,{ stdout = %S }\n" file
+      end;
+      (*
+type action = {
+    mutable action_args : string list;
+    mutable action_stdout : string option;
+    mutable action_chdir : string option;
+  }*)
+                Printf.bprintf b "        );\n";
+    ) r.rule_actions;
+  Printf.bprintf b "       ];\n";
   Printf.bprintf b "     }\n";
-  Printf.bprintf b "]\n\n";
+  Printf.bprintf b "];\n\n";
   ()
 
 let parse_top_sexp b file = function
