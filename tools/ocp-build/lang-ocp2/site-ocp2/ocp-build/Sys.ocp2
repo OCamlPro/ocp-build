@@ -14,6 +14,7 @@ function SysMaker(){
   Sys = {
       file_exists = Sys_file_exists;
       readdir = Sys_readdir;
+      command = Sys_command;
       };
   return Sys;
 }
