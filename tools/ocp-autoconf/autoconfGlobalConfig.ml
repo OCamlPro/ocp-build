@@ -10,6 +10,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(* Common configuration options, used to initialize projects.
+  File is loaded from ~/.ocp/ocp-autoconf/ocp-autoconf.conf.
+*)
+
 open OcpCompat
 
 let (!!) = SimpleConfig.(!!)
