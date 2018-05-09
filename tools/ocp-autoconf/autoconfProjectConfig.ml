@@ -126,12 +126,15 @@ let ocaml_unsupported_version = SimpleConfig.create_option config
 
 let need_packages = SimpleConfig.create_option config
     [ "need_packages" ]
-    [ "Packages (ocamlfind) needed by the project.";
-      "They can be specified as a list with items of the forms:";
-      " * \"findlib\"";
-      " * (\"findlib\", \"version\")";
-      " * { name=\"findlib\" version=\"version\" opam=\"package\" }";
-      "The later form can be used to specify a different opam package name.";
+    [ {|\n\
+      Packages (ocamlfind) needed by the project.\n\
+      They can be specified as a list with items of the forms:\n\
+       * "findlib"\n\
+       * ("findlib", "version");\n\
+       * { name="findlib" version="version" opam="package" };\n\
+      The later form can be used to specify a different opam package name.\n\
+      "version" can be of the form ">=1.0" for example.\n\
+      |}
     ]
     (SimpleConfig.list_option package_option)
     []

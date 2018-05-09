@@ -8,7 +8,7 @@
 #                                                     #
 #######################################################
 AC_INIT(ocp-build,1.99.20-beta)
-CONFIGURE_ARGS=$*
+PROJECTURE_ARGS=$*
 AC_COPYRIGHT(Copyright 2011-2016 OCamlPro SAS)
 OCAML_MINIMAL_VERSION=4.02.1
 AC_CONFIG_MACRO_DIR([m4])
@@ -127,7 +127,22 @@ if test "$OCAMLFIND" = "no"; then
 fi
 AC_CHECK_OCAML_PKG(cmdliner)
 if test "$OCAML_PKG_cmdliner" = "no"; then
-   AC_MSG_ERROR([Please install OCaml package 'cmdliner'.])
+   AC_MSG_WARN([BEFORE ERROR: Please install OCaml package 'cmdliner'.])
+else
+  AX_COMPARE_VERSION( [$OCAML_PKG_cmdliner_VERSION], [lt], [1.0],
+     AC_MSG_WARN([BEFORE ERROR: Version >= 1.0 of cmdliner is needed]))
+fi
+AC_CHECK_OCAML_PKG(parsexp)
+if test "$OCAML_PKG_parsexp" = "no"; then
+   AC_MSG_WARN([BEFORE ERROR: Please install OCaml package 'parsexp'.])
+fi
+if test "$OCAML_PKG_cmdliner" = "no"; then
+   AC_MSG_FAILURE([Missing dependencies (see warnings above).])
+fi
+  AX_COMPARE_VERSION( [$OCAML_PKG_cmdliner_VERSION], [lt], [1.0],
+     AC_MSG_FAILURE([Problems with dependencies (see warnings above)]))
+if test "$OCAML_PKG_parsexp" = "no"; then
+   AC_MSG_FAILURE([Missing dependencies (see warnings above).])
 fi
 OPAM_REPO=/home/lefessan/GIT/ocp-public/opam-repository
 OPAM_REPO_OFFICIAL_REMOTE=ocaml
@@ -154,7 +169,7 @@ AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [4.03.0],, HAS_BYTES=4.03.0)
 AC_SUBST(OCAMLFIND)
 AC_SUBST(OCAMLYACC)
 AC_SUBST(OCAMLLEX)
-AC_SUBST(CONFIGURE_ARGS)
+AC_SUBST(PROJECTURE_ARGS)
 AC_SUBST(ROOTDIR)
 AC_SUBST(prefix)
 AC_SUBST(exec_prefix)

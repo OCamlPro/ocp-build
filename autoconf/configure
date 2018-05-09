@@ -593,6 +593,8 @@ OPAM_REPO_FORK_REMOTE
 OPAM_REPO_OFFICIAL_REMOTE
 OPAM_REPO
 ROOTDIR
+PROJECTURE_ARGS
+OCAML_PKG_parsexp
 OCAML_PKG_cmdliner
 OCAMLYACC
 OCAMLLEXDOTOPT
@@ -1795,7 +1797,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-CONFIGURE_ARGS=$*
+PROJECTURE_ARGS=$*
 
 OCAML_MINIMAL_VERSION=4.02.1
 
@@ -4425,7 +4427,126 @@ $as_echo "not found" >&6; }
 
 
 if test "$OCAML_PKG_cmdliner" = "no"; then
-   as_fn_error $? "Please install OCaml package 'cmdliner'." "$LINENO" 5
+   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: BEFORE ERROR: Please install OCaml package 'cmdliner'." >&5
+$as_echo "$as_me: WARNING: BEFORE ERROR: Please install OCaml package 'cmdliner'." >&2;}
+else
+
+
+
+  # Used to indicate true or false condition
+  ax_compare_version=false
+
+  # Convert the two version strings to be compared into a format that
+  # allows a simple string comparison.  The end result is that a version
+  # string of the form 1.12.5-r617 will be converted to the form
+  # 0001001200050617.  In other words, each number is zero padded to four
+  # digits, and non digits are removed.
+
+  ax_compare_version_A=`echo "$OCAML_PKG_cmdliner_VERSION" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+                     -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/[^0-9]//g'`
+
+
+  ax_compare_version_B=`echo "1.0" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+                     -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/[^0-9]//g'`
+
+
+    ax_compare_version=`echo "x$ax_compare_version_A
+x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version_A}/false/;s/x${ax_compare_version_B}/true/;1q"`
+
+
+
+    if test "$ax_compare_version" = "true" ; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: BEFORE ERROR: Version >= 1.0 of cmdliner is needed" >&5
+$as_echo "$as_me: WARNING: BEFORE ERROR: Version >= 1.0 of cmdliner is needed" >&2;}
+      fi
+
+fi
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OCaml findlib package parsexp" >&5
+$as_echo_n "checking for OCaml findlib package parsexp... " >&6; }
+
+  unset found
+  unset pkg
+  found=no
+  for pkg in parsexp  ; do
+    if $OCAMLFIND query $pkg >/dev/null 2>/dev/null; then
+      OCAML_PKG_parsexp=$pkg
+      ocaml_pkg_version=$($OCAMLFIND query -l $pkg|grep version: | awk '{ print $2}')
+      OCAML_PKG_parsexp_VERSION=$ocaml_pkg_version
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ocaml_pkg_version" >&5
+$as_echo "$ocaml_pkg_version" >&6; }
+      found=yes
+      break
+    fi
+  done
+  if test "$found" = "no" ; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+$as_echo "not found" >&6; }
+    OCAML_PKG_parsexp=no
+  fi
+
+
+
+if test "$OCAML_PKG_parsexp" = "no"; then
+   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: BEFORE ERROR: Please install OCaml package 'parsexp'." >&5
+$as_echo "$as_me: WARNING: BEFORE ERROR: Please install OCaml package 'parsexp'." >&2;}
+fi
+if test "$OCAML_PKG_cmdliner" = "no"; then
+   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "Missing dependencies (see warnings above).
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+
+
+
+  # Used to indicate true or false condition
+  ax_compare_version=false
+
+  # Convert the two version strings to be compared into a format that
+  # allows a simple string comparison.  The end result is that a version
+  # string of the form 1.12.5-r617 will be converted to the form
+  # 0001001200050617.  In other words, each number is zero padded to four
+  # digits, and non digits are removed.
+
+  ax_compare_version_A=`echo "$OCAML_PKG_cmdliner_VERSION" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+                     -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/[^0-9]//g'`
+
+
+  ax_compare_version_B=`echo "1.0" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+                     -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/[^0-9]//g'`
+
+
+    ax_compare_version=`echo "x$ax_compare_version_A
+x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version_A}/false/;s/x${ax_compare_version_B}/true/;1q"`
+
+
+
+    if test "$ax_compare_version" = "true" ; then
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "Problems with dependencies (see warnings above)
+See \`config.log' for more details" "$LINENO" 5; }
+      fi
+
+if test "$OCAML_PKG_parsexp" = "no"; then
+   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "Missing dependencies (see warnings above).
+See \`config.log' for more details" "$LINENO" 5; }
 fi
 OPAM_REPO=/home/lefessan/GIT/ocp-public/opam-repository
 OPAM_REPO_OFFICIAL_REMOTE=ocaml
