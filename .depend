@@ -45,9 +45,11 @@ libs/ocplib-file/fileChannel.cmi : \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
     libs/ocplib-file/fileSig.cmo
 libs/ocplib-file/fileDir.cmo : libs/ocplib-lang/ocpArray.cmi \
-    libs/ocplib-maxunix/minUnix.cmo libs/ocplib-file/fileSig.cmo
+    libs/ocplib-maxunix/minUnix.cmo libs/ocplib-file/fileSig.cmo \
+    libs/ocplib-file/fileSel.cmi
 libs/ocplib-file/fileDir.cmx : libs/ocplib-lang/ocpArray.cmx \
-    libs/ocplib-maxunix/minUnix.cmx libs/ocplib-file/fileSig.cmx
+    libs/ocplib-maxunix/minUnix.cmx libs/ocplib-file/fileSig.cmx \
+    libs/ocplib-file/fileSel.cmx
 libs/ocplib-file/fileGen.cmo : libs/ocplib-lang/ocpString.cmi \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
     libs/ocplib-maxunix/minUnix.cmo libs/ocplib-file/fileString.cmi \
@@ -66,12 +68,15 @@ libs/ocplib-file/fileOS.cmo : libs/ocplib-compat/string-compat/ocpCompat.cmo \
 libs/ocplib-file/fileOS.cmx : libs/ocplib-compat/string-compat/ocpCompat.cmx \
     libs/ocplib-file/fileOS.cmi
 libs/ocplib-file/fileOS.cmi :
+libs/ocplib-file/fileSel.cmo : libs/ocplib-file/fileSel.cmi
+libs/ocplib-file/fileSel.cmx : libs/ocplib-file/fileSel.cmi
+libs/ocplib-file/fileSel.cmi :
 libs/ocplib-file/fileSig.cmo : \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
-    libs/ocplib-maxunix/minUnix.cmo
+    libs/ocplib-maxunix/minUnix.cmo libs/ocplib-file/fileSel.cmi
 libs/ocplib-file/fileSig.cmx : \
     libs/ocplib-compat/string-compat/ocpCompat.cmx \
-    libs/ocplib-maxunix/minUnix.cmx
+    libs/ocplib-maxunix/minUnix.cmx libs/ocplib-file/fileSel.cmx
 libs/ocplib-file/fileString.cmo : libs/ocplib-lang/ocpString.cmi \
     libs/ocplib-lang/ocpList.cmi \
     libs/ocplib-compat/string-compat/ocpCompat.cmo \
