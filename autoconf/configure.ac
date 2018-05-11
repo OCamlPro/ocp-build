@@ -136,12 +136,19 @@ AC_CHECK_OCAML_PKG(parsexp)
 if test "$OCAML_PKG_parsexp" = "no"; then
    AC_MSG_WARN([BEFORE ERROR: Please install OCaml package 'parsexp'.])
 fi
+AC_CHECK_OCAML_PKG(re.glob)
+if test "$OCAML_PKG_re.glob" = "no"; then
+   AC_MSG_WARN([BEFORE ERROR: Please install OCaml package 're.glob'.])
+fi
 if test "$OCAML_PKG_cmdliner" = "no"; then
    AC_MSG_FAILURE([Missing dependencies (see warnings above).])
 fi
   AX_COMPARE_VERSION( [$OCAML_PKG_cmdliner_VERSION], [lt], [1.0],
      AC_MSG_FAILURE([Problems with dependencies (see warnings above)]))
 if test "$OCAML_PKG_parsexp" = "no"; then
+   AC_MSG_FAILURE([Missing dependencies (see warnings above).])
+fi
+if test "$OCAML_PKG_re.glob" = "no"; then
    AC_MSG_FAILURE([Missing dependencies (see warnings above).])
 fi
 OPAM_REPO=/home/lefessan/GIT/ocp-public/opam-repository

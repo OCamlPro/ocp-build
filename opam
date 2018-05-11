@@ -41,6 +41,7 @@ remove: [
 available: [ocaml-version >= "4.02.1"]
 depends: [
      "cmdliner" {>= "1.0" }
+     "ocaml-re"
      "ocamlfind"
      "parsexp"
 ]

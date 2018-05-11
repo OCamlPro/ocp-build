@@ -594,6 +594,7 @@ OPAM_REPO_OFFICIAL_REMOTE
 OPAM_REPO
 ROOTDIR
 PROJECTURE_ARGS
+OCAML_PKG_re_glob
 OCAML_PKG_parsexp
 OCAML_PKG_cmdliner
 OCAMLYACC
@@ -4498,6 +4499,37 @@ if test "$OCAML_PKG_parsexp" = "no"; then
    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: BEFORE ERROR: Please install OCaml package 'parsexp'." >&5
 $as_echo "$as_me: WARNING: BEFORE ERROR: Please install OCaml package 'parsexp'." >&2;}
 fi
+
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OCaml findlib package re.glob" >&5
+$as_echo_n "checking for OCaml findlib package re.glob... " >&6; }
+
+  unset found
+  unset pkg
+  found=no
+  for pkg in re.glob  ; do
+    if $OCAMLFIND query $pkg >/dev/null 2>/dev/null; then
+      OCAML_PKG_re_glob=$pkg
+      ocaml_pkg_version=$($OCAMLFIND query -l $pkg|grep version: | awk '{ print $2}')
+      OCAML_PKG_re_glob_VERSION=$ocaml_pkg_version
+
+      { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ocaml_pkg_version" >&5
+$as_echo "$ocaml_pkg_version" >&6; }
+      found=yes
+      break
+    fi
+  done
+  if test "$found" = "no" ; then
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
+$as_echo "not found" >&6; }
+    OCAML_PKG_re_glob=no
+  fi
+
+
+
+if test "$OCAML_PKG_re.glob" = "no"; then
+   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: BEFORE ERROR: Please install OCaml package 're.glob'." >&5
+$as_echo "$as_me: WARNING: BEFORE ERROR: Please install OCaml package 're.glob'." >&2;}
+fi
 if test "$OCAML_PKG_cmdliner" = "no"; then
    { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -4543,6 +4575,12 @@ See \`config.log' for more details" "$LINENO" 5; }
       fi
 
 if test "$OCAML_PKG_parsexp" = "no"; then
+   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "Missing dependencies (see warnings above).
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+if test "$OCAML_PKG_re.glob" = "no"; then
    { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "Missing dependencies (see warnings above).
