@@ -30,7 +30,7 @@ let iter_blocks f ic =
   let rec iter f ic s =
     let nread = input ic s 0 FileOS.default_buffer_size in
     if nread > 0 then begin
-      f s 0 nread;
+      f s nread;
       iter f ic s
     end
   in
@@ -60,20 +60,18 @@ let read_subfile ic pos len =
   seek_in ic pos;
   if len = 0 then begin
     ""
-  end else  try
-      let s = Bytes.create len in
-      let rec iter pos len =
-        if len > 0 then
-          let nread = input ic s pos len in
-          if nread > 0 then
-            iter (pos+nread) (len-nread)
-          else raise End_of_file
-      in
-      iter 0 len;
-      Bytes.to_string s
-    with e ->
-      close_in ic;
-      raise e
+  end else
+    let s = Bytes.create len in
+    let rec iter pos len =
+      if len > 0 then
+        let nread = input ic s pos len in
+        if nread > 0 then
+          iter (pos+nread) (len-nread)
+        else raise End_of_file
+    in
+    iter 0 len;
+    Bytes.to_string s
+
 let string_of_subfile = read_subfile
 
 
@@ -88,15 +86,19 @@ let read_lines_to_revlist ic =
   !lines
 
 let read_lines ic =
-  let lines = read_lines_to_revlist ic in
-  let lines = Array.of_list lines in
+  let lines = Array.of_list (read_lines_to_revlist ic) in
   OcpArray.rev lines;
   lines
+
+let read_lines_to_list ic = List.rev (read_lines_to_revlist ic)
 
 let lines_of_file = read_lines
 
 let write_lines oc lines =
-  Array.iter (fun l -> output_line oc l) lines
+  Array.iter (output_line oc) lines
+
+let write_lines_of_list oc lines =
+  List.iter (output_line oc) lines
 
 let file_of_lines = write_lines
 
@@ -120,12 +122,23 @@ let iteri_lines f ic =
   with
   | End_of_file -> ()
 
+let read_sublines_to_revlist ic off len =
+  if len = 0 then []
+  else
+    let lines = ref [] in
+    let aux i elt =
+      if i >= off && i < off + len then
+        lines := elt :: !lines
+      else
+      if i = off + len then raise Exit;
+    in
+    (try iteri_lines aux ic with Exit -> ());
+    !lines
+
+let read_sublines_to_list ic off len =
+  List.rev (read_sublines_to_revlist ic off len)
+
 let read_sublines ic off len =
-  let lines = ref [] in
-  let aux i elt =
-    if i >= off && i <= off + len then
-      lines := elt :: !lines in
-  iteri_lines aux ic;
-  let lines = Array.of_list !lines in
+  let lines = Array.of_list (read_sublines_to_revlist ic off len) in
   OcpArray.rev lines;
   lines

@@ -10,6 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** File operations on the stdlib [in_channel]/[out_channel] types *)
+
 open OcpCompat
 
 include (FileSig.CONTENT_OPERATIONS with

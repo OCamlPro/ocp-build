@@ -289,7 +289,7 @@ let _ =
     | _ -> None)
 ;;
 
-let safe_mkdir = FileString.safe_mkdir
+let safe_mkdir = FileString.make_dir ~p:true
 (*
   let rec safe_mkdir filename =
   try

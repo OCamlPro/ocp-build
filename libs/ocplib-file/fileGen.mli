@@ -10,6 +10,9 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** File operations with filenames represented by an abstract type
+ [FileGen.t] *)
+
 (* This module implements operations on filenames, represented by an
    abstract type, so that manipulations of filenames are better checked. *)
 
@@ -31,10 +34,3 @@ val of_win32_string : string -> t
 val to_rooted_string : t -> string
 
 val of_path : string -> string list -> t
-
-module Op : sig
-
-  (* concatenate ('/' must be the only file separator in the string) *)
-  val (//) : t -> string -> t
-
-  end

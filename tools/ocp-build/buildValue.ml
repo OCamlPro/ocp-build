@@ -227,25 +227,38 @@ let plist_of_path s = VString (s, StringRaw)
 let path_of_plist list = String.concat "/" (strings_of_plist list)
 
 let set_bool env name v = set env name (plist_of_bool v)
-let get_bool env name = bool_of_plist (get env name)
-let get_local_bool env name = bool_of_plist (get_local env name)
+
+let get_conv f env name =
+  let v = get env name in
+  try f v with exn ->
+    Printf.kprintf failwith "unexpected type for variable %S: %s"
+      name (Printexc.to_string exn)
+
+let get_local_conv f env name =
+  let v = get_local env name in
+  try f v with exn ->
+    Printf.kprintf failwith "unexpected type for variable %S: %s"
+      name (Printexc.to_string exn)
+
+let get_bool = get_conv bool_of_plist
+let get_local_bool = get_local_conv bool_of_plist
 
 let set_strings env name v = set env name (plist_of_strings v)
-let get_strings env name = strings_of_plist (get env name)
-let get_local_strings env name = strings_of_plist (get_local env name)
+let get_strings = get_conv strings_of_plist
+let get_local_strings = get_local_conv strings_of_plist
 
 (*let set_version env name v = set env name (VString (v, StringVersion))*)
 let set_string env name v = set env name (plist_of_string v)
-let get_string env name = string_of_plist (get env name)
-let get_local_string env name = string_of_plist (get_local env name)
+let get_string = get_conv string_of_plist
+let get_local_string = get_local_conv string_of_plist
 
 let set_string_option env name v = set env name (plist_of_string_option v)
-let get_string_option env name = string_option_of_plist (get env name)
-let get_local_string_option env name = string_option_of_plist (get_local env name)
+let get_string_option = get_conv string_option_of_plist
+let get_local_string_option = get_local_conv string_option_of_plist
 
 let set_path env name v = set env name (plist_of_path v)
-let get_path env name = path_of_plist (get env name)
-let get_local_path env name = path_of_plist (get_local env name)
+let get_path = get_conv path_of_plist
+let get_local_path = get_local_conv path_of_plist
 
 let get_with_default_fun f =
   fun env name default -> try f env name with Var_not_found _ -> default
@@ -253,7 +266,7 @@ let get_with_default_fun f =
 let get_with_default = get_with_default_fun get
 
 let get_local_with_default = get_with_default_fun get_local
-let get_local_prop_list env name = prop_list (get_local env name)
+let get_local_prop_list = get_local_conv prop_list
 let get_local_prop_list_with_default = get_with_default_fun get_local_prop_list
 
 let get_bool_with_default = get_with_default_fun get_bool
