@@ -501,7 +501,7 @@ let uncopy_rec src dst = FileString.uncopy_rec (to_string src) (to_string dst)
 let extensions file = FileString.extensions_of_basename file.file_basename
 
 let last_extension file =
-  FileString.last_extension (extensions file)
+  FileString.last_extension (basename file)
 
 let chop_extension f =
   let (basename, _ext) = OcpString.cut_at f.file_basename '.' in
@@ -549,6 +549,7 @@ end
 
 module Directory_operations = FileDir.Make(struct
     type path = t
+    let to_string = to_string
     let add_basename = add_basename
     let dirname = dirname
     let basename = basename

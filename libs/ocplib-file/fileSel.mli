@@ -14,3 +14,5 @@ val create :
            ?filter:(bool -> string -> string -> bool) ->
            ?follow_links:bool ->
            ?error:(exn -> string -> 'a -> unit) -> unit -> 'a t
+
+val globber :  ?pathname:bool -> string -> (string -> bool)

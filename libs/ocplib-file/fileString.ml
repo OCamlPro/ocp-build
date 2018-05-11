@@ -26,11 +26,6 @@ let extensions_of_basename basename =
     [] | [_] -> []
   | _basename :: exts -> exts
 
-let last_extension extensions =
-  try
-    Some (OcpList.last extensions)
-  with Not_found -> None
-
 let extensions file = extensions_of_basename (Filename.basename file)
 
 let is_absolute file = not (Filename.is_relative file)
@@ -45,7 +40,13 @@ let check_suffix = Filename.check_suffix
 let add_suffix = (^)
 let chop_extension = Filename.chop_extension
 
-
+let last_extension filename =
+  let basename = basename filename in
+  try
+    match List.rev (extensions_of_basename basename) with
+    | [] -> None
+    | ext :: _ -> Some ext
+  with Not_found -> None
 
 let open_in = open_in
 let open_in_bin = open_in_bin
@@ -149,6 +150,7 @@ let exists = Sys.file_exists
 let stat filename = MinUnix.stat filename
 let lstat filename = MinUnix.lstat filename
 
+let to_string s = s
 
 let size filename =
   let s = MinUnix.stat filename in
@@ -179,6 +181,8 @@ module Directory_operations = FileDir.Make(struct
 
     let remove = Sys.remove
     let readdir = Sys.readdir
+
+    let to_string = to_string
   end)
 
 include Directory_operations
@@ -191,7 +195,7 @@ let rec copy_rec src dst =
   match (MinUnix.stat src).MinUnix.st_kind with
   | MinUnix.S_DIR ->
     make_dir ~p:true dst;
-    iter_dir (fun _ basename ->
+    iter_dir (fun basename _path _file ->
         copy_rec (Filename.concat src basename)
           (Filename.concat dst basename)) src
   | MinUnix.S_REG ->
@@ -209,7 +213,7 @@ let rec uncopy_rec src dst =
   with
   | _, None -> ()
   | Some MinUnix.S_DIR, Some MinUnix.S_DIR ->
-    iter_dir (fun _ basename ->
+    iter_dir (fun basename _path _file ->
         uncopy_rec (Filename.concat src basename)
           (Filename.concat dst basename)) src;
     (try MinUnix.rmdir dst with _ -> ())

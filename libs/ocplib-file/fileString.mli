@@ -37,9 +37,11 @@ val iter_files : ?recursive:bool -> (string -> unit) -> string -> unit
     [before_ext] everything before the last dot. *)
 val cut_at_last_extension : string -> string * string
 
+(*
 (** [last_extension extensions] returns the last extension (equivalent
    to [OcpList.last] without exceptions) *)
 val last_extension : string list -> string option
+*)
 
 (** [extensions_of_basename basename] returns the list of extensions of
    the file. The argument must only contain the basename of the file,

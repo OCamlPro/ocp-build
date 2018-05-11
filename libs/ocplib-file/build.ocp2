@@ -37,3 +37,10 @@ OCaml.library("ocplib-file-compat",
      file.ml ];
     requires = '[ ocplib-file ];
   });
+
+
+OCaml.program("ocplib-file-test",
+              ocaml + {
+                files = '[ test.ml ];
+                requires = '[ ocplib-file ];
+              });
