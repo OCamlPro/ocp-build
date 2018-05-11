@@ -10,6 +10,11 @@ type 'a t = {
 let ok _dir _file _path = true
 let no_error _exn _path _filename = ()
 
+let globber ?pathname glob =
+  let regexp = Re.Glob.glob ~anchored:true ?pathname glob in
+  let re = Re.compile regexp in
+  Re.execp re
+
 let create
     ?(deep=false)
     ?dft
@@ -21,10 +26,9 @@ let create
   let filter = match glob with
     | None -> filter
     | Some glob ->
-      let regexp = Re.Glob.glob ~anchored:true glob in
-      let re = Re.compile regexp in
+      let glob = globber glob in
       fun is_dir file path ->
-        (is_dir || Re.execp re file) && filter is_dir file path
+        (is_dir || glob file) && filter is_dir file path
   in
   {
     deep;

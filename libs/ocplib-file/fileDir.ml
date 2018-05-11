@@ -24,6 +24,8 @@ module Make(M : sig
     val basename : path -> string
     val dirname : path -> path
     val add_basename : path -> string -> path
+
+    val to_string : path -> string
   end) : FileSig.DIRECTORY_OPERATIONS with type t := M.path
 = struct
 
@@ -98,7 +100,7 @@ module Make(M : sig
           let file = array.(i) in
           let filename = M.add_basename filename file in
           let path = Filename.concat path file in
-          if select.FileSel.filter false file path then f path filename;
+          if select.FileSel.filter false file path then f file path filename;
           let recurse = recurse select file path filename in
           if recurse then
             Queue.add (filename,path) queue
@@ -116,18 +118,19 @@ module Make(M : sig
           let recurse = recurse select file path filename in
           match dft with
           | `Before ->
-            if select.FileSel.filter false file path then f path filename;
+            if select.FileSel.filter false file path then f file path filename;
             if recurse then iter filename path;
           | `After ->
             if recurse then iter filename path;
-            if select.FileSel.filter false file path then f path filename;
+            if select.FileSel.filter false file path then f file path filename;
         done;
       in
       iter filename path
 
   let read_dir_to_revlist ?select filename =
     let files = ref [] in
-    iter_dir ?select (fun _ file -> files := file :: !files) filename;
+    iter_dir ?select (fun _basename _path file ->
+        files := file :: !files) filename;
     !files
 
   let read_dir ?select filename =
@@ -223,15 +226,26 @@ module Make(M : sig
       enter_dir filename path;
       iter
 
-
-  let rec remove_dir ?(all=false) dir =
-    if all then
-      iter_dir (fun _ filename ->
-          if not (is_link filename) && is_directory filename then
-            remove_dir filename
-          else
-            M.remove filename
-        ) dir;
-    rmdir dir
-
+  let remove_dir ?(all=false) ?glob dir =
+    let filter = match glob with
+      | None -> (fun _ -> true)
+      | Some glob ->
+        fun s ->
+          FileSel.globber glob s
+    in
+    let rec iter ~all ~filter ~glob filename =
+      if all then
+        iter_dir (fun basename _path filename ->
+            if not (is_link filename) && is_directory filename then begin
+              iter ~all ~filter ~glob filename
+            end else begin
+              if filter basename then
+                M.remove filename
+            end
+          ) filename;
+      match glob with
+      | None -> rmdir filename
+      | Some _ -> ()
+    in
+    iter ~all ~filter ~glob dir
 end

@@ -1401,8 +1401,7 @@ let sanitize b delete_orphans is_ok =
   let cdir = BuildEngineContext.add_directory b b.build_dir_filename in
   let orphan_files = ref 0 in
   let rec iter dir cdir =
-    FileGen.iter_dir (fun _ filename ->
-      let basename = FileGen.basename filename in
+    FileGen.iter_dir (fun basename _path filename ->
       if FileGen.is_directory filename then
         try
           let cdir = BuildEngineContext.find_dir cdir basename in
@@ -1431,8 +1430,7 @@ let sanitize b delete_orphans is_ok =
     ) dir
 
   in
-  FileGen.iter_dir (fun _ filename ->
-      let basename = FileGen.basename filename in
+  FileGen.iter_dir (fun basename _path filename ->
     if FileGen.is_directory filename then
       try
         let cdir = BuildEngineContext.find_dir cdir basename in

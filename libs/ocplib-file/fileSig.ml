@@ -158,8 +158,10 @@ module type DIRECTORY_OPERATIONS = sig
   (** [remove_dir ?all filename] removes directory [filename], or
      complains the [NotADirectory] if it does not exist. The [all]
      argument controls whether the function should recursively remove
-     all files and sub-directories included as well. *)
-  val remove_dir : ?all:bool -> t -> unit
+     all files and sub-directories included as well. If [glob] is
+     specified, it is called to select files to remove, and the
+     directories are not deleted even if [all] is [true].*)
+  val remove_dir : ?all:bool -> ?glob:string -> t -> unit
 
   (** [select ?deep ?dft ?glob ?filter ?follow_links ?error ()]
       creates a selctor to customize a file iterator.
@@ -215,7 +217,7 @@ module type DIRECTORY_OPERATIONS = sig
      itering on the result, as [iter_dir] the function is called
      during the traversal, not after.  *)
   val iter_dir :
-    ?select:t select -> (string -> t -> unit) -> t -> unit
+    ?select:t select -> (string -> string -> t -> unit) -> t -> unit
 
   (** [iterator ?select dir] creates an iterator on directory [dir].
       The iterator is a function that returns [None] when finished,
