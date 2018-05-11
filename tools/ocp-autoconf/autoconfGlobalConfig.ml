@@ -58,7 +58,7 @@ let format_version = SimpleConfig.create_option config
 let current_format_version = 2
 
 let save () =
-  FileGen.safe_mkdir (FileGen.dirname config_file);
+  FileGen.make_dir ~p:true (FileGen.dirname config_file);
   SimpleConfig.save_with_help config
 
 let load () =

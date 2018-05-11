@@ -133,7 +133,7 @@ let rec copy_rec where log src dst =
   match st.MinUnix.st_kind with
   | MinUnix.S_DIR ->
     safe_mkdir where log dst;
-    FileString.iter_dir (fun basename ->
+    FileString.iter_dir (fun _ basename ->
       copy_rec where log (Filename.concat src basename)
         (Filename.concat dst basename)) src
   | MinUnix.S_REG ->
