@@ -20,7 +20,7 @@ val os_type : os_type
 (** {6 Error report} *)
 
 
-type error =
+type error = Unix.error =
     E2BIG               (** Argument list too long *)
   | EACCES              (** Permission denied *)
   | EAGAIN              (** Resource temporarily unavailable; try again *)

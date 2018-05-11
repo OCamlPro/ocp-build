@@ -10,55 +10,228 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open OcpCompat
+module Make(M : sig
+    type path
 
-let mkdir dir perm = MinUnix.mkdir (FileGen.to_string dir) perm
-let make dir = mkdir dir 0o755
+    val mkdir : path -> int -> unit
+    val stat : path -> MinUnix.stats
+    val lstat : path -> MinUnix.stats
+    val readdir : path -> string array
+    val rmdir : path -> unit
 
-let rec safe_mkdir ?(mode=0o755) dir =
-  if FileGen.exists dir then begin
-    if not (FileGen.is_directory dir) then
-      Printf.kprintf failwith "FileGen.Dir.make_all: %s not a directory"
-        (FileGen.to_string dir)
-  end
-  else
-  if FileGen.is_link dir then
-    Printf.kprintf failwith
-      "FileGen.Dir.make_all: %s is an orphan symbolic link"
-      (FileGen.to_string dir)
-  else begin
-    let predir = FileGen.dirname dir in
-    if predir != dir then safe_mkdir ~mode predir;
-    if not (FileGen.exists dir) then
-      try
-        mkdir dir mode
-      with e ->
-        failwith (Printf.sprintf "FileGen.Dir.make_all: mkdir [%s] raised %s"
-                    (FileGen.to_string dir) (Printexc.to_string e))
-  end
+    val remove : path -> unit
 
-let make_all dir = safe_mkdir dir
+    val basename : path -> string
+    val dirname : path -> path
+    val add_basename : path -> string -> path
+  end) : FileSig.DIRECTORY_OPERATIONS with type t := M.path
+= struct
 
-let list filename = Array.to_list (Sys.readdir (FileGen.to_string filename))
+  let is_directory t = (M.stat t).MinUnix.st_kind = MinUnix.S_DIR
+  let is_link t = (M.lstat t).MinUnix.st_kind = MinUnix.S_LNK
 
-  let list_files filename =
-    Array.to_list (
-      Array.map (fun file -> FileGen.add_basename filename file)
-        (Sys.readdir (FileGen.to_string filename)))
+  exception NotADirectory of M.path
 
-  let iter f dirname =
-    Array.iter f (Sys.readdir (FileGen.to_string dirname))
+  let mkdir dir perm = M.mkdir dir perm
+  let readdir dir =
+    if not (is_directory dir) then raise (NotADirectory dir);
+    let array = M.readdir dir in
+    Array.sort compare array;
+    array
 
-  let iter_files f dirname =
-    List.iter f (list_files dirname)
+  let rmdir dir =
+    if not (is_directory dir) then raise (NotADirectory dir);
+    M.rmdir dir
 
-  let remove dir = MinUnix.rmdir (FileGen.to_string dir)
+  let rec make_dir ?(mode=0o755) ?(p=false) filename =
+    try
+      if not (is_directory filename) then
+        raise (NotADirectory filename)
+    with
+    | MinUnix.Unix_error (MinUnix.ENOENT, _, _) ->
+      if p then begin
+        let dirname = M.dirname filename in
+        make_dir ~mode ~p dirname;
+      end;
+      let basename = M.basename filename in
+      match basename with
+      | "." | ".." -> ()
+      | _ ->
+        M.mkdir filename mode
 
-let rec remove_all (dir : FileGen.t) =
-  iter_files (fun filename ->
-      if not (FileGen.is_link filename) && FileGen.is_directory filename then
-        remove_all filename
-      else
-        FileGen.remove filename
-    ) dir;
-  remove dir
+  let safe_mkdir = make_dir ~p:true ~mode:0o755
+
+  let select = FileSel.create
+  let onedir = FileSel.create ()
+
+  let recurse select file path filename =
+    match M.lstat filename with
+    | exception exn ->
+      if select.FileSel.filter true file path then
+        select.FileSel.error exn path filename;
+      false
+    | st ->
+      select.FileSel.deep &&
+      (match st.MinUnix.st_kind with
+       | MinUnix.S_DIR -> true
+       | MinUnix.S_LNK ->
+         select.FileSel.follow_links && is_directory filename
+       | _ -> false) &&
+      select.FileSel.filter true file path
+
+  let iter_dir
+      ?(select=onedir)
+      f filename =
+    if not (is_directory filename) then
+      raise (NotADirectory filename);
+    let path = "/" in
+    match select.FileSel.dft with
+    | None ->
+      let queue = Queue.create () in
+      Queue.add (filename, path) queue;
+      while not (Queue.is_empty queue) do
+        let (filename, path) = Queue.take queue in
+        let array = try readdir filename with exn ->
+          select.FileSel.error exn path filename;
+          [||] in
+        for i = 0 to Array.length array - 1 do
+          let file = array.(i) in
+          let filename = M.add_basename filename file in
+          let path = Filename.concat path file in
+          if select.FileSel.filter false file path then f path filename;
+          let recurse = recurse select file path filename in
+          if recurse then
+            Queue.add (filename,path) queue
+        done;
+      done
+    | Some dft ->
+      let rec iter filename path =
+        let array = try readdir filename with exn ->
+          select.FileSel.error exn path filename;
+          [||] in
+        for i = 0 to Array.length array - 1 do
+          let file = array.(i) in
+          let filename = M.add_basename filename file in
+          let path = Filename.concat path file in
+          let recurse = recurse select file path filename in
+          match dft with
+          | `Before ->
+            if select.FileSel.filter false file path then f path filename;
+            if recurse then iter filename path;
+          | `After ->
+            if recurse then iter filename path;
+            if select.FileSel.filter false file path then f path filename;
+        done;
+      in
+      iter filename path
+
+  let read_dir_to_revlist ?select filename =
+    let files = ref [] in
+    iter_dir ?select (fun _ file -> files := file :: !files) filename;
+    !files
+
+  let read_dir ?select filename =
+    let res = read_dir_to_revlist ?select filename in
+    let files = Array.of_list res in
+    OcpArray.rev files;
+    files
+
+  let read_dir_to_list ?select filename =
+    let res = read_dir_to_revlist ?select filename in
+    List.rev res
+
+  let iterator ?(select=onedir) filename =
+    if not (is_directory filename) then
+      raise (NotADirectory filename);
+    let path = "/" in
+    match select.FileSel.dft with
+    | None ->
+      let dirs = Queue.create () in
+      let files = ref None in
+      Queue.add (filename, path) dirs;
+      let rec iter () =
+        match !files with
+        | None ->
+          if Queue.is_empty dirs then None
+          else
+            let (filename, path) = Queue.take dirs in
+            let array = try readdir filename with exn ->
+              select.FileSel.error exn path filename;
+              [||] in
+            files := Some (filename, path, array, ref 0);
+            iter ()
+        | Some (filename, path, array, i) ->
+          if !i = Array.length array then begin
+            files := None;
+            iter ()
+          end else begin
+            let file = array.(!i) in
+            let filename = M.add_basename filename file in
+            let path = Filename.concat path file in
+            incr i;
+            let recurse = recurse select file path filename in
+            if recurse then
+              Queue.add (filename,path) dirs;
+            if select.FileSel.filter false file path then
+              Some (path, filename)
+            else
+              iter ()
+          end
+      in
+      iter
+    | Some dft ->
+      let dirs = ref [] in
+      let enter_dir ?file filename path =
+        let array = try readdir filename with exn ->
+          select.FileSel.error exn path filename;
+          [||] in
+        dirs := (filename, path, array, ref 0, file) :: !dirs;
+        ()
+      in
+      let rec iter () =
+        match !dirs with
+        | [] -> None
+        | (filename, path, array, i, maybe_file) :: rem ->
+          if !i = Array.length array then begin
+            dirs := rem;
+            match maybe_file with
+            | None -> iter ()
+            | Some file ->
+              match dft with
+              | `Before -> iter ()
+              | `After ->
+                if select.FileSel.filter false file path then
+                  Some (path, filename)
+                else
+                  iter ()
+          end
+          else
+            let file = array.(!i) in
+            let filename = M.add_basename filename file in
+            let path = Filename.concat path file in
+            incr i;
+            let recurse = recurse select file path filename in
+            if recurse then enter_dir ~file filename path;
+            match dft with
+            | `Before ->
+              if select.FileSel.filter false file path then
+                Some (path, filename)
+              else
+                iter ()
+            | `After -> iter ()
+      in
+      enter_dir filename path;
+      iter
+
+
+  let rec remove_dir ?(all=false) dir =
+    if all then
+      iter_dir (fun _ filename ->
+          if not (is_link filename) && is_directory filename then
+            remove_dir filename
+          else
+            M.remove filename
+        ) dir;
+    rmdir dir
+
+end

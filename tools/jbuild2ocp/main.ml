@@ -116,7 +116,7 @@ let rec parse_action file action = function
      Printf.eprintf
        "%s: Discarding action element %s\n%!" file (string_of_sexp ele)
 
-let parse_rule b file r = function
+let parse_rule _b file r = function
   | List [ Atom "targets"; List targets ] ->
      List.iter (function
                 | Atom target ->

@@ -65,7 +65,7 @@ let commit filename =
     end;
     List.iter (fun (file, content, exe, digest) ->
         let dirname = Filename.dirname file in
-        FileString.safe_mkdir dirname;
+        FileString.make_dir ~p:true dirname;
         FileString.write_file file content;
         if file = "configure" || exe then begin
           Unix.chmod file 0o755;

@@ -420,14 +420,28 @@ let () =
 (*                                                                        *)
 (**************************************************************************)
 
+let with_in filename f = FileString.with_in (to_string filename) f
+let with_in_bin filename f = FileString.with_in_bin (to_string filename) f
+
+let with_out filename f = FileString.with_out (to_string filename) f
+let with_out_bin filename f = FileString.with_out_bin (to_string filename) f
+
 let read_sublines file off len =
   FileString.read_sublines (to_string file) off len
+let read_sublines_to_list file off len =
+  FileString.read_sublines_to_list (to_string file) off len
+
 let iteri_lines f file = FileString.iteri_lines f (to_string file)
 let iter_lines f file = FileString.iter_lines f (to_string file)
 let write_file file s = FileString.write_file (to_string file) s
 let read_file file = FileString.read_file (to_string file)
-let write_lines file lines = FileString.file_of_lines (to_string file) lines
+let write_lines file lines =
+  FileString.write_lines (to_string file) lines
+let write_lines_of_list file lines =
+  FileString.write_lines_of_list (to_string file) lines
 let read_lines file = FileString.lines_of_file (to_string file)
+let read_lines_to_list file =
+  FileString.read_lines_to_list (to_string file)
 let read_lines_to_revlist file =
   FileString.read_lines_to_revlist (to_string file)
 
@@ -479,7 +493,7 @@ let remove file = Sys.remove (to_string file)
 let iter_blocks f file =
   FileString.iter_blocks f (to_string file)
 
-let safe_mkdir ?mode dir = FileString.safe_mkdir ?mode (to_string dir)
+(*let safe_mkdir ?mode dir = FileString.safe_mkdir ?mode (to_string dir) *)
 let copy_rec src dst = FileString.copy_rec (to_string src) (to_string dst)
 let uncopy_rec src dst = FileString.uncopy_rec (to_string src) (to_string dst)
 
@@ -532,3 +546,35 @@ module Op = struct
   let (//) t s = add_basenames t (OcpString.split s '/')
 
 end
+
+module Directory_operations = FileDir.Make(struct
+    type path = t
+    let add_basename = add_basename
+    let dirname = dirname
+    let basename = basename
+
+    let rmdir s = MinUnix.rmdir (to_string s)
+    let lstat s = MinUnix.lstat (to_string s)
+    let stat s = MinUnix.stat (to_string s)
+    let mkdir s perm = MinUnix.mkdir (to_string s) perm
+
+    let remove s = Sys.remove (to_string s)
+    let readdir s = Sys.readdir (to_string s)
+  end)
+
+include Directory_operations
+
+let find_in_path path name =
+  let file = of_string name in
+  if not (is_implicit file) then
+    if exists file then file
+    else raise Not_found
+  else
+    let rec try_dir = function
+        [] -> raise Not_found
+      | dir::rem ->
+        let dir = of_string dir in
+        let fullname = concat dir file in
+        if exists fullname then fullname else try_dir rem
+    in
+    try_dir path
