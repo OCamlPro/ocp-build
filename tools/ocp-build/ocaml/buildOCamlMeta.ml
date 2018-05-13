@@ -195,17 +195,19 @@ let add_META pj ocamllib meta_dirname meta_filename =
               BuildValue.set options "META" (VObject !env)
           in
 
-          let opk = BuildOCamlOCP2.add_ocaml_package
-            (BuildValue.noloc fullname)
-            pj
-            {
-              config_dirname = dirname;
+          let config = {
               config_state = BuildValue.empty_config_state ();
               config_filename = meta_filename;
                 (* matters only for non-installed packages *)
               config_filenames = [meta_filename, None];
               config_env = options;
             }
+          in
+          let config = BuildValue.set_dirname config dirname in
+          let opk = BuildOCamlOCP2.add_ocaml_package
+            (BuildValue.noloc fullname)
+            pj
+            config
             fullname
             kind
           in

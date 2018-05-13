@@ -129,7 +129,7 @@ and translate_toplevel_statement ctx config stmt =
     end;
     let filename = BuildSubst.subst_global filename in
     let filename = if Filename.is_relative filename then
-        Filename.concat config.config_dirname filename
+        Filename.concat (BuildValue.get_dirname config) filename
       else filename
     in
     let (ast, digest) =
@@ -344,18 +344,19 @@ let read_ocamlconf filename =
       | Some digest ->
         S.new_file ctx filename digest;
     end;
-    let config = { config with
-                   config_dirname = Filename.dirname filename;
-                   config_filename = filename;
-                   config_filenames = (filename, digest) :: config.config_filenames;
-                 }
+    let config = {
+      config with
+      config_filename = filename;
+      config_filenames = (filename, digest) :: config.config_filenames;
+    }
     in
+    let config = BuildValue.set_dirname config
+        (Filename.dirname filename) in
     match ast with
     | None -> config
     | Some ast ->
       try
-        translate_toplevel_statements ctx config
-          (StmtOption (OptionVariableSet("dirname", ExprString config.config_dirname)) ::  ast)
+        translate_toplevel_statements ctx config ast
       with e ->
         Printf.eprintf "Error while interpreting file %S:\n%!" filename;
         Printf.eprintf "\t%s\n%!" (Printexc.to_string e);
