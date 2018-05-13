@@ -36,8 +36,31 @@ module TYPES = struct
   | VFun of functional_value
 
   and functional_value =
-  | VFunction of (location -> value list -> value)
+  | VFunction of (location -> config -> value list -> value)
   | VPrim of string
+
+  (* To avoid dealing with dependencies, modules can be declared lazily
+     by provides("Mod", function(){...}), in which case the function will
+     only be executed on demand. When doing so, we set the module to
+     Computing to avoid a recursion. *)
+  and module_desc =
+  | Declared of value
+  | Computing
+  | Computed of value
+
+  and config_state = {
+    mutable cfs_modules : (module_desc ref * Versioning.version) StringMap.t;
+    mutable cfs_store : value StringMap.t;
+  }
+
+  (* The configuration at a package definition site *)
+  and config = {
+    config_env : env;
+    config_state : config_state;
+    config_filename : string;
+    config_filenames : (string * Digest.t option) list;
+  }
+
 
 (* Just for compatibility: a plist is morally a
    VList of VTuple (VString * VObject) *)
@@ -50,29 +73,6 @@ module TYPES = struct
   }
   exception Var_not_found of string
   exception NotAPropertyList
-
-  (* To avoid dealing with dependencies, modules can be declared lazily
-     by provides("Mod", function(){...}), in which case the function will
-     only be executed on demand. When doing so, we set the module to
-     Computing to avoid a recursion. *)
-  type module_desc =
-  | Declared of value
-  | Computing
-  | Computed of value
-
-  type config_state = {
-    mutable cfs_modules : (module_desc ref * Versioning.version) StringMap.t;
-    mutable cfs_store : value StringMap.t;
-  }
-
-  (* The configuration at a package definition site *)
-  type config = {
-    config_env : env;
-    config_state : config_state;
-    config_dirname : string;
-    config_filename : string;
-    config_filenames : (string * Digest.t option) list;
-  }
 
 end
 
@@ -336,7 +336,6 @@ let empty_config_state () =
 let empty_config () = {
   config_env = empty_env;
   config_state = empty_config_state ();
-  config_dirname = "";
   config_filename = "";
   config_filenames = [];
 }
@@ -346,6 +345,14 @@ let config_get config name =
   get [config.config_env] name
 let config_set config name v =
   { config with config_env = set config.config_env name v }
+
+let dirname_var = "dirname"
+let get_dirname config =
+  let dirname = path_of_plist (config_get config dirname_var) in
+  dirname
+
+let set_dirname config dirname =
+  config_set config dirname_var (VString (dirname,StringRaw))
 
 let unit = VObject empty_env
 
