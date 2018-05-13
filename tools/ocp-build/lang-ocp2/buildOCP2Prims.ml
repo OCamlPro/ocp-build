@@ -115,7 +115,7 @@ module Init(S: sig
 
   let apply_fun f loc ctx config args =
     match f with
-    | VFunction f -> f loc args
+    | VFunction f -> f loc config args
     | VPrim name ->
        let (f, _) =
          try
@@ -662,7 +662,7 @@ let _ =
   let readdir loc config dirname =
     let dirname =
       if Filename.is_relative dirname then
-        Filename.concat config.config_dirname dirname
+        Filename.concat (BuildValue.get_dirname config) dirname
       else dirname
     in
     try

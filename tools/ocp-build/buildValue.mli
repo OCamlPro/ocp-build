@@ -38,28 +38,27 @@ module TYPES : sig
   | VFun of functional_value
 
   and functional_value =
-  | VFunction of (location -> value list -> value)
+  | VFunction of (location -> config -> value list -> value)
   | VPrim of string
 
   (* To avoid dealing with dependencies, modules can be declared lazily
      by provides("Mod", function(){...}), in which case the function will
      only be executed on demand. When doing so, we set the module to
      Computing to avoid a recursion. *)
-  type module_desc =
+  and module_desc =
   | Declared of value
   | Computing
   | Computed of value
 
-  type config_state = {
+  and config_state = {
     mutable cfs_modules : (module_desc ref * Versioning.version) StringMap.t;
     mutable cfs_store : value StringMap.t;
   }
 
   (* The configuration at a package definition site *)
-  type config = {
+  and config = {
     config_env : env;
     config_state : config_state;
-    config_dirname : string;
     config_filename : string;
     config_filenames : (string * Digest.t option) list;
   }
@@ -175,3 +174,6 @@ val empty_config_state : unit -> TYPES.config_state
 
 val fold :
   (string -> TYPES.value -> 'a -> 'a) -> TYPES.env -> 'a -> 'a
+
+val get_dirname : TYPES.config -> string
+val set_dirname : TYPES.config -> string -> TYPES.config

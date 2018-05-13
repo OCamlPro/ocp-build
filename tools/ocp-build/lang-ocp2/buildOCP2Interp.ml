@@ -29,7 +29,6 @@ module Primitives = BuildOCP2Prims.Init(S)
 let primitives_help = Primitives.primitives_help
 
 let add_primitive = Primitives.add_primitive
-let apply_fun = Primitives.apply_fun
 
 let read_config_file filename =
   try
@@ -103,7 +102,7 @@ let rec eval_statement ctx config stmt =
       warning loc "avoid extension .ocp2 for file %S" filename;
     let filename = BuildSubst.subst_global filename in
     let filename = if Filename.is_relative filename then
-        Filename.concat config.config_dirname filename
+        Filename.concat (BuildValue.get_dirname config) filename
       else filename
     in
     let (ast, digest) =
@@ -313,7 +312,7 @@ and eval_expression ctx config exp =
     let args = List.map (eval_expression ctx config) args in
     begin
       match f with
-      | VFun (VFunction f) -> f loc args
+      | VFun (VFunction f) -> f loc config args
       | VFun (VPrim name) ->
         begin
           let (f, _) =
@@ -330,7 +329,11 @@ and eval_expression ctx config exp =
 
   | ExprFunction (arg_names, body) ->
     let arity = List.length arg_names in
-    let f loc arg_values =
+    let config_env = config.config_env in
+    let f loc caller_config arg_values =
+      let config = { caller_config with config_env } in
+      let config = BuildValue.set_dirname config
+          (BuildValue.get_dirname caller_config) in
       let arg_values =
         if arity <> List.length arg_values then
           match List.rev arg_names with
@@ -415,7 +418,6 @@ let read_ocamlconf filename =
     end;
     let config = {
       config with
-      config_dirname = Filename.dirname filename;
       config_filename = filename;
       config_filenames = (filename, digest) :: config.config_filenames;
     }
@@ -424,9 +426,10 @@ let read_ocamlconf filename =
     | None -> config
     | Some ast ->
       try
-        let config = BuildValue.config_set config "dirname"
-            (VString (config.config_dirname, StringRaw)) in
-        eval_statement ctx config ast
+        let config =
+          BuildValue.set_dirname config (Filename.dirname filename) in
+        let x = eval_statement ctx config ast in
+        x
       with
       | OCPExn (loc, name, arg) ->
         Printf.eprintf "File %S, line %d:\n"

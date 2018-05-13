@@ -295,11 +295,11 @@ let add_project c pk_loc pk_name pk_config
       let dirname = BuildValue.get_string
                       [pk_info; pk_config.config_env] "dirname" in
       if Filename.is_relative dirname then
-        Filename.concat pk_config.config_dirname dirname
+        Filename.concat (BuildValue.get_dirname pk_config) dirname
       else
         dirname
     with Var_not_found _ ->
-      pk_config.config_dirname
+      BuildValue.get_dirname pk_config
   in
   (*
   let pk_rules = BuildValue.get_with_default [pk_env] "rules" (VList[]) in

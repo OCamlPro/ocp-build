@@ -2747,10 +2747,10 @@ let add_package bc opk =
     if verbose 7 then Printf.eprintf "Adding %s\n" package_name;
 
     let package_dirname =
-      try
+(*      try
         let list = BuildValue.strings_of_plist ( BuildValue.get_local package_options "dirname" ) in
         BuildSubst.subst_global (String.concat Filename.dir_sep list)
-      with Var_not_found _ ->
+        with Var_not_found _ -> *)
         package_dirname
     in
 
