@@ -19,8 +19,8 @@ let create_package name ptype dirname_t =
   let file_t = FileGen.add_basename dirname_t (name ^ ".ocp") in
 
   let map = ref StringMap.empty in
-  let files = FileDir.list dirname_t in
-  List.iter (fun file ->
+  let files = FileGen.readdir dirname_t in
+  Array.iter (fun file ->
     try
       let modfile =
         let modfile = Bytes.of_string file in

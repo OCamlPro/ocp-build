@@ -1,7 +1,1 @@
 conflicts: [ "typerex"  {< "1.99.7"} "typerex-build" ]
-depends: [
-    "ocamlfind" (* not strictly needed by ocp-build, but
-                  since opam installs packages in a non-standard
-                  repository, we need it... *)
-    "cmdliner" { >= "1.0" }
-]

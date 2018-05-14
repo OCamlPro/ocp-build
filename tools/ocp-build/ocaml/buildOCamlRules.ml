@@ -452,7 +452,7 @@ let bytecompflags options =
     )))
 let docflags options =
   add_nopervasives_flag options (
-    List.map argument_of_string ( doc_option.get options)
+    List.map argument_of_string ( docflags_option.get options)
   )
 let asmcompflags options =
   add_debug_flag options (
@@ -460,6 +460,8 @@ let asmcompflags options =
     add_nopervasives_flag options (
     List.map argument_of_string (asmcomp_option.get options )
     )))
+
+let indocs envs = doc_option.get envs
 
 let needs_odoc lib =
   match lib.lib.lib_type with
@@ -1094,7 +1096,7 @@ let object_dst_dir b lib pack_for =
     BuildEngineContext.add_directory b full_dirname
 
 let ml2odoc lib ptmp kernel_name envs before_cmd pack_for force temp_ml_file ml_file seq_order =
-  if needs_odoc lib then
+  if needs_odoc lib && indocs envs then
     let b = lib.lib.lib_context in
     let dst_dir = object_dst_dir b lib pack_for in
 
@@ -1117,7 +1119,7 @@ let ml2odoc lib ptmp kernel_name envs before_cmd pack_for force temp_ml_file ml_
     ()
 
 let mli2odoc lib ptmp kernel_name envs pack_for force mli_file seq_order =
-  if needs_odoc lib then
+  if needs_odoc lib && indocs envs then
     let b = lib.lib.lib_context in
     let dst_dir = object_dst_dir b lib pack_for in
 
@@ -1205,7 +1207,7 @@ let add_mli_source w b lib ptmp mli_file options =
       let mldep_file =
         add_dst_file lib dst_dir (kernel_name ^ ".mlimods")
       in
-      let needs_odoc = needs_odoc lib in
+      let needs_odoc = needs_odoc lib && indocs envs in
       let mldep_file_ok =
         add_ml2mldep_rule lib dst_dir pack_for force mli_file mldep_file needs_odoc options in
       let seq_order = [mldep_file_ok] in
@@ -2745,10 +2747,10 @@ let add_package bc opk =
     if verbose 7 then Printf.eprintf "Adding %s\n" package_name;
 
     let package_dirname =
-      try
+(*      try
         let list = BuildValue.strings_of_plist ( BuildValue.get_local package_options "dirname" ) in
         BuildSubst.subst_global (String.concat Filename.dir_sep list)
-      with Var_not_found _ ->
+        with Var_not_found _ -> *)
         package_dirname
     in
 

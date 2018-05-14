@@ -10,6 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+(** Operating-System specific values *)
+
 (* are we running on Win32 ? *)
 val win32 : bool
 

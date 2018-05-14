@@ -115,7 +115,7 @@ module Init(S: sig
 
   let apply_fun f loc ctx config args =
     match f with
-    | VFunction f -> f loc args
+    | VFunction f -> f loc config args
     | VPrim name ->
        let (f, _) =
          try
@@ -190,6 +190,7 @@ let _ =
     match args with
     | [ VInt n1; VInt n2 ] -> VInt (n1 + n2)
     | [ VList l1; VList l2 ] -> VList (l1 @ l2)
+    | [ VList l1; v2 ] -> VList (l1 @ [v2])
     | [ VString (s1,kind); VString (s2,_) ] -> VString (s1 ^ s2, kind)
     | [ VString (s, kind); v ] ->
       VString (s ^ (BuildValue.string_of_value v), kind)
@@ -661,7 +662,7 @@ let _ =
   let readdir loc config dirname =
     let dirname =
       if Filename.is_relative dirname then
-        Filename.concat config.config_dirname dirname
+        Filename.concat (BuildValue.get_dirname config) dirname
       else dirname
     in
     try
@@ -687,6 +688,24 @@ let _ =
       | _ ->
         raise_bad_arity loc "Sys.readdir(dir)" 1 args
     );
+
+  add_primitive "Sys_command"
+                [ "Call a shell command" ]
+                (fun loc _state _config args ->
+                  match args with
+                  | [ VList cmd ] ->
+                     VTuple [ VString ("", StringRaw);
+                              BuildValue.new_object [ "value", VList cmd ] ]
+                  | [ VList cmd; VObject { env } ] ->
+                     let env = StringMap.add "value" (VList cmd) env in
+                     VTuple [ VString ("", StringRaw);
+                              VObject { env } ]
+                  |  _ ->
+                      raise_bad_arity
+                        loc
+                        "Sys.command(cmd [,options])" 1 args
+    );
+
 
   (*
 

@@ -76,7 +76,7 @@ let () =
       AutoconfCommon.command "git init"
   end;
 
-  FileString.safe_mkdir ocp_autoconf_dir;
+  FileString.make_dir ~p:true ocp_autoconf_dir;
   apply_makers ();
 
   if Sys.file_exists commit_filename_old then
