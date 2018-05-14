@@ -329,17 +329,6 @@ let new_path_option name v =
   }
     *)
 
-let empty_config_state () =
-  { cfs_modules = StringMap.empty;
-    cfs_store = StringMap.empty; }
-
-let empty_config () = {
-  config_env = empty_env;
-  config_state = empty_config_state ();
-  config_filename = "";
-  config_filenames = [];
-}
-
 
 let config_get config name =
   get [config.config_env] name
@@ -348,11 +337,25 @@ let config_set config name v =
 
 let dirname_var = "dirname"
 let get_dirname config =
-  let dirname = path_of_plist (config_get config dirname_var) in
-  dirname
-
+  path_of_plist (config_get config dirname_var)
 let set_dirname config dirname =
   config_set config dirname_var (VString (dirname,StringRaw))
+
+let dynamic_var = "dynamic"
+let get_dynamic config = config_get config dynamic_var
+let set_dynamic config v = config_set config dynamic_var v
+
+let empty_config_state () =
+  { cfs_modules = StringMap.empty;
+    cfs_store = StringMap.empty; }
+
+let empty_config () =
+  {
+    config_env = set empty_env dynamic_var (VObject empty_env);
+    config_state = empty_config_state ();
+    config_filename = "";
+    config_filenames = [];
+  }
 
 let unit = VObject empty_env
 

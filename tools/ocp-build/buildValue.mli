@@ -177,3 +177,5 @@ val fold :
 
 val get_dirname : TYPES.config -> string
 val set_dirname : TYPES.config -> string -> TYPES.config
+val get_dynamic : TYPES.config -> TYPES.value
+val set_dynamic : TYPES.config -> TYPES.value -> TYPES.config

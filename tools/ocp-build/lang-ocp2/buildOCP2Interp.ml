@@ -329,11 +329,14 @@ and eval_expression ctx config exp =
 
   | ExprFunction (arg_names, body) ->
     let arity = List.length arg_names in
-    let config_env = config.config_env in
+    let callee_config = config in
     let f loc caller_config arg_values =
-      let config = { caller_config with config_env } in
+      let config = { caller_config with
+                     config_env = callee_config.config_env } in
       let config = BuildValue.set_dirname config
           (BuildValue.get_dirname caller_config) in
+      let config = BuildValue.set_dynamic config
+          (BuildValue.get_dynamic caller_config) in
       let arg_values =
         if arity <> List.length arg_values then
           match List.rev arg_names with
