@@ -42,7 +42,6 @@ available: [ocaml-version >= "4.02.1"]
 depends: [
      "cmdliner" {>= "1.0" }
      "ocamlfind"
-     "parsexp"
      "re"
 ]
 
