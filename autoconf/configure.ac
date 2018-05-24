@@ -135,6 +135,9 @@ fi
 AC_CHECK_OCAML_PKG(re.glob)
 if test "$OCAML_PKG_re.glob" = "no"; then
    AC_MSG_WARN([BEFORE ERROR: Please install OCaml package 're.glob'.])
+else
+  AX_COMPARE_VERSION( [$OCAML_PKG_re.glob_VERSION], [lt], [1.7.3],
+     AC_MSG_WARN([BEFORE ERROR: Version >= 1.7.3 of re.glob is needed]))
 fi
 if test "$OCAML_PKG_cmdliner" = "no"; then
    AC_MSG_FAILURE([Missing dependencies (see warnings above).])
@@ -144,6 +147,8 @@ fi
 if test "$OCAML_PKG_re.glob" = "no"; then
    AC_MSG_FAILURE([Missing dependencies (see warnings above).])
 fi
+  AX_COMPARE_VERSION( [$OCAML_PKG_re.glob_VERSION], [lt], [1.7.3],
+     AC_MSG_FAILURE([Problems with dependencies (see warnings above)]))
 OPAM_REPO=/home/lefessan/GIT/ocp-public/opam-repository
 OPAM_REPO_OFFICIAL_REMOTE=ocaml
 OPAM_REPO_FORK_REMOTE=origin
