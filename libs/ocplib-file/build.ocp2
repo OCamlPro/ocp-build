@@ -18,11 +18,12 @@ OCaml.library("ocplib-file",
       files = '[
         fileSel.ml { doc = false }
         fileSig.ml
-        fileDir.ml { doc = false } 
+        fileDirMaker.ml { doc = false } 
         fileOS.ml
         fileChannel.ml
         fileString.ml
         fileGen.ml
+        fileDir.ml { doc = false } 
       ];
       requires = '[
         ocplib-lang

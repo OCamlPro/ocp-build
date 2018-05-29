@@ -168,7 +168,7 @@ module Op = struct
 
   end
 
-module Directory_operations = FileDir.Make(struct
+module Directory_operations = FileDirMaker.Make(struct
     type path = string
     let add_basename = add_basename
     let dirname = dirname

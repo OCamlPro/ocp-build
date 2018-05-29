@@ -211,11 +211,12 @@ module type DIRECTORY_OPERATIONS = sig
   val read_dir_to_list : ?select:t select -> t -> t list
 
   (** Same as [read_dir], but calls a function on every file and
-     directory with the relative path (yet, starting with a '/') and
-     the filename (i.e. the directory name concatenated with the
-     relative path). It is not equivalent to using [read_dir] and then
-     itering on the result, as [iter_dir] the function is called
-     during the traversal, not after.  *)
+     directory with the basename, the relative path (yet, starting
+     with a '/') and the filename (i.e. the directory name
+     concatenated with the relative path): [f basename path file]. It
+     is not equivalent to using [read_dir] and then itering on the
+     result, as [iter_dir] the function is called during the
+     traversal, not after.  *)
   val iter_dir :
     ?select:t select -> (string -> string -> t -> unit) -> t -> unit
 

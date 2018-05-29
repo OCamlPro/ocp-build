@@ -10,19 +10,24 @@
 (*                                                                        *)
 (**************************************************************************)
 
-let remove_all filename = FileGen.remove_dir ~all:true filename
-let remove filename = FileGen.remove_dir filename
 
-let iter_files f filename =
-  FileGen.iter_dir (fun _basename _path file -> f file) filename
+(* obsolete !!! Do not use ! Use `FileSig.DIRECTORY_OPERATIONS` included in
+   `FileGen` *)
 
-let iter f filename =
-  FileGen.iter_dir (fun basename _path _file -> f basename) filename
+open OcpCompat
 
-let list_files filename = FileGen.read_dir_to_list filename
-let list filename = Array.to_list (FileGen.readdir filename)
+val mkdir : FileGen.t -> int -> unit
 
-let mkdir = FileGen.mkdir
-let make filename = mkdir filename 0o755
-let safe_mkdir ?mode filename = FileGen.make_dir ?mode ~p:true filename
-let make_all = safe_mkdir ~mode:0o755
+(* mkdir, with potentially any non-existing parent directory *)
+val safe_mkdir : ?mode:int -> FileGen.t -> unit
+
+(* deprecated, use mkdir and mkdir_all *)
+val make : FileGen.t -> unit
+val make_all : FileGen.t -> unit
+
+val list : FileGen.t -> string list
+val list_files : FileGen.t -> FileGen.t list
+val iter : (string -> unit) -> FileGen.t -> unit
+val iter_files : (FileGen.t -> unit) -> FileGen.t -> unit
+val remove : FileGen.t -> unit
+val remove_all : FileGen.t -> unit

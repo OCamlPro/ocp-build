@@ -66,7 +66,7 @@ OCPLIB_UNIX= $(unix_SRCDIR)/minUnix.ml $(unix_SRCDIR)/onlyUnix.ml	\
 OCPLIB_FILE=\
     $(file_SRCDIR)/fileSel.ml	\
     $(file_SRCDIR)/fileSig.ml $(file_SRCDIR)/fileOS.ml	\
-    $(file_SRCDIR)/fileDir.ml	\
+    $(file_SRCDIR)/fileDirMaker.ml	\
     $(file_SRCDIR)/fileChannel.ml $(file_SRCDIR)/fileString.ml	\
     $(file_SRCDIR)/fileGen.ml	\
 
