@@ -7,7 +7,7 @@
 #   * ocp-autoconf.ac for autoconf parts              #
 #                                                     #
 #######################################################
-AC_INIT(ocp-build,1.99.20-beta)
+AC_INIT(ocp-build,1.99.21-beta)
 PROJECTURE_ARGS=$*
 AC_COPYRIGHT(Copyright 2011-2016 OCamlPro SAS)
 OCAML_MINIMAL_VERSION=4.02.3
