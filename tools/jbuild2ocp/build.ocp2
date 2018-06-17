@@ -4,7 +4,11 @@ OCaml.library("ocplib-dune", ocaml + {
   requires = '[ parsexp ocplib-file ];
   });
 
-OCaml.program("jbuild2ocp", ocaml + {
-  files = '[ main.ml ];
-  requires = '[ ocplib-dune ];
+OCaml.program("ocp-dune", ocaml + {
+  files = '[
+    dune2ocp.ml
+    dune2dot.ml
+    main.ml
+    ];
+  requires = '[ ocplib-dune ocplib-dot ];
 });

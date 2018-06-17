@@ -139,43 +139,45 @@ let rename_node node name = node.node_name <- name
 
 open Printf
 
-let save_in graph oc =
+let to_string graph =
+  let b = Buffer.create 1000 in
+
   let graph_attribute attr =
     match attr with
-      GraphSize (f1,f2) -> fprintf oc "  size=\"%f,%f!\";\n" f1 f2
+      GraphSize (f1,f2) -> Printf.bprintf b "  size=\"%f,%f!\";\n" f1 f2
     | Ratio ratio ->
-      fprintf oc "  ratio=\"%s\";\n" (match ratio with
+      Printf.bprintf b "  ratio=\"%s\";\n" (match ratio with
         RatioFill -> "fill")
 
   and edge_attribute attr =
     match attr with
       EdgeDirection direction ->
-        fprintf oc " dir=%s" (match direction with
+        Printf.bprintf b " dir=%s" (match direction with
             Forward -> "forward"
           | Backward -> "backward"
           | Bothdir -> "both"
           | Nodir -> "none")
     | EdgeLabel label ->
-        fprintf oc " label=\"%s\"" label
+        Printf.bprintf b " label=\"%s\"" label
     | EdgeStyle option ->
-        fprintf oc "style=%s" (match option with
+        Printf.bprintf b "style=%s" (match option with
              Bold -> "bold"
           | Dotted -> "dotted"
           | Filled -> "filled"
         )
     | EdgeWeight weight ->
-        fprintf oc "weight=%d" weight
+        Printf.bprintf b "weight=%d" weight
 
   and node_attribute attr =
     match attr with
       NodeColor color ->
-        fprintf oc ", color=\"%s\"" color
+        Printf.bprintf b ", color=\"%s\"" color
     | NodeFontColor color ->
-        fprintf oc ", fontcolor=\"%s\"" color
+        Printf.bprintf b ", fontcolor=\"%s\"" color
     | NodeFontName font ->
-        fprintf oc ", fontname=\"%s\"" font
+        Printf.bprintf b ", fontname=\"%s\"" font
     | NodeShape shape ->
-        fprintf oc ", shape=%s" (match shape with
+        Printf.bprintf b ", shape=%s" (match shape with
             Ellipse -> "ellipse"
           | Box -> "box"
           | Circle -> "circle"
@@ -193,41 +195,42 @@ let save_in graph oc =
           | Epsf filename -> sprintf "epsf, shapefile=\"%s\"" filename
         )
     | NodeHeight height ->
-        fprintf oc ", height=%f" height
+        Printf.bprintf b ", height=%f" height
     | NodeWidth width ->
-        fprintf oc ", width=%f" width
+        Printf.bprintf b ", width=%f" width
     | NodeStyle option ->
-        fprintf oc ", style=%s" (match option with
+        Printf.bprintf b ", style=%s" (match option with
             Bold -> "bold"
           | Dotted -> "dotted"
           | Filled -> "filled"
         )
 
   in
-  fprintf oc "digraph %S {\n" graph.graph_name;
+  Printf.bprintf b "digraph %S {\n" graph.graph_name;
   List.iter graph_attribute graph.graph_attributes;
   List.iter (fun node ->
-      fprintf oc "  node%d [ label=\"%s\"" node.node_id node.node_name;
+      Printf.bprintf b "  node%d [ label=\"%s\"" node.node_id node.node_name;
       List.iter node_attribute node.node_attributes;
-      fprintf oc " ];\n";
+      Printf.bprintf b " ];\n";
       ) graph.graph_nodes;
   List.iter (fun edge ->
-      fprintf oc "  node%d -> node%d ["
+      Printf.bprintf b "  node%d -> node%d ["
         edge.edge_from.node_id edge.edge_to.node_id;
       (match edge.edge_attributes with
           [] -> ()
         | attr :: tail ->
             edge_attribute attr;
             List.iter (fun attr ->
-                fprintf oc ", ";
+                Printf.bprintf b ", ";
                 edge_attribute attr) tail);
-      fprintf oc " ];\n";
+      Printf.bprintf b " ];\n";
   ) graph.graph_edges;
-  fprintf oc "}\n"
+  Printf.bprintf b "}\n";
+  Buffer.contents b
 
 let save graph filename =
   let oc = open_out filename in
-  save_in graph oc;
+  output_string oc (to_string graph);
   close_out oc
 
 let view g =

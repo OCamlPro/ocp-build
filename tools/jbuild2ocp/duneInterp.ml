@@ -1,22 +1,12 @@
 
-open DuneParser
+open DuneParser.TYPES
 
-(*
+module TYPES = struct
 
-open StringCompat
-
-module Cst = Parsexp.Cst
-
-type sexp =
-  | Atom of string
-  | List of sexp list
-
-*)
-
-type library = {
+  type library = {
     lib_kind : string;
     mutable lib_names : string list;
-    mutable lib_public_name : string option;
+    mutable lib_public_names : string list;
     mutable lib_requires : string list;
     mutable lib_flags : string list;
     mutable lib_linkflags : string list;
@@ -26,21 +16,25 @@ type library = {
     mutable lib_modules : string list;
   }
 
-type action = {
+  type action = {
     mutable action_args : string list;
     mutable action_stdout : string option;
     mutable action_chdir : string option;
   }
 
-type rule = {
+  type rule = {
     mutable rule_targets : string list;
     mutable rule_deps : string list;
     mutable rule_actions : action list;
   }
 
-type element =
-  | Rule of rule
-  | Library of library
+  type element =
+    | Rule of rule
+    | Library of library
+
+end
+
+open TYPES
 
 let parse_library file lib = function
   | List [ Atom "name"; Atom name ] -> lib.lib_names <- [name]
@@ -49,7 +43,12 @@ let parse_library file lib = function
                                 | Atom name -> name
                                 | List _ -> assert false)
                                names
-  | List [ Atom "public_name"; Atom name ] -> lib.lib_public_name <- Some name
+  | List [ Atom "public_name"; Atom name ] -> lib.lib_public_names <- [name]
+  | List [ Atom "public_names"; List names ] ->
+     lib.lib_public_names <- List.map (function
+                                | Atom name -> name
+                                | List _ -> assert false)
+                               names
   | List [ Atom "wrapped"; Atom "false" ] -> lib.lib_wrapped <- false
   | List [ Atom "modes"; List [ Atom "native" ] ] -> lib.lib_has_byte <- false
   | List [ Atom "modes"; List [ Atom "bytecode" ] ] -> lib.lib_has_asm <- false
@@ -85,7 +84,8 @@ let parse_library file lib = function
                flags
   | List (Atom "install" :: _) -> () (* TODO *)
   | ele ->
-    Printf.eprintf "%s: Discarding library element %s\n%!" file (string_of_sexp ele)
+    Printf.eprintf "%s: Discarding library element %s\n%!" file
+      (DuneParser.string_of_sexp ele)
 
 let rec parse_action file action = function
   | List (Atom "run":: args) ->
@@ -102,7 +102,8 @@ let rec parse_action file action = function
      action.action_chdir <- Some dir
   | ele ->
      Printf.eprintf
-       "%s: Discarding action element %s\n%!" file (string_of_sexp ele)
+       "%s: Discarding action element %s\n%!" file
+       (DuneParser.string_of_sexp ele)
 
 let parse_rule file r = function
   | List [ Atom "targets"; List targets ] ->
@@ -115,7 +116,8 @@ let parse_rule file r = function
      List.iter (function
                 | Atom dep ->
                    r.rule_deps <- r.rule_deps @ [ dep ]
-                | List _ -> assert false)
+                | List _ ->
+                  Printf.eprintf "   Discarding dynamic deps\n%!")
                deps
   | List [ Atom "action"; sexp ] ->
      let action = {
@@ -127,13 +129,14 @@ let parse_rule file r = function
      r.rule_actions <- r.rule_actions @ [action]
   | ele ->
      Printf.eprintf
-       "%s: Discarding rule element %s\n%!" file (string_of_sexp ele)
+       "%s: Discarding rule element %s\n%!" file
+       (DuneParser.string_of_sexp ele)
 
 let parse_package file lib_kind sexps =
   let lib = {
       lib_kind;
          lib_names = [];
-         lib_public_name = None;
+         lib_public_names = [];
          lib_requires = [];
          lib_flags = [];
          lib_linkflags = [];
@@ -184,7 +187,8 @@ let parse file sexps =
              ] :: rem ->
         (Library (parse_package file "program" sexps)) :: iter rem
       | top :: rem ->
-        Printf.eprintf "%s: Discarding %s\n%!" file (string_of_sexp top);
+        Printf.eprintf "%s: Discarding %s\n%!" file
+          (DuneParser.string_of_sexp top);
         iter rem
   in
   iter sexps

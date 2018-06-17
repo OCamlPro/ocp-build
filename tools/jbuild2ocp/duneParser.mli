@@ -1,7 +1,12 @@
 
-type sexp =
-  | Atom of string
-  | List of sexp list
 
-val read : string -> sexp list
-val string_of_sexp : sexp -> string
+module TYPES : sig
+
+  type sexp =
+    | Atom of string
+    | List of sexp list
+
+end
+
+val read : string -> TYPES.sexp list
+val string_of_sexp : TYPES.sexp -> string

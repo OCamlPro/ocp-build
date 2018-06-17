@@ -1,187 +1,73 @@
 open StringCompat
-open DuneInterp
 
-let rec filter_ocamldep_flags flags =
-  match flags with
-    [] -> []
-  | ("-safe-string" | "-nopervasives" | "-linkall"| "-opaque") :: flags ->
-     filter_ocamldep_flags flags
-  | ("-w") :: _ :: flags ->
-     filter_ocamldep_flags flags
-  | x :: flags ->
-     x :: filter_ocamldep_flags flags
-
-let print_library b file lib =
-  Printf.bprintf b "(* from file %S *)\n\n%!" file;
-  let subdir = Filename.dirname file in
-  List.iter (fun lib_name ->
-      Printf.bprintf b "begin\n";
-      Printf.bprintf b "  ocaml.subdir = %S;\n" subdir;
-      if lib.lib_wrapped then
-        Printf.bprintf b "  ocaml.alias = %S;\n"  lib_name;
-      let public_name =
-        match lib.lib_public_name with
-        | None -> lib_name
-        | Some name -> name
-      in
-      Printf.bprintf b "  public_name = %S;\n" public_name;
-      Printf.bprintf b"\n";
-
-      if lib.lib_flags <> [] then begin
-          Printf.bprintf b "  flags = [\n";
-          List.iter (fun name ->
-              Printf.bprintf b "     %S;\n" name
-            ) lib.lib_flags;
-          Printf.bprintf b "  ];\n";
-          Printf.bprintf b "  ocaml.bytecomp = flags;\n";
-          Printf.bprintf b "  ocaml.asmcomp = flags;\n";
-          let dep_flags = filter_ocamldep_flags lib.lib_flags in
-          if dep_flags <> [] then begin
-              Printf.bprintf b "  ocaml.dep = [\n";
-              List.iter (fun name ->
-                  Printf.bprintf b "     %S;\n" name
-                ) dep_flags;
-              Printf.bprintf b "  ];\n";
-            end;
-
-          Printf.bprintf b"\n";
-        end;
-
-      if not lib.lib_has_asm then
-        Printf.bprintf b "  ocaml.has_asm = false;\n";
-      if not lib.lib_has_byte then
-        Printf.bprintf b "  ocaml.has_byte = false;\n";
-
-      if lib.lib_linkflags <> [] then begin
-          Printf.bprintf b "  linkflags = [\n";
-          List.iter (fun name ->
-              Printf.bprintf b "     %S;\n" name
-            ) lib.lib_linkflags;
-          Printf.bprintf b "  ];\n";
-          Printf.bprintf b "  ocaml.asmlink = linkflags;\n";
-          Printf.bprintf b "  ocaml.bytelink = linkflags;\n";
-          Printf.bprintf b"\n";
-        end;
-      Printf.bprintf b "  ocaml.sort = true;\n";
-      Printf.bprintf b "  ocaml.files = [\n";
-      if lib.lib_modules = [] then
-        Array.iter (fun name ->
-            if Filename.check_suffix name ".ml" then
-              Printf.bprintf b "     %S;\n" name
-          ) (Sys.readdir subdir)
-      else
-        begin
-          let rec iter set modules =
-            match modules with
-              [] -> set
-            | "\\" :: modules ->
-               iter_except set modules
-            | ":standard" :: modules ->
-               let set = ref set in
-               Array.iter (fun name ->
-                   if Filename.check_suffix name ".ml" then
-                     let modname = Filename.chop_extension name in
-                     let modname = String.capitalize modname in
-                     set := StringSet.add modname !set
-                 ) (Sys.readdir subdir);
-               iter !set modules
-            | name :: modules ->
-               iter (StringSet.add name set) modules
-          and iter_except set modules =
-            match modules with
-              [] -> set
-            | "\\" :: modules ->
-               iter set modules
-            | name :: modules ->
-               iter (StringSet.remove name set) modules
-          in
-          let set = iter StringSet.empty lib.lib_modules in
-          StringSet.iter (fun name ->
-              let name = String.uncapitalize name in
-              let name = name ^ ".ml" in
-              Printf.bprintf b "     %S;\n" name
-            ) set
-        end;
-      (*      data_encoding.ml *)
-      Printf.bprintf b "  ];\n";
-      Printf.bprintf b"\n";
-      Printf.bprintf b "  ocaml.requires = [\n";
-      List.iter (fun name ->
-          Printf.bprintf b "     %S;\n" name
-        ) lib.lib_requires;
-      (* tezos-stdlib ocplib-json-typed ocplib-json-typed.bson *)
-      Printf.bprintf b "  ];\n";
-      Printf.bprintf b"\n";
-
-      Printf.bprintf b "  OCaml.%s(public_name, ocaml);\n" lib.lib_kind;
-      Printf.bprintf b "end\n\n";
-    ) lib.lib_names
-
-let print_rule b file r =
-  let subdir = Filename.dirname file in
-  let subdir =
-    if subdir = "" then function file -> file
-    else function file -> Filename.concat subdir file
-  in
-  Printf.bprintf b "build_rules = [\n";
-  begin
-    match r.rule_targets with
-    | [] -> assert false
-    | [r] -> Printf.bprintf b "    %S, {\n" (subdir r)
-    | targets ->
-       Printf.bprintf b "  [\n";
-       List.iter (fun target ->
-           Printf.bprintf b "    %S;\n" (subdir target)
-         ) targets;
-       Printf.bprintf b "  ], {\n";
-       Printf.bprintf b "    uniq_id = %S;\n" (subdir (List.hd targets));
-  end;
-  Printf.bprintf b "       sources = [\n";
-  List.iter (fun dep ->
-      Printf.bprintf b "         %S;\n" (subdir dep)
-    ) r.rule_deps;
-  Printf.bprintf b "       ];\n";
-  Printf.bprintf b "       commands = [\n";
-  List.iter (fun action ->
-      Printf.bprintf b "            OCaml.system([\n";
-      List.iter (fun arg ->
-          Printf.bprintf b "              %S;\n" arg
-        ) action.action_args;
-      Printf.bprintf b "               ]\n";
-      begin
-        match action.action_stdout with
-        | None -> ()
-        | Some file ->
-           Printf.bprintf b "           ,{ stdout = %S }\n" file
-      end;
-      (*
-type action = {
-    mutable action_args : string list;
-    mutable action_stdout : string option;
-    mutable action_chdir : string option;
-  }*)
-                Printf.bprintf b "        );\n";
-    ) r.rule_actions;
-  Printf.bprintf b "       ];\n";
-  Printf.bprintf b "     }\n";
-  Printf.bprintf b "];\n\n";
-  ()
-
+let save = ref false
+let translate = ref true
+let dot_output = ref None
+let verbose = ref 0
 
 let translate_file file =
   try
-    let sexps = DuneParser.read file in
-    let b = Buffer.create 1000 in
-    let eles = DuneInterp.parse file sexps in
-    List.iter (function
-        | Library lib -> print_library b file lib
-        | Rule r -> print_rule b file r
-      ) eles;
-    let s = Buffer.contents b in
-    Printf.printf "%s\n%!" s;
+    if !translate && not !save then
+      Printf.printf "File %s:\n" file
+    else
+    if !verbose > 0 then
+      Printf.eprintf "File %s:\n" file;
+
+    let eles =
+      try
+        let sexps = DuneParser.read file in
+        DuneInterp.parse file sexps
+      with Exit ->
+        let file = file ^ ".static" in
+        if Sys.file_exists file then
+          let sexps = DuneParser.read file in
+          DuneInterp.parse file sexps
+        else begin
+          Printf.eprintf "File %S: in OCaml\n%!" file;
+          Printf.eprintf "   Discarded. No .static file found.\n%!";
+          raise Exit
+        end
+    in
+
+    if !translate then
+      let content = Dune2ocp.to_string file eles in
+      if !save then
+        let dirname = Filename.dirname file in
+        let ocp_file = Filename.concat dirname "build.jbuild2ocp" in
+        FileString.write_file ocp_file content;
+        Printf.eprintf "   %S generated\n%!" ocp_file
+      else
+        Printf.printf "%s\n%!" content
+    else
+      Dune2dot.register file eles
   with Exit ->
-    Printf.eprintf "File %S: in OCaml\n%!" file;
     ()
 
 let () =
-  Arg.parse [] translate_file "jbuild2ocp FILES"
+
+  let directory = ref None in
+  Arg.parse [
+    "-v", Arg.Unit (fun () -> incr verbose), " Increase verbosity";
+    "--save", Arg.Set save, " Save ocp files";
+    "--dir", Arg.String (fun s -> directory := Some s), "DIR In directory";
+    "--dot", Arg.String (fun s ->
+        translate := false;
+        dot_output := Some s), "DIR Output .dot files to DIR";
+  ] translate_file "jbuild2ocp FILES";
+
+  begin
+    match !directory with
+    | None -> ()
+    | Some dir ->
+      let select = FileString.select ~deep:true ~glob:"jbuild" () in
+      FileString.iter_dir ~select
+        (fun _basename _path file ->
+           translate_file file
+        ) dir
+  end;
+
+  match !dot_output with
+  | None -> ()
+  | Some dot_output ->
+    Dune2dot.save dot_output;
+    Printf.eprintf "%S generated\n%!" dot_output

@@ -2,9 +2,14 @@ open StringCompat
 
 module Cst = Parsexp.Cst
 
-type sexp =
+module TYPES = struct
+
+  type sexp =
   | Atom of string
   | List of sexp list
+end
+
+open TYPES
 
 let rec remove_comments = function
   | Cst.Sexp (Cst.Atom { atom }) -> Some (Atom atom)
