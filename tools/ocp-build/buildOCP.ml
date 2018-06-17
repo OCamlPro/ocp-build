@@ -141,12 +141,8 @@ let define_package loc pj config
     =
   (*  Printf.eprintf "define_package: substitute dirname\n%!"; *)
   let dirname =
-    try
-      let list = BuildValue.get_strings [config.config_env] "dirname"  in
-      (* Printf.eprintf "subst_global...\n%!"; *)
-      BuildSubst.subst_global (String.concat Filename.dir_sep list)
-    with Var_not_found _ ->
-      config.config_dirname
+      let dirname = BuildValue.get_dirname config in
+      BuildSubst.subst_global dirname
   in
   (* Printf.eprintf "dirname = %S\n%!" dirname;*)
   let dirname = if dirname = "" then "." else dirname in
@@ -236,17 +232,31 @@ let () =
     "Create a new package: new_package(name, kind, ocaml)"
   ]
     (fun loc ctx config args ->
-      match args with
-      | [VString (name,_); VString (kind,_); VObject config_env] ->
-        OCP_arg.define_package loc ctx { config  with config_env } ~name ~kind;
-        VList []
-      | _ ->
+       match args with
+       | [VString (name,_); VString (kind,_); VObject config_env] ->
+
+         (* Same code as in BuildOCamlOCP2 *)
+         let config_env =
+           try
+             ignore (BuildValue.get [config_env] "dirname");
+             config_env
+           with Var_not_found _ ->
+           try
+             BuildValue.set config_env "dirname"
+               (VString (BuildValue.get_dirname config, StringRaw))
+           with Var_not_found _ ->
+             Printf.eprintf "cannot add package %S: no dirname\n%!" name;
+             exit 2
+         in
+         let config = { config with config_env } in
+         OCP_arg.define_package loc ctx config ~name ~kind;
+         VList []
+       | _ ->
          BuildOCP2Prims.raise_bad_arity
            loc "new_package(string,string,object)" 3 args
     )
 
 let add_primitive = EvalOCP2.add_primitive
-let apply_fun = EvalOCP2.apply_fun
 let primitives_help = EvalOCP1.primitives_help
 
 let verbose = OcpDebug.verbose_function ["B";"BP"; "BuildOCP"]

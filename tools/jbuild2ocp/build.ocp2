@@ -1,0 +1,14 @@
+
+OCaml.library("ocplib-dune", ocaml + {
+  files = '[ duneParser.ml duneInterp.ml ];   
+  requires = '[ parsexp ocplib-file ];
+  });
+
+OCaml.program("ocp-dune", ocaml + {
+  files = '[
+    dune2ocp.ml
+    dune2dot.ml
+    main.ml
+    ];
+  requires = '[ ocplib-dune ocplib-dot ];
+});

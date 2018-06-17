@@ -26,11 +26,6 @@ let extensions_of_basename basename =
     [] | [_] -> []
   | _basename :: exts -> exts
 
-let last_extension extensions =
-  try
-    Some (OcpList.last extensions)
-  with Not_found -> None
-
 let extensions file = extensions_of_basename (Filename.basename file)
 
 let is_absolute file = not (Filename.is_relative file)
@@ -45,7 +40,13 @@ let check_suffix = Filename.check_suffix
 let add_suffix = (^)
 let chop_extension = Filename.chop_extension
 
-
+let last_extension filename =
+  let basename = basename filename in
+  try
+    match List.rev (extensions_of_basename basename) with
+    | [] -> None
+    | ext :: _ -> Some ext
+  with Not_found -> None
 
 let open_in = open_in
 let open_in_bin = open_in_bin
@@ -59,164 +60,74 @@ let current_dir_name = Filename.current_dir_name
 
 
 
-let copy_file f1 f2 =
-  let ic = open_in_bin f1 in
-  let oc = open_out_bin f2 in
-  FileChannel.copy_file ic oc;
-  close_in ic;
-  close_out oc
-
-let iter_blocks f file =
-  let ic = open_in_bin file in
-  FileChannel.iter_blocks f ic;
-  close_in ic
-
-let iter_dir f dirname =
-  let files = Sys.readdir dirname in
-  Array.iter f files
-
-let iter_files ?(recursive=false) f dirname =
-  let rec iter dirname dir =
-    let files = Sys.readdir (Filename.concat dirname dir) in
-    Array.iter (fun file ->
-        let file = Filename.concat dir file in
-        if Sys.is_directory (Filename.concat dirname file) then begin
-          if recursive then iter dirname file
-        end else
-          f file
-      ) files
-  in
-  iter dirname ""
-
-let rec safe_mkdir ?(mode=0o755) filename =
+let with_open open_channel close_channel filename f =
+  let ic = open_channel filename in
   try
-    let st = MinUnix.stat filename in
-    match st.MinUnix.st_kind with
-      MinUnix.S_DIR -> ()
-    | _ ->
-      failwith (Printf.sprintf
-                  "File.safe_mkdir: %S exists, but is not a directory"
-                  filename)
-  with MinUnix.Unix_error (MinUnix.ENOENT, _, _) ->
-    let dirname = Filename.dirname filename in
-    safe_mkdir ~mode dirname;
-    let basename = Filename.basename filename in
-    match basename with
-    | "." | ".." -> ()
-    | _ ->
-      MinUnix.mkdir filename mode
+    let x = f ic in
+    close_channel ic;
+    x
+  with exn ->
+    close_channel ic;
+    raise exn
 
-(* [dst] must be the target file name, not the name of its
-   directory *)
-let rec copy_rec src dst =
-  (*    Printf.eprintf "copy_rec: %S -> %S\n%!" src dst; *)
-  match (MinUnix.stat src).MinUnix.st_kind with
-  | MinUnix.S_DIR ->
-    safe_mkdir dst;
-    iter_dir (fun basename ->
-        copy_rec (Filename.concat src basename)
-          (Filename.concat dst basename)) src
-  | MinUnix.S_REG ->
-    copy_file src dst
-  | _ ->
-    failwith (Printf.sprintf
-                "File.copy_rec: cannot copy unknown kind file %S"
-                src)
+let with_in filename f = with_open open_in close_in filename f
+let with_in_bin filename f = with_open open_in_bin close_in filename f
 
-  (* [dst] must be the target file name, not the name of its directory *)
-let rec uncopy_rec src dst =
-  match
-    (try Some (MinUnix.stat src).MinUnix.st_kind with _ -> None),
-    (try Some (MinUnix.stat dst).MinUnix.st_kind with _ -> None)
-  with
-  | _, None -> ()
-  | Some MinUnix.S_DIR, Some MinUnix.S_DIR ->
-    iter_dir (fun basename ->
-        uncopy_rec (Filename.concat src basename)
-          (Filename.concat dst basename)) src;
-    (try MinUnix.rmdir dst with _ -> ())
-  | Some MinUnix.S_REG, Some MinUnix.S_REG ->
-    Sys.remove dst
-  | _ ->
-    failwith (Printf.sprintf
-                "File.uncopy_rec: inconsistent kinds between %S and %S"
-                src dst)
+let with_out = with_open open_out close_out
+let with_out_bin = with_open open_out_bin close_out
 
+let copy_file f1 f2 =
+  with_in_bin f1 (fun ic ->
+      with_out_bin f2 (fun oc ->
+          FileChannel.copy_file ic oc))
 
+let iter_blocks f filename =
+  with_in_bin filename (fun ic ->
+      FileChannel.iter_blocks f ic)
 
 let write_file filename str =
-  let oc = open_out_bin filename in
-  output_string oc str;
-  close_out oc
+  with_out_bin filename (fun oc ->
+      output_string oc str)
 let file_of_string = write_file
 
 let read_file filename =
-  let ic = open_in_bin filename in
-  try
-    let s = FileChannel.read_file ic in
-    close_in ic;
-    s
-  with e ->
-    close_in ic;
-    raise e
+  with_in_bin filename FileChannel.read_file
 let string_of_file = read_file
 
 
-let read_lines file =
-  let ic = open_in file in
-  let lines = FileChannel.read_lines ic in
-  close_in ic;
-  lines
-
-let read_lines_to_revlist file =
-  let ic = open_in file in
-  let lines = FileChannel.read_lines_to_revlist ic in
-  close_in ic;
-  lines
+let read_lines filename =
+  with_in filename FileChannel.read_lines
+let read_lines_to_revlist filename =
+  with_in filename FileChannel.read_lines_to_revlist
+let read_lines_to_list filename =
+  with_in filename FileChannel.read_lines_to_list
 
 let write_lines filename lines =
-  let oc = open_out filename in
-  Array.iter (fun l -> FileChannel.output_line oc l) lines;
-  close_out oc
+  with_out filename (fun oc -> FileChannel.write_lines oc lines)
+let write_lines_of_list filename lines =
+  with_out filename (fun oc -> FileChannel.write_lines_of_list oc lines)
 
 let lines_of_file = read_lines
 let file_of_lines = write_lines
 
-let iter_lines f name =
-  let ic = open_in name in
-  try
-    FileChannel.iter_lines f ic;
-    close_in ic
-  with
-  | e -> close_in ic; raise e
+let iter_lines f filename =
+  with_in filename (fun ic ->
+      FileChannel.iter_lines f ic)
 
-let iteri_lines f name =
-  let ic = open_in name in
-  try
-    FileChannel.iteri_lines f ic;
-    close_in ic
-  with
-  | e -> close_in ic; raise e
+let iteri_lines f filename =
+  with_in filename (fun ic ->
+      FileChannel.iteri_lines f ic)
 
-let read_sublines file off len =
-  let ic = open_in file in
-  try
-    let lines = FileChannel.read_sublines ic off len in
-    close_in ic;
-    lines
-  with exn ->
-    close_in ic;
-    raise exn
+let read_sublines filename off len =
+  with_in filename (fun ic ->
+      FileChannel.read_sublines ic off len)
+let read_sublines_to_list filename off len =
+  with_in filename (fun ic ->
+      FileChannel.read_sublines_to_list ic off len)
 
 let read_subfile filename pos len =
-  let ic = open_in_bin filename in
-  try
-    let b = FileChannel.read_subfile ic pos len in
-    close_in ic;
-    b
-  with exn ->
-    close_in ic;
-    raise exn
+  with_in filename (fun ic ->
+      FileChannel.read_subfile ic pos len)
 
 let string_of_subfile = read_subfile
 
@@ -239,6 +150,7 @@ let exists = Sys.file_exists
 let stat filename = MinUnix.stat filename
 let lstat filename = MinUnix.lstat filename
 
+let to_string s = s
 
 let size filename =
   let s = MinUnix.stat filename in
@@ -254,4 +166,72 @@ module Op = struct
 
   let (//) = Filename.concat
 
+  end
+
+module Directory_operations = FileDirMaker.Make(struct
+    type path = string
+    let add_basename = add_basename
+    let dirname = dirname
+    let basename = basename
+
+    let rmdir = MinUnix.rmdir
+    let lstat = MinUnix.lstat
+    let stat = MinUnix.stat
+    let mkdir = MinUnix.mkdir
+
+    let remove = Sys.remove
+    let readdir = Sys.readdir
+
+    let to_string = to_string
+  end)
+
+include Directory_operations
+
+
+(* [dst] must be the target file name, not the name of its
+   directory *)
+let rec copy_rec src dst =
+  (*    Printf.eprintf "copy_rec: %S -> %S\n%!" src dst; *)
+  match (MinUnix.stat src).MinUnix.st_kind with
+  | MinUnix.S_DIR ->
+    make_dir ~p:true dst;
+    iter_dir (fun basename _path _file ->
+        copy_rec (Filename.concat src basename)
+          (Filename.concat dst basename)) src
+  | MinUnix.S_REG ->
+    copy_file src dst
+  | _ ->
+    failwith (Printf.sprintf
+                "File.copy_rec: cannot copy unknown kind file %S"
+                src)
+
+  (* [dst] must be the target file name, not the name of its directory *)
+let rec uncopy_rec src dst =
+  match
+    (try Some (MinUnix.stat src).MinUnix.st_kind with _ -> None),
+    (try Some (MinUnix.stat dst).MinUnix.st_kind with _ -> None)
+  with
+  | _, None -> ()
+  | Some MinUnix.S_DIR, Some MinUnix.S_DIR ->
+    iter_dir (fun basename _path _file ->
+        uncopy_rec (Filename.concat src basename)
+          (Filename.concat dst basename)) src;
+    (try MinUnix.rmdir dst with _ -> ())
+  | Some MinUnix.S_REG, Some MinUnix.S_REG ->
+    Sys.remove dst
+  | _ ->
+    failwith (Printf.sprintf
+                "File.uncopy_rec: inconsistent kinds between %S and %S"
+                src dst)
+
+let find_in_path path name =
+  if not (Filename.is_implicit name) then
+    if Sys.file_exists name then name else raise Not_found
+  else begin
+    let rec try_dir = function
+    [] -> raise Not_found
+      | dir::rem ->
+        let fullname = Filename.concat dir name in
+        if Sys.file_exists fullname then fullname else try_dir rem
+    in try_dir path
   end

@@ -98,13 +98,6 @@ val add_primitive : (* only for OCP2 *)
    BuildValue.TYPES.value list -> BuildValue.TYPES.value) ->
   unit
 
-val apply_fun :
-  BuildValue.TYPES.functional_value ->
-  BuildValue.TYPES.location ->
-  state ->
-  BuildValue.TYPES.config ->
-  BuildValue.TYPES.value list -> BuildValue.TYPES.value
-
 val print_conflict :
   'a BuildOCPTypes.package ->
   'b BuildOCPTypes.package ->

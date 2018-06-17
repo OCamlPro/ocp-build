@@ -10,10 +10,15 @@
 (*                                                                        *)
 (**************************************************************************)
 
+
+OCaml.library("ocplib-dot", ocaml + {
+   files = [ "ocamldot.ml" ];
+  });
+
   ocaml.install = true;
-  ocaml.files = [
+  OCaml.library("ocp-build-misc", ocaml + {
+   files = [
     "logger.ml";
-    "ocamldot.ml";
     "versioning.ml";
 
     "buildMisc.ml";
@@ -27,5 +32,7 @@
     "buildWarnings.ml";
   ];
 
-  ocaml.requires =  [ "ocplib-lang"; "ocplib-unix"; "ocplib-system" ];
-  OCaml.library("ocp-build-misc", ocaml);
+  requires =  [ "ocplib-lang"; "ocplib-unix";
+           "ocplib-system"; "ocplib-dot" ];
+
+});

@@ -314,10 +314,15 @@ let do_init_project_building w p pj =
 
   BuildMisc.safe_mkdir build_dir_filename;
 
+  (* We don't save anymore the full state, as a value may contain
+    closures that trigger errors when a function is defined in the
+    environment.
+
   BuildActions.time_step "Saving raw project info...";
   BuildOCP.save_project_state pj
     (FileGen.add_basename (FileGen.of_string build_dir_filename) "ocp.ocpx");
   BuildActions.time_step "   Done saving raw project info";
+  *)
 
   let b =
     BuildEngineContext.create (FileGen.to_string p.project_dir)

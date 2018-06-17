@@ -36,8 +36,31 @@ module TYPES = struct
   | VFun of functional_value
 
   and functional_value =
-  | VFunction of (location -> value list -> value)
+  | VFunction of (location -> config -> value list -> value)
   | VPrim of string
+
+  (* To avoid dealing with dependencies, modules can be declared lazily
+     by provides("Mod", function(){...}), in which case the function will
+     only be executed on demand. When doing so, we set the module to
+     Computing to avoid a recursion. *)
+  and module_desc =
+  | Declared of value
+  | Computing
+  | Computed of value
+
+  and config_state = {
+    mutable cfs_modules : (module_desc ref * Versioning.version) StringMap.t;
+    mutable cfs_store : value StringMap.t;
+  }
+
+  (* The configuration at a package definition site *)
+  and config = {
+    config_env : env;
+    config_state : config_state;
+    config_filename : string;
+    config_filenames : (string * Digest.t option) list;
+  }
+
 
 (* Just for compatibility: a plist is morally a
    VList of VTuple (VString * VObject) *)
@@ -50,29 +73,6 @@ module TYPES = struct
   }
   exception Var_not_found of string
   exception NotAPropertyList
-
-  (* To avoid dealing with dependencies, modules can be declared lazily
-     by provides("Mod", function(){...}), in which case the function will
-     only be executed on demand. When doing so, we set the module to
-     Computing to avoid a recursion. *)
-  type module_desc =
-  | Declared of value
-  | Computing
-  | Computed of value
-
-  type config_state = {
-    mutable cfs_modules : (module_desc ref * Versioning.version) StringMap.t;
-    mutable cfs_store : value StringMap.t;
-  }
-
-  (* The configuration at a package definition site *)
-  type config = {
-    config_env : env;
-    config_state : config_state;
-    config_dirname : string;
-    config_filename : string;
-    config_filenames : (string * Digest.t option) list;
-  }
 
 end
 
@@ -227,25 +227,38 @@ let plist_of_path s = VString (s, StringRaw)
 let path_of_plist list = String.concat "/" (strings_of_plist list)
 
 let set_bool env name v = set env name (plist_of_bool v)
-let get_bool env name = bool_of_plist (get env name)
-let get_local_bool env name = bool_of_plist (get_local env name)
+
+let get_conv f env name =
+  let v = get env name in
+  try f v with exn ->
+    Printf.kprintf failwith "unexpected type for variable %S: %s"
+      name (Printexc.to_string exn)
+
+let get_local_conv f env name =
+  let v = get_local env name in
+  try f v with exn ->
+    Printf.kprintf failwith "unexpected type for variable %S: %s"
+      name (Printexc.to_string exn)
+
+let get_bool = get_conv bool_of_plist
+let get_local_bool = get_local_conv bool_of_plist
 
 let set_strings env name v = set env name (plist_of_strings v)
-let get_strings env name = strings_of_plist (get env name)
-let get_local_strings env name = strings_of_plist (get_local env name)
+let get_strings = get_conv strings_of_plist
+let get_local_strings = get_local_conv strings_of_plist
 
 (*let set_version env name v = set env name (VString (v, StringVersion))*)
 let set_string env name v = set env name (plist_of_string v)
-let get_string env name = string_of_plist (get env name)
-let get_local_string env name = string_of_plist (get_local env name)
+let get_string = get_conv string_of_plist
+let get_local_string = get_local_conv string_of_plist
 
 let set_string_option env name v = set env name (plist_of_string_option v)
-let get_string_option env name = string_option_of_plist (get env name)
-let get_local_string_option env name = string_option_of_plist (get_local env name)
+let get_string_option = get_conv string_option_of_plist
+let get_local_string_option = get_local_conv string_option_of_plist
 
 let set_path env name v = set env name (plist_of_path v)
-let get_path env name = path_of_plist (get env name)
-let get_local_path env name = path_of_plist (get_local env name)
+let get_path = get_conv path_of_plist
+let get_local_path = get_local_conv path_of_plist
 
 let get_with_default_fun f =
   fun env name default -> try f env name with Var_not_found _ -> default
@@ -253,7 +266,7 @@ let get_with_default_fun f =
 let get_with_default = get_with_default_fun get
 
 let get_local_with_default = get_with_default_fun get_local
-let get_local_prop_list env name = prop_list (get_local env name)
+let get_local_prop_list = get_local_conv prop_list
 let get_local_prop_list_with_default = get_with_default_fun get_local_prop_list
 
 let get_bool_with_default = get_with_default_fun get_bool
@@ -316,23 +329,33 @@ let new_path_option name v =
   }
     *)
 
-let empty_config_state () =
-  { cfs_modules = StringMap.empty;
-    cfs_store = StringMap.empty; }
-
-let empty_config () = {
-  config_env = empty_env;
-  config_state = empty_config_state ();
-  config_dirname = "";
-  config_filename = "";
-  config_filenames = [];
-}
-
 
 let config_get config name =
   get [config.config_env] name
 let config_set config name v =
   { config with config_env = set config.config_env name v }
+
+let dirname_var = "dirname"
+let get_dirname config =
+  path_of_plist (config_get config dirname_var)
+let set_dirname config dirname =
+  config_set config dirname_var (VString (dirname,StringRaw))
+
+let dynamic_var = "dynamic"
+let get_dynamic config = config_get config dynamic_var
+let set_dynamic config v = config_set config dynamic_var v
+
+let empty_config_state () =
+  { cfs_modules = StringMap.empty;
+    cfs_store = StringMap.empty; }
+
+let empty_config () =
+  {
+    config_env = set empty_env dynamic_var (VObject empty_env);
+    config_state = empty_config_state ();
+    config_filename = "";
+    config_filenames = [];
+  }
 
 let unit = VObject empty_env
 

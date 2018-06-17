@@ -211,7 +211,7 @@ let () =
         ) !!PROJECT.opam_fields;
 
       if Sys.file_exists opam_trailer_old then begin
-        FileString.safe_mkdir AutoconfArgs.ocp_autoconf_dir;
+        FileString.make_dir ~p:true AutoconfArgs.ocp_autoconf_dir;
         Sys.rename opam_trailer_old opam_trailer;
       end;
       if Sys.file_exists opam_trailer then begin

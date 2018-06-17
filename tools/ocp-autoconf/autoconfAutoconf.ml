@@ -410,11 +410,13 @@ let () =
        AutoconfFS.fprintf oc "#@OCAML_USE_POSIX_TYPES@ OCAML_USE_POSIX_TYPES\n";
        AutoconfFS.close_out oc;
 
+       (*
        let oc = AutoconfFS.open_out "autoconf/build.ocp" in
        AutoconfFS.fprintf oc "(* Just here to refer to this directory *)\n";
        AutoconfFS.fprintf oc "if include \"config.ocpgen\" then {} else {}\n";
        AutoconfFS.fprintf oc "begin library autoconf_dir end\n";
        AutoconfFS.close_out oc;
+*)
 
        AutoconfFS.add_post_commit_hook (fun () ->
            Unix.chdir "autoconf";

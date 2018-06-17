@@ -68,7 +68,8 @@ val add_edges : node -> node list -> edge_attributes list -> unit
 val add_path : node list -> edge_attributes list -> unit
 val rename_node : node -> string -> unit
 val save : graph -> string -> unit
-val save_in : graph -> out_channel -> unit
+(* val save_in : graph -> out_channel -> unit *)
 val view : graph -> unit
 val dot2ps : string -> string -> unit
 val dot2pdf : string -> string -> unit
+val to_string : graph -> string

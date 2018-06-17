@@ -44,11 +44,4 @@ module Eval(S: sig
             BuildValue.TYPES.value list -> BuildValue.TYPES.value) ->
            unit
 
- val apply_fun :
-   BuildValue.TYPES.functional_value ->
-   BuildValue.TYPES.location ->
-   S.context ->
-   BuildValue.TYPES.config ->
-   BuildValue.TYPES.value list -> BuildValue.TYPES.value
-
 end
