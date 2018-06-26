@@ -197,20 +197,7 @@ let first_word str =
     | []        -> raise Not_found
     | name :: _ -> name
 
-let split s c =
-  let len = String.length s in
-  let rec iter pos to_rev =
-    if pos = len then List.rev ("" :: to_rev) else
-      match try
-              Some ( String.index_from s pos c )
-        with Not_found -> None
-      with
-          Some pos2 ->
-            if pos2 = pos then iter (pos+1) ("" :: to_rev) else
-              iter (pos2+1) ((String.sub s pos (pos2-pos)) :: to_rev)
-        | None -> List.rev ( String.sub s pos (len-pos) :: to_rev )
-  in
-  iter 0 []
+let split s c = String.split_on_char c s
 
 let _ =
   assert (split "" 'o' = [""]);
