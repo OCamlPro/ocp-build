@@ -67,16 +67,18 @@ let add_META pj ocamllib meta_dirname meta_filename =
       if verbose 4 then
         Printf.eprintf "dirname=%S\n%!" dirname;
       let exists =
-          List.for_all (fun filename ->
-            let proof_filename = Filename.concat dirname filename in
-            if not (Sys.file_exists proof_filename) then begin
-              if verbose 4 then
-                Printf.eprintf
-                  "Warning: proof of package %S does not exist\n%!"
-                  proof_filename;
-              false
-              end else true)
-                       (MetaFile.exists_if p)
+        List.for_all (fun filenames ->
+            List.for_all (fun filename ->
+                let proof_filename = Filename.concat dirname filename in
+                if not (Sys.file_exists proof_filename) then begin
+                  if verbose 4 then
+                    Printf.eprintf
+                      "Warning: proof of package %S does not exist\n%!"
+                      proof_filename;
+                  false
+                end else true
+              ) (OcpString.split filenames ',')
+          ) (MetaFile.exists_if p)
       in
       if exists then
           (*
