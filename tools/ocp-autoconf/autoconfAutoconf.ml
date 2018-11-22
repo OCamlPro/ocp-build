@@ -121,6 +121,7 @@ let () =
          for i = 0 to Bytes.length package -1 do
            match Bytes.get package i with
            | '-' -> Bytes.set package i '_'
+           | '.' -> Bytes.set package i '_'
            | _ -> ()
          done;
          Bytes.to_string package
