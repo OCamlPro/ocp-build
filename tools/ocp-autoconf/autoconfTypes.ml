@@ -21,6 +21,7 @@ type package = {
   name : string;
   version : (version_op * string) option;
   opam : string option;
+  build : bool;
 }
 
 let string_of_version_op = function

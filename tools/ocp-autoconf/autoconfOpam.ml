@@ -16,7 +16,7 @@ open SimpleConfig.Op (* !! and =:= *)
 
 module PROJECT = AutoconfProjectConfig
 
-let opam_version = "1.2"
+let opam_version = "2.0"
 
 let abort _oc =
   exit 2
@@ -109,35 +109,37 @@ let () =
                       | Some name -> name
                     in
                     try
-                      let old_version = StringMap.find name !opam_deps in
+                      let old_version,build = StringMap.find name !opam_deps in
                       match old_version, pkg.version with
                       | None, None -> ()
                       | Some _, None -> ()
                       | None, Some _ ->
-                        opam_deps := StringMap.add name pkg.version !opam_deps
+                        opam_deps := StringMap.add name (pkg.version,pkg.build) !opam_deps
                       | Some v1, Some v2 ->
                         if v1 <> v2 then begin
                           Printf.eprintf "Error: opam dep %S has inconsistent version bounds\n%!" name;
                           exit 2
                           end
                     with Not_found ->
-                      opam_deps := StringMap.add name pkg.version !opam_deps
+                      opam_deps := StringMap.add name (pkg.version,pkg.build) !opam_deps
                 ) !!PROJECT.need_packages;
 
               (* Add ocamlfind if we need to test for other packages being
                  installed before. *)
               if !opam_deps <> StringMap.empty &&
                  not (StringMap.mem "ocamlfind" !opam_deps) then begin
-                opam_deps := StringMap.add "ocamlfind" None !opam_deps;
+                opam_deps := StringMap.add "ocamlfind" (None,false) !opam_deps;
               end;
 
               AutoconfFS.fprintf oc "depends: [\n";
-              StringMap.iter (fun name version ->
+              if !!PROJECT.ocaml_minimal_version <> "" then
+                AutoconfFS.fprintf oc "     \"ocaml\" {>=\"%s\"}\n" !!PROJECT.ocaml_minimal_version;
+              StringMap.iter (fun name (version,build) ->
                     match version with
                     | None ->
-                      AutoconfFS.fprintf oc "     %S\n" name
+                      AutoconfFS.fprintf oc "     %S%s\n" name (if build then " {build}" else "")
                     | Some (op,v) ->
-                       AutoconfFS.fprintf oc "     %S {%s %S }\n" name
+                       AutoconfFS.fprintf oc "     %S {%s %S}\n" name
                                           (string_of_version_op op)
                                           v
                 ) !opam_deps;
@@ -187,7 +189,7 @@ let () =
             | "dev-repo" ->
               let dev_repo = !!PROJECT.dev_repo in
               let dev_repo = if dev_repo = "" && !!PROJECT.github_project <> "" then
-                  Printf.sprintf "https://github.com/%s.git" !!PROJECT.github_project
+                  Printf.sprintf "git+http://github.com/%s.git" !!PROJECT.github_project
                 else dev_repo in
               if dev_repo <> "" then
                 AutoconfFS.fprintf oc "dev-repo: %S\n"  dev_repo
@@ -203,6 +205,18 @@ let () =
                 AutoconfFS.fprintf oc "bug-reports: %S\n" bug_reports
               else
                 wrong_value oc field ["bug_reports"; "github_project"]
+
+            | "version" ->
+              AutoconfFS.fprintf oc "version: %S\n" !!PROJECT.version
+
+            | "license" ->
+              AutoconfFS.fprintf oc "license: %S\n" !!PROJECT.license
+
+            | "synopsis" ->
+              AutoconfFS.fprintf oc "synopsis: %S\n" !!PROJECT.synopsis
+
+            | "description" ->
+              AutoconfFS.fprintf oc "description: %S\n" !!PROJECT.description
 
             | _ ->
               Printf.eprintf "Error: no support for opam field %S\n%!" field;

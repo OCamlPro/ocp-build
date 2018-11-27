@@ -15,7 +15,7 @@ open SimpleConfig.Op (* !! and =:= *)
 open AutoconfArgs
 open AutoconfTypes
 
-let make_package ?version ?opam name =
+let make_package ?version ?opam ?build name =
   let version = match version with
     | None -> None
     | Some version ->
@@ -31,7 +31,8 @@ let make_package ?version ?opam name =
        else
          Some (GeVersion, version)
   in
-  { name; version; opam }
+  let build = match build with None -> false | Some b -> b in
+  { name; version; opam ; build}
 
 let package_option =
   let open SimpleConfig.LowLevel in
@@ -46,6 +47,7 @@ let package_option =
        | Module m ->
          let name = ref None in
          let version = ref None in
+         let build = ref None in
          let opam = ref None in
          List.iter (fun (field, field_value) ->
              match field with
@@ -53,6 +55,7 @@ let package_option =
              | "version" -> version :=
                               Some (value_to_string field_value)
              | "opam" -> opam := Some (value_to_string field_value)
+             | "build" -> build := Some (value_to_bool field_value)
              | _ ->
                Printf.kprintf failwith "Unknown file %S in package" field
            ) m;
@@ -61,11 +64,12 @@ let package_option =
            | Some name ->
              let version = !version in
              let opam = !opam in
-             make_package ?version ?opam name
+             let build = !build in
+             make_package ?version ?opam ?build name
          end
        | _ -> failwith "Wrong package format"
     )
-    (function { name; version; opam } ->
+    (function { name; version; opam ; build} ->
     match version, opam with
     | None, None -> StringValue name
     | Some (op,version), None ->
@@ -81,6 +85,10 @@ let package_option =
       let fields = match opam with
           None -> fields
         | Some opam -> ("opam", StringValue opam) :: fields in
+
+      let fields =
+        let build = if build then "true" else "false" in
+        ("build", StringValue build) :: fields in
       Module fields
     )
 
@@ -131,7 +139,7 @@ let need_packages = SimpleConfig.create_option config
       They can be specified as a list with items of the forms:\n\
        * "findlib"\n\
        * ("findlib", "version");\n\
-       * { name="findlib" version="version" opam="package" };\n\
+       * { name="findlib" version="version" opam="package" build="bool"};\n\
       The later form can be used to specify a different opam package name.\n\
       "version" can be of the form ">=1.0" for example.\n\
       |}
@@ -227,6 +235,30 @@ let opam_fields = SimpleConfig.create_option config
 let opam_maintainer = SimpleConfig.create_option config
     [ "opam_maintainer" ]
     [ "Maintainer of the OPAM package" ]
+    SimpleConfig.string_option
+    ""
+
+let version = SimpleConfig.create_option config
+    [ "version" ]
+    [ "Version of the OPAM package" ]
+    SimpleConfig.string_option
+    ""
+
+let license = SimpleConfig.create_option config
+    [ "license" ]
+    [ "license of the OPAM package" ]
+    SimpleConfig.string_option
+    ""
+
+let synopsis = SimpleConfig.create_option config
+    [ "synopsis" ]
+    [ "synopsis of the OPAM package" ]
+    SimpleConfig.string_option
+    ""
+
+let description = SimpleConfig.create_option config
+    [ "description" ]
+    [ "description of the OPAM package" ]
     SimpleConfig.string_option
     ""
 
