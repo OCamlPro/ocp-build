@@ -236,7 +236,10 @@ let verify_packages w state =
   let packages = get_uniq_ocaml_packages w state in
 
   if !BuildGlobals.dot_report_arg then
-    BuildOCamlDotReport.report packages;
+    BuildOCamlDotReport.report ~full_graph:true packages;
+
+  if !BuildGlobals.dot_report_short_arg then
+    BuildOCamlDotReport.report ~full_graph:false packages;
 
   let packages =  build_dependency_graph w packages in
 

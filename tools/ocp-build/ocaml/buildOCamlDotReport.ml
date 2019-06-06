@@ -5,13 +5,6 @@ open BuildValue.TYPES
 open BuildOCPTypes
 open Ocamldot.TYPES
 
-let report_dir = "_obuild/_reports"
-let report_dot = "project.dot"
-let report_pdf = "project.pdf"
-
-let report_dot = Filename.concat report_dir report_dot
-let report_pdf = Filename.concat report_dir report_pdf
-
 type node = {
   node_name : string;
   mutable node_requires : node StringMap.t;
@@ -26,7 +19,7 @@ type node = {
 }
 
 
-let report packages =
+let report ~full_graph packages =
 
   let nodes = ref StringMap.empty in
   let add_node node_name =
@@ -110,8 +103,9 @@ let report packages =
         (NodeColor "red"):: attrs
       end in
       let attrs = if n.node_exists then attrs else (NodeShape Diamond) :: attrs in
-      let node = Ocamldot.node t n.node_name attrs in
-      n.node_node <- Some node
+      if full_graph || not n.node_installed then
+        let node = Ocamldot.node t n.node_name attrs in
+        n.node_node <- Some node
   ) !nodes;
 
   StringMap.iter (fun _ n ->
@@ -120,7 +114,8 @@ let report packages =
     | Some node ->
       StringMap.iter (fun _ n2 ->
         match n2.node_node with
-        | None -> assert false
+        | None ->
+          assert (not full_graph && n2.node_installed)
         | Some node2 ->
           let _edge = Ocamldot.edge node node2 [] in
           ()
@@ -170,6 +165,15 @@ let report packages =
 
   ) !nodes;
 *)
+
+  let report_dir = "_obuild/_reports" in
+
+  let report_dot, report_pdf =
+    if full_graph then "project.dot", "project.pdf"
+    else "project-short.dot", "project-short.pdf"
+  in
+  let report_dot = Filename.concat report_dir report_dot in
+  let report_pdf = Filename.concat report_dir report_pdf in
 
   BuildMisc.safe_mkdir report_dir;
   Ocamldot.save t report_dot;
