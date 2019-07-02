@@ -61,7 +61,9 @@ UNAVAILABLE_PRIM(unix_clear_close_on_exec)
 UNAVAILABLE_PRIM(unix_closedir)
 
 UNAVAILABLE_PRIM(unix_getppid)
+#if (OCAML_VERSION < 4060)
 UNAVAILABLE_PRIM(unix_isatty)
+#endif
 UNAVAILABLE_PRIM(unix_opendir)
 UNAVAILABLE_PRIM(unix_readdir)
 UNAVAILABLE_PRIM(unix_rewinddir)
