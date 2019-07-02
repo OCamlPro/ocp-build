@@ -225,9 +225,9 @@ value onlyWin32_getFileInformationByHandle_ml(value handle_v)
 
 value onlyWin32_getFileInformationByName_ml(value filename_v)
 {
-  HANDLE hfile = CreateFile(String_val(filename_v), 0, 
-			    FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE, 
-			    NULL,   OPEN_EXISTING, 
+  HANDLE hfile = CreateFile(String_val(filename_v), 0,
+			    FILE_SHARE_READ|FILE_SHARE_WRITE|FILE_SHARE_DELETE,
+			    NULL,   OPEN_EXISTING,
 			    FILE_FLAG_BACKUP_SEMANTICS, NULL);
   value res;
 
@@ -253,4 +253,3 @@ value onlyWin32_getFileInformationByName_ml(value filename_v)
   uerror("onlyWin32_getFileInformationByName_ml", Nothing);
 }
 #endif
-
