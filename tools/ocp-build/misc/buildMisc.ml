@@ -207,8 +207,11 @@ end = struct
 end
 
 let open_for_pipe filename =
+  MinUnix.openfile filename MinUnix.[O_RDWR; O_APPEND; O_CREAT; O_SHARE_DELETE] 0o777
+  (*
   let oc = open_out_bin filename in
   MinUnix.descr_of_out_channel oc
+  *)
 
 let create_process cmd maybe_chdir stdin stdout stderr =
   match cmd with
