@@ -8,7 +8,7 @@
 #                                                     #
 #######################################################
 AC_INIT(ocp-build,1.99.21-beta)
-PROJECTURE_ARGS=$*
+CONFIGURE_ARGS=$*
 AC_COPYRIGHT(Copyright 2011-2016 OCamlPro SAS)
 OCAML_MINIMAL_VERSION=4.02.3
 AC_CONFIG_MACRO_DIR([m4])
@@ -26,18 +26,13 @@ AC_ARG_ENABLE(bin-annot,
 AC_PROG_CC
 
 AC_PROG_OCAML
-AC_CHECK_OCAML_OS_TYPE
-if test "${OCAML_OS_TYPE}" = "Win32" ; then
-  OCAMLLIB="$(echo "${OCAMLLIB}" | tr -d '\015' | sed -e 's|\\|/|g')"
-fi
 
 ROOTDIR=$(dirname $(pwd))
 
 AX_SPLIT_VERSION(OCAMLVERSION)
-AC_SUBST(OCAML_MAJOR_VERSION,$AX_MAJOR_VERSION)
-AC_SUBST(OCAML_MINOR_VERSION,$AX_MINOR_VERSION)
-AC_SUBST(OCAML_POINT_VERSION,$AX_POINT_VERSION)
-OCAMLVERSION_C=$OCAML_MAJOR_VERSION$OCAML_MINOR_VERSION$OCAML_POINT_VERSION
+OCAML_MAJOR_VERSION=$AX_MAJOR_VERSION
+OCAML_MINOR_VERSION=$AX_MINOR_VERSION
+OCAML_POINT_VERSION=$AX_POINT_VERSION
 
 if test "$OCAMLC" = "no"; then
    AC_MSG_ERROR([You must install the OCaml compiler])
@@ -75,11 +70,7 @@ metadir='${ocamldir}'
 
 AC_PROG_FINDLIB
 if test "${OCAMLFIND}" != "no"; then
-  if test "${OCAML_OS_TYPE}" = "Win32" ; then
-    metadir="$(${OCAMLFIND} -printconf destdir | tr -d '\015' | sed -e 's|\\|/|g')"
-  else
-    metadir="$(${OCAMLFIND} -printconf destdir)"
-  fi
+  metadir="$(${OCAMLFIND} -printconf destdir)"
   echo "initializing metadir from ocamlfind config"
 fi
 
@@ -115,7 +106,6 @@ AC_SUBST(metadir)
 
 AC_SUBST(CONFIGURE_ARGS)
 AC_SUBST(OCAMLVERSION)
-AC_SUBST(OCAMLVERSION_C)
 AC_SUBST(OCAMLLIB)
 AC_SUBST(OCAMLOPT)
 AC_SUBST(OCAMLDEP)
@@ -127,28 +117,16 @@ if test "$OCAMLFIND" = "no"; then
 fi
 AC_CHECK_OCAML_PKG(cmdliner)
 if test "$OCAML_PKG_cmdliner" = "no"; then
-   AC_MSG_WARN([BEFORE ERROR: Please install OCaml package 'cmdliner'.])
-else
-  AX_COMPARE_VERSION( [$OCAML_PKG_cmdliner_VERSION], [lt], [1.0],
-     AC_MSG_WARN([BEFORE ERROR: Version >= 1.0 of cmdliner is needed]))
+   AC_MSG_ERROR([Please install OCaml package 'cmdliner'.])
 fi
+  AX_COMPARE_VERSION( [$OCAML_PKG_cmdliner_VERSION], [lt], [>=1.0],
+     AC_MSG_ERROR([Version >=1.0 of cmdliner is needed]))
 AC_CHECK_OCAML_PKG(re.glob)
 if test "$OCAML_PKG_re.glob" = "no"; then
-   AC_MSG_WARN([BEFORE ERROR: Please install OCaml package 're.glob'.])
-else
-  AX_COMPARE_VERSION( [$OCAML_PKG_re.glob_VERSION], [lt], [1.7.3],
-     AC_MSG_WARN([BEFORE ERROR: Version >= 1.7.3 of re.glob is needed]))
+   AC_MSG_ERROR([Please install OCaml package 're.glob'.])
 fi
-if test "$OCAML_PKG_cmdliner" = "no"; then
-   AC_MSG_FAILURE([Missing dependencies (see warnings above).])
-fi
-  AX_COMPARE_VERSION( [$OCAML_PKG_cmdliner_VERSION], [lt], [1.0],
-     AC_MSG_FAILURE([Problems with dependencies (see warnings above)]))
-if test "$OCAML_PKG_re.glob" = "no"; then
-   AC_MSG_FAILURE([Missing dependencies (see warnings above).])
-fi
-  AX_COMPARE_VERSION( [$OCAML_PKG_re.glob_VERSION], [lt], [1.7.3],
-     AC_MSG_FAILURE([Problems with dependencies (see warnings above)]))
+  AX_COMPARE_VERSION( [$OCAML_PKG_re.glob_VERSION], [lt], [>=1.7.3],
+     AC_MSG_ERROR([Version >=1.7.3 of re.glob is needed]))
 OPAM_REPO=/home/lefessan/GIT/ocp-public/opam-repository
 OPAM_REPO_OFFICIAL_REMOTE=ocaml
 OPAM_REPO_FORK_REMOTE=origin
@@ -165,6 +143,9 @@ HAS_BYTES=3.12.1
 AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [4.02.0],, HAS_BYTES=4.02.0)
 AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [4.03.0],, HAS_BYTES=4.03.0)
 
+NEED_SEQ=false
+AX_COMPARE_VERSION( [${OCAMLVERSION}], [gt], [4.07.0],, NEED_SEQ=true)
+
 ###############################################################
 ##                                                            #
 ## END of autoconf.ac                                         #
@@ -174,7 +155,7 @@ AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [4.03.0],, HAS_BYTES=4.03.0)
 AC_SUBST(OCAMLFIND)
 AC_SUBST(OCAMLYACC)
 AC_SUBST(OCAMLLEX)
-AC_SUBST(PROJECTURE_ARGS)
+AC_SUBST(CONFIGURE_ARGS)
 AC_SUBST(ROOTDIR)
 AC_SUBST(prefix)
 AC_SUBST(exec_prefix)
@@ -192,7 +173,6 @@ AC_SUBST(OPAM_REPO_OFFICIAL_REMOTE)
 AC_SUBST(OPAM_REPO_FORK_REMOTE)
 AC_SUBST(DOWNLOAD_URL_PREFIX)
 AC_SUBST(OCAMLVERSION)
-AC_SUBST(OCAMLVERSION_C)
 AC_SUBST(OCAMLC)
 AC_SUBST(OCAMLOPT)
 AC_SUBST(OCAMLDEP)
@@ -202,6 +182,7 @@ AC_SUBST(OCAMLDOC)
 AC_SUBST(OCAMLLIB)
 AC_SUBST(OCAMLBIN)
 AC_SUBST(HAS_BYTES)
+AC_SUBST(NEED_SEQ)
 AC_SUBST(OCAML_USE_BINANNOT)
 AC_CONFIG_FILES(Makefile.config config.ocpgen config.ocp2gen ocaml-config.h)
 AC_OUTPUT
