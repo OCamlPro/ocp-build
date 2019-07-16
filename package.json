@@ -10,7 +10,7 @@
   "esy": {
     "build": [
       "echo host x86_64-w64-mingw32 can change in future",
-      "#{self.root}/configure --host=x86_64-w64-mingw32 --prefix #{self.install} --exec-prefix #{self.install} --bindir #{self.install}/bin --libdir #{self.install}/lib --with-ocamldir=#{self.install}/lib/ocaml --datarootdir #{self.install}/share --mandir #{self.install}/share/man",
+      "#{self.root}/configure #{os == 'windows' ? '--host x86_64-w64-mingw32' : ''} --prefix #{self.install} --exec-prefix #{self.install} --bindir #{self.install}/bin --libdir #{self.install}/lib --with-ocamldir=#{self.install}/lib/ocaml --datarootdir #{self.install}/share --mandir #{self.install}/share/man",
       "make"
     ],
     "install": "make install",
