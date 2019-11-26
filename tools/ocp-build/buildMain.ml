@@ -108,7 +108,7 @@ let _ =
           2
       else n
     in
-    Pervasives.exit exit_status
+    exit exit_status
   | e ->
     let backtrace = Printexc.get_backtrace () in
     Printf.fprintf stderr "ocp-build: Fatal Exception %s\n%s\n%!"

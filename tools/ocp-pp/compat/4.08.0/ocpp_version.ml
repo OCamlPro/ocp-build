@@ -39,7 +39,7 @@ module StringMap = struct
 
   let to_list_of_keys map =
     let list = ref [] in
-    iter (fun x y -> list := x :: !list) map;
+    iter (fun x _y -> list := x :: !list) map;
     List.rev !list
 end
 
@@ -63,34 +63,35 @@ module Compat = struct
     | LBRACKETPERCENT|LBRACKETPERCENTPERCENT
     | LBRACKETAT|LBRACKETATAT|LBRACKETATATAT|PERCENT|PLUSEQ -> "4.02.1 token"
     | STRING (s,_) -> Printf.sprintf "STRING(%S,_)" s
-    | NATIVEINT(nativeint ) -> Printf.sprintf "NATIVEINT(%nd)" nativeint
-    | INT int -> Printf.sprintf "INT(%d)" int
-    | INT32(int32) -> Printf.sprintf "INT32(%ld)" int32
-    | INT64(int64) -> Printf.sprintf "INT64(%Ld)" int64
-    | FLOAT float -> Printf.sprintf "FLOAT(%s)" float
-    | SHARP -> "SHARP"
+    | INT (int, s) -> Printf.sprintf "INT(%s,%s)" int
+      (match s with None -> "None" | Some c -> Printf.sprintf "Some %c" c)
+    | FLOAT (float, s) -> Printf.sprintf "FLOAT(%s,%s)" float
+      (match s with None -> "None" | Some c -> Printf.sprintf "Some %c" c)
+    | HASH -> "HASH"
     | _  -> assert false
 
   let string_of_token = function
     | LBRACKETPERCENT|LBRACKETPERCENTPERCENT
     | LBRACKETAT|LBRACKETATAT|LBRACKETATATAT|PERCENT|PLUSEQ -> "4.02.1 token"
     | STRING (s,_) -> Printf.sprintf "%S" s
-    | NATIVEINT nativeint -> Printf.sprintf "%nd" nativeint
-    | INT int -> Printf.sprintf "%d" int
-    | INT32(int32) -> Printf.sprintf "%ld" int32
-    | INT64(int64) -> Printf.sprintf "%Ld" int64
-    | FLOAT float -> float
-    | SHARP -> "#"
+    | INT (int, s) -> Printf.sprintf "%s%s" int
+      (match s with None -> "" | Some c -> Printf.sprintf "%c" c)
+    | FLOAT (float, s) -> Printf.sprintf "%s%s" float
+      (match s with None -> "" | Some c -> Printf.sprintf "%c" c)
+    | NONREC -> "nonrec"
+    | HASHOP op -> Printf.sprintf "hashop(%S)" op
+    | DOCSTRING _docstring -> "docstring _"
+    | HASH -> "#"
     | _  -> assert false
 
   let is_sharp = function
-    | SHARP -> true
+    | HASH -> true
     | _ -> false
 
   let int_of_token = function
-    | INT n -> n
+    | INT (n, None) -> int_of_string n
     | _ -> assert false
-  let token_of_int n = INT n
+  let token_of_int n = INT (string_of_int n, None)
 
   let loc_of_token lexbuf token =
     match token with
@@ -98,9 +99,12 @@ module Compat = struct
     | DOCSTRING doc -> Docstrings.docstring_loc doc
     | _ -> Location.curr lexbuf
 
-  let find_in_load_path filename = Misc.find_in_path !Config.load_path filename
+  let find_in_load_path filename = Load_path.find filename
 
-  let add_to_load_path s = Config.load_path := [s] @ !Config.load_path
+  let add_to_load_path s = Load_path.add_dir s
 end
 
-module Location = Location
+module Location = struct
+  include Location
+  let print = print_loc
+end

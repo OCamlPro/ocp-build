@@ -1118,7 +1118,7 @@ and preprocess_include lexer   filename =
         local_filename
       else
       try
-        Misc.find_in_path !Config.load_path filename
+        Compat.find_in_load_path filename
       with Not_found ->
         if debug_ocpp then
           Printf.eprintf "OCPP_INCLUDE current = %S\n%!" current_filename;

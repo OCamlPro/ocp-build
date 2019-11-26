@@ -4,7 +4,7 @@ include Unix
 type os_type = WINDOWS | CYGWIN | UNIX
 
 let os_type =
-  match String.lowercase Sys.os_type with
+  match String.lowercase_ascii Sys.os_type with
       "win32" -> WINDOWS
     | "cygwin" -> CYGWIN
     | "unix" -> UNIX
