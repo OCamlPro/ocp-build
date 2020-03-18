@@ -205,7 +205,7 @@ let command argv =
               create_process argv.(0) argv
                 MinUnix.stdin MinUnix.stdout MinUnix.stderr
     with e ->
-      Printf.fprintf Pervasives.stderr "Error \"%s\" executing %s\n%!"
+      Printf.fprintf Stdlib.stderr "Error \"%s\" executing %s\n%!"
         (Printexc.to_string e) Sys.argv.(0);
       exit 2
   in

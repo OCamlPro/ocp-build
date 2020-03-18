@@ -43,7 +43,11 @@ begin
         if( ocaml_version < "4.04" ){
           ocaml.files += [ "compat/4.03.0/ocpp_version.ml" ];
         } else {
-          ocaml.files += [ "compat/4.04.0/ocpp_version.ml" ];
+          if( ocaml_version < "4.08" ){
+            ocaml.files += [ "compat/4.04.0/ocpp_version.ml" ];
+          } else {
+            ocaml.files += [ "compat/4.08.0/ocpp_version.ml" ];
+          }
         }
       }
      }

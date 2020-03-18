@@ -446,7 +446,7 @@ let rec compare_values e1 e2 =
   | VString (s1,_), VString (s2,_)
   | VString (s1,_), VList [ VString (s2,_) ]
   | VList [VString (s1,_)], VString (s2,_)
-    -> Pervasives.compare s1 s2
+    -> compare s1 s2
 
   (* comparison of lists *)
   | VList [], VList [] -> 0
@@ -461,10 +461,10 @@ let rec compare_values e1 e2 =
     compare_values (VList t1) (VList t2)
 
   (* comparison of ints *)
-  | VInt n1, VInt n2 -> Pervasives.compare n1 n2
+  | VInt n1, VInt n2 -> compare n1 n2
 
   (* comparison of bools *)
-  | VBool n1, VBool n2 -> Pervasives.compare n1 n2
+  | VBool n1, VBool n2 -> compare n1 n2
 
   (* comparison of objects: objects can only be compared if they have
      exactly the same fields. Fields are then sorted by names and
