@@ -392,6 +392,9 @@ let arg_list =
   "--dot-report", Arg.Set BuildGlobals.dot_report_arg,
   " Create a DOT report in _obuild/_reports";
 
+  "--dot-report-short", Arg.Set BuildGlobals.dot_report_short_arg,
+  " Create a DOT report in _obuild/_reports without installed deps";
+
   "--replay-script", Arg.Set BuildEngineReport.output_replay_script,
   " Generates _obuild/_reports/build-replay.sh";
 
