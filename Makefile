@@ -58,7 +58,7 @@ OCPLIB_LANG= $(lang_SRCDIR)/ocpList.ml $(lang_SRCDIR)/ocpString.ml	\
     $(lang_SRCDIR)/ocpArray.ml \
     $(lang_SRCDIR)/ocpDigest.ml $(lang_SRCDIR)/ocpToposort.ml	\
     $(lang_SRCDIR)/ocamllexer.ml $(lang_SRCDIR)/ocpGenlex.ml		\
-    $(lang_SRCDIR)/ocpSubst.ml $(lang_SRCDIR)/ocpReuse.ml 
+    $(lang_SRCDIR)/ocpSubst.ml $(lang_SRCDIR)/ocpReuse.ml
 
 OCPLIB_UNIX= $(unix_SRCDIR)/minUnix.ml $(unix_SRCDIR)/onlyUnix.ml	\
     $(unix_SRCDIR)/onlyWin32.ml
@@ -352,6 +352,3 @@ include autoconf/Makefile.rules
 .c$(EXT_OBJ):
 	$(OCAMLC) -c $(INCLUDES) -ccopt -DOCAML_VERSION=$(OCAMLVERSION_C) $<
 	mv `basename $*$(EXT_OBJ)` $*$(EXT_OBJ)
-
-
-
