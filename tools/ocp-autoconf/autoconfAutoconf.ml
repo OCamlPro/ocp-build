@@ -12,7 +12,9 @@
 
 open OcpCompat
 open SimpleConfig.Op (* !! and =:= *)
-open AutoconfProjectConfig
+open AutoconfTypes
+
+module PROJECT = AutoconfProjectConfig
 
 let () =
   AutoconfCommon.register_maker "configure"
@@ -37,8 +39,8 @@ let () =
            | "camlp4" -> need_camlp4 := true
            | _ ->
              need_pkgs := pkg :: !need_pkgs
-         ) !!need_packages;
-       if !!optional_packages <> [] || !!need_packages <> [] then
+         ) !!PROJECT.need_packages;
+       if !!PROJECT.optional_packages <> [] || !!PROJECT.need_packages <> [] then
          need_ocamlfind := true;
 
        let need_packages = List.rev !need_pkgs in
@@ -57,7 +59,7 @@ let () =
            let dst_filename = Filename.concat "autoconf/m4" basename in
            extra_files := dst_filename :: !extra_files;
            AutoconfFS.write_file dst_filename content
-         ) !!extra_m4_files;
+         ) !!PROJECT.extra_m4_files;
 
        let oc = AutoconfFS.open_out "autoconf/configure.ac" in
 
@@ -71,26 +73,26 @@ let () =
        AutoconfFS.fprintf oc "#                                                     #\n";
        AutoconfFS.fprintf oc "#######################################################\n";
 
-       AutoconfFS.fprintf oc "AC_INIT(%s,%s)\n" !!project_name !!project_version;
-       AutoconfFS.fprintf oc "CONFIGURE_ARGS=$*\n";
-       AutoconfFS.fprintf oc "AC_COPYRIGHT(%s)\n" !!project_copyright;
-       AutoconfFS.fprintf oc "OCAML_MINIMAL_VERSION=%s\n" !!ocaml_minimal_version;
+       AutoconfFS.fprintf oc "AC_INIT(%s,%s)\n" !!PROJECT.project_name !!PROJECT.project_version;
+       AutoconfFS.fprintf oc "PROJECTURE_ARGS=$*\n";
+       AutoconfFS.fprintf oc "AC_COPYRIGHT(%s)\n" !!PROJECT.project_copyright;
+       AutoconfFS.fprintf oc "OCAML_MINIMAL_VERSION=%s\n" !!PROJECT.ocaml_minimal_version;
 
        AutoconfFS.output_string oc
          (AutoconfCommon.find_content "skeleton/autoconf/configure.ocaml");
 
-       if !!ocaml_unsupported_version <> "" then begin
+       if !!PROJECT.ocaml_unsupported_version <> "" then begin
          AutoconfFS.fprintf oc "if test \"$VERSION_CHECK\" = \"yes\" ; then\n";
-         AutoconfFS.fprintf oc "  AX_COMPARE_VERSION( [$OCAMLVERSION], [ge], [%s],\n" !!ocaml_unsupported_version;
+         AutoconfFS.fprintf oc "  AX_COMPARE_VERSION( [$OCAMLVERSION], [ge], [%s],\n" !!PROJECT.ocaml_unsupported_version;
          AutoconfFS.fprintf oc "     AC_MSG_ERROR([Your version of OCaml: $OCAMLVERSION is not yet supported]))\n";
          AutoconfFS.fprintf oc "fi\n";
        end;
 
-       if !!need_ocamllex then begin
+       if !!PROJECT.need_ocamllex then begin
          AutoconfFS.fprintf oc "AC_PROG_OCAMLLEX\n";
        end;
 
-       if !!need_ocamlyacc then begin
+       if !!PROJECT.need_ocamlyacc then begin
          AutoconfFS.fprintf oc "AC_PROG_OCAMLYACC\n";
        end;
 
@@ -119,6 +121,7 @@ let () =
          for i = 0 to Bytes.length package -1 do
            match Bytes.get package i with
            | '-' -> Bytes.set package i '_'
+           | '.' -> Bytes.set package i '_'
            | _ -> ()
          done;
          Bytes.to_string package
@@ -132,19 +135,43 @@ let () =
            AutoconfFS.fprintf oc "   AC_MSG_ERROR([Please install OCaml tool '%s'.])\n" tool;
            AutoconfFS.fprintf oc "fi\n";
 
-         ) !!need_tools;
+         ) !!PROJECT.need_tools;
 
+       let inverse_op = function
+         | EqVersion -> "ne"
+         | GeVersion -> "lt"
+         | GtVersion -> "le"
+         | LeVersion -> "gt"
+         | LtVersion -> "ge"
+       in
        List.iter (fun pkg ->
            let ac_pkg = to_ac pkg.name in
            AutoconfFS.fprintf oc "AC_CHECK_OCAML_PKG(%s)\n" pkg.name;
            AutoconfFS.fprintf oc "if test \"$OCAML_PKG_%s\" = \"no\"; then\n" ac_pkg;
-           AutoconfFS.fprintf oc "   AC_MSG_ERROR([Please install OCaml package '%s'.])\n" pkg.name;
+           AutoconfFS.fprintf oc "   AC_MSG_WARN([BEFORE ERROR: Please install OCaml package '%s'.])\n" pkg.name;
+
+           begin
+           match pkg.version with
+           | None -> ()
+           | Some (op, version) ->
+              AutoconfFS.fprintf oc "else\n";
+
+                 AutoconfFS.fprintf oc "  AX_COMPARE_VERSION( [$OCAML_PKG_%s_VERSION], [%s], [%s],\n"  ac_pkg (inverse_op op) version;
+                 AutoconfFS.fprintf oc "     AC_MSG_WARN([BEFORE ERROR: Version %s %s of %s is needed]))\n" (string_of_version_op op) version pkg.name;
+                 end;
+           AutoconfFS.fprintf oc "fi\n";
+         ) need_packages;
+
+       List.iter (fun pkg ->
+           let ac_pkg = to_ac pkg.name in
+           AutoconfFS.fprintf oc "if test \"$OCAML_PKG_%s\" = \"no\"; then\n" ac_pkg;
+           AutoconfFS.fprintf oc "   AC_MSG_FAILURE([Missing dependencies (see warnings above).])\n";
            AutoconfFS.fprintf oc "fi\n";
            match pkg.version with
            | None -> ()
-           | Some version ->
-             AutoconfFS.fprintf oc "  AX_COMPARE_VERSION( [$OCAML_PKG_%s_VERSION], [lt], [%s],\n" ac_pkg version;
-             AutoconfFS.fprintf oc "     AC_MSG_ERROR([Version %s of %s is needed]))\n" version pkg.name;
+           | Some (op, version) ->
+                 AutoconfFS.fprintf oc "  AX_COMPARE_VERSION( [$OCAML_PKG_%s_VERSION], [%s], [%s],\n"  ac_pkg (inverse_op op) version;
+                 AutoconfFS.fprintf oc "     AC_MSG_FAILURE([Problems with dependencies (see warnings above)]))\n"
 
          ) need_packages;
 
@@ -163,11 +190,11 @@ let () =
            AutoconfFS.fprintf oc "fi\n";
            AutoconfFS.fprintf oc "AC_SUBST(%s_ENABLED)\n" pkg;
 
-         ) !!optional_packages;
+         ) !!PROJECT.optional_packages;
 
        List.iter (fun modname ->
            AutoconfFS.fprintf oc "AC_CHECK_OCAML_MODULE(%s)\n" modname
-         ) !!need_modules;
+         ) !!PROJECT.need_modules;
 
        AutoconfFS.fprintf oc "OPAM_REPO=%s\n"
          !!AutoconfGlobalConfig.opam_repo;
@@ -175,12 +202,12 @@ let () =
          !!AutoconfGlobalConfig.opam_repo_official_remote;
        AutoconfFS.fprintf oc "OPAM_REPO_FORK_REMOTE=%s\n"
          !!AutoconfGlobalConfig.opam_repo_fork_remote;
-       if !!AutoconfProjectConfig.download_url_prefix <> "" then
+       if !!PROJECT.download_url_prefix <> "" then
          AutoconfFS.fprintf oc "DOWNLOAD_URL_PREFIX=%s\n"
-           !!AutoconfProjectConfig.download_url_prefix
+           !!PROJECT.download_url_prefix
        else
          AutoconfFS.fprintf oc "DOWNLOAD_URL_PREFIX=http://github.com/%s/archive/\n"
-           !!AutoconfProjectConfig.github_project;
+           !!PROJECT.github_project;
 
        let configure_ac_old = "ocp-autoconf.ac" in
        let configure_ac = Filename.concat
@@ -228,7 +255,7 @@ let () =
        let default_config_vars =
          (List.map (fun s -> s, None)
             [
-              "CONFIGURE_ARGS";
+              "PROJECTURE_ARGS";
             ]) @
          (List.map (fun s -> s, Some (String.lowercase s)) [
              "ROOTDIR";
@@ -253,6 +280,7 @@ let () =
          (List.map (fun s ->
               s, Some ("conf_" ^ String.lowercase s)) [
              "OCAMLVERSION";
+             "OCAMLVERSION_C";
              "OCAMLC";
              "OCAMLOPT";
              "OCAMLDEP";
@@ -267,15 +295,15 @@ let () =
        let config_vars =
          default_config_vars @
          (List.map (fun s -> s, Some ("conf_" ^ String.lowercase s)
-                   ) !!extra_config_vars)  in
+                   ) !!PROJECT.extra_config_vars)  in
 
        let config_vars =
-         if !!need_ocamllex then
+         if !!PROJECT.need_ocamllex then
            ("OCAMLLEX", Some "conf_ocamllex") :: config_vars
          else config_vars in
 
        let config_vars =
-         if !!need_ocamlyacc then
+         if !!PROJECT.need_ocamlyacc then
            ("OCAMLYACC", Some "conf_ocamlyacc") :: config_vars
          else config_vars in
 
@@ -302,12 +330,12 @@ let () =
 
        let bool_vars =
          "OCAML_USE_BINANNOT" ::
-         !!extra_bool_vars
+         !!PROJECT.extra_bool_vars
          @
          List.map (fun package ->
              let pkg = to_ac package in
              Printf.sprintf "%s_ENABLED" pkg
-           ) !!optional_packages;
+           ) !!PROJECT.optional_packages;
        in
 
        List.iter (fun var ->
@@ -321,7 +349,7 @@ let () =
              "config.ocpgen" ::
              "config.ocp2gen" ::
              "ocaml-config.h" ::
-             !!extra_config_files));
+             !!PROJECT.extra_config_files));
 
        AutoconfFS.output_string oc
          (AutoconfCommon.find_content "skeleton/autoconf/configure.trailer");
@@ -383,11 +411,13 @@ let () =
        AutoconfFS.fprintf oc "#@OCAML_USE_POSIX_TYPES@ OCAML_USE_POSIX_TYPES\n";
        AutoconfFS.close_out oc;
 
+       (*
        let oc = AutoconfFS.open_out "autoconf/build.ocp" in
        AutoconfFS.fprintf oc "(* Just here to refer to this directory *)\n";
        AutoconfFS.fprintf oc "if include \"config.ocpgen\" then {} else {}\n";
        AutoconfFS.fprintf oc "begin library autoconf_dir end\n";
        AutoconfFS.close_out oc;
+*)
 
        AutoconfFS.add_post_commit_hook (fun () ->
            Unix.chdir "autoconf";

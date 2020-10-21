@@ -97,6 +97,9 @@ module Compat = struct
     | COMMENT (_, loc) -> loc
     | _ -> Location.curr lexbuf
 
+  let find_in_load_path filename = Misc.find_in_path !Config.load_path filename
+
+  let add_to_load_path s = Config.load_path := [s] @ !Config.load_path
 end
 
 module Location = Location

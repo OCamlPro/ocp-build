@@ -84,8 +84,8 @@ let scan_workspace root =
     | "cop-project" ->
        project_files := fullname :: !project_files
     | "cop-ignore" ->
-       let files = FileLines.read_file fullname in
-       List.iter (fun file ->
+       let files = FileString.read_lines fullname in
+       Array.iter (fun file ->
            ignored := StringSet.add file !ignored) files
     | _ ->
        if Filename.check_suffix basename ".cop" then

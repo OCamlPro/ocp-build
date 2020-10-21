@@ -1,6 +1,8 @@
 *.cm?
 *.o
+*.obj
 *.a
+*.lib
 *.mldep
 *.mlidep
 *.byte
@@ -112,3 +114,4 @@ headers-??.txt
 /tools/ocp-build/lang-ocp/buildOCPParser.ml
 /libs/ocplib-compat/string-compat/ocpCompat.ml
 /tools/ocp-build/meta/metaLexer.ml
+_opam

@@ -16,28 +16,32 @@ ocaml.version = autoconf.package_version;
 OCaml.library("ocplib-file",
   ocaml + {
       files = '[
+        fileSel.ml { doc = false }
         fileSig.ml
+        fileDirMaker.ml { doc = false } 
         fileOS.ml
         fileChannel.ml
         fileString.ml
-
-        fileLabels.mli
-        fileLabels.ml { asmcomp = ocaml.asmcomp + [ "-nolabels" ];
-                       bytecomp = ocaml.bytecomp + [ "-nolabels" ];
-                     }
-        fileLines.ml
         fileGen.ml
-        fileDir.ml
-        filePath.ml
+        fileDir.ml { doc = false } 
       ];
       requires = '[
         ocplib-lang
         ocplib-unix
+        re.glob
       ];
     });
 
 OCaml.library("ocplib-file-compat",
   ocaml + {
-    files = '[ file.ml ];
+    files = '[
+     file.ml ];
     requires = '[ ocplib-file ];
   });
+
+
+OCaml.program("ocplib-file-test",
+              ocaml + {
+                files = '[ test.ml ];
+                requires = '[ ocplib-file ];
+              });

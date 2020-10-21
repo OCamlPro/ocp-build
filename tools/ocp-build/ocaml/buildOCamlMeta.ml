@@ -67,16 +67,18 @@ let add_META pj ocamllib meta_dirname meta_filename =
       if verbose 4 then
         Printf.eprintf "dirname=%S\n%!" dirname;
       let exists =
-          List.for_all (fun filename ->
-            let proof_filename = Filename.concat dirname filename in
-            if not (Sys.file_exists proof_filename) then begin
-              if verbose 4 then
-                Printf.eprintf
-                  "Warning: proof of package %S does not exist\n%!"
-                  proof_filename;
-              false
-              end else true)
-                       (MetaFile.exists_if p)
+        List.for_all (fun filenames ->
+            List.for_all (fun filename ->
+                let proof_filename = Filename.concat dirname filename in
+                if not (Sys.file_exists proof_filename) then begin
+                  if verbose 4 then
+                    Printf.eprintf
+                      "Warning: proof of package %S does not exist\n%!"
+                      proof_filename;
+                  false
+                end else true
+              ) (OcpString.split filenames ',')
+          ) (MetaFile.exists_if p)
       in
       if exists then
           (*
@@ -147,10 +149,15 @@ let add_META pj ocamllib meta_dirname meta_filename =
             ) requires)) in
           let options = BuildValue.set_bool options "generated" true in
 
-          let stub_targets = List.filter (fun file ->
-                                 Filename.check_suffix file ".o"
-                                 || Filename.check_suffix file ".a")
-                                         byte_targets in
+          let stub_targets =
+            let ext_lib, ext_obj =
+              let envs = [options] in
+              BuildOCamlConfig.(ocaml_config_ext_lib.get envs, ocaml_config_ext_obj.get envs)
+            in
+            List.filter (fun file ->
+                Filename.check_suffix file ext_obj
+                || Filename.check_suffix file ext_lib)
+                       byte_targets in
           let byte_targets, asm_targets =
             match stub_targets with
             | [] -> byte_targets, asm_targets
@@ -190,17 +197,19 @@ let add_META pj ocamllib meta_dirname meta_filename =
               BuildValue.set options "META" (VObject !env)
           in
 
-          let opk = BuildOCamlOCP2.add_ocaml_package
-            (BuildValue.noloc fullname)
-            pj
-            {
-              config_dirname = dirname;
+          let config = {
               config_state = BuildValue.empty_config_state ();
               config_filename = meta_filename;
                 (* matters only for non-installed packages *)
               config_filenames = [meta_filename, None];
               config_env = options;
             }
+          in
+          let config = BuildValue.set_dirname config dirname in
+          let opk = BuildOCamlOCP2.add_ocaml_package
+            (BuildValue.noloc fullname)
+            pj
+            config
             fullname
             kind
           in

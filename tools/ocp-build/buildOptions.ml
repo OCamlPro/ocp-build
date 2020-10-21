@@ -176,7 +176,7 @@ let load_config config filename =
       Printf.eprintf
         "Warning: file %S does not exist. Creating with default values.\n%!"
         (FileGen.to_string filename);
-      FileDir.safe_mkdir (FileGen.dirname filename);
+      FileGen.safe_mkdir (FileGen.dirname filename);
 
       SimpleConfig.set_config_file config filename;
       SimpleConfig.save_with_help config

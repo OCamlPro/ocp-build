@@ -4,6 +4,8 @@ MAKE_CONFIG := autoconf/Makefile.config
 include $(MAKE_CONFIG)
 
 OBUILD_DSTDIR=_obuild
+OCAMLC?=ocamlc
+EXT_OBJ:=$(shell $(OCAMLC) -config | tr -d '\r' | sed -n -e "s/^ext_obj: //p")
 
 # If you add a library ocplib-xxx:
 # 1/ Update this list with xxx_SRCDIR=
@@ -23,8 +25,11 @@ OCP_BUILD_DSTDIR=$(OBUILD_DSTDIR)/ocp-build
 OCPLIB_NAMES=debug lang unix file system config compat
 
 CMDLINER_DIR := $(shell ocamlfind query cmdliner)
-EXTERNAL_INCLUDES=    -I ${CMDLINER_DIR}
-EXTERNAL_LIBS=${CMDLINER_DIR}/cmdliner.cmxa
+RE_DIR := $(shell ocamlfind query re)
+EXTERNAL_INCLUDES=    -I ${CMDLINER_DIR} -I ${RE_DIR}
+EXTERNAL_LIBS=\
+  ${CMDLINER_DIR}/cmdliner.cmxa \
+  ${RE_DIR}/re.cmxa
 
 INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
     -I $(OCP_BUILD_SRCDIR) \
@@ -58,10 +63,13 @@ OCPLIB_LANG= $(lang_SRCDIR)/ocpList.ml $(lang_SRCDIR)/ocpString.ml	\
 OCPLIB_UNIX= $(unix_SRCDIR)/minUnix.ml $(unix_SRCDIR)/onlyUnix.ml	\
     $(unix_SRCDIR)/onlyWin32.ml
 
-OCPLIB_FILE= $(file_SRCDIR)/fileSig.ml $(file_SRCDIR)/fileOS.ml	\
+OCPLIB_FILE=\
+    $(file_SRCDIR)/fileSel.ml	\
+    $(file_SRCDIR)/fileSig.ml $(file_SRCDIR)/fileOS.ml	\
+    $(file_SRCDIR)/fileDirMaker.ml	\
     $(file_SRCDIR)/fileChannel.ml $(file_SRCDIR)/fileString.ml	\
-    $(file_SRCDIR)/fileLines.ml $(file_SRCDIR)/fileGen.ml	\
-    $(file_SRCDIR)/fileDir.ml 
+    $(file_SRCDIR)/fileGen.ml	\
+
 
 OCPLIB_SYSTEM=
 
@@ -117,7 +125,8 @@ BUILD_LIB= $(OCP_BUILD_SRCDIR)/buildVersion.ml	\
     $(OCP_BUILD_SRCDIR)/buildOptions.ml		\
     $(OCP_BUILD_SRCDIR)/buildGlobals.ml		\
     $(OCP_BUILD_SRCDIR)/buildConfig.ml		\
-    $(OCP_BUILD_SRCDIR)/buildUninstall.ml		
+    $(OCP_BUILD_SRCDIR)/buildUninstall.ml	\
+    $(OCP_BUILD_SRCDIR)/buildDepMisc.ml
 
 BUILD_OCAMLFIND= $(OCP_BUILD_SRCDIR)/meta/metaTypes.ml	\
     $(OCP_BUILD_SRCDIR)/meta/metaLexer.ml		\
@@ -177,13 +186,13 @@ OCP_BUILD_CMXS= $(OCP_BUILD_MLS:.ml=.cmx)
 OCP_BUILD_CMOS= $(OCP_BUILD_MLS:.ml=.cmo)
 OCP_BUILD_MLIS= $(OCP_BUILD_MLS:.ml=.mli)
 OCP_BUILD_CMIS= $(OCP_BUILD_MLS:.ml=.cmi)
-OCP_BUILD_STUBS= $(OCP_BUILD_CS:.c=.o)
+OCP_BUILD_STUBS= $(OCP_BUILD_CS:.c=$(EXT_OBJ))
 OCP_BUILD_TMPS= $(OCP_BUILD_MLYS:.mly=.mli) $(OCP_BUILD_MLYS:.mly=.ml) \
 	$(OCP_BUILD_MLLS:.mll=.ml) $(OCP_BUILD_ML4S:.ml4=.ml) \
 	$(OCP_BUILD_SRCDIR)/buildVersion.ml \
 	$(compat_SRCDIR)/ocpCompat.ml
 
-OCP_BUILD_OS= $(OCP_BUILD_STUBS) $(OCP_BUILD_CMXS:.cmx=.o)
+OCP_BUILD_OS= $(OCP_BUILD_STUBS) $(OCP_BUILD_CMXS:.cmx=$(EXT_OBJ))
 
 all: build-ocps
 	@echo Libraries will be installed in ${ocamldir}
@@ -323,7 +332,7 @@ include .depend
 OCP_BUILD:=$(OCP_BUILD_BOOTER)
 include autoconf/Makefile.rules
 
-.SUFFIXES: .ml .mll .mli .mly .c .o .cmo .cmi .cmx
+.SUFFIXES: .ml .mll .mli .mly .c $(EXT_OBJ) .cmo .cmi .cmx
 
 .mll.ml:
 	$(OCAMLLEX) $<
@@ -340,9 +349,9 @@ include autoconf/Makefile.rules
 .ml.cmo:
 	$(OCAMLC) -c -o $*.cmo $(EXTERNAL_INCLUDES) $(INCLUDES) $<
 
-.c.o:
-	$(OCAMLC) -c $(INCLUDES) $<
-	mv `basename $*.o` $*.o
+.c$(EXT_OBJ):
+	$(OCAMLC) -c $(INCLUDES) -ccopt -DOCAML_VERSION=$(OCAMLVERSION_C) $<
+	mv `basename $*$(EXT_OBJ)` $*$(EXT_OBJ)
 
 
 

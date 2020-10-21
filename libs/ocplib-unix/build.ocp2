@@ -20,23 +20,22 @@ begin
   ocaml = ocaml + { bytecomp = []; asmcomp = [] };
   ocaml.bytecomp += [ "-w"; "-50" ];
   ocaml.asmcomp += [ "-w"; "-50" ];
-  
+
   ocaml.version = autoconf.package_version;
   with_ocp_pp = { pp = ocp_pp; pp_requires = [ "ocp-pp:byte" ]; };
   ocaml.files = [
     "minUnix.ml", with_ocp_pp;
     "minUnix_c.c";
     "onlyUnix.ml", with_ocp_pp;
-    "onlyUnix_c.c";
+    "onlyUnix_c.c", { ccopt = "-DOCAML_VERSION=" + String_concat(ocaml_major_version) + String_concat(ocaml_minor_version) + String_concat(ocaml_point_version); };
     "onlyWin32.ml"; "onlyWin32_c.c";
   ];
 
-  if( system = "win64" ) {
-    ocaml.requires = [ "unix" ];
-    ocaml.link = [ "-cclib"; "user32.lib"; ];
-  } else {
 (* We require "Unix", but do not use it directly !!! *)
     ocaml.requires = [ "unix" ] + string_compat;
+
+  if( system = "win64" ) {
+    ocaml.link = [ "-cclib"; "user32.lib"; ];
   }
 
   ocaml.requires += [ "ocp-pp" ];

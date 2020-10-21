@@ -20,169 +20,6 @@ open BuildValue.TYPES
 
 let verbose = OcpDebug.verbose_function [ "B" ;"BuildOCamldep" ]
 
-let parse_dependencies b =
-  let s = Buffer.contents b in
-  let len = String.length s in
-  let dependencies = ref [] in
-
-  let rec parse_name pos pos0 =
-(*    Printf.eprintf "parse_name %d %d\n%!" pos pos0; *)
-    if pos+1 < len && s.[pos] = ':' && s.[pos+1] = ' ' then
-      let target = String.sub s pos0 (pos-pos0) in
-      skip_spaces target [] (pos+1)
-    else
-      if pos+1 < len && s.[pos] = ':' && s.[pos+1] = '\n' then begin
-   let target = String.sub s pos0 (pos-pos0) in
-   dependencies := (target, []) :: !dependencies;
-   parse_name (pos+2) (pos+2)
-      end else
-   if pos = len then
-     !dependencies
-   else
-     parse_name (pos+1) pos0
-
-  and skip_spaces target deps pos =
-(*    Printf.eprintf "skip_spaces %d\n%!" pos; *)
-    if pos = len then
-      (target, deps) :: !dependencies
-    else
-      match s.[pos] with
-     '\\' when pos+1 < len && s.[pos+1] = '\n' ->
-       skip_spaces target deps (pos+2)
-   | ' ' ->
-     skip_spaces target deps (pos+1)
-   | '\n' ->
-     dependencies := (target, deps) :: !dependencies;
-     parse_name (pos+1) (pos+1)
-   | '\\' when pos + 1 < len && s.[pos+1] = ' ' ->
-     Buffer.clear b;
-     Buffer.add_char b ' ';
-     parse_dependency target deps (pos+2)
-   | c ->
-     Buffer.clear b;
-     Buffer.add_char b c;
-     parse_dependency target deps (pos+1)
-
-  and parse_dependency target deps pos =
-(*    Printf.eprintf "parse_dependency %d\n%!" pos; *)
-    if pos = len then
-      (target, (Buffer.contents b) :: deps) :: !dependencies
-    else
-      match s.[pos] with
-   | '\\' when pos + 1 < len && s.[pos+1] = ' ' ->
-     Buffer.add_char b ' ';
-     parse_dependency target deps (pos+2)
-   | ' ' ->
-     skip_spaces target ((Buffer.contents b) :: deps) (pos+1)
-   | '\n' ->
-     dependencies := (target,
-     (Buffer.contents b) :: deps) :: !dependencies;
-     parse_name (pos+1) (pos+1)
-   | c ->
-     Buffer.add_char b c;
-     parse_dependency target deps (pos+1)
-  in
-  parse_name 0 0
-
-
-       (* ocamldep generates dependencies towards .cmo files for
-          .cmi files, even in the case where we are only
-          interested in .cmx files !  Problem: if we add two
-          dependencies, one to .cmo and one to .cmx, then
-          rebuilding any of them will trigger regenerating the
-          .cmi, while in fact, only rebuilding both should
-          trigger the rebuilding.
-
-          In a general case, what should we do if there is a
-          dependency towards a bytecode file (in particular for
-          camlp4) when specifying native building ?
-
-          In fact, probably, we want to add the first active
-          dependency among a set of dependencies. So, the
-          dependency would not be a filename by a list of
-          filenames.
-       *)
-
-let expanse_dependencies list =
-  List.map (fun (target, deps) ->
-    if Filename.check_suffix target  ".cmi" then
-      (target, List.map (fun dep ->
-
-   if Filename.check_suffix target ".cmo" then
-     let cmx = Bytes.of_string dep in
-     cmx.[Bytes.length cmx - 1 ] <- 'x';
-     let cmx = Bytes.to_string cmx in
-     [ dep; cmx ]
-   else
-     [dep]
-       ) deps)
-    else
-      (target, List.map (fun dep -> [dep]) deps)
-  ) list
-
-(* load_dependencies: the old way, i.e. path to files in the load_path *)
-
-let parse_dep_buf = Buffer.create 10000
-let load_make_dependencies filename =
-  Buffer.clear parse_dep_buf;
-  let ic = open_in filename in
-  begin
-    try
-      while true do
-   let line = input_line ic in
-   Printf.bprintf parse_dep_buf "%s\n%!" line
-      done
-    with End_of_file -> ()
-  end;
-  close_in ic;
-  parse_dependencies parse_dep_buf
-
-(*
-let print_make_dependencies deps =
-  List.iter (fun (dep, deps) ->
-    Printf.eprintf "%s: " dep;
-    List.iter (fun x -> Printf.eprintf "%s " x ) deps;
-    Printf.eprintf "\n%!";
-  ) deps
-*)
-
-let load_make_dependencies filename =
-  try
-    let deps = load_make_dependencies filename in
-(*    print_make_dependencies deps; *)
-    deps
-  with e ->
-    Printf.eprintf "Warning: exception %s in load_make_dependencies\n%!"
-      (Printexc.to_string e);
-    raise e
-
-
-let load_dependencies filename =
-  expanse_dependencies (load_make_dependencies filename)
-
-
-(* Another solution:
-
-Use ocamldep -modules toto.ml
-
-When reading, we must keep track of what project this file belongs to.
-Then, we can infer from which projects the dependencies are
-*)
-
-let print_dependencies deps =
-  List.iter (fun (dep, deps) ->
-    Printf.eprintf "%s: " dep;
-    List.iter (fun list ->
-      match list with
-     [] -> ()
-   | [ x ] -> Printf.eprintf "%s " x
-   | [ x; y ] -> Printf.eprintf " (%s|%s) " x y
-   | _ -> assert false
-    ) deps;
-    Printf.eprintf "\n%!";
-  ) deps
-
-
 let load_ocamldep_modules filename =
   let ic = open_in filename in
   let s = input_line ic in
@@ -200,6 +37,8 @@ let modname_of_file options force filename =
   let filename = Filename.basename filename in
   let is_ml =
     Filename.check_suffix filename ".ml"
+    || Filename.check_suffix filename ".mll"
+    || Filename.check_suffix filename ".mly"
     || Filename.check_suffix filename ".cmx"
     || Filename.check_suffix filename ".cmo"
     || force = Force_IMPL
@@ -237,14 +76,16 @@ let load_modules_dependencies lib options force dst_dir pack_for needs_odoc file
     else "Pervasives" :: modules
   in
 
-  let (is_ml, _modname, basename) = modname_of_file envs force source in
+  let (is_ml, _modname, _basename) = modname_of_file envs force source in
+
+  let basename = Filename.chop_extension (Filename.basename filename) in
 
   let modules =
     if not is_ml || nointernaldeps.get envs then modules
     else
-      "CamlinterlLazy" ::
-        "CamlinterlOO" ::
-        "CamlinterlMod" ::
+      "CamlinternalLazy" ::
+        "CamlinternalOO" ::
+        "CamlinternalMod" ::
         modules
   in
 
@@ -260,7 +101,8 @@ let load_modules_dependencies lib options force dst_dir pack_for needs_odoc file
          [dep.dep_options] "externals_only" false) then
       olib.lib_modules
     else []
-  ) (List.rev deps)) in
+                            ) (List.rev deps)) in
+  let deps = (lib.lib.lib_dst_dir, ref lib.lib_aliases) :: deps in
   let rec add_internal_deps pack_for deps =
     let deps =
       match pack_for with
@@ -295,6 +137,29 @@ let load_modules_dependencies lib options force dst_dir pack_for needs_odoc file
 
   end;
 
+  let enter_cmi_dep dependencies dst_dir kind basename =
+    let dst_dir = dst_dir.dir_fullname in
+    let full_basename = Filename.concat dst_dir basename in
+    match kind with
+    | ML ->
+       (*
+            let deps = [] in
+            let deps = if has_asm then
+                (full_basename ^ ".cmx") :: deps else deps
+            in
+            let deps = if has_byte then
+                (full_basename ^ ".cmo") :: deps else deps
+            in
+              *)
+       let deps = [full_basename ^ ".cmo"; full_basename ^ ".cmx" ] in
+       dependencies := deps :: !dependencies
+    | MLI ->
+       dependencies := [ full_basename ^ ".cmi" ] :: !dependencies
+    | MLandMLI ->
+       dependencies := [ full_basename ^ ".cmi" ] :: !dependencies
+
+  in
+
   let depends_only_on_cmi exts =
     let dependencies = ref [] in
     let rec find_module deps depname =
@@ -307,26 +172,17 @@ let load_modules_dependencies lib options force dst_dir pack_for needs_odoc file
       | (dst_dir, lib_modules) :: deps ->
         try
           let (kind, basename) = StringMap.find depname !lib_modules in
-          let dst_dir = dst_dir.dir_fullname in
-          let full_basename = Filename.concat dst_dir basename in
-          match kind with
-          | ML ->
-            (*
-            let deps = [] in
-            let deps = if has_asm then
-                (full_basename ^ ".cmx") :: deps else deps
-            in
-            let deps = if has_byte then
-                (full_basename ^ ".cmo") :: deps else deps
-            in
-            *)
-            let deps = [full_basename ^ ".cmo"; full_basename ^ ".cmx" ] in
-            dependencies := deps :: !dependencies
-          | MLI ->
-            dependencies := [ full_basename ^ ".cmi" ] :: !dependencies
-          | MLandMLI ->
-            dependencies := [ full_basename ^ ".cmi" ] :: !dependencies
-
+          match basename with
+          | DepAlias alib ->
+             if lib != alib then
+             StringMap.iter (fun _ (kind, basename) ->
+                 match basename with
+                 | DepBasename basename ->
+                    enter_cmi_dep dependencies dst_dir kind basename
+                 | DepAlias _ -> assert false
+               ) alib.lib_aliases
+          | DepBasename basename ->
+             enter_cmi_dep dependencies dst_dir kind basename
         with Not_found ->
           find_module deps depname
     in
@@ -358,20 +214,29 @@ let load_modules_dependencies lib options force dst_dir pack_for needs_odoc file
               | (dst_dir, lib_modules) :: deps ->
                 try
                   let (kind, basename) = StringMap.find depname !lib_modules in
-                  let dst_dir = dst_dir.dir_fullname in
-                  let full_basename = Filename.concat dst_dir basename in
-                  let deps =
-                    match kind with
-                    | ML ->
-                      [ full_basename ^ ".cmo" ]
-                    | MLI ->
-                      [ full_basename ^ ".cmi" ]
-                    | MLandMLI ->
-                      [ full_basename ^ ".cmi" ]
-                  in
-                  cmo_dependencies := deps :: !cmo_dependencies
+                  enter_cmo_dep dst_dir kind basename
                 with Not_found ->
                   find_module deps depname
+            and enter_cmo_dep dst_dir kind basename =
+              match basename with
+              | DepAlias alib ->
+                 if lib != alib then
+                 StringMap.iter (fun _ (kind,basename) ->
+                     enter_cmo_dep dst_dir kind basename
+                   ) alib.lib_aliases
+              | DepBasename basename ->
+                 let dst_dir = dst_dir.dir_fullname in
+                 let full_basename = Filename.concat dst_dir basename in
+                 let deps =
+                   match kind with
+                   | ML ->
+                      [ full_basename ^ ".cmo" ]
+                   | MLI ->
+                      [ full_basename ^ ".cmi" ]
+                   | MLandMLI ->
+                      [ full_basename ^ ".cmi" ]
+                 in
+                 cmo_dependencies := deps :: !cmo_dependencies
             in
             List.iter (find_module deps) modules;
             !cmo_dependencies
@@ -381,12 +246,13 @@ let load_modules_dependencies lib options force dst_dir pack_for needs_odoc file
       in
       let asm_dependencies =
         if has_asm then
-          let cmx_target = Filename.concat dst_dir.dir_fullname (basename ^ ".cmx") in
-
+          let cmx_target =
+            Filename.concat dst_dir.dir_fullname (basename ^ ".cmx") in
+          (*          Printf.eprintf "cmx_target=%s\n%!" cmx_target; *)
           let cmx_dependencies =
             let cmx_dependencies = ref [] in
             let rec find_module deps depname =
-              (*      Printf.eprintf "find_module CMX %s\n" depname; *)
+              (* Printf.eprintf "  find_module CMX %s\n" depname; *)
               match deps with
                 [] ->
                   if verbose 5 then
@@ -397,23 +263,34 @@ let load_modules_dependencies lib options force dst_dir pack_for needs_odoc file
               | (dst_dir, lib_modules) :: deps ->
                 try
                   let (kind, basename) = StringMap.find depname !lib_modules in
-                  let src_dir = dst_dir.dir_fullname in
-                  let full_basename = Filename.concat src_dir basename in
-                  let deps =
-                    match kind with
-                    | ML ->
-                      [ full_basename ^ ".cmx" ]
-                    | MLI ->
-                      [ full_basename ^ ".cmi" ]
-                    | MLandMLI ->
-                      [ full_basename ^ ".cmx" ]
-                  in
-                  cmx_dependencies := deps :: !cmx_dependencies
+                  (* Printf.eprintf "  Found in %s\n%!" dst_dir.dir_fullname; *)
+                  enter_cmx_dep dst_dir kind basename
                 with Not_found ->
                   find_module deps depname
+            and enter_cmx_dep dst_dir kind basename =
+              match basename with
+              | DepAlias alib ->
+                 if lib != alib then
+                   StringMap.iter (fun _modname (kind, basename) ->
+                       enter_cmx_dep dst_dir kind basename
+                     ) alib.lib_aliases
+              | DepBasename basename ->
+                 let src_dir = dst_dir.dir_fullname in
+                 let full_basename = Filename.concat src_dir basename in
+                 let deps =
+                   match kind with
+                   | ML ->
+                      [ full_basename ^ ".cmx" ]
+                   | MLI ->
+                      [ full_basename ^ ".cmi" ]
+                   | MLandMLI ->
+                      [ full_basename ^ ".cmx" ]
+                 in
+                 cmx_dependencies := deps :: !cmx_dependencies
             in
             List.iter (find_module deps) cmx_modules;
             !cmx_dependencies
+
           in
           [ cmx_target, cmx_dependencies ]
         else
@@ -432,5 +309,5 @@ let load_modules_dependencies lib options force dst_dir pack_for needs_odoc file
   if verbose 5 then
     Printf.eprintf "load_modules_dependencies %s DONE\n" filename;
   if verbose 3 then
-    print_dependencies dependencies;
+    BuildDepMisc.print_dependencies dependencies;
   dependencies

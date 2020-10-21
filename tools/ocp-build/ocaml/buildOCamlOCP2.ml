@@ -111,7 +111,16 @@ let add_ocaml_package loc state config name kind =
   *)
   opk
 
-let add_ocaml_package_unit loc state config name kind =
+let add_ocaml_package_unit loc state config config_env name kind =
+  let config_env =
+    try
+      ignore (BuildValue.get [config_env] "dirname");
+      config_env
+    with Var_not_found _ ->
+      BuildValue.set config_env "dirname"
+        (VString (BuildValue.get_dirname config, StringRaw))
+  in
+  let config = { config with config_env } in
   let (_ : ocaml_description) =
     add_ocaml_package  loc state config name kind in
   ()
@@ -122,13 +131,12 @@ let add_ocaml_package_pk loc state config name kind =
 
 
 let _ =
-
   add_primitive "new_package"
     [ "Add a new OCaml package" ]
     (fun loc state config args ->
       match args with
       | [ VString (name,_); VString (kind,_); VObject config_env ] ->
-        add_ocaml_package_unit loc state { config  with config_env }
+        add_ocaml_package_unit loc state config config_env
           name (BuildOCP.package_type_of_string kind);
         BuildValue.unit
       |  _ ->
@@ -140,7 +148,7 @@ let _ =
     (fun loc state config args ->
       match args with
       | [ VString (name,_); VObject config_env ] ->
-        add_ocaml_package_unit loc state { config  with config_env }
+        add_ocaml_package_unit loc state config config_env
           name BuildOCPTypes.LibraryPackage;
         BuildValue.unit
       |  _ ->
@@ -152,7 +160,7 @@ let _ =
     (fun loc state config args ->
       match args with
       | [ VString (name,_); VObject config_env ] ->
-        add_ocaml_package_unit loc state { config  with config_env }
+        add_ocaml_package_unit loc state config config_env
           name BuildOCPTypes.ProgramPackage;
         BuildValue.unit
       |  _ ->
@@ -164,7 +172,7 @@ let _ =
     (fun loc state config args ->
       match args with
       | [ VString (name,_); VObject config_env ] ->
-        add_ocaml_package_unit loc state { config  with config_env }
+        add_ocaml_package_unit loc state config config_env
           name BuildOCPTypes.RulesPackage;
         BuildValue.unit
       |  _ ->
@@ -177,7 +185,7 @@ let _ =
     (fun loc state config args ->
       match args with
       | [ VString (name,_); VObject config_env ] ->
-        add_ocaml_package_unit loc state { config  with config_env }
+        add_ocaml_package_unit loc state config config_env
           name BuildOCPTypes.ObjectsPackage;
         BuildValue.unit
       |  _ ->

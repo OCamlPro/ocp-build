@@ -137,7 +137,7 @@ let () =
       ), " Display general information";
     "--debug", Arg.Set debug,
     " Print tokens and corresponding lines";
-    "-I", Arg.String (fun s -> Config.load_path := [s] @ !Config.load_path),
+    "-I", Arg.String (fun s -> Compat.add_to_load_path s),
     "<dir> Add directory to path searched for include files";
   ] in
   Arg.parse arg_list preprocess_filename arg_usage;

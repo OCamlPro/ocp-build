@@ -30,18 +30,13 @@ let rename_file f1 f2 =
 let verbose =
   OcpDebug.verbose_function [ "B"; "BE"; "BuildEngine"]
 
-let sigint_received = ref None
+let sigint_received = ref 0
 let _ =
   BuildMisc.at_sigint "BuildEngine" (fun _ ->
-    let t1 = Unix.gettimeofday () in
-    Printf.eprintf "BuildEngine: sigint received\n%!";
-    match !sigint_received with
-    | None -> sigint_received := Some t1
-    | Some t0 ->
-      if t1 -. t0 > 1. then begin
-        Printf.eprintf "BuildEngine: forcing exit on second SIGINT\n%!";
+      incr sigint_received;
+      if !sigint_received > 3 then
         exit 2
-      end)
+    )
 
 
 let exit2 () = BuildMisc.clean_exit 2
@@ -664,7 +659,7 @@ let rule_executed b r execution_status =
   let temp_dir = BuildEngineRules.rule_temp_dir r in
   if FileGen.exists temp_dir then begin
     BuildEngineReport.cmd_rmdir (FileGen.to_string temp_dir);
-    FileDir.remove_all temp_dir;
+    FileGen.remove_dir ~all:true temp_dir;
   end;
   begin
     match execution_status with
@@ -825,7 +820,7 @@ let add_dependency b r target_file filenames =
 let load_dependency_file b loader file r_ok =
   if verbose 7 then Printf.eprintf "Loading dependencies from %s\n%!" (file_filename file);
   begin try
-          let dependencies = (* BuildOcamldep.load_dependencies *) loader (file_filename file) in
+          let dependencies = loader (file_filename file) in
 
           List.iter (fun (filename, deps) ->
             if verbose 7 then Printf.eprintf "FILE %s\n%!" filename;
@@ -998,7 +993,7 @@ let parallel_loop b ncores =
      is available. *)
   let rec iter nslots =
     if nslots > 0 then begin
-      if !sigint_received <> None ||
+      if !sigint_received > 0 ||
         b.fatal_errors <> [] ||
         (b.stop_on_error_arg &&
            BuildEngineDisplay.has_error b) then wait_for_end nslots else
@@ -1360,7 +1355,7 @@ let parallel_loop b ncores =
     with e -> Some e
   in
   save_cache b;
-  if !sigint_received <> None then begin
+  if !sigint_received > 0 then begin
     Printf.eprintf "Error: compilation aborted by user\n%!";
     BuildMisc.clean_exit 2
   end;
@@ -1406,8 +1401,7 @@ let sanitize b delete_orphans is_ok =
   let cdir = BuildEngineContext.add_directory b b.build_dir_filename in
   let orphan_files = ref 0 in
   let rec iter dir cdir =
-    FileDir.iter (fun basename ->
-      let filename = FileGen.add_basename dir basename in
+    FileGen.iter_dir (fun basename _path filename ->
       if FileGen.is_directory filename then
         try
           let cdir = BuildEngineContext.find_dir cdir basename in
@@ -1421,7 +1415,7 @@ let sanitize b delete_orphans is_ok =
             KeepOrphans
           | DeleteOrphanFiles -> ()
           | DeleteOrphanFilesAndDirectories ->
-            (try FileDir.remove_all filename with _ -> ())
+            (try FileGen.remove_dir ~all:true filename with _ -> ())
       else
         try
           ignore (BuildEngineContext.find_file cdir basename : BuildEngineTypes.build_file)
@@ -1436,8 +1430,7 @@ let sanitize b delete_orphans is_ok =
     ) dir
 
   in
-  FileDir.iter (fun basename ->
-    let filename = FileGen.add_basename dir basename in
+  FileGen.iter_dir (fun basename _path filename ->
     if FileGen.is_directory filename then
       try
         let cdir = BuildEngineContext.find_dir cdir basename in
@@ -1451,7 +1444,7 @@ let sanitize b delete_orphans is_ok =
             KeepOrphans
           | DeleteOrphanFiles -> ()
           | DeleteOrphanFilesAndDirectories ->
-            (try FileDir.remove_all filename with _ -> ())
+            (try FileGen.remove_dir ~all:true filename with _ -> ())
         end
   ) dir;
   if !has_orphan_directories then begin

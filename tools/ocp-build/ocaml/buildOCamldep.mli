@@ -10,10 +10,6 @@
 (*                                                                        *)
 (**************************************************************************)
 
-(* [load_dependencies filename] returns a list of association between
- a target and a list of filenames, its dependencies. *)
-val load_dependencies : string -> (string * string list list) list
-
 (* [load_modules_dependencies filename] returns a list of association between
  a target and a list of filenames, its dependencies. *)
 val load_modules_dependencies :
@@ -29,5 +25,3 @@ val modname_of_file : BuildValue.TYPES.env list ->
   bool * (* is_ml *)
     string * (* modname *)
     string   (* basename *)
-
-val load_make_dependencies : string -> (string * string list) list

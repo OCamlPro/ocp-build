@@ -57,9 +57,8 @@ type state =
 
 type stack = (state * bool) list
 
-let token_of_token = function
-  | STRING (s,_) -> Ocpp_parser.STRING s
-  | _ -> assert false
+let token_of_token tok =
+  Ocpp_parser.STRING (Compat.get_STRING tok)
 
 let lines_of_file filename =
   let ic = open_in filename in
@@ -1118,7 +1117,7 @@ and preprocess_include lexer   filename =
         local_filename
       else
       try
-        Misc.find_in_path !Config.load_path filename
+        Compat.find_in_load_path filename
       with Not_found ->
         if debug_ocpp then
           Printf.eprintf "OCPP_INCLUDE current = %S\n%!" current_filename;

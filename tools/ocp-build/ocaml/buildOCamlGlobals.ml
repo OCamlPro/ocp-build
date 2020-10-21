@@ -39,11 +39,6 @@ let create_package lib opk =
   let lib_archive = BuildValue.get_string_with_default envs "archive" lib.lib_name in
   let lib_stubarchive = BuildValue.get_string_with_default envs "stubarchive" ("ml" ^ lib_archive) in
 
-  (*
-  let lib_sources = BuildValue.get_local_prop_list_with_default envs "files" [] in
-  let lib_tests = BuildValue.get_local_prop_list_with_default envs "tests" [] in
-  *)
-
   let lib_requires = List.map (fun dep ->
       let pk2 = dep.dep_project.opk_package in
       let lib2 =
@@ -85,11 +80,17 @@ in
       [file_ready]
   in
   let lib_meta = BuildValue.get_bool_with_default envs "meta" false in
-
+  let lib_alias =   BuildValue.get_string_option_with_default
+                      opk.opk_options "alias" None
+  in
+  let lib_aliases = StringMap.empty in
 
   let lib = {
     lib = lib;
     lib_opk = opk;
+
+    lib_alias;
+    lib_aliases;
 
     lib_autolink;
 

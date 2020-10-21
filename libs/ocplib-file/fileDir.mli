@@ -10,6 +10,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
+
+(* obsolete !!! Do not use ! Use `FileSig.DIRECTORY_OPERATIONS` included in
+   `FileGen` *)
+
 open OcpCompat
 
 val mkdir : FileGen.t -> int -> unit

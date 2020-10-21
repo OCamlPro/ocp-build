@@ -44,6 +44,7 @@ begin
     "autoconfArgs.ml";
     "autoconfFS.ml";
     "autoconfCommon.ml";
+    "autoconfTypes.ml";
 
  (* Manage ".ocp/autoconf/ocp-autoconf.conf" *)
     "autoconfGlobalConfig.ml";

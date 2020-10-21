@@ -141,7 +141,7 @@ let dirname t =
 let add_basename_string dir basename =
   match dir.file_basename with
   | "" | "/" | "\\" ->
-    dir.file_basename ^ basename
+    dir.file_partition ^ dir.file_basename ^ basename
   | _ ->
     dir.file_string ^ FileOS.dir_separator_string ^ basename
 
@@ -302,6 +302,7 @@ let of_unix_string s =
 let of_win32_string s =
   let s1, s2  = OcpString.cut_at s ':' in
   let ss = if s1 == s then s else s2 in
+  let ss = String.map (function '/' -> '\\' | c -> c) ss in
   let part = if s1 == s then "" else (String.lowercase s1) ^ ":" in
   let path = OcpString.split ss '\\' in
   of_path part path
@@ -419,14 +420,28 @@ let () =
 (*                                                                        *)
 (**************************************************************************)
 
+let with_in filename f = FileString.with_in (to_string filename) f
+let with_in_bin filename f = FileString.with_in_bin (to_string filename) f
+
+let with_out filename f = FileString.with_out (to_string filename) f
+let with_out_bin filename f = FileString.with_out_bin (to_string filename) f
+
 let read_sublines file off len =
   FileString.read_sublines (to_string file) off len
+let read_sublines_to_list file off len =
+  FileString.read_sublines_to_list (to_string file) off len
+
 let iteri_lines f file = FileString.iteri_lines f (to_string file)
 let iter_lines f file = FileString.iter_lines f (to_string file)
 let write_file file s = FileString.write_file (to_string file) s
 let read_file file = FileString.read_file (to_string file)
-let write_lines file lines = FileString.file_of_lines (to_string file) lines
+let write_lines file lines =
+  FileString.write_lines (to_string file) lines
+let write_lines_of_list file lines =
+  FileString.write_lines_of_list (to_string file) lines
 let read_lines file = FileString.lines_of_file (to_string file)
+let read_lines_to_list file =
+  FileString.read_lines_to_list (to_string file)
 let read_lines_to_revlist file =
   FileString.read_lines_to_revlist (to_string file)
 
@@ -478,7 +493,7 @@ let remove file = Sys.remove (to_string file)
 let iter_blocks f file =
   FileString.iter_blocks f (to_string file)
 
-let safe_mkdir ?mode dir = FileString.safe_mkdir ?mode (to_string dir)
+(*let safe_mkdir ?mode dir = FileString.safe_mkdir ?mode (to_string dir) *)
 let copy_rec src dst = FileString.copy_rec (to_string src) (to_string dst)
 let uncopy_rec src dst = FileString.uncopy_rec (to_string src) (to_string dst)
 
@@ -486,7 +501,7 @@ let uncopy_rec src dst = FileString.uncopy_rec (to_string src) (to_string dst)
 let extensions file = FileString.extensions_of_basename file.file_basename
 
 let last_extension file =
-  FileString.last_extension (extensions file)
+  FileString.last_extension (basename file)
 
 let chop_extension f =
   let (basename, _ext) = OcpString.cut_at f.file_basename '.' in
@@ -531,3 +546,36 @@ module Op = struct
   let (//) t s = add_basenames t (OcpString.split s '/')
 
 end
+
+module Directory_operations = FileDirMaker.Make(struct
+    type path = t
+    let to_string = to_string
+    let add_basename = add_basename
+    let dirname = dirname
+    let basename = basename
+
+    let rmdir s = MinUnix.rmdir (to_string s)
+    let lstat s = MinUnix.lstat (to_string s)
+    let stat s = MinUnix.stat (to_string s)
+    let mkdir s perm = MinUnix.mkdir (to_string s) perm
+
+    let remove s = Sys.remove (to_string s)
+    let readdir s = Sys.readdir (to_string s)
+  end)
+
+include Directory_operations
+
+let find_in_path path name =
+  let file = of_string name in
+  if not (is_implicit file) then
+    if exists file then file
+    else raise Not_found
+  else
+    let rec try_dir = function
+        [] -> raise Not_found
+      | dir::rem ->
+        let dir = of_string dir in
+        let fullname = concat dir file in
+        if exists fullname then fullname else try_dir rem
+    in
+    try_dir path
