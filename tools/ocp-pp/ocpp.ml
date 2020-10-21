@@ -57,9 +57,8 @@ type state =
 
 type stack = (state * bool) list
 
-let token_of_token = function
-  | STRING (s,_) -> Ocpp_parser.STRING s
-  | _ -> assert false
+let token_of_token tok =
+  Ocpp_parser.STRING (Compat.get_STRING tok)
 
 let lines_of_file filename =
   let ic = open_in filename in
