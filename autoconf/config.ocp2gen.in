@@ -19,7 +19,6 @@ autoconf = {
   opam_repo_fork_remote="@OPAM_REPO_FORK_REMOTE@";
   download_url_prefix="@DOWNLOAD_URL_PREFIX@";
   conf_ocamlversion="@OCAMLVERSION@";
-  conf_ocamlversion_c="@OCAMLVERSION_C@";
   conf_ocamlc="@OCAMLC@";
   conf_ocamlopt="@OCAMLOPT@";
   conf_ocamldep="@OCAMLDEP@";
@@ -29,6 +28,7 @@ autoconf = {
   conf_ocamllib="@OCAMLLIB@";
   conf_ocamlbin="@OCAMLBIN@";
   conf_has_bytes="@HAS_BYTES@";
+  conf_need_seq="@NEED_SEQ@";
   ocaml_use_binannot = @OCAML_USE_BINANNOT@;
   autoconf_dir = "@PACKAGE_NAME@-autoconf-dir";
 

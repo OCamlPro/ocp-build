@@ -26,9 +26,15 @@ OCPLIB_NAMES=debug lang unix file system config compat
 
 CMDLINER_DIR := $(shell ocamlfind query cmdliner)
 RE_DIR := $(shell ocamlfind query re)
+ifeq (${NEED_SEQ},true)
+SEQ_DIR := $(shell ocamlfind query seq)
+SEQ_DEP := ${SEQ_DIR}/seq.cmxa
+endif
+RE_DIR := $(shell ocamlfind query re)
 EXTERNAL_INCLUDES=    -I ${CMDLINER_DIR} -I ${RE_DIR}
 EXTERNAL_LIBS=\
   ${CMDLINER_DIR}/cmdliner.cmxa \
+  ${SEQ_DEP} \
   ${RE_DIR}/re.cmxa
 
 INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
