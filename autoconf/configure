@@ -587,13 +587,13 @@ PACKAGE_URL=''
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
 OCAML_USE_BINANNOT
+NEED_SEQ
 HAS_BYTES
 DOWNLOAD_URL_PREFIX
 OPAM_REPO_FORK_REMOTE
 OPAM_REPO_OFFICIAL_REMOTE
 OPAM_REPO
 ROOTDIR
-PROJECTURE_ARGS
 OCAML_PKG_re_glob
 OCAML_PKG_cmdliner
 OCAMLYACC
@@ -1797,7 +1797,7 @@ ac_link='$CC -o conftest$ac_exeext $CFLAGS $CPPFLAGS $LDFLAGS conftest.$ac_ext $
 ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
 
-PROJECTURE_ARGS=$*
+CONFIGURE_ARGS=$*
 
 OCAML_MINIMAL_VERSION=4.02.3
 
@@ -4494,7 +4494,7 @@ $as_echo "not found" >&6; }
 
 
 
-if test "$OCAML_PKG_re.glob" = "no"; then
+if test "$OCAML_PKG_re_glob" = "no"; then
    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: BEFORE ERROR: Please install OCaml package 're.glob'." >&5
 $as_echo "$as_me: WARNING: BEFORE ERROR: Please install OCaml package 're.glob'." >&2;}
 else
@@ -4510,7 +4510,7 @@ else
   # 0001001200050617.  In other words, each number is zero padded to four
   # digits, and non digits are removed.
 
-  ax_compare_version_A=`echo "$OCAML_PKG_re.glob_VERSION" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+  ax_compare_version_A=`echo "$OCAML_PKG_re_glob_VERSION" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
                      -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
                      -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
                      -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
@@ -4579,7 +4579,7 @@ as_fn_error $? "Problems with dependencies (see warnings above)
 See \`config.log' for more details" "$LINENO" 5; }
       fi
 
-if test "$OCAML_PKG_re.glob" = "no"; then
+if test "$OCAML_PKG_re_glob" = "no"; then
    { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "Missing dependencies (see warnings above).
@@ -4597,7 +4597,7 @@ fi
   # 0001001200050617.  In other words, each number is zero padded to four
   # digits, and non digits are removed.
 
-  ax_compare_version_A=`echo "$OCAML_PKG_re.glob_VERSION" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+  ax_compare_version_A=`echo "$OCAML_PKG_re_glob_VERSION" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
                      -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
                      -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
                      -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
@@ -4709,11 +4709,88 @@ x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version
   fi
 
 
+NEED_SEQ=true
+echo OCAML version: ${OCAMLVERSION}
+
+
+
+  # Used to indicate true or false condition
+  ax_compare_version=false
+
+  # Convert the two version strings to be compared into a format that
+  # allows a simple string comparison.  The end result is that a version
+  # string of the form 1.12.5-r617 will be converted to the form
+  # 0001001200050617.  In other words, each number is zero padded to four
+  # digits, and non digits are removed.
+
+  ax_compare_version_A=`echo "${OCAMLVERSION}" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+                     -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/[^0-9]//g'`
+
+
+  ax_compare_version_B=`echo "4.07.0" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+                     -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/[^0-9]//g'`
+
+
+    ax_compare_version=`echo "x$ax_compare_version_A
+x$ax_compare_version_B" | sed 's/^ *//' | sort -r | sed "s/x${ax_compare_version_A}/true/;s/x${ax_compare_version_B}/false/;1q"`
+
+
+
+    if test "$ax_compare_version" = "true" ; then
+    NEED_SEQ=false
+      fi
+
+echo RE version: ${OCAML_PKG_re_glob_VERSION}
+
+
+
+  # Used to indicate true or false condition
+  ax_compare_version=false
+
+  # Convert the two version strings to be compared into a format that
+  # allows a simple string comparison.  The end result is that a version
+  # string of the form 1.12.5-r617 will be converted to the form
+  # 0001001200050617.  In other words, each number is zero padded to four
+  # digits, and non digits are removed.
+
+  ax_compare_version_A=`echo "${OCAML_PKG_re_glob_VERSION}" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+                     -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/[^0-9]//g'`
+
+
+  ax_compare_version_B=`echo "1.7.3" | sed -e 's/\([0-9]*\)/Z\1Z/g' \
+                     -e 's/Z\([0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/Z\([0-9][0-9][0-9]\)Z/Z0\1Z/g' \
+                     -e 's/[^0-9]//g'`
+
+
+    ax_compare_version=`echo "x$ax_compare_version_A
+x$ax_compare_version_B" | sed 's/^ *//' | sort | sed "s/x${ax_compare_version_A}/false/;s/x${ax_compare_version_B}/true/;1q"`
+
+
+
+    if test "$ax_compare_version" = "true" ; then
+    :
+    else NEED_SEQ=false
+  fi
+
+echo NEED_SEQ=${NEED_SEQ}
+
 ###############################################################
 ##                                                            #
 ## END of autoconf.ac                                         #
 ##                                                            #
 ###############################################################
+
 
 
 

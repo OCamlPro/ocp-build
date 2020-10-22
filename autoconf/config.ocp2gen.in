@@ -29,6 +29,7 @@ autoconf = {
   conf_ocamllib="@OCAMLLIB@";
   conf_ocamlbin="@OCAMLBIN@";
   conf_has_bytes="@HAS_BYTES@";
+  conf_need_seq="@NEED_SEQ@";
   ocaml_use_binannot = @OCAML_USE_BINANNOT@;
   autoconf_dir = "@PACKAGE_NAME@-autoconf-dir";
 

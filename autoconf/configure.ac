@@ -8,7 +8,7 @@
 #                                                     #
 #######################################################
 AC_INIT(ocp-build,1.99.21-beta)
-PROJECTURE_ARGS=$*
+CONFIGURE_ARGS=$*
 AC_COPYRIGHT(Copyright 2011-2016 OCamlPro SAS)
 OCAML_MINIMAL_VERSION=4.02.3
 AC_CONFIG_MACRO_DIR([m4])
@@ -133,10 +133,10 @@ else
      AC_MSG_WARN([BEFORE ERROR: Version >= 1.0 of cmdliner is needed]))
 fi
 AC_CHECK_OCAML_PKG(re.glob)
-if test "$OCAML_PKG_re.glob" = "no"; then
+if test "$OCAML_PKG_re_glob" = "no"; then
    AC_MSG_WARN([BEFORE ERROR: Please install OCaml package 're.glob'.])
 else
-  AX_COMPARE_VERSION( [$OCAML_PKG_re.glob_VERSION], [lt], [1.7.3],
+  AX_COMPARE_VERSION( [$OCAML_PKG_re_glob_VERSION], [lt], [1.7.3],
      AC_MSG_WARN([BEFORE ERROR: Version >= 1.7.3 of re.glob is needed]))
 fi
 if test "$OCAML_PKG_cmdliner" = "no"; then
@@ -144,10 +144,10 @@ if test "$OCAML_PKG_cmdliner" = "no"; then
 fi
   AX_COMPARE_VERSION( [$OCAML_PKG_cmdliner_VERSION], [lt], [1.0],
      AC_MSG_FAILURE([Problems with dependencies (see warnings above)]))
-if test "$OCAML_PKG_re.glob" = "no"; then
+if test "$OCAML_PKG_re_glob" = "no"; then
    AC_MSG_FAILURE([Missing dependencies (see warnings above).])
 fi
-  AX_COMPARE_VERSION( [$OCAML_PKG_re.glob_VERSION], [lt], [1.7.3],
+  AX_COMPARE_VERSION( [$OCAML_PKG_re_glob_VERSION], [lt], [1.7.3],
      AC_MSG_FAILURE([Problems with dependencies (see warnings above)]))
 OPAM_REPO=/home/lefessan/GIT/ocp-public/opam-repository
 OPAM_REPO_OFFICIAL_REMOTE=ocaml
@@ -165,6 +165,13 @@ HAS_BYTES=3.12.1
 AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [4.02.0],, HAS_BYTES=4.02.0)
 AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [4.03.0],, HAS_BYTES=4.03.0)
 
+NEED_SEQ=true
+echo OCAML version: ${OCAMLVERSION}
+AX_COMPARE_VERSION( [${OCAMLVERSION}], [ge], [4.07.0], NEED_SEQ=false, )
+echo RE version: ${OCAML_PKG_re_glob_VERSION}
+AX_COMPARE_VERSION( [${OCAML_PKG_re_glob_VERSION}], [gt], [1.7.3],,NEED_SEQ=false)
+echo NEED_SEQ=${NEED_SEQ}
+
 ###############################################################
 ##                                                            #
 ## END of autoconf.ac                                         #
@@ -174,7 +181,7 @@ AX_COMPARE_VERSION( [${OCAMLVERSION}], [lt], [4.03.0],, HAS_BYTES=4.03.0)
 AC_SUBST(OCAMLFIND)
 AC_SUBST(OCAMLYACC)
 AC_SUBST(OCAMLLEX)
-AC_SUBST(PROJECTURE_ARGS)
+AC_SUBST(CONFIGURE_ARGS)
 AC_SUBST(ROOTDIR)
 AC_SUBST(prefix)
 AC_SUBST(exec_prefix)
@@ -202,6 +209,7 @@ AC_SUBST(OCAMLDOC)
 AC_SUBST(OCAMLLIB)
 AC_SUBST(OCAMLBIN)
 AC_SUBST(HAS_BYTES)
+AC_SUBST(NEED_SEQ)
 AC_SUBST(OCAML_USE_BINANNOT)
 AC_CONFIG_FILES(Makefile.config config.ocpgen config.ocp2gen ocaml-config.h)
 AC_OUTPUT
