@@ -74,7 +74,7 @@ let () =
        AutoconfFS.fprintf oc "#######################################################\n";
 
        AutoconfFS.fprintf oc "AC_INIT(%s,%s)\n" !!PROJECT.project_name !!PROJECT.project_version;
-       AutoconfFS.fprintf oc "PROJECTURE_ARGS=$*\n";
+       AutoconfFS.fprintf oc "CONFIGURE_ARGS=$*\n";
        AutoconfFS.fprintf oc "AC_COPYRIGHT(%s)\n" !!PROJECT.project_copyright;
        AutoconfFS.fprintf oc "OCAML_MINIMAL_VERSION=%s\n" !!PROJECT.ocaml_minimal_version;
 
@@ -255,7 +255,7 @@ let () =
        let default_config_vars =
          (List.map (fun s -> s, None)
             [
-              "PROJECTURE_ARGS";
+              "CONFIGURE_ARGS";
             ]) @
          (List.map (fun s -> s, Some (String.lowercase s)) [
              "ROOTDIR";

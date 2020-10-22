@@ -19,6 +19,20 @@ module String = struct
   let lowercase = lowercase_ascii
   let uppercase = uppercase_ascii
   let capitalize = capitalize_ascii
+  let split_on_char c s =
+    let len = String.length s in
+    let rec iter pos to_rev =
+      if pos = len then List.rev ("" :: to_rev) else
+        match try
+            Some ( String.index_from s pos c )
+          with Not_found -> None
+        with
+          Some pos2 ->
+          if pos2 = pos then iter (pos+1) ("" :: to_rev) else
+            iter (pos2+1) ((String.sub s pos (pos2-pos)) :: to_rev)
+        | None -> List.rev ( String.sub s pos (len-pos) :: to_rev )
+    in
+    iter 0 []
 end
 module Char = struct
   include Char
