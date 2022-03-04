@@ -10,7 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Ezcmd.Modules
+open Ezcmd.V2
+open EZCMD.TYPES
 
 open OcpCompat
 open BuildOCPTypes
@@ -38,7 +39,7 @@ let arg_print_env_warnings = ref PrintWarningsIfChanged
 let arg_print_pj_warnings = ref PrintWarningsIfChanged
 
 let arg_list =
-  Arg.translate ~docs: "WARNING OPTIONS"
+  EZCMD.translate ~docs: "WARNING OPTIONS"
   [
   arg_no_warnings_string, Arg.Unit (fun () ->
     arg_print_pj_warnings := PrintWarningsNever;

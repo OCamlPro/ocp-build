@@ -10,12 +10,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Ezcmd.Modules
+open Ezcmd.V2
+open EZCMD.TYPES
 
-val arg_list : Arg.arg_list
+val arg_list : arg_list
 
-val subcommand : Arg.command
-val old_subcommand : Arg.command
+val subcommand : sub
+val old_subcommand : sub
 
 val make_doc_targets : bool ref
 val make_test_targets : bool ref

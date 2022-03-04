@@ -17,6 +17,8 @@ ocp-build check [CHECK_OPTIONS] [CONFIGURE_OPTIONS]
 Read the project description and issue warnings. Do not modify anything in the project.
 |}
 
+open Ezcmd.V2
+open EZCMD.TYPES
 
 open OcpCompat
 
@@ -32,8 +34,6 @@ open BuildOCPTypes
 open BuildValue.TYPES
 open BuildActions
 open BuildTypes
-
-open Ezcmd.Modules
 
 let print_queried_features_arg = ref false
 
@@ -538,7 +538,7 @@ let action () =
   ()
 
 let arg_list =
-  Arg.translate ~docs:"CHECK OPTIONS"
+  EZCMD.translate ~docs:"CHECK OPTIONS"
   [
   "-I", Arg.String (fun dir ->
     arg_ocp_dirs := !arg_ocp_dirs @ [ dir ]),
@@ -559,14 +559,13 @@ let arg_list =
   ] @
     BuildActionsWarnings.arg_list
 
-let subcommand = {
-  Arg.cmd_name = command_name;
-  cmd_man = [`P command_help];
-  cmd_args =
-    arg_list
-    @ BuildActionConfigure.arg_with
-    @ BuildActionsWarnings.arg_list
-    @ Arg.translate_anon BuildArgs.arg_anon;
-  cmd_doc = "Set the root of a project.";
-  cmd_action = action;
-}
+let subcommand =
+  EZCMD.sub command_name
+    ~man: [`P command_help]
+    ~args: (
+      arg_list
+      @ BuildActionConfigure.arg_with
+      @ BuildActionsWarnings.arg_list
+      @ EZCMD.translate_anon BuildArgs.arg_anon )
+    ~doc: "Set the root of a project."
+    action

@@ -31,6 +31,8 @@ other files. For now, it is better to declare all options here.
 
 
 open OcpCompat
+open Ezcmd.V2
+open EZCMD.TYPES
 
 open SimpleConfig
 (* 3 configuration files:
@@ -38,8 +40,6 @@ open SimpleConfig
  - one for OCaml configuration: $OCPBUILD_CONF/ocp-build.conf
  - one for the project: ocp-build.root
 *)
-
-open Ezcmd.Modules
 
 type config_input = {
   mutable cin_ocamlc_variants : string list;

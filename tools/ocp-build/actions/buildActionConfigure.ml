@@ -18,7 +18,8 @@ let command_help = {|
 the options `--with FEATURE`, `--with FEATURE=VALUE` and `--without FEATURE`.
 |}
 
-open Ezcmd.Modules
+open Ezcmd.V2
+open EZCMD.TYPES
 
 open BuildArgs
 open BuildOptions
@@ -28,7 +29,7 @@ let with_args = ref []
 (* BuildOCP2Prims.with_feature *)
 
 let arg_with =
-  Arg.translate ~docs:"FEATURES OPTIONS"
+  EZCMD.translate ~docs:"FEATURES OPTIONS"
   [
   "--with", Arg.String (fun name -> with_args := (name, true) :: !with_args),
   " Enable a feature (X), maybe setting its value (X=Y)";
@@ -38,7 +39,7 @@ let arg_with =
   ]
 
 let arg_list =
-  Arg.translate ~docs:"CONFIGURE OPTIONS"
+  EZCMD.translate ~docs:"CONFIGURE OPTIONS"
   [
 
   arg_set_int_option ProjectOptions.njobs_option;
@@ -82,10 +83,9 @@ let action () =
   BuildOptions.apply_arguments ();
   BuildOptions.save_config ProjectOptions.config_file
 
-let subcommand = {
-  Arg.cmd_name = command_name;
-  cmd_man = [ `P command_help ];
-  cmd_args = arg_with @ arg_list;
-  cmd_doc = "Set the project options.";
-  cmd_action = action;
-}
+let subcommand =
+  EZCMD.sub command_name
+    ~man:[ `P command_help ]
+    ~args: ( arg_with @ arg_list )
+    ~doc:"Set the project options."
+    action

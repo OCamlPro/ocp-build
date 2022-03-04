@@ -10,7 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Ezcmd.Modules
+open Ezcmd.V2
+open EZCMD.TYPES
 
 val shortcut_arg :
   string -> string ->

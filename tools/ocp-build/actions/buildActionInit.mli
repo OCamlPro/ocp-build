@@ -10,12 +10,13 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Ezcmd.Modules
+open Ezcmd.V2
+open EZCMD.TYPES
 
-val subcommand : Arg.command
+val subcommand : sub
 
 val action : unit -> unit
-val arg_list : Arg.arg_list
+val arg_list : arg_list
 
                                             (*
 

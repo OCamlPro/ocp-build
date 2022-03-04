@@ -18,15 +18,8 @@ ocp-build query [QUERY_OPTIONS]
 Query the project environment (mostly META files).
 |}
 
-
-
-
-
-
-
-
-
-open Ezcmd.Modules
+open Ezcmd.V2
+open EZCMD.TYPES
 
 open BuildOCPTypes
 open BuildTypes
@@ -39,7 +32,7 @@ let query_libdir = ref []
 let query_package = ref []
 let list_arg = ref false
 
-let arg_list = Arg.translate ~docs:"QUERY OPTIONS"
+let arg_list = EZCMD.translate ~docs:"QUERY OPTIONS"
   [
     "", Arg.Unit (fun()->()), "\nList of options available in QUERY_OPTIONS:\n";
 
@@ -136,11 +129,10 @@ let action () =
 
 
 
-let subcommand = {
-  Arg.cmd_name = "query";
-  cmd_man = [`P "Query information about environment."];
-  cmd_args = arg_list
-             @ BuildActionMake.arg_list;
-  cmd_doc = "Query information about environment.";
-  cmd_action = action;
-}
+let subcommand =
+  EZCMD.sub "query"
+    ~man: [`P "Query information about environment."]
+    ~args: ( arg_list
+             @ BuildActionMake.arg_list )
+    ~doc: "Query information about environment."
+    action

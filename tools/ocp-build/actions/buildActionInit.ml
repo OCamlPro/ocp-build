@@ -19,6 +19,9 @@ ocp-build init [INIT_OPTIONS] [CONFIGURE_OPTIONS]
       `ocp-build configure --help` for specific help.
 |}
 
+open Ezcmd.V2
+open EZCMD.TYPES
+
 open OcpCompat
 
 open BuildArgs
@@ -33,8 +36,6 @@ open BuildOCPTypes
 open BuildValue.TYPES
 open BuildActions
 open BuildTypes
-
-open Ezcmd.Modules
 
 let _verbose = OcpDebug.verbose_function ["B"; "BuildActionInit"]
 
@@ -56,16 +57,15 @@ let action () =
     end;
   BuildActionConfigure.action ()
 
-let arg_list = Arg.translate ~docs:"INIT OPTIONS" [
+let arg_list = EZCMD.translate ~docs:"INIT OPTIONS" [
 
   ]
 
-let subcommand = {
-  Arg.cmd_name = command_name;
-  cmd_man = [`P command_help];
-  cmd_args =  arg_list
+let subcommand =
+  EZCMD.sub command_name
+    ~man:[`P command_help]
+    ~args: (  arg_list
               @ BuildActionConfigure.arg_with
-              @ BuildActionsWarnings.arg_list;
-  cmd_doc = "Set the root of a project.";
-  cmd_action = action;
-}
+              @ BuildActionsWarnings.arg_list )
+    ~doc: "Set the root of a project."
+    action

@@ -10,9 +10,10 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Ezcmd.Modules
+open Ezcmd.V2
+open EZCMD.TYPES
 
-val arg_list : Arg.arg_list
+val arg_list : arg_list
 
 val set_default_is_always : unit -> unit
 

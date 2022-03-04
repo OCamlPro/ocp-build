@@ -16,7 +16,8 @@
 
 *)
 
-open Ezcmd.Modules
+open Ezcmd.V2
+open EZCMD.TYPES
 
 open BuildArgs
 open BuildOptions
@@ -50,10 +51,8 @@ let action () =
   BuildOptions.apply_arguments ();
   BuildOptions.save_config UserOptions.config_file
 
-let subcommand = {
-  Arg.cmd_name = "prefs";
-  cmd_man = [`P "Set the user global preferences."];
-  cmd_args = Arg.translate arg_list;
-  cmd_doc = "Set the user global preferences.";
-  cmd_action = action;
-}
+let subcommand = EZCMD.sub "prefs"
+    ~man: [`P "Set the user global preferences."]
+    ~args: ( EZCMD.translate arg_list )
+    ~doc: "Set the user global preferences."
+    action

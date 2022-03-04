@@ -10,7 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Ezcmd.Modules
+open Ezcmd.V2
+open EZCMD.TYPES
 
 open BuildArgs
 open BuildActions
@@ -54,12 +55,11 @@ let action () =
   do_test bc.build_context (BuildActionMake.get_ncores p.cin) projects;
   ()
 
-let subcommand = {
-  Arg.cmd_name = "tests";
-  cmd_man = [`P "Run project tests."];
-  cmd_args = arg_list
+let subcommand =
+  EZCMD.sub "tests"
+    ~man: [`P "Run project tests."]
+    ~args: ( arg_list
              @ BuildActionMake.arg_list
-             @ Arg.translate_anon arg_anon;
-  cmd_doc = "Run project tests.";
-  cmd_action = action;
-}
+             @ EZCMD.translate_anon arg_anon )
+    ~doc: "Run project tests."
+    action
