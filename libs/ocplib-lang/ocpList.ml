@@ -10,6 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
+let stdlib_compare = compare
+
 open List
 
 (**************************************************************************)
@@ -280,11 +282,11 @@ let intercalate ~pattern:x l =
 
 let rec inv_assoc x = function
   | [] -> raise Not_found
-  | (a,b)::l -> if compare b x = 0 then a else inv_assoc x l
+  | (a,b)::l -> if stdlib_compare b x = 0 then a else inv_assoc x l
 
 let rec inv_mem_assoc x = function
   | [] -> false
-  | (_a, b) :: l -> compare b x = 0 || inv_mem_assoc x l
+  | (_a, b) :: l -> stdlib_compare b x = 0 || inv_mem_assoc x l
 
 (* Compatibility 3.11 -> 3.12 *)
 let rec iteri i f = function
