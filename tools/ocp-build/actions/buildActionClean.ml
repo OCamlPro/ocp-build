@@ -16,7 +16,9 @@
 
 *)
 
-open Ezcmd.Modules
+open Ezcmd.V2
+open EZCMD.TYPES
+
 open BuildArgs
 open BuildOptions
 
@@ -57,10 +59,9 @@ let action () =
     ()
   end
 
-let subcommand = {
-  Arg.cmd_name = "clean";
-  cmd_man =  [`P "Clean the project."];
-  cmd_args = Arg.translate arg_list;
-  cmd_doc = "Clean the project.";
-  cmd_action = action;
-}
+let subcommand =
+  EZCMD.sub "clean"
+    ~man: [`P "Clean the project."]
+    ~args: ( EZCMD.translate arg_list )
+    ~doc: "Clean the project."
+    action

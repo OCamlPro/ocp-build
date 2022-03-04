@@ -17,7 +17,6 @@ minunix_SRCDIR=libs/ocplib-unix
 unix_SRCDIR=libs/ocplib-maxunix
 file_SRCDIR=libs/ocplib-file
 system_SRCDIR=libs/ocplib-system
-ezcmd_SRCDIR=libs/ezcmd
 config_SRCDIR=libs/ocplib-config
 OCP_BUILD_SRCDIR=tools/ocp-build
 OCP_BUILD_DSTDIR=$(OBUILD_DSTDIR)/ocp-build
@@ -25,20 +24,27 @@ OCP_BUILD_DSTDIR=$(OBUILD_DSTDIR)/ocp-build
 OCPLIB_NAMES=debug lang unix file system config compat
 
 CMDLINER_DIR := $(shell ocamlfind query cmdliner)
+
 ifeq (${NEED_SEQ},true)
 SEQ_DIR:= $(shell ocamlfind query seq)
 SEQ_INC:= -I ${SEQ_DIR}
 SEQ_DEP:= ${SEQ_DIR}/seq.cmxa
 endif
+
+OCPLIB_STUFF_DIR := $(shell ocamlfind query ocplib_stuff)
+EZ_SUBST_DIR := $(shell ocamlfind query ez_subst)
+EZ_CMDLINER_DIR := $(shell ocamlfind query ez_cmdliner)
 RE_DIR := $(shell ocamlfind query re)
-EXTERNAL_INCLUDES= -I ${CMDLINER_DIR} -I ${RE_DIR} ${SEQ_INC}
+EXTERNAL_INCLUDES= -I ${CMDLINER_DIR} -I ${EZ_CMDLINER_DIR} -I ${RE_DIR} ${SEQ_INC}
 EXTERNAL_LIBS=\
   ${CMDLINER_DIR}/cmdliner.cmxa \
+  ${OCPLIB_STUFF_DIR}/ocplib_stuff.cmxa \
+  ${EZ_SUBST_DIR}/ez_subst.cmxa \
+  ${EZ_CMDLINER_DIR}/ezcmd.cmxa \
   ${SEQ_DEP} ${RE_DIR}/re.cmxa
 
 INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
     -I $(OCP_BUILD_SRCDIR) \
-    -I libs/ezcmd \
     -I $(OCP_BUILD_SRCDIR)/misc \
     -I $(OCP_BUILD_SRCDIR)/lang-ocp \
     -I $(OCP_BUILD_SRCDIR)/lang-ocp2 \
@@ -48,14 +54,13 @@ INCLUDES=$(foreach lib, $(OCPLIB_NAMES), -I $($(lib)_SRCDIR)) \
     -I $(OCP_BUILD_SRCDIR)/ocaml \
 
 OCPLIB_LIBS=$(foreach lib, $(OCPLIB_NAMES), ocplib-$(lib)) \
-  ezcmd ocplib-file-compat
+  ocplib-file-compat
 
 OCP_BUILD_BOOTER=boot/ocp-build.asm
 
 STRING_COMPAT=\
 	$(compat_SRCDIR)/ocpCompat.ml
 
-EZCMD=$(ezcmd_SRCDIR)/ezcmd.ml
 
 OCPLIB_DEBUG= $(debug_SRCDIR)/ocpDebug.ml
 

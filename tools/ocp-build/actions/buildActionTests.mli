@@ -10,6 +10,7 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Ezcmd.Modules
+open Ezcmd.V2
+open EZCMD.TYPES
 
-val subcommand : Arg.command
+val subcommand : sub

@@ -24,7 +24,8 @@
    in a particular compilation scheme.
 *)
 
-open Ezcmd.Modules
+open Ezcmd.V2
+open EZCMD.TYPES
 
 open OcpCompat
 
@@ -86,12 +87,12 @@ let _ =
     | _ -> ()
   done;
   try
-    let () = Ezcmd.main_with_subcommands
+    let () = EZCMD.main_with_subcommands
                ~name:"ocp-build"
                ~doc:"OCaml Highly-Parallel Build System"
                ~man: []
                ~argv
-               ~default: "make"
+               ~default: BuildActionMake.subcommand
                subcommands in
     ()
 

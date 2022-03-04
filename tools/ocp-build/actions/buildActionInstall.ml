@@ -10,7 +10,8 @@
 (*                                                                        *)
 (**************************************************************************)
 
-open Ezcmd.Modules
+open Ezcmd.V2
+open EZCMD.TYPES
 
 open OcpCompat
 
@@ -120,7 +121,7 @@ let do_install dest_dir _install_what projects _package_map =
     end
 
 let arg_list =
-  Arg.translate ~docs:"INSTALL OPTIONS"
+  EZCMD.translate ~docs:"INSTALL OPTIONS"
       [
   "-install-bundle", Arg.String (fun _s ->
     Printf.eprintf "Warning: option -install-bundle is obsolete\n%!"
@@ -148,12 +149,11 @@ let action () =
 
 
 
-let subcommand = {
-  Arg.cmd_name = "install";
-  cmd_man = [`P "Install the project."];
-  cmd_args = arg_list
+let subcommand =
+  EZCMD.sub "install"
+    ~man: [`P "Install the project."]
+    ~args: ( arg_list
              @ BuildActionMake.arg_list
-             @ Arg.translate_anon BuildArgs.arg_anon;
-  cmd_doc = "Install the project.";
-  cmd_action = action;
-}
+             @ EZCMD.translate_anon BuildArgs.arg_anon )
+    ~doc: "Install the project."
+    action

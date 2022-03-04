@@ -24,7 +24,8 @@
    in a particular compilation scheme.
 *)
 
-open Ezcmd.Modules
+open Ezcmd.V2
+open EZCMD.TYPES
 
 let command_name = "make"
 let command_help = {|
@@ -418,26 +419,23 @@ let arg_list = add_synomyms arg_list
       "-j", "-njobs";
     ]
 
-let arg_list = Arg.translate ~docs:"BUILD OPTIONS" arg_list
+let arg_list = EZCMD.translate ~docs:"BUILD OPTIONS" arg_list
 
-let subcommand = {
-  Arg.cmd_name = command_name;
-  cmd_man = [ `S command_help ];
-  cmd_args = arg_list
+let subcommand =
+  EZCMD.sub command_name
+    ~man: [ `S command_help ]
+    ~args: ( arg_list
              @ BuildActionInit.arg_list
              @ BuildActionConfigure.arg_with
              @ BuildActionCheck.arg_list
-             @ Arg.translate_anon arg_anon;
-  cmd_doc = "Build";
-  cmd_action = action;
-}
+             @ EZCMD.translate_anon arg_anon )
+    ~doc: "Build"
+    action
 
 let old_subcommand =
-  {
-  Arg.cmd_name = "build";
-  cmd_man = [`S "(deprecated, use 'ocp-build make' subcommand)"];
-  cmd_args = arg_list
-             @ Arg.translate_anon arg_anon;
-  cmd_doc = "Build";
-  cmd_action = action;
-}
+  EZCMD.sub "build"
+    ~man: [`S "(deprecated, use 'ocp-build make' subcommand)"]
+    ~args: ( arg_list
+             @ EZCMD.translate_anon arg_anon )
+    ~doc: "Build"
+    action

@@ -14,9 +14,9 @@ build: [
 depends: [
   "ocaml" {>= "4.02.3" }
   "ocamlfind"
-  "cmdliner"
   "re" {>= "1.7.3"}
   "seq" {ocaml < "4.7.0"}
+  "ez_cmdliner" {>= "0.4.2" }
 ]
 conflicts: [ "typerex"  {< "1.99.7"} ]
 install: [make "install"]
