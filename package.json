@@ -1,0 +1,35 @@
+{
+  "name": "ocp-build",
+  "version": "1.2.0",
+  "description": "A build manager for OCaml applications",
+  "contributors": [
+    "Fabrice Le Fessant <fabrice.le_fessant@ocamlpro.com>",
+    "Élie BRAMI <elie.brami@epita.fr>"
+  ],
+  "license": "LicenseRef-LICENSE",
+  "esy": {
+    "build": [
+      "echo host x86_64-w64-mingw32 can change in future",
+      "#{self.root}/configure #{os == 'windows' ? '--host x86_64-w64-mingw32' : ''} --prefix #{self.install} --exec-prefix #{self.install} --bindir #{self.install}/bin --libdir #{self.install}/lib --with-ocamldir=#{self.install}/lib/ocaml --datarootdir #{self.install}/share --mandir #{self.install}/share/man",
+      "make"
+    ],
+    "install": "make install",
+    "exportedEnv": {
+      "PATH": {
+        "val": "#{self.bin : $PATH}",
+        "scope": "global"
+      }
+    }
+  },
+  "dependencies": {
+    "@opam/ocamlfind": "*",
+    "@opam/cmdliner": ">=1.0",
+    "@opam/re": ">=1.7.3"
+  },
+  "peerDependencies": {
+    "ocaml": ">=4.6.0 <4.8.0"
+  },
+  "devDependencies": {
+    "ocaml": ">=4.6.0 <4.8.0"
+  }
+}
